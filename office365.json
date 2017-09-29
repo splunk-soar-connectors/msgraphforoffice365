@@ -13,7 +13,7 @@
     "utctime_updated": "2017-09-19T01:53:45.401111Z",
     "package_name": "phantom_msgraphoffice365",
     "main_module": "office365_connector.pyc",
-    "min_phantom_version": "3.0.245",
+    "min_phantom_version": "3.0.247",
     "app_wizard_version": "1.0.0",
     "rest_handler": "office365_connector.handle_request",
     "configuration": {
@@ -66,7 +66,26 @@
             "type": "generic",
             "read_only": false,
             "parameters": {},
-            "output": [],
+            "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "column_name": "status",
+                    "column_order": 0
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric"
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric"
+                }
+            ],
             "render": {
                 "type": "table"
             },
@@ -449,6 +468,13 @@
                     "value_list": [],
                     "default": "",
                     "order": 3
+                },
+                "body": {
+                    "description": "Substring to search in Body",
+                    "data_type": "string",
+                    "order": 4,
+                    "primary": false,
+                    "required": false
                 },
                 "internet_message_id": {
                     "description": "Internet Message ID",
