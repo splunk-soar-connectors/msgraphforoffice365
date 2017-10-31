@@ -40,30 +40,6 @@
             "data_type": "password",
             "required": true,
             "order": 3
-        },
-        "email_address": {
-            "description": "Email address to ingest from",
-            "data_type": "string",
-            "required": true,
-            "order": 4
-        },
-        "folder": {
-            "description": "Folder to ingest from",
-            "data_type": "string",
-            "required": false,
-            "order": 5
-        },
-        "max_emails": {
-            "description": "Maximum emails for scheduled polling",
-            "data_type": "numeric",
-            "required": true,
-            "order": 6
-        },
-        "first_run_max_emails": {
-            "description": "Maximum emails to poll first time",
-            "data_type": "numeric",
-            "required": true,
-            "order": 7
         }
     },
     "actions": [
@@ -71,7 +47,6 @@
             "action": "test connectivity",
             "identifier": "test_connectivity",
             "description": "Validate the asset configuration for connectivity using supplied configuration",
-            "verbose": "",
             "type": "test",
             "read_only": true,
             "parameters": {},
@@ -79,43 +54,9 @@
             "versions": "EQ(*)"
         },
         {
-            "action": "generate token",
-            "identifier": "generate_token",
-            "description": "Generates a token",
-            "verbose": "",
-            "type": "generic",
-            "read_only": false,
-            "parameters": {},
-            "output": [
-                {
-                    "data_path": "action_result.status",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.message",
-                    "data_type": "string",
-                    "column_name": "status",
-                    "column_order": 0
-                },
-                {
-                    "data_path": "summary.total_objects",
-                    "data_type": "numeric"
-                },
-                {
-                    "data_path": "summary.total_objects_successful",
-                    "data_type": "numeric"
-                }
-            ],
-            "render": {
-                "type": "table"
-            },
-            "versions": "EQ(*)"
-        },
-        {
             "action": "copy email",
             "identifier": "copy_email",
             "description": "Copy an email to a folder",
-            "verbose": "If the <b>email_address</b> parameter is not given, the action will use the email address given in the asset configuration.",
             "type": "generic",
             "read_only": false,
             "parameters": {
@@ -132,7 +73,7 @@
                 "email_address": {
                     "description": "Source Mailbox (Email)",
                     "data_type": "string",
-                    "required": false,
+                    "required": true,
                     "contains": [
                         "email"
                     ],
@@ -205,7 +146,6 @@
             "action": "delete email",
             "identifier": "delete_email",
             "description": "Delete emails",
-            "verbose": "If the <b>email_address</b> parameter is not given, the action will use the email address given in the asset configuration.",
             "type": "contain",
             "read_only": false,
             "parameters": {
@@ -224,7 +164,7 @@
                 "email_address": {
                     "description": "Email address of the mailbox owner",
                     "data_type": "string",
-                    "required": false,
+                    "required": true,
                     "primary": false,
                     "contains": [
                         "email"
@@ -278,7 +218,6 @@
             "action": "get email",
             "identifier": "get_email",
             "description": "Get an email from the server",
-            "verbose": "If the <b>email_address</b> parameter is not given, the action will use the email address given in the asset configuration.",
             "type": "investigate",
             "read_only": true,
             "parameters": {
@@ -295,7 +234,7 @@
                 "email_address": {
                     "description": "Email address of the mailbox owner",
                     "data_type": "string",
-                    "required": false,
+                    "required": true,
                     "primary": false,
                     "contains": [
                         "email"
@@ -697,79 +636,16 @@
             "versions": "EQ(*)"
         },
         {
-            "action": "on poll",
-            "identifier": "on_poll",
-            "description": "Ingest emails from Office 365",
-            "verbose": "",
-            "type": "ingest",
-            "read_only": true,
-            "parameters": {
-                "start_time": {
-                    "description": "Parameter Ignored in this app",
-                    "data_type": "numeric",
-                    "required": false,
-                    "primary": false,
-                    "contains": [],
-                    "value_list": [],
-                    "default": "",
-                    "order": 0
-                },
-                "end_time": {
-                    "description": "Parameter Ignored in this app",
-                    "data_type": "numeric",
-                    "required": false,
-                    "primary": false,
-                    "contains": [],
-                    "value_list": [],
-                    "default": "",
-                    "order": 1
-                },
-                "container_id": {
-                    "description": "Parameter Ignored in this app",
-                    "data_type": "numeric",
-                    "required": false,
-                    "primary": false,
-                    "contains": [],
-                    "value_list": [],
-                    "default": "",
-                    "order": 2
-                },
-                "container_count": {
-                    "description": "Maximum number of emails to ingest",
-                    "data_type": "numeric",
-                    "required": false,
-                    "primary": false,
-                    "contains": [],
-                    "value_list": [],
-                    "default": "100",
-                    "order": 3
-                },
-                "artifact_count": {
-                    "description": "Parameter Ignored in this app",
-                    "data_type": "numeric",
-                    "required": false,
-                    "primary": false,
-                    "contains": [],
-                    "value_list": [],
-                    "default": "1000",
-                    "order": 4
-                }
-            },
-            "output": [],
-            "versions": "EQ(*)"
-        },
-        {
             "action": "run query",
             "identifier": "run_query",
             "description": "Search emails",
-            "verbose": "",
             "type": "investigate",
             "read_only": true,
             "parameters": {
                 "email_address": {
                     "description": "User's Email (Mailbox to search in)",
                     "data_type": "string",
-                    "required": false,
+                    "required": true,
                     "primary": true,
                     "contains": [
                         "email"
