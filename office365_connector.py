@@ -17,17 +17,22 @@
 import phantom.app as phantom
 from phantom.base_connector import BaseConnector
 from phantom.action_result import ActionResult
+from phantom.vault import Vault
 
-# Usage of the consts file is recommended
-from office365_consts import *
-import requests
-import json
-from bs4 import BeautifulSoup
+from datetime import datetime, timedelta
 from django.http import HttpResponse
+from office365_consts import *
+from bs4 import BeautifulSoup
+
+import process_email
+import requests
+import tempfile
+import base64
+import json
 import time
-import os
 import pwd
 import grp
+import os
 
 TC_FILE = "oauth_task.out"
 SERVER_TOKEN_URL = "https://login.microsoftonline.com/{0}/oauth2/v2.0/token"
@@ -110,6 +115,9 @@ def _process_response(r, action_result):
     # the error and adds it to the action_result.
     if 'html' in r.headers.get('Content-Type', ''):
         return _process_html_response(r, action_result)
+
+    if 200 <= r.status_code <= 204:
+        return RetVal(phantom.APP_SUCCESS, None)
 
     # it's not content-type that is to be parsed, handle an empty response
     if not r.text:
@@ -393,15 +401,129 @@ class Office365Connector(BaseConnector):
 
         url = "{0}{1}".format(MSGRAPH_API_URL, endpoint)
 
+        print 'HERE'
+        print url
+
         if (headers is None):
             headers = {}
 
         headers.update({
                 'Authorization': 'Bearer {0}'.format(self._state['token']['access_token']),
                 'Accept': 'application/json',
-                'Content-Type': 'applicaiton/json'})
+                'Content-Type': 'application/json'})
 
         return _make_rest_call(action_result, url, verify, headers, params, data, method)
+
+    def _handle_attachment(self, attachment, container_id, artifact_json=None):
+
+        try:
+
+            file_desc, file_path = tempfile.mkstemp(dir='/vault/tmp/')
+
+            download_file = open(file_path, 'w')
+            download_file.write(base64.b64decode(attachment.pop('contentBytes')))
+            download_file.close()
+
+            os.close(file_desc)
+
+            vault_ret = Vault.add_attachment(file_path, container_id, attachment['name'])
+
+        except Exception as e:
+            self.debug_print("Error saving file to vault: ", str(e))
+            return phantom.APP_ERROR
+
+        if not vault_ret.get('succeeded'):
+            self.debug_print("Error saving file to vault: ", vault_ret.get('message', "Could not save file to vault"))
+            return phantom.APP_ERROR
+
+        if artifact_json is None:
+            attachment['vaultId'] = vault_ret[phantom.APP_JSON_HASH]
+            return phantom.APP_SUCCESS
+
+        artifact_json['name'] = 'attachment - {0}'.format(attachment['name'])
+        artifact_json['label'] = 'attachment'
+        artifact_json['container_id'] = container_id
+        artifact_json['source_data_identifier'] = attachment['id']
+
+        artifact_cef = {}
+
+        artifact_cef['size'] = attachment['size']
+        artifact_cef['lastModified'] = attachment['lastModifiedDateTime']
+        artifact_cef['filename'] = attachment['name']
+        artifact_cef['mimeType'] = attachment['contentType']
+        artifact_cef['vault_id'] = vault_ret[phantom.APP_JSON_HASH]
+
+        artifact_json['cef'] = artifact_cef
+
+        return phantom.APP_SUCCESS
+
+    def _create_email_artifacts(self, container_id, email):
+
+        artifacts = []
+
+        email_artifact = {}
+        artifacts.append(email_artifact)
+        email_artifact['label'] = 'email'
+        email_artifact['name'] = 'Email Info'
+        email_artifact['container_id'] = container_id
+        email_artifact['cef_types'] = {'id': ['email id']}
+        email_artifact['source_data_identifier'] = email['id']
+
+        cef = {}
+        email_artifact['cef'] = cef
+        for k, v in email.iteritems():
+            if v is not None:
+                cef[k] = v
+
+        body = email['body']['content']
+
+        ips = set()
+        process_email._get_ips(body, ips)
+
+        for ip in ips:
+            ip_artifact = {}
+            artifacts.append(ip_artifact)
+            ip_artifact['name'] = ip
+            ip_artifact['label'] = 'ip'
+            ip_artifact['cef'] = {'deviceAddress': ip}
+            ip_artifact['container_id'] = container_id
+            ip_artifact['source_data_identifier'] = email['id']
+
+        urls = set()
+        domains = set()
+        process_email._extract_urls_domains(body, urls, domains)
+
+        for url in urls:
+            url_artifact = {}
+            artifacts.append(url_artifact)
+            url_artifact['name'] = url
+            url_artifact['label'] = 'url'
+            url_artifact['cef'] = {'deviceAddress': url}
+            url_artifact['container_id'] = container_id
+            url_artifact['source_data_identifier'] = email['id']
+
+        for domain in domains:
+            domain_artifact = {}
+            artifacts.append(domain_artifact)
+            domain_artifact['name'] = domain
+            domain_artifact['label'] = 'domain'
+            domain_artifact['cef'] = {'deviceAddress': domain}
+            domain_artifact['container_id'] = container_id
+            domain_artifact['source_data_identifier'] = email['id']
+
+        domains = set()
+        process_email._extract_email_domains(body, domains)
+
+        for domain in domains:
+            domain_artifact = {}
+            artifacts.append(domain_artifact)
+            domain_artifact['name'] = domain
+            domain_artifact['label'] = 'domain'
+            domain_artifact['cef'] = {'deviceAddress': domain}
+            domain_artifact['container_id'] = container_id
+            domain_artifact['source_data_identifier'] = email['id']
+
+        return artifacts
 
     def _handle_test_connectivity(self, param):
         """ Function that handles the test connectivity action, it is much simpler than other action handlers."""
@@ -510,191 +632,198 @@ class Office365Connector(BaseConnector):
 
     def _handle_copy_email(self, param):
 
-        # Implement the handler here
-        # use self.save_progress(...) to send progress messages back to the platform
         self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
-
-        # Add an action result object to self (BaseConnector) to represent the action for this param
         action_result = self.add_action_result(ActionResult(dict(param)))
 
-        """
-        # Access action parameters passed in the 'param' dictionary
+        config = self.get_config()
 
-        # Required values can be accessed directly
-        required_parameter = param['required_parameter']
+        email_addr = config['email_address']
+        if 'email_address' in param:
+            email_addr = param['email_address']
+        endpoint = '/users/{0}'.format(email_addr)
 
-        # Optional values should use the .get() function
-        optional_parameter = param.get('optional_parameter', 'default_value')
-        """
+        endpoint += '/messages/{0}/copy'.format(param['id'])
 
-        """
-        # make rest call
-        ret_val, response = self._make_rest_call('/endpoint', action_result, params=None, headers=None)
+        body = {'DestinationId': param['folder']}
 
+        ret_val, response = self._make_rest_call_helper(action_result, endpoint, data=json.dumps(body), method='post')
         if (phantom.is_fail(ret_val)):
-            # the call to the 3rd party device or service failed, action result should contain all the error details
-            # so just return from here
             return action_result.get_status()
 
-        # Now post process the data,  uncomment code as you deem fit
-
-        # Add the response into the data section
-        # action_result.add_data(response)
-        """
-
-        action_result.add_data({})
-
-        # Add a dictionary that is made up of the most important values from data into the summary
-        summary = action_result.update_summary({})
-        summary['important_data'] = "value"
-
-        # Return success, no need to set the message, only the status
-        # BaseConnector will create a textual message based off of the summary dictionary
-        # return action_result.set_status(phantom.APP_SUCCESS)
-
-        # For now return Error with a message, in case of success we don't set the message, but use the summary
-        return action_result.set_status(phantom.APP_ERROR, "Action not yet implemented")
+        return action_result.set_status(phantom.APP_SUCCESS, "Successfully copied email")
 
     def _handle_delete_email(self, param):
 
-        # Implement the handler here
-        # use self.save_progress(...) to send progress messages back to the platform
         self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
-
-        # Add an action result object to self (BaseConnector) to represent the action for this param
         action_result = self.add_action_result(ActionResult(dict(param)))
 
-        """
-        # Access action parameters passed in the 'param' dictionary
+        config = self.get_config()
 
-        # Required values can be accessed directly
-        required_parameter = param['required_parameter']
+        email_addr = config['email_address']
+        if 'email_address' in param:
+            email_addr = param['email_address']
+        endpoint = "/users/{0}".format(email_addr)
 
-        # Optional values should use the .get() function
-        optional_parameter = param.get('optional_parameter', 'default_value')
-        """
+        endpoint += '/messages/{0}'.format(param['id'])
 
-        """
-        # make rest call
-        ret_val, response = self._make_rest_call('/endpoint', action_result, params=None, headers=None)
-
+        ret_val, response = self._make_rest_call_helper(action_result, endpoint, method='delete')
         if (phantom.is_fail(ret_val)):
-            # the call to the 3rd party device or service failed, action result should contain all the error details
-            # so just return from here
             return action_result.get_status()
 
-        # Now post process the data,  uncomment code as you deem fit
-
-        # Add the response into the data section
-        # action_result.add_data(response)
-        """
-
-        action_result.add_data({})
-
-        # Add a dictionary that is made up of the most important values from data into the summary
-        summary = action_result.update_summary({})
-        summary['important_data'] = "value"
-
-        # Return success, no need to set the message, only the status
-        # BaseConnector will create a textual message based off of the summary dictionary
-        # return action_result.set_status(phantom.APP_SUCCESS)
-
-        # For now return Error with a message, in case of success we don't set the message, but use the summary
-        return action_result.set_status(phantom.APP_ERROR, "Action not yet implemented")
+        return action_result.set_status(phantom.APP_SUCCESS, "successfully deleted email")
 
     def _handle_get_email(self, param):
 
-        # Implement the handler here
-        # use self.save_progress(...) to send progress messages back to the platform
         self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
-
-        # Add an action result object to self (BaseConnector) to represent the action for this param
         action_result = self.add_action_result(ActionResult(dict(param)))
 
-        """
-        # Access action parameters passed in the 'param' dictionary
+        config = self.get_config()
 
-        # Required values can be accessed directly
-        required_parameter = param['required_parameter']
+        email_addr = config['email_address']
+        if 'email_address' in param:
+            email_addr = param['email_address']
+        endpoint = '/users/{0}'.format(email_addr)
 
-        # Optional values should use the .get() function
-        optional_parameter = param.get('optional_parameter', 'default_value')
-        """
+        endpoint += '/messages/{0}'.format(param['id'])
 
-        """
-        # make rest call
-        ret_val, response = self._make_rest_call('/endpoint', action_result, params=None, headers=None)
-
+        ret_val, response = self._make_rest_call_helper(action_result, endpoint)
         if (phantom.is_fail(ret_val)):
-            # the call to the 3rd party device or service failed, action result should contain all the error details
-            # so just return from here
             return action_result.get_status()
 
-        # Now post process the data,  uncomment code as you deem fit
+        if param['download_attachments'] and response['hasAttachments']:
 
-        # Add the response into the data section
-        # action_result.add_data(response)
-        """
+            endpoint += '/attachments'
+            ret_val, attach_resp = self._make_rest_call_helper(action_result, endpoint)
+            if (phantom.is_fail(ret_val)):
+                return action_result.get_status()
 
-        action_result.add_data({})
+            for attachment in attach_resp.get('value', []):
+                if not self._handle_attachment(attachment, self.get_container_id()):
+                    return action_result.set_status('Could not process attachment. See logs for details.')
 
-        # Add a dictionary that is made up of the most important values from data into the summary
-        summary = action_result.update_summary({})
-        summary['important_data'] = "value"
+            response['attachments'] = attach_resp['value']
 
-        # Return success, no need to set the message, only the status
-        # BaseConnector will create a textual message based off of the summary dictionary
-        # return action_result.set_status(phantom.APP_SUCCESS)
+        action_result.add_data(response)
 
-        # For now return Error with a message, in case of success we don't set the message, but use the summary
-        return action_result.set_status(phantom.APP_ERROR, "Action not yet implemented")
+        return action_result.set_status(phantom.APP_SUCCESS, "Successfully copied email")
 
     def _handle_on_poll(self, param):
 
-        # Implement the handler here
-        # use self.save_progress(...) to send progress messages back to the platform
         self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
-
-        # Add an action result object to self (BaseConnector) to represent the action for this param
         action_result = self.add_action_result(ActionResult(dict(param)))
 
-        """
-        # Access action parameters passed in the 'param' dictionary
+        config = self.get_config()
 
-        # Required values can be accessed directly
-        required_parameter = param['required_parameter']
+        start_time = ''
+        if self.is_poll_now():
+            max_emails = param[phantom.APP_JSON_CONTAINER_COUNT]
+        elif self._state.get('first_run', True):
+            self._state['first_run'] = False
+            max_emails = config['first_run_max_emails']
+            self._state['last_time'] = datetime.utcnow().strftime(O365_TIME_FORMAT)
+        else:
+            max_emails = config['max_emails']
+            start_time = self._state['last_time']
+            self._state['last_time'] = datetime.utcnow().strftime(O365_TIME_FORMAT)
 
-        # Optional values should use the .get() function
-        optional_parameter = param.get('optional_parameter', 'default_value')
-        """
+        endpoint = "/users/{0}".format(config['email_address'])
 
-        """
-        # make rest call
-        ret_val, response = self._make_rest_call('/endpoint', action_result, params=None, headers=None)
+        if ('folder' in config):
+            endpoint += '/mailFolders/{0}'.format(config['folder'])
 
+        endpoint += '/messages'
+
+        params = {'$top': str(max_emails)}
+        if start_time:
+            params['$filter'] = "lastModifiedDateTime ge {0}".format(start_time)
+
+        ret_val, response = self._make_rest_call_helper(action_result, endpoint, params=params)
         if (phantom.is_fail(ret_val)):
-            # the call to the 3rd party device or service failed, action result should contain all the error details
-            # so just return from here
             return action_result.get_status()
 
-        # Now post process the data,  uncomment code as you deem fit
+        emails = response.get('value')
 
-        # Add the response into the data section
-        # action_result.add_data(response)
-        """
+        for email in emails:
 
-        action_result.add_data({})
+            container = {}
 
-        # Add a dictionary that is made up of the most important values from data into the summary
-        summary = action_result.update_summary({})
-        summary['important_data'] = "value"
+            container['name'] = email['subject'] if email['subject'] else email['id']
+            container['description'] = 'Email ingested using MS Graph API'
+            container['source_data_identifier'] = email['id']
 
-        # Return success, no need to set the message, only the status
-        # BaseConnector will create a textual message based off of the summary dictionary
-        # return action_result.set_status(phantom.APP_SUCCESS)
+            ret_val, message, container_id = self.save_container(container)
 
-        # For now return Error with a message, in case of success we don't set the message, but use the summary
-        return action_result.set_status(phantom.APP_ERROR, "Action not yet implemented")
+            if phantom.is_fail(ret_val):
+                return action_result.set_status(phantom.APP_ERROR, message), None
+
+            artifacts = self._create_email_artifacts(container_id, email)
+
+            if not container_id:
+                return phantom.APP_ERROR
+
+            if email['hasAttachments']:
+
+                attach_endpoint = endpoint + '/{0}/attachments'.format(email['id'])
+                ret_val, attach_resp = self._make_rest_call_helper(action_result, attach_endpoint)
+                if (phantom.is_fail(ret_val)):
+                    return action_result.get_status()
+
+                for attachment in attach_resp.get('value', []):
+
+                    if attachment.get('@odata.type') == '#microsoft.graph.itemAttachment':
+
+                        sub_email_endpoint = attach_endpoint + '/{0}?$expand=microsoft.graph.itemattachment/item'.format(attachment['id'])
+                        ret_val, sub_email_resp = self._make_rest_call_helper(action_result, sub_email_endpoint)
+                        if (phantom.is_fail(ret_val)):
+                            return action_result.get_status()
+
+                        sub_email = sub_email_resp['item']
+                        if sub_email.get('@odata.type') != '#microsoft.graph.message':
+                            continue
+
+                        container = {}
+
+                        container['name'] = email['subject'] if email['subject'] else email['id']
+                        container['description'] = 'Email ingested using MS Graph API'
+                        container['source_data_identifier'] = email['id']
+
+                        ret_val, message, sub_container_id = self.save_container(container)
+
+                        if phantom.is_fail(ret_val):
+                            return action_result.set_status(phantom.APP_ERROR, message), None
+
+                        sub_artifacts = self._create_email_artifacts(sub_container_id, sub_email)
+
+                        if not sub_container_id:
+                            return phantom.APP_ERROR
+
+                        ret_val, message, sub_container_id = self.save_artifacts(sub_artifacts)
+
+                    elif attachment['name'].endswith('.eml'):
+                        process_config = {
+                                "extract_attachments": True,
+                                "extract_domains": True,
+                                "extract_hashes": True,
+                                "extract_ips": True,
+                                "extract_urls": True}
+                        ret_val, message = process_email.process_email(self, base64.b64decode(attachment['contentBytes']), attachment['id'], process_config, None)
+
+                    else:
+                        attach_artifact = {}
+                        artifacts.append(attach_artifact)
+                        if not self._handle_attachment(attachment, container_id, artifact_json=attach_artifact):
+                            return action_result.set_status(phantom.APP_ERROR, "Could not process attachment. See logs for details.")
+
+            ret_val, message, container_id = self.save_artifacts(artifacts)
+
+            if phantom.is_fail(ret_val):
+                return action_result.set_status(phantom.APP_ERROR, message)
+
+        if not self.is_poll_now() and len(emails) == int(max_emails):
+            self._state['last_time'] = (datetime.strptime(emails[-1]['lastModifiedDateTime'], O365_TIME_FORMAT) +
+                    timedelta(seconds=1)).strftime(O365_TIME_FORMAT)
+
+        return action_result.set_status(phantom.APP_SUCCESS)
 
     def _validate_range(self, email_range, action_result):
 
@@ -727,15 +856,14 @@ class Office365Connector(BaseConnector):
 
     def _handle_run_query(self, param):
 
-        # Implement the handler here
-        # use self.save_progress(...) to send progress messages back to the platform
         self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
-
-        # Add an action result object to self (BaseConnector) to represent the action for this param
         action_result = self.add_action_result(ActionResult(dict(param)))
 
         # user
-        endpoint = "/users/{0}".format(param['email'])
+        email_addr = self.get_config()['email_address']
+        if 'email_address' in param:
+            email_addr = param['email_address']
+        endpoint = "/users/{0}".format(email_addr)
 
         # folder
         if ('folder' in param):
@@ -891,8 +1019,34 @@ class Office365Connector(BaseConnector):
 if __name__ == '__main__':
 
     import sys
-    import pudb
-    pudb.set_trace()
+    # import pudb
+    import argparse
+    # pudb.set_trace()
+
+    argparser = argparse.ArgumentParser()
+
+    argparser.add_argument('input_test_json', help='Input Test JSON file')
+    argparser.add_argument('-u', '--username', help='username', required=False)
+    argparser.add_argument('-p', '--password', help='password', required=False)
+
+    args = argparser.parse_args()
+    session_id = None
+
+    if (args.username and args.password):
+        try:
+            print ("Accessing the Login page")
+            r = requests.get("https://127.0.0.1/login", verify=False)
+            csrftoken = r.cookies['csrftoken']
+            data = {'username': args.username, 'password': args.password, 'csrfmiddlewaretoken': csrftoken}
+            headers = {'Cookie': 'csrftoken={0}'.format(csrftoken), 'Referer': 'https://127.0.0.1/login'}
+
+            print ("Logging into Platform to get the session id")
+            r2 = requests.post("https://127.0.0.1/login", verify=False, data=data, headers=headers)
+            session_id = r2.cookies['sessionid']
+
+        except Exception as e:
+            print ("Unable to get session id from the platform. Error: {0}".format(str(e)))
+            exit(1)
 
     if (len(sys.argv) < 2):
         print "No test json specified as input"
@@ -905,6 +1059,10 @@ if __name__ == '__main__':
 
         connector = Office365Connector()
         connector.print_progress_message = True
+
+        if (session_id is not None):
+            in_json['user_session_token'] = session_id
+
         ret_val = connector._handle_action(json.dumps(in_json), None)
         print (json.dumps(json.loads(ret_val), indent=4))
 

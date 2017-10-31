@@ -13,12 +13,12 @@
     "utctime_updated": "2017-10-04T00:53:32.000000Z",
     "package_name": "phantom_msgraphoffice365",
     "main_module": "office365_connector.pyc",
-    "min_phantom_version": "3.0.247",
+    "min_phantom_version": "3.0.251",
     "app_wizard_version": "1.0.0",
     "rest_handler": "office365_connector.handle_request",
     "configuration": {
         "tenant": {
-            "description": "Tenant (for e.g. contoso.onmicrosoft.com)",
+            "description": "Tenant (e.g. contoso.onmicrosoft.com)",
             "data_type": "string",
             "required": true,
             "value_list": [],
@@ -33,17 +33,37 @@
             "description": "Application ID",
             "data_type": "string",
             "required": true,
-            "value_list": [],
-            "default": "",
             "order": 2
         },
         "client_secret": {
             "description": "Application Secret",
             "data_type": "password",
             "required": true,
-            "value_list": [],
-            "default": "",
             "order": 3
+        },
+        "email_address": {
+            "description": "Email address to ingest from",
+            "data_type": "string",
+            "required": true,
+            "order": 4
+        },
+        "folder": {
+            "description": "Folder to ingest from",
+            "data_type": "string",
+            "required": false,
+            "order": 5
+        },
+        "max_emails": {
+            "description": "Maximum emails for scheduled polling",
+            "data_type": "numeric",
+            "required": true,
+            "order": 6
+        },
+        "first_run_max_emails": {
+            "description": "Maximum emails to poll first time",
+            "data_type": "numeric",
+            "required": true,
+            "order": 7
         }
     },
     "actions": [
@@ -95,7 +115,7 @@
             "action": "copy email",
             "identifier": "copy_email",
             "description": "Copy an email to a folder",
-            "verbose": "",
+            "verbose": "If the <b>email_address</b> parameter is not given, the action will use the email address given in the asset configuration.",
             "type": "generic",
             "read_only": false,
             "parameters": {
@@ -107,31 +127,16 @@
                     "contains": [
                         "email id"
                     ],
-                    "value_list": [],
-                    "default": "",
                     "order": 0
                 },
-                "ph": {
-                    "description": "Placeholder",
-                    "data_type": "ph",
-                    "required": false,
-                    "primary": false,
-                    "contains": [],
-                    "value_list": [],
-                    "default": "",
-                    "order": 1
-                },
-                "email": {
-                    "description": "Destination Mailbox (Email)",
+                "email_address": {
+                    "description": "Source Mailbox (Email)",
                     "data_type": "string",
-                    "required": true,
-                    "primary": true,
+                    "required": false,
                     "contains": [
                         "email"
                     ],
-                    "value_list": [],
-                    "default": "",
-                    "order": 2
+                    "order": 1
                 },
                 "folder": {
                     "description": "Destination Mail Folder Name/Path",
@@ -143,8 +148,7 @@
                         "mail folder path"
                     ],
                     "value_list": [],
-                    "default": "",
-                    "order": 3
+                    "order": 2
                 }
             },
             "output": [
@@ -158,7 +162,7 @@
                     "column_order": 0
                 },
                 {
-                    "data_path": "action_result.parameter.email",
+                    "data_path": "action_result.parameter.email_address",
                     "data_type": "string",
                     "contains": [
                         "email"
@@ -195,16 +199,13 @@
                     "data_type": "numeric"
                 }
             ],
-            "render": {
-                "type": "table"
-            },
             "versions": "EQ(*)"
         },
         {
             "action": "delete email",
             "identifier": "delete_email",
             "description": "Delete emails",
-            "verbose": "",
+            "verbose": "If the <b>email_address</b> parameter is not given, the action will use the email address given in the asset configuration.",
             "type": "contain",
             "read_only": false,
             "parameters": {
@@ -220,8 +221,8 @@
                     "default": "",
                     "order": 0
                 },
-                "email": {
-                    "description": "Email of the mailbox owner",
+                "email_address": {
+                    "description": "Email address of the mailbox owner",
                     "data_type": "string",
                     "required": false,
                     "primary": false,
@@ -244,7 +245,7 @@
                     "column_order": 0
                 },
                 {
-                    "data_path": "action_result.parameter.email",
+                    "data_path": "action_result.parameter.email_address",
                     "data_type": "string",
                     "contains": [
                         "email"
@@ -271,42 +272,42 @@
                     "data_type": "numeric"
                 }
             ],
-            "render": {
-                "type": "table"
-            },
             "versions": "EQ(*)"
         },
         {
             "action": "get email",
             "identifier": "get_email",
             "description": "Get an email from the server",
-            "verbose": "",
+            "verbose": "If the <b>email_address</b> parameter is not given, the action will use the email address given in the asset configuration.",
             "type": "investigate",
             "read_only": true,
             "parameters": {
                 "id": {
                     "description": "Message ID to get",
                     "data_type": "string",
-                    "required": false,
+                    "required": true,
                     "primary": true,
                     "contains": [
                         "email id"
                     ],
-                    "value_list": [],
-                    "default": "",
                     "order": 0
                 },
-                "email": {
-                    "description": "Email of the mailbox owner",
+                "email_address": {
+                    "description": "Email address of the mailbox owner",
                     "data_type": "string",
                     "required": false,
                     "primary": false,
                     "contains": [
                         "email"
                     ],
-                    "value_list": [],
-                    "default": "",
                     "order": 1
+                },
+                "download_attachments": {
+                    "description": "Download attachments to vault",
+                    "data_type": "boolean",
+                    "required": true,
+                    "primary": false,
+                    "order": 2
                 }
             },
             "output": [
@@ -316,11 +317,12 @@
                     "contains": [
                         "email id"
                     ],
-                    "column_name": "id",
-                    "column_order": 0
+                    "example_values": [
+                        "AQMkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQBGAAADyW3X5P7Hb0_MMHKonvdoWQcAQSl1b8BFiEmbqZql_JiUtwAAAgEMAAAAQSl1b8BFiEmbqZql_JiUtwABS2DpfAAAAA=="
+                    ]
                 },
                 {
-                    "data_path": "action_result.parameter.email",
+                    "data_path": "action_result.parameter.email_address",
                     "data_type": "string",
                     "contains": [
                         "email"
@@ -332,19 +334,361 @@
                     "data_path": "action_result.status",
                     "data_type": "string",
                     "column_name": "status",
-                    "column_order": 2
+                    "column_order": 2,
+                    "example_values": [
+                        "success"
+                    ]
                 },
                 {
                     "data_path": "action_result.message",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        ""
+                    ]
                 },
                 {
                     "data_path": "summary.total_objects",
-                    "data_type": "numeric"
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
                 },
                 {
                     "data_path": "summary.total_objects_successful",
-                    "data_type": "numeric"
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.sentDateTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "2017-10-26T01:31:35Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.conversationId",
+                    "data_type": "string",
+                    "example_values": [
+                        "AAQkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQAQAEU43FQ-fk5LmOxKoTpmHfw="
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.isDraft",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageId",
+                    "data_type": "string",
+                    "example_values": [
+                        "<CABO4XoP4y0jiKDGWr5yQ=-AwrRC-Vbc4LSNju1-Mroxrwn=Rrg@mail.gmail.com>"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.id",
+                    "data_type": "string",
+                    "example_values": [
+                        "AQMkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQBGAAADyW3X5P7Hb0_MMHKonvdoWQcAQSl1b8BFiEmbqZql_JiUtwAAAgEMAAAAQSl1b8BFiEmbqZql_JiUtwABS2DpfAAAAA=="
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.isReadReceiptRequested",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.subject",
+                    "data_type": "string",
+                    "column_name": "Subject",
+                    "column_order": 0,
+                    "example_values": [
+                        "more attachments"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.ccRecipients",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.bodyPreview",
+                    "data_type": "string",
+                    "column_name": "Body Preview",
+                    "column_order": 1,
+                    "example_values": [
+                        "Have a good time with these."
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.from.emailAddress.name",
+                    "data_type": "string",
+                    "example_values": [
+                        "Susan Edwards"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.from.emailAddress.address",
+                    "data_type": "string",
+                    "column_name": "From",
+                    "column_order": 2,
+                    "example_values": [
+                        "susan@phantomengineering.onmicrosoft.com"
+                    ],
+                    "contains": [
+                        "email"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.@odata.context",
+                    "data_type": "string",
+                    "example_values": [
+                        "https://graph.microsoft.com/v1.0/$metadata#users('herman%40phantomengineering.onmicrosoft.com')/messages/$entity"
+                    ],
+                    "contains": [
+                        "url"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.replyTo",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.changeKey",
+                    "data_type": "string",
+                    "example_values": [
+                        "CQAAABYAAABBKXVvwEWISZupmqX4mJS3AAFLoCsS"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.receivedDateTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "2017-10-26T01:31:43Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.parentFolderId",
+                    "data_type": "string",
+                    "example_values": [
+                        "AQMkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQAuAAADyW3X5P7Hb0_MMHKonvdoWQEAQSl1b8BFiEmbqZql_JiUtwAAAgEMAAAA"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.body.content",
+                    "data_type": "string",
+                    "example_values": [
+                        "Have a good time with these.\r\n"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.body.contentType",
+                    "data_type": "string",
+                    "example_values": [
+                        "text"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.isDeliveryReceiptRequested",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.importance",
+                    "data_type": "string",
+                    "example_values": [
+                        "normal"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.toRecipients.*.emailAddress.name",
+                    "data_type": "string",
+                    "example_values": [
+                        "Herman Edwards"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.toRecipients.*.emailAddress.address",
+                    "data_type": "string",
+                    "column_name": "To",
+                    "column_order": 3,
+                    "example_values": [
+                        "Herman@phantomengineering.onmicrosoft.com"
+                    ],
+                    "contains": [
+                        "email"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.lastModifiedDateTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "2017-10-26T01:31:43Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.isRead",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.categories",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.sender.emailAddress.name",
+                    "data_type": "string",
+                    "example_values": [
+                        "Susan Edwards"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.sender.emailAddress.address",
+                    "data_type": "string",
+                    "example_values": [
+                        "susan@phantomengineering.onmicrosoft.com"
+                    ],
+                    "contains": [
+                        "email"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.hasAttachments",
+                    "data_type": "boolean",
+                    "column_name": "Has Attachments",
+                    "column_order": 4,
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.webLink",
+                    "data_type": "string",
+                    "example_values": [
+                        "https://outlook.office365.com/owa/?ItemID=AQMkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQBGAAADyW3X5P7Hb0%2BMMHKonvdoWQcAQSl1b8BFiEmbqZql%2BJiUtwAAAgEMAAAAQSl1b8BFiEmbqZql%2BJiUtwABS2DpfAAAAA%3D%3D&exvsurl=1&viewmodel=ReadMessageItem"
+                    ],
+                    "contains": [
+                        "url"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.attachments.*.@odata.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "#microsoft.graph.fileAttachment"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.attachments.*.lastModifiedDateTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "2017-10-26T01:31:43Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.attachments.*.contentType",
+                    "data_type": "string",
+                    "example_values": [
+                        "text/plain"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.attachments.*.name",
+                    "data_type": "string",
+                    "example_values": [
+                        "attachment.txt"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.attachments.*.contentId",
+                    "data_type": "string",
+                    "example_values": [
+                        "F5832F4CF6EFEC41B9CBC6DED238A234@namprd18.prod.outlook.com"
+                    ],
+                    "contains": [
+                        "email"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.attachments.*.id",
+                    "data_type": "string",
+                    "example_values": [
+                        "AQMkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQBGAAADyW3X5P7Hb0_MMHKonvdoWQcAQSl1b8BFiEmbqZql_JiUtwAAAgEMAAAAQSl1b8BFiEmbqZql_JiUtwABS2DpfAAAAAESABAA0EuDIoiFb0ifXM0ETmQMVw=="
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.attachments.*.vaultId",
+                    "data_type": "string",
+                    "example_values": [
+                        "719dbf72d7c0bc89d7e34306c08a0b66191902b9"
+                    ],
+                    "contains": [
+                        "sha1"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.attachments.*.isInline",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.attachments.*.contentLocation",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.attachments.*.size",
+                    "data_type": "numeric",
+                    "example_values": [
+                        355
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.createdDateTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "2017-10-26T01:31:43Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.bccRecipients",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.inferenceClassification",
+                    "data_type": "string",
+                    "example_values": [
+                        "focused"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.@odata.etag",
+                    "data_type": "string",
+                    "example_values": [
+                        "W/\"CQAAABYAAABBKXVvwEWISZupmqX4mJS3AAFLoCsS\""
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.download_attachments",
+                    "data_type": "string",
+                    "example_values": [
+                        "true"
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary",
+                    "data_type": "string"
                 }
             ],
             "render": {
@@ -355,7 +699,7 @@
         {
             "action": "on poll",
             "identifier": "on_poll",
-            "description": "Action handler for the ingest functionality",
+            "description": "Ingest emails from Office 365",
             "verbose": "",
             "type": "ingest",
             "read_only": true,
@@ -393,7 +737,7 @@
                 "container_count": {
                     "description": "Maximum number of emails to ingest",
                     "data_type": "numeric",
-                    "required": true,
+                    "required": false,
                     "primary": false,
                     "contains": [],
                     "value_list": [],
@@ -422,16 +766,14 @@
             "type": "investigate",
             "read_only": true,
             "parameters": {
-                "email": {
+                "email_address": {
                     "description": "User's Email (Mailbox to search in)",
                     "data_type": "string",
-                    "required": true,
+                    "required": false,
                     "primary": true,
                     "contains": [
                         "email"
                     ],
-                    "value_list": [],
-                    "default": "",
                     "order": 0
                 },
                 "folder": {
@@ -443,7 +785,6 @@
                         "mail folder",
                         "mail folder path"
                     ],
-                    "value_list": [],
                     "default": "Inbox",
                     "order": 1
                 },
@@ -452,9 +793,6 @@
                     "data_type": "string",
                     "required": false,
                     "primary": false,
-                    "contains": [],
-                    "value_list": [],
-                    "default": "",
                     "order": 2
                 },
                 "sender": {
@@ -465,8 +803,6 @@
                     "contains": [
                         "email"
                     ],
-                    "value_list": [],
-                    "default": "",
                     "order": 3
                 },
                 "body": {
@@ -484,18 +820,13 @@
                     "contains": [
                         "internet message id"
                     ],
-                    "value_list": [],
-                    "default": "",
                     "order": 5
                 },
                 "query": {
                     "description": "MS graph query string",
                     "data_type": "string",
                     "required": false,
-                    "primary": true,
-                    "contains": [],
-                    "value_list": [],
-                    "default": "",
+                    "primary": false,
                     "order": 6
                 },
                 "range": {
@@ -503,21 +834,22 @@
                     "data_type": "string",
                     "required": false,
                     "primary": false,
-                    "contains": [],
-                    "value_list": [],
                     "default": "0-10",
                     "order": 7
                 }
             },
             "output": [
                 {
-                    "data_path": "action_result.parameter.email",
+                    "data_path": "action_result.parameter.email_address",
                     "data_type": "string",
                     "contains": [
                         "email"
                     ],
                     "column_name": "email",
-                    "column_order": 0
+                    "column_order": 0,
+                    "example_values": [
+                        "herman@phantomengineering.onmicrosoft.com"
+                    ]
                 },
                 {
                     "data_path": "action_result.parameter.folder",
@@ -527,14 +859,19 @@
                         "mail folder path"
                     ],
                     "column_name": "folder",
-                    "column_order": 1
+                    "column_order": 1,
+                    "example_values": [
+                        "Archive"
+                    ]
                 },
                 {
                     "data_path": "action_result.parameter.subject",
                     "data_type": "string",
-                    "contains": [],
                     "column_name": "subject",
-                    "column_order": 2
+                    "column_order": 2,
+                    "example_values": [
+                        "Just wanted to say hello"
+                    ]
                 },
                 {
                     "data_path": "action_result.parameter.sender",
@@ -543,14 +880,19 @@
                         "email"
                     ],
                     "column_name": "sender",
-                    "column_order": 3
+                    "column_order": 3,
+                    "example_values": [
+                        "susan@phantomengineering.onmicrosoft.com"
+                    ]
                 },
                 {
                     "data_path": "action_result.parameter.body",
                     "data_type": "string",
-                    "contains": [],
                     "column_name": "body",
-                    "column_order": 4
+                    "column_order": 4,
+                    "example_values": [
+                        "How are you doing this fine evening?"
+                    ]
                 },
                 {
                     "data_path": "action_result.parameter.internet_message_id",
@@ -564,14 +906,12 @@
                 {
                     "data_path": "action_result.parameter.query",
                     "data_type": "string",
-                    "contains": [],
                     "column_name": "query",
                     "column_order": 6
                 },
                 {
                     "data_path": "action_result.parameter.range",
                     "data_type": "string",
-                    "contains": [],
                     "column_name": "range",
                     "column_order": 7
                 },
@@ -579,19 +919,263 @@
                     "data_path": "action_result.status",
                     "data_type": "string",
                     "column_name": "status",
-                    "column_order": 8
+                    "column_order": 8,
+                    "example_values": [
+                        "success"
+                    ]
                 },
                 {
                     "data_path": "action_result.message",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "Emails matched: 1"
+                    ]
                 },
                 {
                     "data_path": "summary.total_objects",
-                    "data_type": "numeric"
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
                 },
                 {
                     "data_path": "summary.total_objects_successful",
-                    "data_type": "numeric"
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.sentDateTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "2017-10-30T22:32:37Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.conversationId",
+                    "data_type": "string",
+                    "example_values": [
+                        "AAQkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQAQAGqbDRkVLxZMtetM-dKqAPo="
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageId",
+                    "data_type": "string",
+                    "example_values": [
+                        "<CABO4XoM2X=z02-=jmuvtis3MUxHgvTcH7vkVgVC=dwcuN5yT6Q@mail.gmail.com>"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.id",
+                    "data_type": "string",
+                    "example_values": [
+                        "AAMkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQBGAAAAAADJbdfk-sdvT4wwcqie92hZBwBBKXVvwEWISZupmqX4mJS3AACEV3zJAABBKXVvwEWISZupmqX4mJS3AAFOZwS4AAA="
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.isReadReceiptRequested",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.subject",
+                    "data_type": "string",
+                    "example_values": [
+                        "Just wanted to say hello"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.ccRecipients",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.bodyPreview",
+                    "data_type": "string",
+                    "example_values": [
+                        "How are you doing this fine evening?"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.from.emailAddress.name",
+                    "data_type": "string",
+                    "example_values": [
+                        "Brian Earle"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.from.emailAddress.address",
+                    "data_type": "string",
+                    "example_values": [
+                        "brian@phantom.us"
+                    ],
+                    "contains": [
+                        "email"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.isDraft",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.replyTo",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.changeKey",
+                    "data_type": "string",
+                    "example_values": [
+                        "CQAAABYAAABBKXVvwEWISZupmqX4mJS3AAFOpxtE"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.receivedDateTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "2017-10-30T22:32:42Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.parentFolderId",
+                    "data_type": "string",
+                    "example_values": [
+                        "AAMkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQAuAAAAAADJbdfk-sdvT4wwcqie92hZAQBBKXVvwEWISZupmqX4mJS3AACEV3zJAAA="
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.body.content",
+                    "data_type": "string",
+                    "example_values": [
+                        "How are you doing this fine evening?\r\n"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.body.contentType",
+                    "data_type": "string",
+                    "example_values": [
+                        "text"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.isDeliveryReceiptRequested",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.importance",
+                    "data_type": "string",
+                    "example_values": [
+                        "normal"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.toRecipients.*.emailAddress.name",
+                    "data_type": "string",
+                    "example_values": [
+                        "Herman Edwards"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.toRecipients.*.emailAddress.address",
+                    "data_type": "string",
+                    "example_values": [
+                        "Herman@phantomengineering.onmicrosoft.com"
+                    ],
+                    "contains": [
+                        "email"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.lastModifiedDateTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "2017-10-30T22:32:53Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.isRead",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.categories",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.sender.emailAddress.name",
+                    "data_type": "string",
+                    "example_values": [
+                        "Brian Earle"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.sender.emailAddress.address",
+                    "data_type": "string",
+                    "example_values": [
+                        "brian@phantom.us"
+                    ],
+                    "contains": [
+                        "email"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.createdDateTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "2017-10-30T22:32:42Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.webLink",
+                    "data_type": "string",
+                    "example_values": [
+                        "https://outlook.office365.com/owa/?ItemID=AAMkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQBGAAAAAADJbdfk%2FsdvT4wwcqie92hZBwBBKXVvwEWISZupmqX4mJS3AACEV3zJAABBKXVvwEWISZupmqX4mJS3AAFOZwS4AAA%3D&exvsurl=1&viewmodel=ReadMessageItem"
+                    ],
+                    "contains": [
+                        "url"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.hasAttachments",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.bccRecipients",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.inferenceClassification",
+                    "data_type": "string",
+                    "example_values": [
+                        "focused"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.@odata.etag",
+                    "data_type": "string",
+                    "example_values": [
+                        "W/\"CQAAABYAAABBKXVvwEWISZupmqX4mJS3AAFOpxtE\""
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary.emails_matched",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
                 }
             ],
             "render": {
