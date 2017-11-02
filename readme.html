@@ -1,0 +1,47 @@
+<!--
+File: readme.html
+
+Copyright (c) Phantom Cyber Corporation, 2017
+
+This unpublished material is proprietary to Phantom Cyber.
+All rights reserved. The methods and
+techniques described herein are considered trade secrets
+and/or confidential. Reproduction or distribution, in whole
+or in part, is forbidden except by express written permission
+of Phantom Cyber.
+-->
+
+<p>
+<h2>Authentication</h2>
+<br>
+This app requires creating a Microsoft Graph Application. To do so, navigate to https://apps.dev.microsoft.com in a browser and log in with a Microsoft account, then select <b>Add and app</b>.
+<br><br>
+On the next page, give your application a name and select <b>Create</b>.
+<br><br>
+Once the app is created, three steps need to be taken on the next page:
+<ul>
+    <li>Under <b>Application Secrets</b> select <b>Generate New Password</b>. Note this key somewhere secure, as it cannot be retrieved after closing the window.</li>
+    <li>Under <b>Platforms</b> select <b>Add Platform</b>. In the <b>Add Platform</b> window, select <b>Web</b>. The <b>Redirect URLs</b> field will be filled in during a later step.</li>
+    <li>Under <b>Microsoft Graph Permissions</b> the following <b>Application Permissions</b> need to be added:
+    <ul>
+        <li>Mail.Read</li>
+        <li>Mail.ReadWrite</li>
+        <li>User.Read</li>
+    </ul>
+</ul>
+After making these changes, click <b>Save</b> at the bottom of the screen.
+<h2>Phantom Graph Asset</h2>
+When creating an asset for the <b>MS Graph for Office 365</b> app, place <b>Application Id</b> of the app created during the previous step in the <b>Application ID</b> field and place the password generated during the app creation process in the <b>Application Secret</b> field. Then, after filling out the <b>Tenant</b> field, click <b>SAVE</b>.
+<br><br>
+After saving, a new field will appear in the <b>Asset Settings</b> tab. Take the URL found in the <b>POST incoming for MS Graph for Office 365 to this location</b> field and place it in the <b>Redirect URLs</b> field mentioned in a previous step. To this URL, add <b>/result</b>. After doing so the URL should look something like:
+<br><br>
+<pre>
+https://&lt;phantom_host&gt;/rest/handler/msgraphforoffice365_0a0a4087-10e8-4c96-9872-b740ff26d8bb/&lt;asset_name&gt;/result
+</pre>
+<br>
+Once again, click save at the bottom of the screen.
+<h3>Test connectivity</h3>
+After setting up the asset, click the <b>TEST CONNECTIVITY</b> button. A window should pop up and display a URL. Navigate to this URL in a separate browser tab. This new tab will redirect to a Microsoft login page. Log in to a Microsoft account with administrator privileges to the desired mailboxes. After logging in, review the requested permissions listed, then click <b>Accept</b>. Finally, close that tab. The test connectivity window should show success.
+<br><br>
+The app should now be ready to be used.
+</p>
