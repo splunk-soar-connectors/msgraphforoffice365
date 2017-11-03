@@ -116,6 +116,9 @@ def _process_response(r, action_result):
     if 'html' in r.headers.get('Content-Type', ''):
         return _process_html_response(r, action_result)
 
+    if r.status_code == 404:
+        return RetVal(action_result.set_status(phantom.APP_ERROR, "email not found"), None)
+
     if 200 <= r.status_code <= 204:
         return RetVal(phantom.APP_SUCCESS, None)
 
@@ -401,9 +404,6 @@ class Office365Connector(BaseConnector):
 
         url = "{0}{1}".format(MSGRAPH_API_URL, endpoint)
 
-        print 'HERE'
-        print url
-
         if (headers is None):
             headers = {}
 
@@ -635,11 +635,7 @@ class Office365Connector(BaseConnector):
         self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
         action_result = self.add_action_result(ActionResult(dict(param)))
 
-        config = self.get_config()
-
-        email_addr = config['email_address']
-        if 'email_address' in param:
-            email_addr = param['email_address']
+        email_addr = param['email_address']
         endpoint = '/users/{0}'.format(email_addr)
 
         endpoint += '/messages/{0}/copy'.format(param['id'])
@@ -650,6 +646,8 @@ class Office365Connector(BaseConnector):
         if (phantom.is_fail(ret_val)):
             return action_result.get_status()
 
+        action_result.add_data(response)
+
         return action_result.set_status(phantom.APP_SUCCESS, "Successfully copied email")
 
     def _handle_delete_email(self, param):
@@ -657,11 +655,7 @@ class Office365Connector(BaseConnector):
         self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
         action_result = self.add_action_result(ActionResult(dict(param)))
 
-        config = self.get_config()
-
-        email_addr = config['email_address']
-        if 'email_address' in param:
-            email_addr = param['email_address']
+        email_addr = param['email_address']
         endpoint = "/users/{0}".format(email_addr)
 
         endpoint += '/messages/{0}'.format(param['id'])
@@ -677,11 +671,7 @@ class Office365Connector(BaseConnector):
         self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
         action_result = self.add_action_result(ActionResult(dict(param)))
 
-        config = self.get_config()
-
-        email_addr = config['email_address']
-        if 'email_address' in param:
-            email_addr = param['email_address']
+        email_addr = param['email_address']
         endpoint = '/users/{0}'.format(email_addr)
 
         endpoint += '/messages/{0}'.format(param['id'])
@@ -860,9 +850,7 @@ class Office365Connector(BaseConnector):
         action_result = self.add_action_result(ActionResult(dict(param)))
 
         # user
-        email_addr = self.get_config()['email_address']
-        if 'email_address' in param:
-            email_addr = param['email_address']
+        email_addr = param['email_address']
         endpoint = "/users/{0}".format(email_addr)
 
         # folder
