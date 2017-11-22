@@ -995,8 +995,6 @@
                     "contains": [
                         "email"
                     ],
-                    "column_name": "email",
-                    "column_order": 0,
                     "example_values": [
                         "herman@phantomengineering.onmicrosoft.com"
                     ]
@@ -1008,8 +1006,6 @@
                         "mail folder",
                         "mail folder path"
                     ],
-                    "column_name": "folder",
-                    "column_order": 1,
                     "example_values": [
                         "Archive"
                     ]
@@ -1017,8 +1013,6 @@
                 {
                     "data_path": "action_result.parameter.subject",
                     "data_type": "string",
-                    "column_name": "subject",
-                    "column_order": 2,
                     "example_values": [
                         "Just wanted to say hello"
                     ]
@@ -1029,8 +1023,6 @@
                     "contains": [
                         "email"
                     ],
-                    "column_name": "sender",
-                    "column_order": 3,
                     "example_values": [
                         "susan@phantomengineering.onmicrosoft.com"
                     ]
@@ -1038,8 +1030,6 @@
                 {
                     "data_path": "action_result.parameter.body",
                     "data_type": "string",
-                    "column_name": "body",
-                    "column_order": 4,
                     "example_values": [
                         "How are you doing this fine evening?"
                     ]
@@ -1049,27 +1039,19 @@
                     "data_type": "string",
                     "contains": [
                         "internet message id"
-                    ],
-                    "column_name": "internet_message_id",
-                    "column_order": 5
+                    ]
                 },
                 {
                     "data_path": "action_result.parameter.query",
-                    "data_type": "string",
-                    "column_name": "query",
-                    "column_order": 6
+                    "data_type": "string"
                 },
                 {
                     "data_path": "action_result.parameter.range",
-                    "data_type": "string",
-                    "column_name": "range",
-                    "column_order": 7
+                    "data_type": "string"
                 },
                 {
                     "data_path": "action_result.status",
                     "data_type": "string",
-                    "column_name": "status",
-                    "column_order": 8,
                     "example_values": [
                         "success"
                     ]
@@ -1119,6 +1101,11 @@
                 {
                     "data_path": "action_result.data.*.id",
                     "data_type": "string",
+                    "column_name": "ID",
+                    "column_order": 4,
+                    "contains": [
+                        "email id"
+                    ],
                     "example_values": [
                         "AAMkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQBGAAAAAADJbdfk-sdvT4wwcqie92hZBwBBKXVvwEWISZupmqX4mJS3AACEV3zJAABBKXVvwEWISZupmqX4mJS3AAFOZwS4AAA="
                     ]
@@ -1134,6 +1121,8 @@
                 {
                     "data_path": "action_result.data.*.subject",
                     "data_type": "string",
+                    "column_name": "Subject",
+                    "column_order": 2,
                     "example_values": [
                         "Just wanted to say hello"
                     ]
@@ -1145,6 +1134,8 @@
                 {
                     "data_path": "action_result.data.*.bodyPreview",
                     "data_type": "string",
+                    "column_name": "Body",
+                    "column_order": 3,
                     "example_values": [
                         "How are you doing this fine evening?"
                     ]
@@ -1188,6 +1179,8 @@
                 {
                     "data_path": "action_result.data.*.receivedDateTime",
                     "data_type": "string",
+                    "column_name": "Received Time",
+                    "column_order": 1,
                     "example_values": [
                         "2017-10-30T22:32:42Z"
                     ]
@@ -1270,6 +1263,8 @@
                 {
                     "data_path": "action_result.data.*.sender.emailAddress.address",
                     "data_type": "string",
+                    "column_name": "Sender",
+                    "column_order": 0,
                     "example_values": [
                         "susan@phantomengineering.onmicrosoft.com"
                     ],
