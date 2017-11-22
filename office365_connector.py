@@ -617,7 +617,7 @@ class Office365Connector(BaseConnector):
         params = {'$top': '1'}
         ret_val, response = self._make_rest_call_helper(action_result, "/users", params=params)
         if (phantom.is_fail(ret_val)):
-            self.save_progress("API to get users failed: {0}".format(action_result.get_message()))
+            self.save_progress("API to get users failed")
             self.save_progress("Test Connectivity Failed")
             return self.set_status(phantom.APP_ERROR)
 
