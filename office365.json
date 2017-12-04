@@ -13,7 +13,7 @@
     "utctime_updated": "2017-11-22T19:06:47.000000Z",
     "package_name": "phantom_msgraphoffice365",
     "main_module": "office365_connector.pyc",
-    "min_phantom_version": "3.0.251",
+    "min_phantom_version": "2.0.251",
     "app_wizard_version": "1.0.0",
     "rest_handler": "office365_connector.handle_request",
     "configuration": {
@@ -913,6 +913,7 @@
             "action": "run query",
             "identifier": "run_query",
             "description": "Search emails",
+            "verbose": "The <b>query</b> parameter is included, the <b>subject</b>, <b>sender</b>, <b>body</b>, <b>internet_message_id</b>, and <b>range</b> parameters will be ignored. For information on formatting the query string, see https://developer.microsoft.com/en-us/graph/docs/concepts/query_parameters.",
             "type": "investigate",
             "read_only": true,
             "parameters": {
@@ -938,12 +939,34 @@
                     "default": "Inbox",
                     "order": 1
                 },
+                "query": {
+                    "description": "MS graph query string",
+                    "data_type": "string",
+                    "required": false,
+                    "primary": false,
+                    "order": 2
+                },
+                "range": {
+                    "description": "Email range to return (min_offset-max_offset)",
+                    "data_type": "string",
+                    "required": false,
+                    "primary": false,
+                    "default": "0-10",
+                    "order": 3
+                },
                 "subject": {
                     "description": "Substring to search in Subject",
                     "data_type": "string",
                     "required": false,
                     "primary": false,
-                    "order": 2
+                    "order": 4
+                },
+                "body": {
+                    "description": "Substring to search in Body",
+                    "data_type": "string",
+                    "order": 5,
+                    "primary": false,
+                    "required": false
                 },
                 "sender": {
                     "description": "Sender Email address to match",
@@ -953,14 +976,7 @@
                     "contains": [
                         "email"
                     ],
-                    "order": 3
-                },
-                "body": {
-                    "description": "Substring to search in Body",
-                    "data_type": "string",
-                    "order": 4,
-                    "primary": false,
-                    "required": false
+                    "order": 6
                 },
                 "internet_message_id": {
                     "description": "Internet Message ID",
@@ -970,21 +986,6 @@
                     "contains": [
                         "internet message id"
                     ],
-                    "order": 5
-                },
-                "query": {
-                    "description": "MS graph query string",
-                    "data_type": "string",
-                    "required": false,
-                    "primary": false,
-                    "order": 6
-                },
-                "range": {
-                    "description": "Email range to return (min_offset-max_offset)",
-                    "data_type": "string",
-                    "required": false,
-                    "primary": false,
-                    "default": "0-10",
                     "order": 7
                 }
             },
