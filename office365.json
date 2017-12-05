@@ -21,8 +21,6 @@
             "description": "Tenant (e.g. contoso.onmicrosoft.com)",
             "data_type": "string",
             "required": true,
-            "value_list": [],
-            "default": "",
             "order": 0
         },
         "ph": {
@@ -88,7 +86,6 @@
                         "mail folder",
                         "mail folder path"
                     ],
-                    "value_list": [],
                     "order": 2
                 }
             },
@@ -220,8 +217,21 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.data.*.ccRecipients",
-                    "data_type": "string"
+                    "data_path": "action_result.data.*.ccRecipients.name",
+                    "data_type": "string",
+                    "example_values": [
+                        "Susan Edwards"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.ccRecipients.email",
+                    "data_type": "string",
+                    "contains": [
+                        "email"
+                    ],
+                    "example_values": [
+                        "susan@phantomengineering.onmicrosoft.com"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.bodyPreview",
@@ -386,8 +396,21 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.data.*.bccRecipients",
-                    "data_type": "string"
+                    "data_path": "action_result.data.*.bccRecipients.name",
+                    "data_type": "string",
+                    "example_values": [
+                        "Susan Edwards"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.bccRecipients.email",
+                    "data_type": "string",
+                    "contains": [
+                        "email"
+                    ],
+                    "example_values": [
+                        "susan@phantomengineering.onmicrosoft.com"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.inferenceClassification",
@@ -431,8 +454,6 @@
                     "contains": [
                         "email id"
                     ],
-                    "value_list": [],
-                    "default": "",
                     "order": 0
                 },
                 "email_address": {
@@ -443,8 +464,6 @@
                     "contains": [
                         "email"
                     ],
-                    "value_list": [],
-                    "default": "",
                     "order": 1
                 }
             },
@@ -627,8 +646,21 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.data.*.ccRecipients",
-                    "data_type": "string"
+                    "data_path": "action_result.data.*.ccRecipients.name",
+                    "data_type": "string",
+                    "example_values": [
+                        "Susan Edwards"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.ccRecipients.email",
+                    "data_type": "string",
+                    "contains": [
+                        "email"
+                    ],
+                    "example_values": [
+                        "susan@phantomengineering.onmicrosoft.com"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.bodyPreview",
@@ -875,8 +907,21 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.data.*.bccRecipients",
-                    "data_type": "string"
+                    "data_path": "action_result.data.*.bccRecipients.name",
+                    "data_type": "string",
+                    "example_values": [
+                        "Susan Edwards"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.bccRecipients.email",
+                    "data_type": "string",
+                    "contains": [
+                        "email"
+                    ],
+                    "example_values": [
+                        "susan@phantomengineering.onmicrosoft.com"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.inferenceClassification",
@@ -1129,8 +1174,21 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.data.*.ccRecipients",
-                    "data_type": "string"
+                    "data_path": "action_result.data.*.ccRecipients.name",
+                    "data_type": "string",
+                    "example_values": [
+                        "Susan Edwards"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.ccRecipients.email",
+                    "data_type": "string",
+                    "contains": [
+                        "email"
+                    ],
+                    "example_values": [
+                        "susan@phantomengineering.onmicrosoft.com"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.bodyPreview",
@@ -1299,8 +1357,21 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.data.*.bccRecipients",
-                    "data_type": "string"
+                    "data_path": "action_result.data.*.bccRecipients.name",
+                    "data_type": "string",
+                    "example_values": [
+                        "Susan Edwards"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.bccRecipients.email",
+                    "data_type": "string",
+                    "contains": [
+                        "email"
+                    ],
+                    "example_values": [
+                        "susan@phantomengineering.onmicrosoft.com"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.inferenceClassification",
