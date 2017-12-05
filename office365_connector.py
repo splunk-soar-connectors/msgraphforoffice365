@@ -876,6 +876,11 @@ class Office365Connector(BaseConnector):
                 query_filter += ' and '
             query_filter += " contains(subject, '{0}')".format(param['subject'])
 
+        if ('body' in param):
+            if (query_filter):
+                query_filter += ' and '
+            query_filter += " contains(body, '{0}')".format(param['body'])
+
         if ('sender' in param):
             if (query_filter):
                 query_filter += ' and '
