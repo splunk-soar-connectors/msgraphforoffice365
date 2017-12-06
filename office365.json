@@ -958,7 +958,7 @@
             "action": "run query",
             "identifier": "run_query",
             "description": "Search emails",
-            "verbose": "If the <b>query</b> parameter is included, the <b>subject</b>, <b>sender</b>, <b>body</b>, <b>internet_message_id</b>, and <b>range</b> parameters will be ignored. For information on formatting the query string, see https://developer.microsoft.com/en-us/graph/docs/concepts/query_parameters.<br><br>If the <b>range</b> parameter is not included, the action will default to grabbing the newest ten emails that match the rest of the query.",
+            "verbose": "If the <b>query</b> parameter is included, the <b>subject</b>, <b>sender</b>, <b>body</b>, <b>internet_message_id</b>, and <b>range</b> parameters will be ignored. For information on formatting the query string, see https://developer.microsoft.com/en-us/graph/docs/concepts/query_parameters.<br><br>If the <b>range</b> parameter is not included, the action will default to grabbing the ten newest emails that match the rest of the query.",
             "type": "investigate",
             "read_only": true,
             "parameters": {
