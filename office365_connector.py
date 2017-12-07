@@ -861,7 +861,7 @@ class Office365Connector(BaseConnector):
         endpoint += '/messages'
 
         # range
-        email_range = param.get('range', "0-10")
+        email_range = param.get('range', "0-9")
         ret_val = self._validate_range(email_range, action_result)
 
         if (phantom.is_fail(ret_val)):
