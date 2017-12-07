@@ -958,12 +958,12 @@
             "action": "run query",
             "identifier": "run_query",
             "description": "Search emails",
-            "verbose": "If the <b>query</b> parameter is included, the <b>subject</b>, <b>sender</b>, <b>body</b>, <b>internet_message_id</b>, and <b>range</b> parameters will be ignored. For information on formatting the query string, see https://developer.microsoft.com/en-us/graph/docs/concepts/query_parameters.<br><br>If the <b>range</b> parameter is not included, the action will default to grabbing the ten newest emails that match the rest of the query.",
+            "verbose": "If the <b>query</b> or <b>internet_message_id</b> parameters are included, the <b>subject</b>, <b>sender</b>, <b>body</b>, and <b>range</b> parameters will be ignored. The <b>internet_message_id</b> parameter will take precedence over the <b>query</b> parameter.<br><br>For information on formatting the <b>query</b> parameter, see https://developer.microsoft.com/en-us/graph/docs/concepts/query_parameters.<br><br>If the <b>limit</b> parameter is not included, the action will default to limiting to ten emails that match the rest of the query.",
             "type": "investigate",
             "read_only": true,
             "parameters": {
                 "email_address": {
-                    "description": "User's Email (Mailbox to search in)",
+                    "description": "User's email (Mailbox to search in)",
                     "data_type": "string",
                     "required": true,
                     "primary": true,
@@ -984,43 +984,43 @@
                     "default": "Inbox",
                     "order": 1
                 },
-                "query": {
-                    "description": "MS graph query string",
-                    "data_type": "string",
-                    "required": false,
-                    "primary": false,
-                    "order": 2
-                },
-                "range": {
-                    "description": "Email range to return (min_offset-max_offset)",
-                    "data_type": "string",
-                    "required": false,
-                    "primary": false,
-                    "default": "0-9",
-                    "order": 3
-                },
                 "subject": {
                     "description": "Substring to search in Subject",
                     "data_type": "string",
                     "required": false,
                     "primary": false,
-                    "order": 4
+                    "order": 2
                 },
                 "body": {
                     "description": "Substring to search in Body",
                     "data_type": "string",
-                    "order": 5,
+                    "order": 3,
                     "primary": false,
                     "required": false
                 },
                 "sender": {
-                    "description": "Sender Email address to match",
+                    "description": "Sender email address to match",
                     "data_type": "string",
                     "required": false,
                     "primary": true,
                     "contains": [
                         "email"
                     ],
+                    "order": 4
+                },
+                "limit": {
+                    "description": "Maximum emails to return",
+                    "data_type": "numeric",
+                    "required": false,
+                    "primary": false,
+                    "default": "10",
+                    "order": 5
+                },
+                "query": {
+                    "description": "MS Graph query string",
+                    "data_type": "string",
+                    "required": false,
+                    "primary": false,
                     "order": 6
                 },
                 "internet_message_id": {
@@ -1089,11 +1089,17 @@
                 },
                 {
                     "data_path": "action_result.parameter.query",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "$top=5&skip=10&filter=contains(subject,'Urgent')"
+                    ]
                 },
                 {
-                    "data_path": "action_result.parameter.range",
-                    "data_type": "string"
+                    "data_path": "action_result.parameter.limit",
+                    "data_type": "string",
+                    "example_values": [
+                        5
+                    ]
                 },
                 {
                     "data_path": "action_result.status",
