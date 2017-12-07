@@ -892,8 +892,6 @@ class Office365Connector(BaseConnector):
             if search_query:
                 params['$search'] = '"{0}"'.format(search_query)
 
-        print search_query
-
         ret_val, response = self._make_rest_call_helper(action_result, endpoint, params=params)
         if (phantom.is_fail(ret_val)):
             return action_result.get_status()
