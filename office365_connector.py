@@ -860,47 +860,39 @@ class Office365Connector(BaseConnector):
         # that should be enough to create the endpoint
         endpoint += '/messages'
 
-        # range
-        email_range = param.get('range', "0-9")
-        ret_val = self._validate_range(email_range, action_result)
-
-        if (phantom.is_fail(ret_val)):
-            return action_result.get_status()
-
-        mini, maxi = (int(x) for x in email_range.split('-'))
-        params = {'$top': str(maxi - mini + 1), '$skip': str(mini)}
-
-        query_filter = ''
-        if ('subject' in param):
-            if (query_filter):
-                query_filter += ' and '
-            query_filter += " contains(subject, '{0}')".format(param['subject'])
-
-        if ('body' in param):
-            if (query_filter):
-                query_filter += ' and '
-            query_filter += " contains(body, '{0}')".format(param['body'])
-
-        if ('sender' in param):
-            if (query_filter):
-                query_filter += ' and '
-            query_filter += " (sender/emailAddress/address) eq '{0}'".format(param['sender'])
-
         if ('internet_message_id' in param):
-            if (query_filter):
-                query_filter += ' and '
-            query_filter += " (internetMessageId) eq '{0}'".format(param['internet_message_id'])
+            endpoint += "?(internetMessageId) eq '{0}'".format(param['internet_message_id'])
 
-        if (query_filter):
-            params['$filter'] = query_filter
+        elif ('query' in param):
+            endpoint += "?{0}".format(param['query'])
 
-        query_string = param.get('query')
+        else:
 
-        if (query_string):
+            # range
+            limit = param.get('limit', 10)
+            params = {'$top': limit}
 
-            # ignore everything else
-            params = None
-            endpoint += "?{0}".format(query_string)
+            # search params
+            search_query = ''
+            if ('subject' in param):
+                if (search_query):
+                    search_query += ' '
+                search_query += "subject:{0}".format(param['subject'])
+
+            if ('body' in param):
+                if (search_query):
+                    search_query += ' '
+                search_query += "body:{0}".format(param['body'])
+
+            if ('sender' in param):
+                if (search_query):
+                    search_query += ' '
+                search_query += "sender:{0}".format(param['sender'])
+
+            if search_query:
+                params['$search'] = '"{0}"'.format(search_query)
+
+        print search_query
 
         ret_val, response = self._make_rest_call_helper(action_result, endpoint, params=params)
         if (phantom.is_fail(ret_val)):
