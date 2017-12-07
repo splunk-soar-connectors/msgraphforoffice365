@@ -288,6 +288,10 @@
                 {
                     "data_path": "action_result.data.*.parentFolderId",
                     "data_type": "string",
+                    "contains": [
+                        "mail folder",
+                        "mail folder path"
+                    ],
                     "example_values": [
                         "AQMkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQAuAAADyW3X5P7Hb0_MMHKonvdoWQEAQSl1b8BFiEmbqZql_JiUtwAAAgEbAAAA"
                     ]
@@ -721,6 +725,10 @@
                 {
                     "data_path": "action_result.data.*.parentFolderId",
                     "data_type": "string",
+                    "contains": [
+                        "mail folder",
+                        "mail folder path"
+                    ],
                     "example_values": [
                         "AQMkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQAuAAADyW3X5P7Hb0_MMHKonvdoWQEAQSl1b8BFiEmbqZql_JiUtwAAAgEMAAAA"
                     ]
@@ -1253,6 +1261,10 @@
                 {
                     "data_path": "action_result.data.*.parentFolderId",
                     "data_type": "string",
+                    "contains": [
+                        "mail folder",
+                        "mail folder path"
+                    ],
                     "example_values": [
                         "AAMkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQAuAAAAAADJbdfk-sdvT4wwcqie92hZAQBBKXVvwEWISZupmqX4mJS3AACEV3zJAAA="
                     ]
