@@ -859,6 +859,7 @@ class Office365Connector(BaseConnector):
 
         # that should be enough to create the endpoint
         endpoint += '/messages'
+        params = None
 
         if ('internet_message_id' in param):
             endpoint += "?(internetMessageId) eq '{0}'".format(param['internet_message_id'])

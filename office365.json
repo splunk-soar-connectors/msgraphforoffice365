@@ -8,7 +8,7 @@
     "product_name": "Office 365 (MS Graph)",
     "product_version_regex": ".*",
     "publisher": "Phantom",
-    "license": "Copyright Phantom 2017",
+    "license": "Copyright (c) Phantom Cyber Corporation, 2017",
     "app_version": "1.0.8",
     "utctime_updated": "2017-12-07T20:05:52.000000Z",
     "package_name": "phantom_msgraphoffice365",
