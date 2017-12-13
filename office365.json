@@ -1306,9 +1306,6 @@
                     "data_type": "string",
                     "example_values": [
                         "Herman@phantomengineering.onmicrosoft.com"
-                    ],
-                    "contains": [
-                        "email"
                     ]
                 },
                 {
