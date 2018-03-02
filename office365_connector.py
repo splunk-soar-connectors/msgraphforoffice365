@@ -862,10 +862,14 @@ class Office365Connector(BaseConnector):
         params = None
 
         if ('internet_message_id' in param):
-            endpoint += "?(internetMessageId) eq '{0}'".format(param['internet_message_id'])
+            params = {
+                '$filter': "internetMessageId eq '{0}'".format(param['internet_message_id'])
+            }
 
         elif ('query' in param):
-            endpoint += "?{0}".format(param['query'])
+            params = {
+                '$search': "{0}".format(param['query'])
+            }
 
         else:
 
