@@ -867,9 +867,7 @@ class Office365Connector(BaseConnector):
             }
 
         elif ('query' in param):
-            params = {
-                '$search': "{0}".format(param['query'])
-            }
+            endpoint += "?{0}".format(param['query'])
 
         else:
 
