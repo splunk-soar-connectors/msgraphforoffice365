@@ -10,8 +10,8 @@
     "product_version_regex": ".*",
     "publisher": "Phantom",
     "license": "Copyright (c) Phantom Cyber Corporation, 2017-2018",
-    "app_version": "1.0.13",
-    "utctime_updated": "2018-01-25T21:51:14.000000Z",
+    "app_version": "1.0.15",
+    "utctime_updated": "2018-03-15T01:52:09.000000Z",
     "package_name": "phantom_msgraphoffice365",
     "main_module": "office365_connector.pyc",
     "min_phantom_version": "3.0.251",
@@ -50,6 +50,39 @@
             "read_only": true,
             "parameters": {},
             "output": [],
+            "versions": "EQ(*)"
+        },
+        {
+            "action": "generate token",
+            "identifier": "generate_token",
+            "description": "Generates a token",
+            "verbose": "",
+            "type": "generic",
+            "read_only": false,
+            "parameters": {},
+            "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "column_name": "status",
+                    "column_order": 0
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric"
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric"
+                }
+            ],
+            "render": {
+                "type": "table"
+            },
             "versions": "EQ(*)"
         },
         {
