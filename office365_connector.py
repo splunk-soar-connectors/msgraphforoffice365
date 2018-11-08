@@ -666,6 +666,50 @@ class Office365Connector(BaseConnector):
 
         return action_result.set_status(phantom.APP_SUCCESS, "successfully deleted email")
 
+    def _handle_list_events(self, param):
+        self.save_progress('In action handler for: {0}'.format(self.get_action_identifier()))
+        action_result = self.add_action_result(ActionResult(dict(param)))
+
+        user_id = param.get('user_id')
+        group_id = param.get('group_id')
+        query = param.get('filter')
+
+        if(user_id is None and group_id is None):
+            return action_result.set_status(phantom.APP_ERROR, 'Either a user_id or group_id must be supplied to the "list_events" action.')
+
+        endpoint = ''
+
+        if user_id:
+            endpoint = '/users/{0}/calendar/events'.format(user_id)
+        else:
+            endpoint = '/groups/{0}/calendar/events'.format(group_id) 
+
+        if query:
+            endpoint = '{0}?{1}'.format(endpoint, query)
+
+        self.debug_print("list events enpdoint", endpoint)
+
+        ret_val, response = self._make_rest_call_helper(action_result, endpoint)
+        if (phantom.is_fail(ret_val)):
+            return action_result.get_status()
+
+        
+
+        for event in response["value"]:
+            categories = []
+            attendees = []
+            for category in event["categories"]:
+                categories.append({"name": category})
+            for attendee in event["attendees"]:
+                attendees.append(attendee["emailAddress"]["name"])
+            event["attendee_list"] = ", ".join(attendees)
+            action_result.add_data(event)
+
+        action_result.update_summary({'events_matched': action_result.get_data_size()})
+
+        return action_result.set_status(phantom.APP_SUCCESS, "Successfully retrived events")
+        
+
     def _handle_get_email(self, param):
 
         self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
@@ -934,6 +978,9 @@ class Office365Connector(BaseConnector):
 
         elif action_id == 'run_query':
             ret_val = self._handle_run_query(param)
+            
+        elif action_id == 'list_events':
+            ret_val = self._handle_list_events(param)
 
         elif action_id == 'generate_token':
             ret_val = self._handle_generate_token(param)
