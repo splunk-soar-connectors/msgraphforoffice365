@@ -119,7 +119,7 @@
                     "order": 1
                 },
                 "filter": {
-                    "description": "OData Query to filter/search for specific resultscd ",
+                    "description": "OData Query to filter/search for specific results",
                     "data_type": "string",
                     "required": false,
                     "primary": false,
