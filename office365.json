@@ -39,6 +39,18 @@
             "data_type": "password",
             "required": true,
             "order": 3
+        },
+        "admin_access": {
+            "description": "Admin Access Required",
+            "data_type": "boolean",
+            "default": true,
+            "order": 4
+        },
+        "scope": {
+            "description": "Access scope (for use with non-admin access; space-separated)",
+            "data_type": "string",
+            "default": "https://graph.microsoft.com/calendars.read https://graph.microsoft.com/user.read",
+            "order": 5
         }
     },
     "actions": [
@@ -82,6 +94,259 @@
             ],
             "render": {
                 "type": "table"
+            },
+            "versions": "EQ(*)"
+        },
+        {
+            "action": "list events",
+            "identifier": "list_events",
+            "description": "List events from user or group calendar",
+            "type": "generic",
+            "read_only": false,
+            "parameters": {
+                "user_id": {
+                    "description": "User ID/Principal Name",
+                    "data_type": "string",
+                    "required": false,
+                    "primary": true,
+                    "order": 0
+                },
+                "group_id": {
+                    "description": "Group ID",
+                    "data_type": "string",
+                    "required": false,
+                    "primary": false,
+                    "order": 1
+                },
+                "filter": {
+                    "description": "OData Query to filter/search for specific results",
+                    "data_type": "string",
+                    "required": false,
+                    "primary": false,
+                    "order": 2
+                }
+            },
+            "output": [
+                {
+                    "data_path": "action_result.summary.events_matched",
+                    "data_type": "numeric"
+                },
+                {
+                    "data_path": "action_result.data.*.@odata.etag",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.id",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.createdDateTime",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.lastModifiedDateTime",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.changeKey",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.categories.*.name",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.originalStartTimeZone",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.originalEndTimeZone",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.iCalUId",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.reminderMinutesBeforeStart",
+                    "data_type": "numeric"
+                },
+                {
+                    "data_path": "action_result.data.*.isReminderOn",
+                    "data_type": "boolean"
+                },
+                {
+                    "data_path": "action_result.data.*.hasAttachments",
+                    "data_type": "boolean"
+                },
+                {
+                    "data_path": "action_result.data.*.subject",
+                    "data_type": "string",
+                    "column_name": "subject",
+                    "column_order": 2
+                },
+                {
+                    "data_path": "action_result.data.*.bodyPreview",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.importance",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.sensitivity",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.isAllDay",
+                    "data_type": "boolean"
+                },
+                {
+                    "data_path": "action_result.data.*.isCancelled",
+                    "data_type": "boolean"
+                },
+                {
+                    "data_path": "action_result.data.*.isOrganizer",
+                    "data_type": "boolean"
+                },
+                {
+                    "data_path": "action_result.data.*.responseRequested",
+                    "data_type": "boolean"
+                },
+                {
+                    "data_path": "action_result.data.*.seriesMasterId",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.showAs",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.type",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.webLink",
+                    "data_type": "string",
+                    "contains": ["url"]
+                },
+                {
+                    "data_path": "action_result.data.*.onlineMeetingUrl",
+                    "data_type": "string",
+                    "contains": ["url"]
+                },
+                {
+                    "data_path": "action_result.data.*.recurrence",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.responseStatus.response",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.responseStatus.time",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.body.contentType",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.body.content",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.start.dateTime",
+                    "data_type": "string",
+                    "column_name": "Start Time",
+                    "column_order": 0
+                },
+                {
+                    "data_path": "action_result.data.*.start.timeZone",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.end.dateTime",
+                    "data_type": "string",
+                    "column_name": "End Time",
+                    "column_order": 1
+                },
+                {
+                    "data_path": "action_result.data.*.end.timeZone",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.location.displayName",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.location.locationType",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.location.uniqueId",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.location.uniqueIdType",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.locations.*.displayName",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.locations.*.locationType",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.locations.*.uniqueId",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.locations.*.uniqueIdType",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.attendees.*.type",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.attendees.*.status.response",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.attendees.*.status.time",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.attendees.*.emailAddress.name",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.attendees.*.emailAddress.address",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.attendee_list",
+                    "data_type": "string",
+                    "column_name": "Attendee(s)",
+                    "column_order": 3
+                },
+                {
+                    "data_path": "action_result.data.*.organizer.emailAddress.name",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.organizer.emailAddress.address",
+                    "data_type": "string"
+                }
+            ],
+            "render": {
+                "width": 4,
+                "title": "Calendar Events",
+                "type": "table",
+                "height": 5
             },
             "versions": "EQ(*)"
         },
