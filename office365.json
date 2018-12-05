@@ -39,6 +39,18 @@
             "data_type": "password",
             "required": true,
             "order": 3
+        },
+        "admin_access": {
+            "description": "Admin Access Required",
+            "data_type": "boolean",
+            "default": true,
+            "order": 4
+        },
+        "scope": {
+            "description": "Access scope (for use with non-admin access; space-separated)",
+            "data_type": "string",
+            "default": "https://graph.microsoft.com/calendars.read https://graph.microsoft.com/user.read",
+            "order": 5
         }
     },
     "actions": [
@@ -107,7 +119,7 @@
                     "order": 1
                 },
                 "filter": {
-                    "description": "OData Query to filter/search for specific results",
+                    "description": "OData Query to filter/search for specific resultscd ",
                     "data_type": "string",
                     "required": false,
                     "primary": false,

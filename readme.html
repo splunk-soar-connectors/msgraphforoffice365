@@ -28,7 +28,7 @@ Once the app is created, three steps need to be taken on the next page:
         <li>Mail.ReadWrite</li>
         <li>User.Read</li>
         <li>User.Read.All</li>
-        <li>Calendar.Read</li>
+        <li>Calendar.Read - necessary only if you want to use the "list events" action</li>
     </ul>
 </ul>
 After making these changes, click <b>Save</b> at the bottom of the screen.
@@ -42,6 +42,7 @@ https://&lt;phantom_host&gt;/rest/handler/msgraphforoffice365_0a0a4087-10e8-4c96
 </pre>
 <br>
 Once again, click save at the bottom of the screen.
+<br>
 <h2>User Permissions</h2>
 To complete the authorization process, this app needs permission to view assets, which is not granted by default. First, under <b>asset settings</b>, check which user is listed under <b>Select a user on behalf of which automated actions can be executed</b>. By default the user will be <b>automation</b>, but this user can be changed by clicking <b>EDIT</b> at the bottom of the window. To give this user permission to view assets, follow these steps:
 <ul>
@@ -53,4 +54,6 @@ To complete the authorization process, this app needs permission to view assets,
 After setting up the asset and user, click the <b>TEST CONNECTIVITY</b> button. A window should pop up and display a URL. Navigate to this URL in a separate browser tab. This new tab will redirect to a Microsoft login page. Log in to a Microsoft account with administrator privileges to the desired mailboxes. After logging in, review the requested permissions listed, then click <b>Accept</b>. Finally, close that tab. The test connectivity window should show success.
 <br><br>
 The app should now be ready to be used.
+<br />
+Note: An optional parameter "Admin Access Required" has been added to this app. In most cases this should remain checked, as admin access is required for email use cases. If the desired integration is to integrate with only one user's calendar, you may consider unchecking this box. If unchecked, it allows a non admin user to provide access to a specific account. This functionality will ONLY work with the "list events" functionality. If unchecked, the "Access scope" <em>must</em> be used. The default scope will work for listing calendar events. Additional information on scope can be found <a href="https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-permissions-and-consent#openid-connect-scopes">here.</a>
 </p>

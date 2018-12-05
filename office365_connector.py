@@ -218,8 +218,10 @@ def _handle_oauth_result(request, path_parts):
             message += " Details: {0}".format(error_description)
         return HttpResponse("Server returned {0}".format(message))
 
-    admin_consent = request.GET.get('admin_consent')
-    if (not admin_consent):
+    admin_consent = (request.GET.get('admin_consent'))
+    code = (request.GET.get('code'))
+
+    if (not admin_consent and not(code)):
         return HttpResponse("ERROR: admin_consent not found in URL\n{0}".format(json.dumps(request.GET)))
 
     # Load the data
@@ -230,6 +232,9 @@ def _handle_oauth_result(request, path_parts):
     else:
         admin_consent = False
 
+    if not(admin_consent):
+        admin_consent = code
+
     state['admin_consent'] = admin_consent
 
     _save_app_state(state, asset_id, None)
@@ -237,7 +242,7 @@ def _handle_oauth_result(request, path_parts):
     if (admin_consent):
         return HttpResponse("Admin Consent received. Please close this window, the action will continue to get new token")
 
-    return HttpResponse("Admin Consent declined. Please close this window and try again later")
+    return HttpResponse("Admin Consent declined. Please close this window and try again later" + str(admin_consent) + ' ' + str(request.GET.get('code')))
 
 
 def _handle_oauth_start(request, path_parts):
@@ -412,6 +417,7 @@ class Office365Connector(BaseConnector):
                 'Accept': 'application/json',
                 'Content-Type': 'application/json'})
 
+        
         return _make_rest_call(action_result, url, verify, headers, params, data, method)
 
     def _handle_attachment(self, attachment, container_id, artifact_json=None):
@@ -554,11 +560,19 @@ class Office365Connector(BaseConnector):
 
         config = self.get_config()
 
-        # Create the url authorization, this is the one pointing to the oauth server side
-        admin_consent_url = "https://login.microsoftonline.com/{0}/adminconsent".format(config['tenant'])
-        admin_consent_url += "?client_id={0}".format(config['client_id'])
-        admin_consent_url += "&redirect_uri={0}".format(redirect_uri)
-        admin_consent_url += "&state={0}".format(self.get_asset_id())
+        if config.get("admin_access"):
+            # Create the url authorization, this is the one pointing to the oauth server side
+            admin_consent_url = "https://login.microsoftonline.com/{0}/adminconsent".format(config['tenant'])
+            admin_consent_url += "?client_id={0}".format(config['client_id'])
+            admin_consent_url += "&redirect_uri={0}".format(redirect_uri)
+            admin_consent_url += "&state={0}".format(self.get_asset_id())
+        else:
+            admin_consent_url = "https://login.microsoftonline.com/{0}/oauth2/v2.0/authorize".format(config['tenant'])
+            admin_consent_url += "?client_id={0}".format(config['client_id'])
+            admin_consent_url += "&redirect_uri={0}".format(redirect_uri)
+            admin_consent_url += "&state={0}".format(self.get_asset_id())
+            admin_consent_url += "&scope={0}".format(config.get("scope"))
+            admin_consent_url += "&response_type=code"
 
         app_state['admin_consent_url'] = admin_consent_url
 
@@ -615,7 +629,10 @@ class Office365Connector(BaseConnector):
 
         self.save_progress("Getting info about a single user to verify token")
         params = {'$top': '1'}
-        ret_val, response = self._make_rest_call_helper(action_result, "/users", params=params)
+        if config.get('admin_access'):
+            ret_val, response = self._make_rest_call_helper(action_result, "/users", params=params)
+        else:
+            ret_val, response = self._make_rest_call_helper(action_result, "/me", params=params)
         if (phantom.is_fail(ret_val)):
             self.save_progress("API to get users failed")
             self.save_progress("Test Connectivity Failed")
@@ -676,6 +693,8 @@ class Office365Connector(BaseConnector):
 
         if(user_id is None and group_id is None):
             return action_result.set_status(phantom.APP_ERROR, 'Either a user_id or group_id must be supplied to the "list_events" action.')
+        if user_id and group_id and user_id != "" and group_id != "":
+            return action_result.set_status(phantom.APP_ERROR, 'Either a user_id or group_id can be supplied to the "list_events" action - not both.')
 
         endpoint = ''
 
@@ -707,7 +726,7 @@ class Office365Connector(BaseConnector):
 
         action_result.update_summary({'events_matched': action_result.get_data_size()})
 
-        return action_result.set_status(phantom.APP_SUCCESS, "Successfully retrived events")
+        return action_result.set_status(phantom.APP_SUCCESS, "Successfully retrieved events")
         
 
     def _handle_get_email(self, param):
@@ -987,7 +1006,7 @@ class Office365Connector(BaseConnector):
 
         return ret_val
 
-    def _get_token(self, action_result):
+    def _get_token(self, action_result, from_action=False):
 
         config = self.get_config()
 
@@ -1003,6 +1022,16 @@ class Office365Connector(BaseConnector):
                 'scope': 'https://graph.microsoft.com/.default',
                 'client_secret': client_secret,
                 'grant_type': 'client_credentials'}
+
+        if not(config.get("admin_access")):
+            data['redirect_uri'] =  self._state.get('redirect_uri')
+            data['scope'] = 'offline_access ' + config.get("scope")
+            if from_action:
+                data['grant_type'] = "refresh_token"
+                data['refresh_token'] = self._state['token']['refresh_token']
+            else:
+                data['grant_type'] = "authorization_code"
+                data['code'] = self._state.get('admin_consent')
 
         ret_val, resp_json = _make_rest_call(action_result, req_url, data=data)
 
@@ -1036,7 +1065,13 @@ class Office365Connector(BaseConnector):
 
         # if reached here, means it is some other action and admin has consented, so let's get a token
         action_result = ActionResult()
-        ret_val = self._get_token(action_result)
+
+        config = self.get_config()
+
+        if not(config.get('admin_access')):
+            ret_val = self._get_token(action_result, from_action=True)
+        else:
+            ret_val = self._get_token(action_result)
         if (phantom.is_fail(ret_val)):
             return self.set_status(phantom.APP_ERROR, action_result.get_message())
 
