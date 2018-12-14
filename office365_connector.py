@@ -347,7 +347,7 @@ class Office365Connector(BaseConnector):
 
         asset_id = self.get_asset_id()
 
-        rest_endpoint = PHANTOM_ASSET_INFO_URL.format(asset_id=asset_id)
+        rest_endpoint = PHANTOM_ASSET_INFO_URL.format(url=self.get_phantom_base_url(), asset_id=asset_id)
 
         ret_val, resp_json = _make_rest_call(action_result, rest_endpoint, False)
 
@@ -363,7 +363,7 @@ class Office365Connector(BaseConnector):
 
     def _get_phantom_base_url(self, action_result):
 
-        ret_val, resp_json = _make_rest_call(action_result, PHANTOM_SYS_INFO_URL, False)
+        ret_val, resp_json = _make_rest_call(action_result, PHANTOM_SYS_INFO_URL.format(url=self.get_phantom_base_url()), False)
 
         if (phantom.is_fail(ret_val)):
             return (ret_val, None)
@@ -417,22 +417,26 @@ class Office365Connector(BaseConnector):
                 'Accept': 'application/json',
                 'Content-Type': 'application/json'})
 
-        
         return _make_rest_call(action_result, url, verify, headers, params, data, method)
 
     def _handle_attachment(self, attachment, container_id, artifact_json=None):
 
         try:
 
-            file_desc, file_path = tempfile.mkstemp(dir='/vault/tmp/')
+            if hasattr(Vault, "create_attachment"):
+                vault_ret = Vault.create_attachment(attachment.pop('contentBytes'), container_id, file_name=attachment['name'])
 
-            download_file = open(file_path, 'w')
-            download_file.write(base64.b64decode(attachment.pop('contentBytes')))
-            download_file.close()
+            else:
 
-            os.close(file_desc)
+                file_desc, file_path = tempfile.mkstemp(dir='/vault/tmp/')
 
-            vault_ret = Vault.add_attachment(file_path, container_id, attachment['name'])
+                download_file = open(file_path, 'w')
+                download_file.write(base64.b64decode(attachment.pop('contentBytes')))
+                download_file.close()
+
+                os.close(file_desc)
+
+                vault_ret = Vault.add_attachment(file_path, container_id, attachment['name'])
 
         except Exception as e:
             self.debug_print("Error saving file to vault: ", str(e))
@@ -701,7 +705,7 @@ class Office365Connector(BaseConnector):
         if user_id:
             endpoint = '/users/{0}/calendar/events'.format(user_id)
         else:
-            endpoint = '/groups/{0}/calendar/events'.format(group_id) 
+            endpoint = '/groups/{0}/calendar/events'.format(group_id)
 
         if query:
             endpoint = '{0}?{1}'.format(endpoint, query)
@@ -711,8 +715,6 @@ class Office365Connector(BaseConnector):
         ret_val, response = self._make_rest_call_helper(action_result, endpoint)
         if (phantom.is_fail(ret_val)):
             return action_result.get_status()
-
-        
 
         for event in response["value"]:
             categories = []
@@ -727,7 +729,6 @@ class Office365Connector(BaseConnector):
         action_result.update_summary({'events_matched': action_result.get_data_size()})
 
         return action_result.set_status(phantom.APP_SUCCESS, "Successfully retrieved events")
-        
 
     def _handle_get_email(self, param):
 
@@ -997,7 +998,7 @@ class Office365Connector(BaseConnector):
 
         elif action_id == 'run_query':
             ret_val = self._handle_run_query(param)
-            
+
         elif action_id == 'list_events':
             ret_val = self._handle_list_events(param)
 
@@ -1024,7 +1025,7 @@ class Office365Connector(BaseConnector):
                 'grant_type': 'client_credentials'}
 
         if not(config.get("admin_access")):
-            data['redirect_uri'] =  self._state.get('redirect_uri')
+            data['redirect_uri'] = self._state.get('redirect_uri')
             data['scope'] = 'offline_access ' + config.get("scope")
             if from_action:
                 data['grant_type'] = "refresh_token"
