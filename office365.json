@@ -1761,6 +1761,164 @@
                 "type": "table"
             },
             "versions": "EQ(*)"
+        },
+        {
+            "action": "create folder",
+            "identifier": "create_folder",
+            "description": "create folder",
+            "verbose": "Create a new folder, either in the mailbox root or inside an existing folder",
+            "type": "generic",
+            "read_only": false,
+            "parameters": {
+                "email_address": {
+                    "description": "User's email (Mailbox to create folders)",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": true,
+                    "contains": [
+                        "email"
+                    ],
+                    "order": 0
+                },
+                "folder": {
+                    "description": "Folder Name/Path (to create). Use \"/\" or \"\\\" to separate folder elements; ie. Inbox/dir1/dir2/dir3",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": true,
+                    "contains": [
+                        "mail folder",
+                        "mail folder path"
+                    ],
+                    "order": 1
+                },
+                "all_subdirs": {
+                    "description": "Make any missing directories in the path if they don't exist instead of failing",
+                    "data_type": "boolean",
+                    "required": false,
+                    "primary": false,
+                    "default": false,
+                    "order": 2
+                }
+            },
+            "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.email_address",
+                    "data_type": "string",
+                    "contains": [
+                        "email"
+                    ],
+                    "example_values": [
+                        "herman@phantomengineering.onmicrosoft.com"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.folder",
+                    "data_type": "string",
+                    "contains": [
+                        "mail folder",
+                        "mail folder path"
+                    ],
+                    "example_values": [
+                        "Archive"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.all_subdirs",
+                    "data_type": "boolean"
+                },
+                {
+                    "data_path": "action_result.data.*.@odata.etag",
+                    "data_type": "string",
+                    "example_values": [
+                        "W/\"CQAAABYAAABBKXVvwEWISZupmqX4mJS3AAFOpxtE\""
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.displayName",
+                    "data_type": "string",
+                    "column_name": "name",
+                    "column_order": 0
+                },
+                {
+                    "data_path": "action_result.data.*.id",
+                    "data_type": "string",
+                    "column_name": "ID",
+                    "column_order": 1,
+                    "contains": [
+                        "email id"
+                    ],
+                    "example_values": [
+                        "AAMkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQBGAAAAAADJbdfk-sdvT4wwcqie92hZBwBBKXVvwEWISZupmqX4mJS3AACEV3zJAABBKXVvwEWISZupmqX4mJS3AAFOZwS4AAA="
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.parentFolderId",
+                    "data_type": "string",
+                    "column_name": "parent folder id",
+                    "column_order": 2,
+                    "contains": [
+                        "mail folder",
+                        "mail folder path"
+                    ],
+                    "example_values": [
+                        "AAMkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQAuAAAAAADJbdfk-sdvT4wwcqie92hZAQBBKXVvwEWISZupmqX4mJS3AACEV3zJAAA="
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.childFolderCount",
+                    "data_type": "numeric",
+                    "column_name": "child folder count",
+                    "column_order": 3
+                },
+                {
+                    "data_path": "action_result.data.*.unreadItemCount",
+                    "data_type": "numeric",
+                    "column_name": "unread item count",
+                    "column_order": 4
+                },
+                {
+                    "data_path": "action_result.data.*.totalItemCount",
+                    "data_type": "numeric",
+                    "column_name": "total item count",
+                    "column_order": 5
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "Emails matched: 1"
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary",
+                    "data_type": "string"
+                }
+            ],
+            "render": {
+                "type": "table"
+            },
+            "versions": "EQ(*)"
         }
     ]
 }

@@ -31,6 +31,9 @@ SERVER_TOKEN_URL = "https://login.microsoftonline.com/{0}/oauth2/v2.0/token"
 MSGRAPH_API_URL = "https://graph.microsoft.com/v1.0"
 MAX_END_OFFSET_VAL = 2147483646
 
+class ReturnException(Exception):
+    pass
+
 
 class RetVal(tuple):
     def __new__(cls, val1, val2):
@@ -964,6 +967,166 @@ class Office365Connector(BaseConnector):
 
         return action_result.set_status(phantom.APP_SUCCESS)
 
+    def _getFolder(self, action_result, folder, email):
+    
+        params = {}
+        params['$filter'] = "displayName eq '{}'".format(folder)
+        endpoint = "/users/{}/mailFolders".format(email)
+
+        ret_val, response = self._make_rest_call_helper(action_result, endpoint, params=params)
+        if (phantom.is_fail(ret_val)):
+            raise ReturnException()
+
+        value = response.get('value', [])
+        if len(value) > 0:
+            self._currentdir = value[0]
+            return value[0]['id']
+
+        return None
+
+    def _getChildFolder(self, action_result, folder, parent_id, email):
+
+        params = {}
+        params['$filter'] = "displayName eq '{}'".format(folder)
+        endpoint = "/users/{}/mailFolders/{}/childFolders".format(email, parent_id)
+
+        ret_val, response = self._make_rest_call_helper(action_result, endpoint, params=params)
+        if (phantom.is_fail(ret_val)):
+            raise ReturnException()
+
+        value = response.get('value', [])
+        if len(value) > 0:
+            self._currentdir = value[0]
+            return value[0]['id']
+
+        return None
+
+    def _newFolder(self, action_result, folder, email):
+    
+        data = json.dumps({ "displayName": folder })
+        endpoint = "/users/{}/mailFolders".format(email)
+
+        ret_val, response = self._make_rest_call_helper(action_result, endpoint, data=data, method="post")
+        if (phantom.is_fail(ret_val)):
+            raise RestException()
+
+        if response.get('id', False):
+            self._currentdir = response
+            self.save_progress("Success({}): created folder in mailbox".format(folder))
+            return response['id']
+
+        msg = "Error({}): unable to create folder in mailbox".format(folder)
+        self.save_progress(msg)
+        action_result.set_status(phantom.APP_ERROR, msg)
+        raise ReturnException()
+
+    def _newChildFolder(self, action_result, folder, parent_id, email, pathsofar):
+
+    
+        data = json.dumps({ "displayName": folder })
+        endpoint = "/users/{}/mailFolders/{}/childFolders".format(email, parent_id)
+
+        ret_val, response = self._make_rest_call_helper(action_result, endpoint, data=data, method="post")
+        if (phantom.is_fail(ret_val)):
+            raise RestException()
+
+        if response.get('id', False):
+            self._currentdir = response
+            self.save_progress("Success({}): created child folder in folder {}".format(folder, pathsofar))
+            return response['id']
+
+        msg = "Error({}): unable to create child folder in folde {}".format(folder, pathsofar)
+        self.save_progress(msg)
+        action_result.set_status(phantom.APP_ERROR, msg)
+        raise ReturnException()
+
+    def _handle_create_folder(self, param):
+
+        self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
+        action_result = self.add_action_result(ActionResult(dict(param)))
+
+        email = param["email_address"]
+        folder = param["folder"].decode("utf8",'ignore').translate({92:47})
+        minusp = param.get("all_subdirs", False)
+
+        path = [x for x in folder.strip().split("/") if x]
+        if len(path) == 0:
+            msg = "Error: Invalid folder path"
+            self.save_progress(msg)
+            return action_result.set_status(phantom.APP_ERROR, msg)
+            
+        try:
+
+            dir_id = self._getFolder(action_result, path[0], email)
+
+            # only one, create as "Folder" in mailbox
+            if len(path) == 1:
+
+                if dir_id:
+                    msg = "Error({}): folder already exists in mailbox".format(path[0])
+                    self.save_progress(msg)
+                    return action_result.set_status(phantom.APP_ERROR, msg)
+
+                self._newFolder(action_result, path[0], email)
+                action_result.add_data(self._currentdir)
+            
+            # walk the path elements, creating each as needed
+            else:
+
+                pathsofar = ""
+
+                # first deal with the initial Folder
+                if not dir_id:
+                    if minusp:
+                        dir_id = self._newFolder(action_result, path[0], email)
+                        action_result.add_data(self._currentdir)
+
+                    else:
+                        msg = "Error({}): folder doesn't exists in mailbox".format(path[0])
+                        self.save_progress(msg)
+                        return action_result.set_status(phantom.APP_ERROR, msg)
+
+                pathsofar += "/" + path[0]
+                parent_id = dir_id
+
+                # next extract the final childFolder
+                final = path[-1]
+                path = path[1:-1]
+
+                # next all the childFolders in between
+                for subf in path:
+
+                    dir_id = self._getChildFolder(action_result, subf, parent_id, email)
+
+                    if not dir_id:
+                        if minusp:
+                            dir_id = self._newChildFolder(action_result, subf, parent_id, email, pathsofar)
+                            action_result.add_data(self._currentdir)
+
+                        else:
+                            msg = "Error({}): child folder doesn't exists in folder {}".format(subf, pathsofar)
+                            self.save_progress(msg)
+                            return action_result.set_status(phantom.APP_ERROR, msg)
+                            
+                    pathsofar += "/" + subf
+                    parent_id = dir_id
+
+                # finally, the actual folder
+                dir_id = self._getChildFolder(action_result, final, parent_id, email)
+                if dir_id:
+                    msg = "Error({}): child folder already exists in folder".format(final, pathsofar)
+                    self.save_progress(msg)
+                    return action_result.set_status(phantom.APP_ERROR, msg)
+
+                self._newChildFolder(action_result, final, parent_id, email, pathsofar)
+                action_result.add_data(self._currentdir)
+
+        except ReturnException as e:
+            return action_result.get_status()
+
+        action_result.update_summary({"folders created":len(action_result.get_data()), folder: self._currentdir['id']})
+        return action_result.set_status(phantom.APP_SUCCESS)
+
     def handle_action(self, param):
 
         ret_val = phantom.APP_SUCCESS
@@ -996,6 +1159,9 @@ class Office365Connector(BaseConnector):
 
         elif action_id == 'generate_token':
             ret_val = self._handle_generate_token(param)
+
+        elif action_id == 'create_folder':
+            ret_val = self._handle_create_folder(param)
 
         return ret_val
 
@@ -1067,6 +1233,8 @@ class Office365Connector(BaseConnector):
             ret_val = self._get_token(action_result)
         if (phantom.is_fail(ret_val)):
             return self.set_status(phantom.APP_ERROR, action_result.get_message())
+
+        self._currentdir = None
 
         return phantom.APP_SUCCESS
 
