@@ -417,7 +417,8 @@
                     "order": 1
                 },
                 "folder": {
-                    "description": "Destination Mail Folder Name. This must be either a (case sensitive) well-known name [list here; https://docs.microsoft.com/en-us/graph/api/resources/mailfolder?view=graph-rest-1.0] or the internal o365 folder ID.",
+                    "description": "Destination folder; This must be either a (case sensitive) well-known name or the internal o365 folder ID.",
+                    "verbose": "Destination Mail Folder id. This must be either a (case sensitive) well-known name [list here; https://docs.microsoft.com/en-us/graph/api/resources/mailfolder?view=graph-rest-1.0] or the internal o365 folder ID.",
                     "data_type": "string",
                     "required": true,
                     "primary": true,
