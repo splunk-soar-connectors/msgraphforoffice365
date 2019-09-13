@@ -10,8 +10,8 @@
     "product_version_regex": ".*",
     "publisher": "Phantom",
     "license": "Copyright (c) 2017-2019 Splunk Inc.",
-    "app_version": "1.0.21",
-    "utctime_updated": "2019-07-08T21:28:35.000000Z",
+    "app_version": "1.0.22",
+    "utctime_updated": "2019-07-19T21:28:35.000000Z",
     "package_name": "phantom_msgraphoffice365",
     "main_module": "office365_connector.pyc",
     "min_phantom_version": "4.0.1068",
@@ -102,6 +102,79 @@
             ],
             "render": {
                 "type": "table"
+            },
+            "versions": "EQ(*)"
+        },
+        {
+            "action": "oof check",
+            "identifier": "oof_check",
+            "description": "List user's out of office status",
+            "type": "generic",
+            "read_only": false,
+            "parameters": {
+                "user_id": {
+                    "description": "User ID/Principal Name",
+                    "data_type": "string",
+                    "required": false,
+                    "primary": false,
+                    "order": 0
+                },
+                "filter": {
+                    "description": "OData Query to filter/search for specific results",
+                    "data_type": "string",
+                    "required": false,
+                    "primary": false,
+                    "order": 1
+                }
+            },
+            "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]                },
+                {
+                    "data_path": "action_result.parameter.filter",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.parameter.user_id",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.@odata.etag",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.status",
+                    "data_type": "string",
+                    "column_name": "Out of Office Status",
+                    "column_order": 1
+                },
+                {
+                    "data_path": "action_result.summary.events_matched",
+                    "data_type": "numeric"
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric"
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric"
+                }
+            ],
+            "render": {
+                "width": 4,
+                "title": "Out of Office Status",
+                "type": "table",
+                "height": 5
             },
             "versions": "EQ(*)"
         },

@@ -31,6 +31,7 @@ SERVER_TOKEN_URL = "https://login.microsoftonline.com/{0}/oauth2/v2.0/token"
 MSGRAPH_API_URL = "https://graph.microsoft.com/v1.0"
 MAX_END_OFFSET_VAL = 2147483646
 
+
 class ReturnException(Exception):
     pass
 
@@ -553,6 +554,7 @@ class Office365Connector(BaseConnector):
         # it later on
         redirect_uri = "{0}/result".format(app_rest_url)
         app_state['redirect_uri'] = redirect_uri
+        self._state['redirect_uri'] = redirect_uri
 
         self.save_progress("Using OAuth Redirect URL as:")
         self.save_progress(redirect_uri)
@@ -681,6 +683,29 @@ class Office365Connector(BaseConnector):
             return action_result.get_status()
 
         return action_result.set_status(phantom.APP_SUCCESS, "successfully deleted email")
+
+    def _handle_oof_check(self, param):
+        self.save_progress('In action handler for: {0}'.format(self.get_action_identifier()))
+        action_result = self.add_action_result(ActionResult(dict(param)))
+
+        user_id = param.get('user_id')
+
+        if(user_id is None):
+            return action_result.set_status(phantom.APP_ERROR, 'A user_id must be supplied to the "oof_check" action.')
+
+        endpoint = '/users/{0}/mailboxSettings/automaticRepliesSetting'.format(user_id)
+
+        # self.debug_print("list out of office status enpdoint", str(endpoint))
+
+        ret_val, response = self._make_rest_call_helper(action_result, endpoint, method='get')
+        if (phantom.is_fail(ret_val)):
+            return action_result.get_status()
+
+        action_result.add_data(response)
+
+        action_result.update_summary({'events_matched': action_result.get_data_size()})
+
+        return action_result.set_status(phantom.APP_SUCCESS, "Successfully retrieved out of office status")
 
     def _handle_list_events(self, param):
         self.save_progress('In action handler for: {0}'.format(self.get_action_identifier()))
@@ -869,8 +894,7 @@ class Office365Connector(BaseConnector):
                 return action_result.set_status(phantom.APP_ERROR, message)
 
         if not self.is_poll_now() and len(emails) == int(max_emails):
-            self._state['last_time'] = (datetime.strptime(emails[-1]['lastModifiedDateTime'], O365_TIME_FORMAT) +
-                    timedelta(seconds=1)).strftime(O365_TIME_FORMAT)
+            self._state['last_time'] = (datetime.strptime(emails[-1]['lastModifiedDateTime'], O365_TIME_FORMAT) + timedelta(seconds=1)).strftime(O365_TIME_FORMAT)
 
         return action_result.set_status(phantom.APP_SUCCESS)
 
@@ -968,7 +992,7 @@ class Office365Connector(BaseConnector):
         return action_result.set_status(phantom.APP_SUCCESS)
 
     def _getFolder(self, action_result, folder, email):
-    
+
         params = {}
         params['$filter'] = "displayName eq '{}'".format(folder)
         endpoint = "/users/{}/mailFolders".format(email)
@@ -1002,7 +1026,7 @@ class Office365Connector(BaseConnector):
         return None
 
     def _newFolder(self, action_result, folder, email):
-    
+
         data = json.dumps({ "displayName": folder })
         endpoint = "/users/{}/mailFolders".format(email)
 
@@ -1022,7 +1046,6 @@ class Office365Connector(BaseConnector):
 
     def _newChildFolder(self, action_result, folder, parent_id, email, pathsofar):
 
-    
         data = json.dumps({ "displayName": folder })
         endpoint = "/users/{}/mailFolders/{}/childFolders".format(email, parent_id)
 
@@ -1046,7 +1069,7 @@ class Office365Connector(BaseConnector):
         action_result = self.add_action_result(ActionResult(dict(param)))
 
         email = param["email_address"]
-        folder = param["folder"].decode("utf8",'ignore').translate({92:47})
+        folder = param["folder"].decode("utf8", 'ignore').translate({92: 47})
         minusp = param.get("all_subdirs", False)
 
         path = [x for x in folder.strip().split("/") if x]
@@ -1054,7 +1077,7 @@ class Office365Connector(BaseConnector):
             msg = "Error: Invalid folder path"
             self.save_progress(msg)
             return action_result.set_status(phantom.APP_ERROR, msg)
-            
+
         try:
 
             dir_id = self._getFolder(action_result, path[0], email)
@@ -1069,7 +1092,7 @@ class Office365Connector(BaseConnector):
 
                 self._newFolder(action_result, path[0], email)
                 action_result.add_data(self._currentdir)
-            
+
             # walk the path elements, creating each as needed
             else:
 
@@ -1107,7 +1130,7 @@ class Office365Connector(BaseConnector):
                             msg = "Error({}): child folder doesn't exists in folder {}".format(subf, pathsofar)
                             self.save_progress(msg)
                             return action_result.set_status(phantom.APP_ERROR, msg)
-                            
+
                     pathsofar += "/" + subf
                     parent_id = dir_id
 
@@ -1121,10 +1144,10 @@ class Office365Connector(BaseConnector):
                 self._newChildFolder(action_result, final, parent_id, email, pathsofar)
                 action_result.add_data(self._currentdir)
 
-        except ReturnException as e:
+        except ReturnException:
             return action_result.get_status()
 
-        action_result.update_summary({"folders created":len(action_result.get_data()), folder: self._currentdir['id']})
+        action_result.update_summary({"folders created": len(action_result.get_data()), folder: self._currentdir['id']})
         return action_result.set_status(phantom.APP_SUCCESS)
 
     def handle_action(self, param):
@@ -1156,6 +1179,9 @@ class Office365Connector(BaseConnector):
 
         elif action_id == 'list_events':
             ret_val = self._handle_list_events(param)
+
+        elif action_id == 'oof_check':
+            ret_val = self._handle_oof_check(param)
 
         elif action_id == 'generate_token':
             ret_val = self._handle_generate_token(param)
