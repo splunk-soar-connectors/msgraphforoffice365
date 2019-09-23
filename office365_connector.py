@@ -41,123 +41,12 @@ class RetVal(tuple):
         return tuple.__new__(RetVal, (val1, val2))
 
 
-def _process_empty_reponse(response, action_result):
-
-    if response.status_code == 200:
-        return RetVal(phantom.APP_SUCCESS, {})
-
-    return RetVal(action_result.set_status(phantom.APP_ERROR, "Empty response and no information in the header"), None)
-
-
-def _process_html_response(response, action_result):
-
-    # An html response, treat it like an error
-    status_code = response.status_code
-
-    try:
-        soup = BeautifulSoup(response.text, "html.parser")
-        error_text = soup.text
-        split_lines = error_text.split('\n')
-        split_lines = [x.strip() for x in split_lines if x.strip()]
-        error_text = '\n'.join(split_lines)
-    except:
-        error_text = "Cannot parse error details"
-
-    message = "Status Code: {0}. Data from server:\n{1}\n".format(status_code,
-            error_text)
-
-    message = message.replace('{', '{{').replace('}', '}}')
-
-    return RetVal(action_result.set_status(phantom.APP_ERROR, message), None)
-
-
-def _process_json_response(r, action_result):
-
-    # Try a json parse
-    try:
-        resp_json = r.json()
-    except Exception as e:
-        return RetVal(action_result.set_status(phantom.APP_ERROR, "Unable to parse JSON response. Error: {0}".format(str(e))), None)
-
-    # Please specify the status codes here
-    if 200 <= r.status_code < 399:
-        return RetVal(phantom.APP_SUCCESS, resp_json)
-
-    # You should process the error returned in the json
-    message = "Error from server. Status Code: {0} Data from server: {1}".format(
-            r.status_code, r.text.replace('{', '{{').replace('}', '}}'))
-
-    return RetVal(action_result.set_status(phantom.APP_ERROR, message), None)
-
-
-def _process_response(r, action_result):
-
-    # store the r_text in debug data, it will get dumped in the logs if the action fails
-    if hasattr(action_result, 'add_debug_data'):
-        action_result.add_debug_data({'r_status_code': r.status_code})
-        action_result.add_debug_data({'r_text': r.text})
-        action_result.add_debug_data({'r_headers': r.headers})
-
-    # Process each 'Content-Type' of response separately
-
-    # Process a json response
-    content_type = r.headers.get('Content-Type', '')
-    if 'json' in content_type or 'javascript' in content_type:
-        return _process_json_response(r, action_result)
-
-    # Process an HTML resonse, Do this no matter what the api talks.
-    # There is a high chance of a PROXY in between phantom and the rest of
-    # world, in case of errors, PROXY's return HTML, this function parses
-    # the error and adds it to the action_result.
-    if 'html' in r.headers.get('Content-Type', ''):
-        return _process_html_response(r, action_result)
-
-    if r.status_code == 404:
-        return RetVal(action_result.set_status(phantom.APP_ERROR, "email not found"), None)
-
-    if 200 <= r.status_code <= 204:
-        return RetVal(phantom.APP_SUCCESS, None)
-
-    # it's not content-type that is to be parsed, handle an empty response
-    if not r.text:
-        return _process_empty_reponse(r, action_result)
-
-    # everything else is actually an error at this point
-    message = "Can't process response from server. Status Code: {0} Data from server: {1}".format(
-            r.status_code, r.text.replace('{', '{{').replace('}', '}}'))
-
-    return RetVal(action_result.set_status(phantom.APP_ERROR, message), None)
-
-
-def _make_rest_call(action_result, url, verify=True, headers=None, params=None, data=None, method="get"):
-
-    resp_json = None
-
-    try:
-        request_func = getattr(requests, method)
-    except AttributeError:
-        return RetVal(action_result.set_status(phantom.APP_ERROR, "Invalid method: {0}".format(method)), resp_json)
-
-    try:
-        r = request_func(
-                        url,
-                        data=data,
-                        headers=headers,
-                        verify=verify,
-                        params=params)
-    except Exception as e:
-        return RetVal(action_result.set_status( phantom.APP_ERROR, "Error Connecting to server. Details: {0}".format(str(e))), resp_json)
-
-    return _process_response(r, action_result)
-
-
 def _load_app_state(asset_id, app_connector=None):
     """ Loads the data that was added to """
 
     # get the directory of the file
     dirpath = os.path.split(__file__)[0]
     state_file = "{0}/{1}_state.json".format(dirpath, asset_id)
-
     state = {}
 
     try:
@@ -223,22 +112,25 @@ def _handle_oauth_result(request, path_parts):
     # Load the data
     state = _load_app_state(asset_id)
 
-    if (admin_consent == 'True'):
-        admin_consent = True
-    else:
-        admin_consent = False
+    if admin_consent:
+        if (admin_consent == 'True'):
+            admin_consent = True
+        else:
+            admin_consent = False
 
-    if not(admin_consent):
-        admin_consent = code
+        state['admin_consent'] = admin_consent
+        _save_app_state(state, asset_id, None)
 
-    state['admin_consent'] = admin_consent
+        # If admin_consent is True
+        if admin_consent:
+            return HttpResponse('Admin Consent received. Please close this window.')
+        return HttpResponse('Admin Consent declined. Please close this window and try again later.')
 
+    # If value of admin_consent is not available, value of code is available
+    state['code'] = code
     _save_app_state(state, asset_id, None)
 
-    if (admin_consent):
-        return HttpResponse("Admin Consent received. Please close this window, the action will continue to get new token")
-
-    return HttpResponse("Admin Consent declined. Please close this window and try again later" + str(admin_consent) + ' ' + str(request.GET.get('code')))
+    return HttpResponse('Code received. Please close this window, the action will continue to get new token.')
 
 
 def _handle_oauth_start(request, path_parts):
@@ -284,7 +176,6 @@ def handle_request(request, path_parts):
 
         # process the 'code'
         ret_val = _handle_oauth_result(request, path_parts)
-
         asset_id = request.GET.get('state')
 
         if (asset_id):
@@ -339,13 +230,118 @@ class Office365Connector(BaseConnector):
         # modify this as you deem fit.
         self._base_url = None
 
+    def _process_empty_reponse(self, response, action_result):
+
+        if response.status_code == 200:
+            return RetVal(phantom.APP_SUCCESS, {})
+
+        return RetVal(action_result.set_status(phantom.APP_ERROR, "Empty response and no information in the header"), None)
+
+    def _process_html_response(self, response, action_result):
+
+        # An html response, treat it like an error
+        status_code = response.status_code
+
+        try:
+            soup = BeautifulSoup(response.text, "html.parser")
+            error_text = soup.text
+            split_lines = error_text.split('\n')
+            split_lines = [x.strip() for x in split_lines if x.strip()]
+            error_text = '\n'.join(split_lines)
+        except:
+            error_text = "Cannot parse error details"
+
+        message = "Status Code: {0}. Data from server:\n{1}\n".format(status_code,
+                error_text)
+
+        message = message.replace('{', '{{').replace('}', '}}')
+
+        return RetVal(action_result.set_status(phantom.APP_ERROR, message), None)
+
+    def _process_json_response(self, r, action_result):
+
+        # Try a json parse
+        try:
+            resp_json = r.json()
+        except Exception as e:
+            return RetVal(action_result.set_status(phantom.APP_ERROR, "Unable to parse JSON response. Error: {0}".format(str(e))), None)
+
+        # Please specify the status codes here
+        if 200 <= r.status_code < 399:
+            return RetVal(phantom.APP_SUCCESS, resp_json)
+
+        # You should process the error returned in the json
+        message = "Error from server. Status Code: {0} Data from server: {1}".format(
+                r.status_code, r.text.replace('{', '{{').replace('}', '}}'))
+
+        return RetVal(action_result.set_status(phantom.APP_ERROR, message), None)
+
+    def _process_response(self, r, action_result):
+
+        # store the r_text in debug data, it will get dumped in the logs if the action fails
+        if hasattr(action_result, 'add_debug_data'):
+            action_result.add_debug_data({'r_status_code': r.status_code})
+            action_result.add_debug_data({'r_text': r.text})
+            action_result.add_debug_data({'r_headers': r.headers})
+
+        # Process each 'Content-Type' of response separately
+
+        # Process a json response
+        content_type = r.headers.get('Content-Type', '')
+        if 'json' in content_type or 'javascript' in content_type:
+            return self._process_json_response(r, action_result)
+
+        # Process an HTML resonse, Do this no matter what the api talks.
+        # There is a high chance of a PROXY in between phantom and the rest of
+        # world, in case of errors, PROXY's return HTML, this function parses
+        # the error and adds it to the action_result.
+        if 'html' in r.headers.get('Content-Type', ''):
+            return self._process_html_response(r, action_result)
+
+        if r.status_code == 404:
+            return RetVal(action_result.set_status(phantom.APP_ERROR, "email not found"), None)
+
+        if 200 <= r.status_code <= 204:
+            return RetVal(phantom.APP_SUCCESS, None)
+
+        # it's not content-type that is to be parsed, handle an empty response
+        if not r.text:
+            return self._process_empty_reponse(r, action_result)
+
+        # everything else is actually an error at this point
+        message = "Can't process response from server. Status Code: {0} Data from server: {1}".format(
+                r.status_code, r.text.replace('{', '{{').replace('}', '}}'))
+
+        return RetVal(action_result.set_status(phantom.APP_ERROR, message), None)
+
+    def _make_rest_call(self, action_result, url, verify=True, headers=None, params=None, data=None, method="get"):
+
+        resp_json = None
+
+        try:
+            request_func = getattr(requests, method)
+        except AttributeError:
+            return RetVal(action_result.set_status(phantom.APP_ERROR, "Invalid method: {0}".format(method)), resp_json)
+
+        try:
+            r = request_func(
+                            url,
+                            data=data,
+                            headers=headers,
+                            verify=verify,
+                            params=params)
+        except Exception as e:
+            return RetVal(action_result.set_status( phantom.APP_ERROR, "Error Connecting to server. Details: {0}".format(str(e))), resp_json)
+
+        return self._process_response(r, action_result)
+
     def _get_asset_name(self, action_result):
 
         asset_id = self.get_asset_id()
 
         rest_endpoint = PHANTOM_ASSET_INFO_URL.format(url=self.get_phantom_base_url(), asset_id=asset_id)
 
-        ret_val, resp_json = _make_rest_call(action_result, rest_endpoint, False)
+        ret_val, resp_json = self._make_rest_call(action_result, rest_endpoint, False)
 
         if (phantom.is_fail(ret_val)):
             return (ret_val, None)
@@ -353,13 +349,13 @@ class Office365Connector(BaseConnector):
         asset_name = resp_json.get('name')
 
         if (not asset_name):
-            return (action_result.set_status(phantom.APP_ERROR, "Asset Name for id: {0} not found.".format(asset_id), None))
+            return (action_result.set_status(phantom.APP_ERROR, "Asset Name for ID: {0} not found.".format(asset_id), None))
 
         return (phantom.APP_SUCCESS, asset_name)
 
     def _get_phantom_base_url(self, action_result):
 
-        ret_val, resp_json = _make_rest_call(action_result, PHANTOM_SYS_INFO_URL.format(url=self.get_phantom_base_url()), False)
+        ret_val, resp_json = self._make_rest_call(action_result, PHANTOM_SYS_INFO_URL.format(url=self.get_phantom_base_url()), False)
 
         if (phantom.is_fail(ret_val)):
             return (ret_val, None)
@@ -409,11 +405,26 @@ class Office365Connector(BaseConnector):
             headers = {}
 
         headers.update({
-                'Authorization': 'Bearer {0}'.format(self._state['token']['access_token']),
+                'Authorization': 'Bearer {0}'.format(self._access_token),
                 'Accept': 'application/json',
                 'Content-Type': 'application/json'})
 
-        return _make_rest_call(action_result, url, verify, headers, params, data, method)
+        ret_val, resp_json = self._make_rest_call(action_result, url, verify, headers, params, data, method)
+
+        # If token is expired, generate a new token
+        msg = action_result.get_message()
+
+        if msg and 'token is invalid' in msg or 'Access token has expired' in msg or 'ExpiredAuthenticationToken' in msg or 'AuthenticationFailed' in msg:
+            ret_val = self._get_token(action_result)
+
+            headers.update({ 'Authorization': 'Bearer {0}'.format(self._access_token)})
+
+            ret_val, resp_json = self._make_rest_call(action_result, url, verify, headers, params, data, method)
+
+        if phantom.is_fail(ret_val):
+            return action_result.get_status(), None
+
+        return phantom.APP_SUCCESS, resp_json
 
     def _handle_attachment(self, attachment, container_id, artifact_json=None):
 
@@ -531,15 +542,78 @@ class Office365Connector(BaseConnector):
 
         return artifacts
 
+    def _get_admin_access(self, action_result, app_rest_url):
+        """ This function is used to get admin access for given credentials.
+
+        :param action_result: Object of action result
+        :param app_rest_url: REST URL created for app
+        :return: status success/failure
+        """
+
+        # Create the url authorization, this is the one pointing to the oauth server side
+        admin_consent_url = "https://login.microsoftonline.com/{0}/adminconsent".format(self._tenant)
+        admin_consent_url += "?client_id={0}".format(self._client_id)
+        admin_consent_url += "&redirect_uri={0}".format(self._state['redirect_uri'])
+        admin_consent_url += "&state={0}".format(self.get_asset_id())
+
+        self._state['admin_consent_url'] = admin_consent_url
+
+        # The URL that the user should open in a different tab.
+        # This is pointing to a REST endpoint that points to the app
+        url_to_show = "{0}/start_oauth?asset_id={1}&".format(app_rest_url, self.get_asset_id())
+
+        # Save the state, will be used by the request handler
+        _save_app_state(self._state, self.get_asset_id(), self)
+        self.save_state(self._state)
+
+        self.save_progress('Please authorize user in a separate tab using URL:')
+        self.save_progress(url_to_show)
+
+        time.sleep(5)
+
+        completed = False
+
+        app_dir = os.path.dirname(os.path.abspath(__file__))
+        auth_status_file_path = "{0}/{1}_{2}".format(app_dir, self.get_asset_id(), TC_FILE)
+
+        self.save_progress('Waiting for authorization to complete')
+
+        for i in range(0, 40):
+
+            self.send_progress('{0}'.format('.' * (i % 10)))
+
+            if (os.path.isfile(auth_status_file_path)):
+                completed = True
+                os.unlink(auth_status_file_path)
+                break
+
+            time.sleep(TC_STATUS_SLEEP)
+
+        if (not completed):
+            self.save_progress("Authentication process does not seem to be completed. Timing out")
+            return self.set_status(phantom.APP_ERROR)
+
+        self.send_progress("")
+
+        # Load the state again, since the http request handlers would have saved the result of the admin consent
+        self._state = _load_app_state(self.get_asset_id(), self)
+
+        if not self._state:
+            self.save_progress("Authorization not received or not given")
+            self.save_progress("Test Connectivity Failed")
+            return self.set_status(phantom.APP_ERROR)
+
+        # The authentication seems to be done, let's see if it was successfull
+        self._state['admin_consent'] = self._state.get('admin_consent', False)
+
+        return self.set_status(phantom.APP_SUCCESS)
+
     def _handle_test_connectivity(self, param):
         """ Function that handles the test connectivity action, it is much simpler than other action handlers."""
 
-        # Progress
-        # self.save_progress("Generating Authentication URL")
-        app_state = {}
         action_result = self.add_action_result(ActionResult(param))
-
         self.save_progress("Getting App REST endpoint URL")
+
         # Get the URL to the app's REST Endpiont, this is the url that the TC dialog
         # box will ask the user to connect to
         ret_val, app_rest_url = self._get_url_to_app_rest(action_result)
@@ -553,7 +627,6 @@ class Office365Connector(BaseConnector):
         # (success and failure), this is added to the state so that the request handler will access
         # it later on
         redirect_uri = "{0}/result".format(app_rest_url)
-        app_state['redirect_uri'] = redirect_uri
         self._state['redirect_uri'] = redirect_uri
 
         self.save_progress("Using OAuth Redirect URL as:")
@@ -561,30 +634,35 @@ class Office365Connector(BaseConnector):
 
         config = self.get_config()
 
-        if config.get("admin_access"):
-            # Create the url authorization, this is the one pointing to the oauth server side
-            admin_consent_url = "https://login.microsoftonline.com/{0}/adminconsent".format(config['tenant'])
-            admin_consent_url += "?client_id={0}".format(config['client_id'])
-            admin_consent_url += "&redirect_uri={0}".format(redirect_uri)
-            admin_consent_url += "&state={0}".format(self.get_asset_id())
-        else:
-            admin_consent_url = "https://login.microsoftonline.com/{0}/oauth2/v2.0/authorize".format(config['tenant'])
-            admin_consent_url += "?client_id={0}".format(config['client_id'])
-            admin_consent_url += "&redirect_uri={0}".format(redirect_uri)
-            admin_consent_url += "&state={0}".format(self.get_asset_id())
-            admin_consent_url += "&scope={0}".format(config.get("scope"))
-            admin_consent_url += "&response_type=code"
+        if self._admin_access:
+            result = self._get_admin_access(action_result, app_rest_url)
+            if (phantom.is_fail(result)):
+                return self.get_status()
 
-        app_state['admin_consent_url'] = admin_consent_url
+        if not self._admin_access:
+            code_scope = self._scope
+        else:
+            code_scope = MSGOFFICE365_ADMIN_ACCESS_SCOPE
+
+        admin_consent_url = "https://login.microsoftonline.com/{0}/oauth2/v2.0/authorize".format(config['tenant'])
+        admin_consent_url += "?client_id={0}".format(config['client_id'])
+        admin_consent_url += "&redirect_uri={0}".format(redirect_uri)
+        admin_consent_url += "&state={0}".format(self.get_asset_id())
+        admin_consent_url += "&scope={0}".format(code_scope)
+        admin_consent_url += "&response_type=code"
+
+        self._state['admin_consent_url'] = admin_consent_url
 
         # The URL that the user should open in a different tab.
         # This is pointing to a REST endpoint that points to the app
         url_to_show = "{0}/start_oauth?asset_id={1}&".format(app_rest_url, self.get_asset_id())
 
         # Save the state, will be used by the request handler
-        _save_app_state(app_state, self.get_asset_id(), self)
+        _save_app_state(self._state, self.get_asset_id(), self)
+        self.save_state(self._state)
 
-        self.save_progress('Please connect to the following URL from a different tab to continue the connectivity process\n{0}'.format(url_to_show))
+        self.save_progress('Please connect to the following URL from a different tab to continue the connectivity process.')
+        self.save_progress(url_to_show)
 
         time.sleep(5)
 
@@ -613,27 +691,30 @@ class Office365Connector(BaseConnector):
         self.send_progress("")
 
         # Load the state again, since the http request handlers would have saved the result of the admin consent
-        app_state = _load_app_state(self.get_asset_id(), self)
+        self._state = _load_app_state(self.get_asset_id(), self)
 
-        if (not app_state) or (not app_state.get('admin_consent')):
-            self.save_progress("Admin consent not received or not given")
+        if not self._state:
+            self.save_progress("Authorization not received or not given")
             self.save_progress("Test Connectivity Failed")
             return self.set_status(phantom.APP_ERROR)
 
         # The authentication seems to be done, let's see if it was successfull
-        self._state['admin_consent'] = app_state['admin_consent']
+        self._state['admin_consent'] = self._state.get('admin_consent', False)
 
         self.save_progress("Getting the token")
-        ret_val = self._get_token(action_result)
+        ret_val = self._get_token(action_result, from_action=False)
+
         if (phantom.is_fail(ret_val)):
             return action_result.get_status()
 
         self.save_progress("Getting info about a single user to verify token")
+
         params = {'$top': '1'}
-        if config.get('admin_access'):
+        if self._admin_access:
             ret_val, response = self._make_rest_call_helper(action_result, "/users", params=params)
         else:
             ret_val, response = self._make_rest_call_helper(action_result, "/me", params=params)
+
         if (phantom.is_fail(ret_val)):
             self.save_progress("API to get users failed")
             self.save_progress("Test Connectivity Failed")
@@ -1191,76 +1272,75 @@ class Office365Connector(BaseConnector):
 
         return ret_val
 
-    def _get_token(self, action_result, from_action=False):
+    def _get_token(self, action_result, from_action=True):
 
-        config = self.get_config()
+        req_url = SERVER_TOKEN_URL.format(self._tenant)
+        headers = {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        }
 
-        client_id = config['client_id']
-
-        client_secret = config['client_secret']
-
-        tenant = config['tenant']
-
-        req_url = SERVER_TOKEN_URL.format(tenant)
         data = {
-                'client_id': client_id,
-                'scope': 'https://graph.microsoft.com/.default',
-                'client_secret': client_secret,
-                'grant_type': 'client_credentials'}
+                    'client_id': self._client_id,
+                    'client_secret': self._client_secret,
+                    'grant_type': 'client_credentials'
+                }
 
-        if not(config.get("admin_access")):
+        if not self._admin_access:
+            data['scope'] = 'offline_access ' + self._scope
+        else:
+            data['scope'] = 'offline_access ' + MSGOFFICE365_ADMIN_ACCESS_SCOPE
+
+        if from_action and self._state.get('token', {}).get('refresh_token', None) is not None:
+            data['refresh_token'] = self._state.get('token').get('refresh_token')
+            data['grant_type'] = 'refresh_token'
+        else:
             data['redirect_uri'] = self._state.get('redirect_uri')
-            data['scope'] = 'offline_access ' + config.get("scope")
-            if from_action:
-                data['grant_type'] = "refresh_token"
-                data['refresh_token'] = self._state['token']['refresh_token']
-            else:
-                data['grant_type'] = "authorization_code"
-                data['code'] = self._state.get('admin_consent')
+            data['code'] = self._state.get('code')
+            data['grant_type'] = 'authorization_code'
 
-        ret_val, resp_json = _make_rest_call(action_result, req_url, data=data)
+        ret_val, resp_json = self._make_rest_call(action_result, req_url, headers=headers, data=data, method='post')
 
-        if (phantom.is_fail(ret_val)):
+        if phantom.is_fail(ret_val):
             return action_result.get_status()
 
         self._state['token'] = resp_json
+        self._access_token = resp_json['access_token']
+        self._refresh_token = resp_json['refresh_token']
+        self.save_state(self._state)
 
         return (phantom.APP_SUCCESS)
 
     def initialize(self):
 
-        # Load the state in initialize
-        self._state = self.load_state()
-
-        # check if admin consent was granted
-        admin_consent = self._state.get('admin_consent')
         action_id = self.get_action_identifier()
 
-        if (action_id == 'generate_token'):
-            return phantom.APP_SUCCESS
+        self._currentdir = None
+
+        # Load the state in initialize
+        config = self.get_config()
+        self._state = self.load_state()
+        admin_consent = self._state.get('admin_consent')
 
         # if it was not and the current action is not test connectivity then it's an error
         if (not admin_consent) and (action_id != 'test_connectivity'):
-            return self.set_status(phantom.APP_ERROR,
-                    "Please Run test connectivity first to get an admin consent and generate a token that the app can use to make calls to the server")
-
-        if (action_id == 'test_connectivity'):
-            # User is trying to get the admin consent, so just return True from here so that test connectivity continues
-            return phantom.APP_SUCCESS
+            return self.set_status(phantom.APP_ERROR, MSGOFFICE365_RUN_CONNECTIVITY_MSG)
 
         # if reached here, means it is some other action and admin has consented, so let's get a token
         action_result = ActionResult()
 
-        config = self.get_config()
+        self._tenant = config['tenant'].encode('utf-8')
+        self._client_id = config['client_id'].encode('utf-8')
+        self._client_secret = config['client_secret'].encode('utf-8')
+        self._admin_access = config.get('admin_access')
+        self._scope = config.get('scope').encode('utf-8')
+        self._access_token = self._state.get('token', {}).get('access_token')
+        self._refresh_token = self._state.get('token', {}).get('refresh_token')
 
-        if not(config.get('admin_access')):
-            ret_val = self._get_token(action_result, from_action=True)
-        else:
-            ret_val = self._get_token(action_result)
-        if (phantom.is_fail(ret_val)):
-            return self.set_status(phantom.APP_ERROR, action_result.get_message())
+        if action_id != 'test_connectivity' and (not self._access_token or not self._refresh_token):
+            ret_val = self._get_token(action_result, from_action=False)
 
-        self._currentdir = None
+            if phantom.is_fail(ret_val):
+                return self.set_status(phantom.APP_ERROR, "{0}{1}".format(MSGOFFICE365_RUN_CONNECTIVITY_MSG, action_result.get_message()))
 
         return phantom.APP_SUCCESS
 
@@ -1268,6 +1348,7 @@ class Office365Connector(BaseConnector):
 
         # Save the state, this data is saved accross actions and app upgrades
         self.save_state(self._state)
+        _save_app_state(self._state, self.get_asset_id(), self)
         return phantom.APP_SUCCESS
 
 
