@@ -49,7 +49,7 @@
         "scope": {
             "description": "Access scope (for use with non-admin access; space-separated)",
             "data_type": "string",
-            "default": "https://graph.microsoft.com/calendars.read https://graph.microsoft.com/user.read",
+            "default": "https://graph.microsoft.com/Calendars.Read https://graph.microsoft.com/User.Read",
             "order": 5
         }
     },
