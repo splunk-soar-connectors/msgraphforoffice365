@@ -18,8 +18,8 @@ from bs4 import BeautifulSoup
 
 import process_email
 import requests
-import tempfile
 import base64
+import uuid
 import json
 import time
 import pwd
@@ -277,9 +277,26 @@ class Office365Connector(BaseConnector):
         if 200 <= r.status_code < 399:
             return RetVal(phantom.APP_SUCCESS, resp_json)
 
+        try:
+            if resp_json.get('error', {}).get('message'):
+                try:
+                    soup = BeautifulSoup(resp_json.get('error', {}).get('message'), "html.parser")
+                    error_text = soup.text
+                    split_lines = error_text.split('\n')
+                    split_lines = [x.strip() for x in split_lines if x.strip()]
+                    error_text = '\n'.join(split_lines)
+                    if len(error_text) > 500:
+                        error_text = 'Error while connecting to a server (Please check input parameters or asset configuration parameters)'
+                except:
+                    error_text = "Cannot parse error details"
+            else:
+                error_text = r.text.replace('{', '{{').replace('}', '}}')
+        except:
+            error_text = r.text.replace('{', '{{').replace('}', '}}')
+
         # You should process the error returned in the json
         message = "Error from server. Status Code: {0} Data from server: {1}".format(
-                r.status_code, r.text.replace('{', '{{').replace('}', '}}'))
+                r.status_code, error_text)
 
         return RetVal(action_result.set_status(phantom.APP_ERROR, message), None)
 
@@ -441,16 +458,19 @@ class Office365Connector(BaseConnector):
                 vault_ret = Vault.create_attachment(attachment.pop('contentBytes'), container_id, file_name=attachment['name'])
 
             else:
+                if hasattr(Vault, 'get_vault_tmp_dir'):
+                    temp_dir = Vault.get_vault_tmp_dir()
+                else:
+                    temp_dir = '/opt/phantom/vault/tmp'
 
-                file_desc, file_path = tempfile.mkstemp(dir='/vault/tmp/')
+                temp_dir = temp_dir + '/{}'.format(uuid.uuid4())
+                os.makedirs(temp_dir)
+                file_path = os.path.join(temp_dir, attachment['name'])
 
-                download_file = open(file_path, 'w')
-                download_file.write(base64.b64decode(attachment.pop('contentBytes')))
-                download_file.close()
+                with open(file_path, 'w') as f:
+                    f.write(base64.b64decode(attachment.pop('contentBytes')))
 
-                os.close(file_desc)
-
-                vault_ret = Vault.add_attachment(file_path, container_id, attachment['name'])
+                vault_ret = Vault.add_attachment(file_path, container_id, file_name=attachment['name'])
 
         except Exception as e:
             self.debug_print("Error saving file to vault: ", str(e))
@@ -809,13 +829,13 @@ class Office365Connector(BaseConnector):
 
             for attachment in attach_resp.get('value', []):
                 if not self._handle_attachment(attachment, self.get_container_id()):
-                    return action_result.set_status('Could not process attachment. See logs for details.')
+                    return action_result.set_status(phantom.APP_ERROR, 'Could not process attachment. See logs for details.')
 
             response['attachments'] = attach_resp['value']
 
         action_result.add_data(response)
 
-        return action_result.set_status(phantom.APP_SUCCESS, "Successfully copied email")
+        return action_result.set_status(phantom.APP_SUCCESS, "Successfully fetched email")
 
     def _handle_on_poll(self, param):
 

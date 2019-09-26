@@ -930,7 +930,13 @@
                     "data_type": "numeric"
                 }
             ],
-            "versions": "EQ(*)"
+            "versions": "EQ(*)",
+            "render": {
+                "width": 12,
+                "title": "Delete email",
+                "type": "table",
+                "height": 5
+            }
         },
         {
             "action": "get email",
@@ -1379,7 +1385,10 @@
                 }
             ],
             "render": {
-                "type": "table"
+                "width": 12,
+                "title": "Get email",
+                "type": "table",
+                "height": 5
             },
             "versions": "EQ(*)"
         },
@@ -1832,7 +1841,10 @@
                 }
             ],
             "render": {
-                "type": "table"
+                "width": 12,
+                "title": "Run query",
+                "type": "table",
+                "height": 5
             },
             "versions": "EQ(*)"
         },
@@ -1990,7 +2002,10 @@
                 }
             ],
             "render": {
-                "type": "table"
+                "width": 12,
+                "title": "Create folder",
+                "type": "table",
+                "height": 5
             },
             "versions": "EQ(*)"
         }
