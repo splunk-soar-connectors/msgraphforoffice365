@@ -421,9 +421,12 @@ class Office365Connector(BaseConnector):
 
         return (phantom.APP_SUCCESS, url_to_app_rest)
 
-    def _make_rest_call_helper(self, action_result, endpoint, verify=True, headers=None, params=None, data=None, method="get"):
+    def _make_rest_call_helper(self, action_result, endpoint, verify=True, headers=None, params=None, data=None, method="get", nextLink=None):
 
-        url = "{0}{1}".format(MSGRAPH_API_URL, endpoint)
+        if nextLink:
+            url = nextLink
+        else:
+            url = "{0}{1}".format(MSGRAPH_API_URL, endpoint)
 
         if (headers is None):
             headers = {}
@@ -744,14 +747,9 @@ class Office365Connector(BaseConnector):
         self.save_progress('In action handler for: {0}'.format(self.get_action_identifier()))
         action_result = self.add_action_result(ActionResult(dict(param)))
 
-        user_id = param.get('user_id')
-
-        if(user_id is None):
-            return action_result.set_status(phantom.APP_ERROR, 'A user_id must be supplied to the "oof_check" action.')
+        user_id = param['user_id']
 
         endpoint = '/users/{0}/mailboxSettings/automaticRepliesSetting'.format(user_id)
-
-        # self.debug_print("list out of office status enpdoint", str(endpoint))
 
         ret_val, response = self._make_rest_call_helper(action_result, endpoint, method='get')
         if (phantom.is_fail(ret_val)):
@@ -770,12 +768,16 @@ class Office365Connector(BaseConnector):
         user_id = param.get('user_id')
         group_id = param.get('group_id')
         query = param.get('filter')
+        limit = param.get('limit')
 
         if(user_id is None and group_id is None):
             return action_result.set_status(phantom.APP_ERROR, 'Either a user_id or group_id must be supplied to the "list_events" action.')
+
         if user_id and group_id and user_id != "" and group_id != "":
             return action_result.set_status(phantom.APP_ERROR, 'Either a user_id or group_id can be supplied to the "list_events" action - not both.')
 
+        if (limit and not str(limit).isdigit()) or limit == 0:
+            return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_LIMIT)
         endpoint = ''
 
         if user_id:
@@ -788,11 +790,15 @@ class Office365Connector(BaseConnector):
 
         self.debug_print("list events enpdoint", endpoint)
 
-        ret_val, response = self._make_rest_call_helper(action_result, endpoint)
-        if (phantom.is_fail(ret_val)):
-            return action_result.get_status()
+        ret_val, events = self._paginator(action_result, endpoint, limit)
 
-        for event in response["value"]:
+        if (phantom.is_fail(ret_val)):
+                return action_result.get_status()
+
+        if not events:
+            return action_result.set_status(phantom.APP_ERROR, "No data found")
+
+        for event in events:
             categories = []
             attendees = []
             for category in event["categories"]:
@@ -805,6 +811,91 @@ class Office365Connector(BaseConnector):
         action_result.update_summary({'events_matched': action_result.get_data_size()})
 
         return action_result.set_status(phantom.APP_SUCCESS, "Successfully retrieved events")
+
+    def _handle_list_groups(self, param):
+
+        self.save_progress('In action handler for: {0}'.format(self.get_action_identifier()))
+        action_result = self.add_action_result(ActionResult(dict(param)))
+
+        limit = param.get('limit')
+
+        if (limit and not str(limit).isdigit()) or limit == 0:
+            return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_LIMIT)
+
+        endpoint = '/groups'
+
+        ret_val, groups = self._paginator(action_result, endpoint, limit)
+
+        if (phantom.is_fail(ret_val)):
+                return action_result.get_status()
+
+        if not groups:
+            return action_result.set_status(phantom.APP_ERROR, "No data found")
+
+        for group in groups:
+            action_result.add_data(group)
+
+        num_groups = len(groups)
+        action_result.update_summary({'total_groups_returned': num_groups})
+
+        return action_result.set_status(phantom.APP_SUCCESS, 'Successfully retrieved {} group{}'.format(num_groups, '' if num_groups == 1 else 's'))
+
+    def _handle_list_users(self, param):
+
+        self.save_progress('In action handler for: {0}'.format(self.get_action_identifier()))
+        action_result = self.add_action_result(ActionResult(dict(param)))
+
+        limit = param.get('limit')
+
+        if (limit and not str(limit).isdigit()) or limit == 0:
+            return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_LIMIT)
+
+        endpoint = '/users'
+
+        ret_val, users = self._paginator(action_result, endpoint, limit)
+
+        if (phantom.is_fail(ret_val)):
+                return action_result.get_status()
+
+        if not users:
+            return action_result.set_status(phantom.APP_ERROR, "No data found")
+
+        for user in users:
+            action_result.add_data(user)
+
+        num_users = len(users)
+        action_result.update_summary({'total_users_returned': num_users})
+
+        return action_result.set_status(phantom.APP_SUCCESS, 'Successfully retrieved {} user{}'.format(num_users, '' if num_users == 1 else 's'))
+
+    def _handle_list_folders(self, param):
+
+        self.save_progress('In action handler for: {0}'.format(self.get_action_identifier()))
+        action_result = self.add_action_result(ActionResult(dict(param)))
+
+        user_id = param['user_id']
+        limit = param.get('limit')
+
+        if (limit and not str(limit).isdigit()) or limit == 0:
+            return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_LIMIT)
+
+        endpoint = '/users/{user_id}/mailFolders'.format(user_id=user_id)
+
+        ret_val, folders = self._paginator(action_result, endpoint, limit)
+
+        if (phantom.is_fail(ret_val)):
+                return action_result.get_status()
+
+        if not folders:
+            return action_result.set_status(phantom.APP_ERROR, "No data found")
+
+        for folder in folders:
+            action_result.add_data(folder)
+
+        num_folders = len(folders)
+        action_result.update_summary({'total_folders_returned': num_folders})
+
+        return action_result.set_status(phantom.APP_SUCCESS, 'Successfully retrieved {} mail folder{}'.format(num_folders, '' if num_folders == 1 else 's'))
 
     def _handle_get_email(self, param):
 
@@ -998,7 +1089,7 @@ class Office365Connector(BaseConnector):
 
         # that should be enough to create the endpoint
         endpoint += '/messages'
-        params = None
+        params = dict()
 
         if ('internet_message_id' in param):
             params = {
@@ -1125,7 +1216,7 @@ class Office365Connector(BaseConnector):
         action_result = self.add_action_result(ActionResult(dict(param)))
 
         email = param["email_address"]
-        folder = param["folder"].decode("utf8", 'ignore').translate({92: 47})
+        folder = param["folder"].decode("utf-8", 'ignore').translate({92: 47})
         minusp = param.get("all_subdirs", False)
 
         path = [x for x in folder.strip().split("/") if x]
@@ -1206,6 +1297,39 @@ class Office365Connector(BaseConnector):
         action_result.update_summary({"folders created": len(action_result.get_data()), folder: self._currentdir['id']})
         return action_result.set_status(phantom.APP_SUCCESS)
 
+    def _paginator(self, action_result, endpoint, limit=None, params=None):
+        """
+        This action is used to create an iterator that will paginate through responses from called methods.
+
+        :param method_name: Name of method whose response is to be paginated
+        :param action_result: Object of ActionResult class
+        :param **kwargs: Dictionary of Input parameters
+        """
+
+        list_items = list()
+        next_link = None
+
+        while True:
+            if next_link:
+                ret_val, response = self._make_rest_call_helper(action_result, endpoint, nextLink=next_link)
+            else:
+                ret_val, response = self._make_rest_call_helper(action_result, endpoint)
+
+            if (phantom.is_fail(ret_val)):
+                return action_result.get_status(), None
+
+            if response.get("value"):
+                list_items.extend(response.get("value"))
+
+            if limit and len(list_items) >= limit:
+                return phantom.APP_SUCCESS, list_items[:limit]
+
+            next_link = response.get('@odata.nextLink', None)
+            if not next_link:
+                break
+
+        return phantom.APP_SUCCESS, list_items
+
     def handle_action(self, param):
 
         ret_val = phantom.APP_SUCCESS
@@ -1235,6 +1359,15 @@ class Office365Connector(BaseConnector):
 
         elif action_id == 'list_events':
             ret_val = self._handle_list_events(param)
+
+        elif action_id == 'list_groups':
+            ret_val = self._handle_list_groups(param)
+
+        elif action_id == 'list_users':
+            ret_val = self._handle_list_users(param)
+
+        elif action_id == 'list_folders':
+            ret_val = self._handle_list_folders(param)
 
         elif action_id == 'oof_check':
             ret_val = self._handle_oof_check(param)
@@ -1315,7 +1448,7 @@ class Office365Connector(BaseConnector):
         self._admin_access = config.get('admin_access')
         self._scope = config.get('scope').encode('utf-8') if config.get('scope') else None
 
-        if self._state.get('non_admin_auth'):
+        if not self._admin_access:
             self._access_token = self._state.get('non_admin_auth', {}).get('access_token')
             self._refresh_token = self._state.get('non_admin_auth', {}).get('refresh_token')
         else:

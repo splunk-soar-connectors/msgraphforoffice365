@@ -68,7 +68,6 @@
             "action": "generate token",
             "identifier": "generate_token",
             "description": "Generates a token",
-            "verbose": "",
             "type": "generic",
             "read_only": false,
             "parameters": {},
@@ -109,14 +108,19 @@
             "action": "oof check",
             "identifier": "oof_check",
             "description": "List user's out of office status",
-            "type": "generic",
-            "read_only": false,
+            "type": "investigate",
+            "read_only": true,
             "parameters": {
                 "user_id": {
                     "description": "User ID/Principal Name",
                     "data_type": "string",
-                    "required": false,
-                    "primary": false,
+                    "required": true,
+                    "primary": true,
+                    "contains": [
+                        "msgoffice365 user id",
+                        "msgoffice365 user principle name",
+                        "email"
+                    ],
                     "order": 0
                 },
                 "filter": {
@@ -134,14 +138,22 @@
                     "example_values": [
                         "success",
                         "failed"
-                    ]                },
+                    ]
+                },
                 {
                     "data_path": "action_result.parameter.filter",
                     "data_type": "string"
                 },
                 {
                     "data_path": "action_result.parameter.user_id",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "contains": [
+                        "msgoffice365 user id",
+                        "msgoffice365 user principle name",
+                        "email"
+                    ],
+                    "column_name": "User ID/Principle Name",
+                    "column_order": 0
                 },
                 {
                     "data_path": "action_result.data.*.@odata.etag",
@@ -155,19 +167,31 @@
                 },
                 {
                     "data_path": "action_result.summary.events_matched",
-                    "data_type": "numeric"
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
                 },
                 {
                     "data_path": "action_result.message",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "Successfully retrieved out of office status"
+                    ]
                 },
                 {
                     "data_path": "summary.total_objects",
-                    "data_type": "numeric"
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
                 },
                 {
                     "data_path": "summary.total_objects_successful",
-                    "data_type": "numeric"
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
                 }
             ],
             "render": {
@@ -182,8 +206,8 @@
             "action": "list events",
             "identifier": "list_events",
             "description": "List events from user or group calendar",
-            "type": "generic",
-            "read_only": false,
+            "type": "investigate",
+            "read_only": true,
             "parameters": {
                 "user_id": {
                     "description": "User ID/Principal Name",
@@ -205,6 +229,12 @@
                     "required": false,
                     "primary": false,
                     "order": 2
+                },
+                "limit": {
+                    "description": "Maximum number of matters to return",
+                    "data_type": "numeric",
+                    "required": false,
+                    "order": 3
                 }
             },
             "output": [
@@ -218,6 +248,10 @@
                 },
                 {
                     "data_path": "action_result.parameter.group_id",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.parameter.limit",
                     "data_type": "string"
                 },
                 {
@@ -462,6 +496,502 @@
                 "height": 5
             },
             "versions": "EQ(*)"
+        },
+        {
+            "action": "list users",
+            "identifier": "list_users",
+            "description": "Retrieve a list of users",
+            "type": "investigate",
+            "read_only": true,
+            "parameters": {
+                "limit": {
+                    "description": "Maximum number of matters to return",
+                    "data_type": "numeric",
+                    "required": false,
+                    "order": 0
+                }
+            },
+            "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.limit",
+                    "data_type": "numeric"
+                },
+                {
+                    "data_path": "action_result.data.*.businessPhones",
+                    "data_type": "string",
+                    "example_values": [
+                        "2056120271"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.displayName",
+                    "data_type": "string",
+                    "example_values": [
+                        "Global Admin"
+                    ],
+                    "column_name": "Display Name",
+                    "column_order": 2
+                },
+                {
+                    "data_path": "action_result.data.*.givenName",
+                    "data_type": "string",
+                    "example_values": [
+                        "Matt"
+                    ],
+                    "column_name": "Given Name",
+                    "column_order": 3
+                },
+                {
+                    "data_path": "action_result.data.*.id",
+                    "data_type": "string",
+                    "example_values": [
+                        "6132ca31-7a09-434f-a269-abe836d0c01e"
+                    ],
+                    "column_name": "User ID",
+                    "column_order": 0
+                },
+                {
+                    "data_path": "action_result.data.*.jobTitle",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.mail",
+                    "data_type": "string",
+                    "contains": [
+                        "email"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.mobilePhone",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.officeLocation",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.preferredLanguage",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.surname",
+                    "data_type": "string",
+                    "example_values": [
+                        "Globalmaster"
+                    ],
+                    "column_name": "Surname",
+                    "column_order": 4
+                },
+                {
+                    "data_path": "action_result.data.*.userPrincipalName",
+                    "data_type": "string",
+                    "example_values": [
+                        "globalmatt@testphantom.onmicrosoft.com"
+                    ],
+                    "contains": [
+                        "email"
+                    ],
+                    "column_name": "User Principle Name",
+                    "column_order": 1
+                },
+                {
+                    "data_path": "action_result.summary.total_users_returned",
+                    "data_type": "numeric",
+                    "example_values": [
+                        11
+                    ]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "Successfully retrieved 11 users"
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                }
+            ],
+            "versions": "EQ(*)",
+            "render": {
+                "width": 12,
+                "title": "List Users",
+                "type": "table",
+                "height": 5
+            }
+        },
+        {
+            "action": "list groups",
+            "identifier": "list_groups",
+            "description": "List all the groups in an organization, including but not limited to Office 365 Groups",
+            "type": "investigate",
+            "read_only": true,
+            "parameters": {
+                "limit": {
+                    "description": "Maximum number of matters to return",
+                    "data_type": "numeric",
+                    "required": false,
+                    "order": 0
+                }
+            },
+            "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.limit",
+                    "data_type": "numeric"
+                },
+                {
+                    "data_path": "action_result.data.*.classification",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.createdDateTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "2018-09-11T09:51:07Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.creationOptions",
+                    "data_type": "string",
+                    "example_values": [
+                        "ExchangeProvisioningFlags:3552"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.deletedDateTime",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "This is for testing purpose"
+                    ],
+                    "column_name": "Description",
+                    "column_order": 3
+                },
+                {
+                    "data_path": "action_result.data.*.displayName",
+                    "data_type": "string",
+                    "example_values": [
+                        "Phantom-test-site"
+                    ],
+                    "column_name": "Display Name",
+                    "column_order": 2
+                },
+                {
+                    "data_path": "action_result.data.*.groupTypes",
+                    "data_type": "string",
+                    "example_values": [
+                        "Unified"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.id",
+                    "data_type": "string",
+                    "example_values": [
+                        "2a201c95-101b-42d9-a7af-9a2fdf8193f1"
+                    ],
+                    "column_name": "Group ID",
+                    "column_order": 0
+                },
+                {
+                    "data_path": "action_result.data.*.isAssignableToRole",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.mail",
+                    "data_type": "string",
+                    "example_values": [
+                        "Phantom-test-site@testphantom.onmicrosoft.com"
+                    ],
+                    "contains": [
+                        "email"
+                    ],
+                    "column_name": "Group Mail ID",
+                    "column_order": 1
+                },
+                {
+                    "data_path": "action_result.data.*.mailEnabled",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.mailNickname",
+                    "data_type": "string",
+                    "example_values": [
+                        "Phantom-test-site"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.onPremisesLastSyncDateTime",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.onPremisesSecurityIdentifier",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.onPremisesSyncEnabled",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.preferredDataLocation",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.proxyAddresses",
+                    "data_type": "string",
+                    "example_values": [
+                        "SMTP:test-h@testphantom.onmicrosoft.com"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.renewedDateTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "2018-09-11T09:51:07Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.resourceBehaviorOptions",
+                    "data_type": "string",
+                    "example_values": [
+                        "WelcomeEmailDisabled"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.resourceProvisioningOptions",
+                    "data_type": "string",
+                    "example_values": [
+                        "Team"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.securityEnabled",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.visibility",
+                    "data_type": "string",
+                    "example_values": [
+                        "Private"
+                    ],
+                    "column_name": "Visibility",
+                    "column_order": 4
+                },
+                {
+                    "data_path": "action_result.summary.total_groups_returned",
+                    "data_type": "numeric",
+                    "example_values": [
+                        9
+                    ]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "Successfully retrieved 9 groups"
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                }
+            ],
+            "versions": "EQ(*)",
+            "render": {
+                "width": 12,
+                "title": "List Groups",
+                "type": "table",
+                "height": 5
+            }
+        },
+        {
+            "action": "list folders",
+            "identifier": "list_folders",
+            "description": "Retrieve a list of mail folders",
+            "type": "investigate",
+            "read_only": true,
+            "parameters": {
+                "user_id": {
+                    "description": "User ID/Principal Name",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": true,
+                    "order": 0,
+                    "contains": [
+                        "msgoffice365 user id",
+                        "msgoffice365 user principle name",
+                        "email"
+                    ]
+                },
+                "limit": {
+                    "description": "Maximum number of matters to return",
+                    "data_type": "numeric",
+                    "required": false,
+                    "order": 1
+                }
+            },
+            "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.limit",
+                    "data_type": "numeric"
+                },
+                {
+                    "data_path": "action_result.parameter.user_id",
+                    "data_type": "string",
+                    "example_values": [
+                        "matt@testphantom.onmicrosoft.com"
+                    ],
+                    "contains": [
+                        "msgoffice365 user id",
+                        "msgoffice365 user principle name",
+                        "email"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.childFolderCount",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ],
+                    "column_name": "Child Folder Count",
+                    "column_order": 3
+                },
+                {
+                    "data_path": "action_result.data.*.displayName",
+                    "data_type": "string",
+                    "example_values": [
+                        "AAMkAGFmNTRhODA4LWIxMjQtNDJjYy05NDM2LWQ5MzY1MGFhMTkzYwAuAAAAAADRlY7ewL4xToKRDciQog5UAQBvUzMoUJx2S4nbgxzZWx2PAAAAAAEIAAA="
+                    ],
+                    "column_name": "Display Name",
+                    "column_order": 0
+                },
+                {
+                    "data_path": "action_result.data.*.id",
+                    "data_type": "string",
+                    "example_values": [
+                        "AAMkAGFmNTRhODA4LWIxMjQtNDJjYy05NDM2LWQ5MzY1MGFhMTkzYwAuAAAAAADRlY7ewL4xToKRDciQog5UAQBvUzMoUJx2S4nbgxzZWx2PAAD9nLiRAAA="
+                    ],
+                    "column_name": "Folder ID",
+                    "column_order": 1
+                },
+                {
+                    "data_path": "action_result.data.*.parentFolderId",
+                    "data_type": "string",
+                    "example_values": [
+                        "AAMkAGFmNTRhODA4LWIxMjQtNDJjYy05NDM2LWQ5MzY1MGFhMTkzYwAuAAAAAADRlY7ewL4xToKRDciQog5UAQBvUzMoUJx2S4nbgxzZWx2PAAAAAAEIAAA="
+                    ],
+                    "column_name": "Parent Folder ID",
+                    "column_order": 2
+                },
+                {
+                    "data_path": "action_result.data.*.totalItemCount",
+                    "data_type": "numeric",
+                    "example_values": [
+                        0
+                    ],
+                    "column_name": "Total Item Count",
+                    "column_order": 5
+                },
+                {
+                    "data_path": "action_result.data.*.unreadItemCount",
+                    "data_type": "numeric",
+                    "example_values": [
+                        0
+                    ],
+                    "column_name": "Unread Item Count",
+                    "column_order": 4
+                },
+                {
+                    "data_path": "action_result.summary.total_folders_returned",
+                    "data_type": "numeric",
+                    "example_values": [
+                        14
+                    ]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "Successfully retrieved 14 mail folders"
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                }
+            ],
+            "versions": "EQ(*)",
+            "render": {
+                "width": 12,
+                "title": "List Folders",
+                "type": "table",
+                "height": 5
+            }
         },
         {
             "action": "copy email",
@@ -1851,7 +2381,7 @@
         {
             "action": "create folder",
             "identifier": "create_folder",
-            "description": "create folder",
+            "description": "Create a new folder",
             "verbose": "Create a new folder, either in the mailbox root or inside an existing folder",
             "type": "generic",
             "read_only": false,
@@ -1895,6 +2425,10 @@
                     ]
                 },
                 {
+                    "data_path": "action_result.parameter.all_subdirs",
+                    "data_type": "boolean"
+                },
+                {
                     "data_path": "action_result.parameter.email_address",
                     "data_type": "string",
                     "contains": [
@@ -1916,10 +2450,6 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.parameter.all_subdirs",
-                    "data_type": "boolean"
-                },
-                {
                     "data_path": "action_result.data.*.@odata.etag",
                     "data_type": "string",
                     "example_values": [
@@ -1927,15 +2457,19 @@
                     ]
                 },
                 {
+                    "data_path": "action_result.data.*.childFolderCount",
+                    "data_type": "numeric"
+                },
+                {
                     "data_path": "action_result.data.*.displayName",
                     "data_type": "string",
-                    "column_name": "name",
+                    "column_name": "Display Name",
                     "column_order": 0
                 },
                 {
                     "data_path": "action_result.data.*.id",
                     "data_type": "string",
-                    "column_name": "ID",
+                    "column_name": "Folder ID",
                     "column_order": 1,
                     "contains": [
                         "email id"
@@ -1947,7 +2481,7 @@
                 {
                     "data_path": "action_result.data.*.parentFolderId",
                     "data_type": "string",
-                    "column_name": "parent folder id",
+                    "column_name": "Parent Folder ID",
                     "column_order": 2,
                     "contains": [
                         "mail folder",
@@ -1958,22 +2492,16 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.data.*.childFolderCount",
-                    "data_type": "numeric",
-                    "column_name": "child folder count",
-                    "column_order": 3
+                    "data_path": "action_result.data.*.totalItemCount",
+                    "data_type": "numeric"
                 },
                 {
                     "data_path": "action_result.data.*.unreadItemCount",
-                    "data_type": "numeric",
-                    "column_name": "unread item count",
-                    "column_order": 4
+                    "data_type": "numeric"
                 },
                 {
-                    "data_path": "action_result.data.*.totalItemCount",
-                    "data_type": "numeric",
-                    "column_name": "total item count",
-                    "column_order": 5
+                    "data_path": "action_result.summary",
+                    "data_type": "string"
                 },
                 {
                     "data_path": "action_result.message",
@@ -1995,10 +2523,6 @@
                     "example_values": [
                         1
                     ]
-                },
-                {
-                    "data_path": "action_result.summary",
-                    "data_type": "string"
                 }
             ],
             "render": {
