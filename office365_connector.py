@@ -741,7 +741,7 @@ class Office365Connector(BaseConnector):
         if (phantom.is_fail(ret_val)):
             return action_result.get_status()
 
-        return action_result.set_status(phantom.APP_SUCCESS, "successfully deleted email")
+        return action_result.set_status(phantom.APP_SUCCESS, "Successfully deleted email")
 
     def _handle_oof_check(self, param):
         self.save_progress('In action handler for: {0}'.format(self.get_action_identifier()))
@@ -765,9 +765,12 @@ class Office365Connector(BaseConnector):
         self.save_progress('In action handler for: {0}'.format(self.get_action_identifier()))
         action_result = self.add_action_result(ActionResult(dict(param)))
 
-        user_id = param.get('user_id')
-        group_id = param.get('group_id')
-        query = param.get('filter')
+        try:
+            user_id = param.get('user_id').encode('utf-8') if param.get('user_id') else None
+            group_id = param.get('group_id') if param.get('group_id') else None
+            query = param.get('filter') if param.get('filter') else None
+        except:
+            return action_result.set_status(phantom.APP_ERROR, "Please check your input parameters or asset configuration")
         limit = param.get('limit')
 
         if(user_id is None and group_id is None):
@@ -788,7 +791,7 @@ class Office365Connector(BaseConnector):
         if query:
             endpoint = '{0}?{1}'.format(endpoint, query)
 
-        self.debug_print("list events enpdoint", endpoint)
+        # self.debug_print("list events enpdoint", endpoint)
 
         ret_val, events = self._paginator(action_result, endpoint, limit)
 
@@ -808,9 +811,10 @@ class Office365Connector(BaseConnector):
             event["attendee_list"] = ", ".join(attendees)
             action_result.add_data(event)
 
+        num_events = len(events)
         action_result.update_summary({'events_matched': action_result.get_data_size()})
 
-        return action_result.set_status(phantom.APP_SUCCESS, "Successfully retrieved events")
+        return action_result.set_status(phantom.APP_SUCCESS, 'Successfully retrieved {} event{}'.format(num_events, '' if num_events == 1 else 's'))
 
     def _handle_list_groups(self, param):
 
@@ -896,6 +900,10 @@ class Office365Connector(BaseConnector):
         action_result.update_summary({'total_folders_returned': num_folders})
 
         return action_result.set_status(phantom.APP_SUCCESS, 'Successfully retrieved {} mail folder{}'.format(num_folders, '' if num_folders == 1 else 's'))
+
+    def _list_child_folders(self, action_result):
+
+        return phantom.APP_SUCCESS
 
     def _handle_get_email(self, param):
 
@@ -1079,6 +1087,11 @@ class Office365Connector(BaseConnector):
         self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
         action_result = self.add_action_result(ActionResult(dict(param)))
 
+        limit = param.get('limit')
+
+        if (limit and not str(limit).isdigit()) or limit == 0:
+            return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_LIMIT)
+
         # user
         email_addr = param['email_address']
         endpoint = "/users/{0}".format(email_addr)
@@ -1101,9 +1114,7 @@ class Office365Connector(BaseConnector):
 
         else:
 
-            # range
-            limit = param.get('limit', 10)
-            params = {'$top': limit}
+            params = dict()
 
             # search params
             search_query = ''
@@ -1125,14 +1136,16 @@ class Office365Connector(BaseConnector):
             if search_query:
                 params['$search'] = '"{0}"'.format(search_query)
 
-        ret_val, response = self._make_rest_call_helper(action_result, endpoint, params=params)
+        ret_val, messages = self._paginator(action_result, endpoint, limit, params=params)
+
         if (phantom.is_fail(ret_val)):
-            return action_result.get_status()
+                return action_result.get_status()
 
-        value = response.get('value')
+        if not messages:
+            return action_result.set_status(phantom.APP_ERROR, "No data found")
 
-        for curr_value in value:
-            action_result.add_data(curr_value)
+        for message in messages:
+            action_result.add_data(message)
 
         action_result.update_summary({'emails_matched': action_result.get_data_size()})
 
@@ -1309,11 +1322,22 @@ class Office365Connector(BaseConnector):
         list_items = list()
         next_link = None
 
+        # maximum page size
+        page_size = 999
+
+        if limit and limit < page_size:
+            page_size = limit
+
+        if isinstance(params, dict):
+            params.update({"$top": page_size})
+        else:
+            params = {"$top": page_size}
+
         while True:
             if next_link:
-                ret_val, response = self._make_rest_call_helper(action_result, endpoint, nextLink=next_link)
+                ret_val, response = self._make_rest_call_helper(action_result, endpoint, nextLink=next_link, params=params)
             else:
-                ret_val, response = self._make_rest_call_helper(action_result, endpoint)
+                ret_val, response = self._make_rest_call_helper(action_result, endpoint, params=params)
 
             if (phantom.is_fail(ret_val)):
                 return action_result.get_status(), None
@@ -1327,6 +1351,10 @@ class Office365Connector(BaseConnector):
             next_link = response.get('@odata.nextLink', None)
             if not next_link:
                 break
+
+            del(params['$top'])
+            if params == {}:
+                params = None
 
         return phantom.APP_SUCCESS, list_items
 
