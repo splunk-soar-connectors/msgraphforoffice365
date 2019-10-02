@@ -236,6 +236,7 @@ class Office365Connector(BaseConnector):
         self._scope = None
         self._access_token = None
         self._refresh_token = None
+        self._list_folder = list()
 
     def _process_empty_reponse(self, response, action_result):
 
@@ -878,32 +879,82 @@ class Office365Connector(BaseConnector):
         action_result = self.add_action_result(ActionResult(dict(param)))
 
         user_id = param['user_id']
-        limit = param.get('limit')
 
-        if (limit and not str(limit).isdigit()) or limit == 0:
-            return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_LIMIT)
+        # fetching root level folders
+        ret_val, root_folders = self._fetch_root_folders(action_result, user_id)
+
+        if (phantom.is_fail(ret_val)):
+            return action_result.get_status()
+
+        # adding root folders to main list of folders
+        self._list_folder.append(root_folders)
+
+        # checking for child folder if have, add it in list of folders
+        for root_folder in root_folders:
+            if root_folder['childFolderCount'] == 0:
+                continue
+            else:
+                ret_val = self._list_child_folders(action_result, user_id=user_id, parent_folder=root_folder)
+
+                if (phantom.is_fail(ret_val)):
+                    return action_result.get_status()
+
+        for folder in self._list_folder:
+            action_result.add_data(folder)
+
+        num_folders = len(self._list_folder)
+        action_result.update_summary({'total_folders_returned': num_folders})
+
+        return action_result.set_status(phantom.APP_SUCCESS, 'Successfully retrieved {} mail folder{}'.format(num_folders, '' if num_folders == 1 else 's'))
+
+    def _fetch_root_folders(self, action_result, user_id):
 
         endpoint = '/users/{user_id}/mailFolders'.format(user_id=user_id)
 
-        ret_val, folders = self._paginator(action_result, endpoint, limit)
+        ret_val, folders = self._paginator(action_result, endpoint)
 
         if (phantom.is_fail(ret_val)):
                 return action_result.get_status()
 
         if not folders:
-            return action_result.set_status(phantom.APP_ERROR, "No data found")
+            return action_result.set_status(phantom.APP_ERROR, "No data found"), None
 
-        for folder in folders:
-            action_result.add_data(folder)
+        return phantom.APP_SUCCESS, folders
 
-        num_folders = len(folders)
-        action_result.update_summary({'total_folders_returned': num_folders})
+    def _list_child_folders(self, action_result, user_id, parent_folder):
 
-        return action_result.set_status(phantom.APP_SUCCESS, 'Successfully retrieved {} mail folder{}'.format(num_folders, '' if num_folders == 1 else 's'))
+        # fetching root level folders
+        ret_val, child_folders = self._fetch_child_folders(action_result, user_id, parent_folder['id'])
 
-    def _list_child_folders(self, action_result):
+        if (phantom.is_fail(ret_val)):
+            return action_result.get_status()
+
+        # checking for child folder if have, add it in list of folders
+        for child_folder in child_folders:
+            if child_folder['childFolderCount'] == 0:
+                self._list_folder.append(child_folder)
+                continue
+            else:
+                ret_val = self._list_child_folders(action_result, user_id, parent_folder=child_folder)
+
+                if (phantom.is_fail(ret_val)):
+                    return action_result.get_status()
 
         return phantom.APP_SUCCESS
+
+    def _fetch_child_folders(self, action_result, user_id, folder_id):
+
+        endpoint = '/users/{user_id}/mailFolders/{folder_id}/childFolders'.format(user_id=user_id, folder_id=folder_id)
+
+        ret_val, folders = self._paginator(action_result, endpoint)
+
+        if (phantom.is_fail(ret_val)):
+                return action_result.get_status()
+
+        if not folders:
+            return action_result.set_status(phantom.APP_ERROR, "No data found"), None
+
+        return phantom.APP_SUCCESS, folders
 
     def _handle_get_email(self, param):
 
