@@ -236,7 +236,7 @@ class Office365Connector(BaseConnector):
         self._scope = None
         self._access_token = None
         self._refresh_token = None
-        self._list_folder = list()
+        self._list_folder = None
 
     def _process_empty_reponse(self, response, action_result):
 
@@ -297,7 +297,7 @@ class Office365Connector(BaseConnector):
 
         # You should process the error returned in the json
         message = "Error from server. Status Code: {0} Data from server: {1}".format(
-                r.status_code, error_text)
+                r.status_code, error_text.encode('utf-8'))
 
         return RetVal(action_result.set_status(phantom.APP_ERROR, message), None)
 
@@ -771,7 +771,7 @@ class Office365Connector(BaseConnector):
             group_id = param.get('group_id') if param.get('group_id') else None
             query = param.get('filter') if param.get('filter') else None
         except:
-            return action_result.set_status(phantom.APP_ERROR, "Please check your input parameters or asset configuration")
+            return action_result.set_status(phantom.APP_ERROR, "Please check your input parameters")
         limit = param.get('limit')
 
         if(user_id is None and group_id is None):
@@ -791,8 +791,6 @@ class Office365Connector(BaseConnector):
 
         if query:
             endpoint = '{0}?{1}'.format(endpoint, query)
-
-        # self.debug_print("list events enpdoint", endpoint)
 
         ret_val, events = self._paginator(action_result, endpoint, limit)
 
@@ -823,13 +821,14 @@ class Office365Connector(BaseConnector):
         action_result = self.add_action_result(ActionResult(dict(param)))
 
         limit = param.get('limit')
+        query = param.get('filter') if param.get('filter') else None
 
         if (limit and not str(limit).isdigit()) or limit == 0:
             return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_LIMIT)
 
         endpoint = '/groups'
 
-        ret_val, groups = self._paginator(action_result, endpoint, limit)
+        ret_val, groups = self._paginator(action_result, endpoint, limit, query=query)
 
         if (phantom.is_fail(ret_val)):
                 return action_result.get_status()
@@ -851,13 +850,14 @@ class Office365Connector(BaseConnector):
         action_result = self.add_action_result(ActionResult(dict(param)))
 
         limit = param.get('limit')
+        query = param.get('filter') if param.get('filter') else None
 
         if (limit and not str(limit).isdigit()) or limit == 0:
             return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_LIMIT)
 
         endpoint = '/users'
 
-        ret_val, users = self._paginator(action_result, endpoint, limit)
+        ret_val, users = self._paginator(action_result, endpoint, limit, query=query)
 
         if (phantom.is_fail(ret_val)):
                 return action_result.get_status()
@@ -928,7 +928,6 @@ class Office365Connector(BaseConnector):
 
         if (phantom.is_fail(ret_val)):
             return action_result.get_status()
-
         # checking for child folder if have, add it in list of folders
         for child_folder in child_folders:
             if child_folder['childFolderCount'] == 0:
@@ -939,6 +938,8 @@ class Office365Connector(BaseConnector):
 
                 if (phantom.is_fail(ret_val)):
                     return action_result.get_status()
+
+                self._list_folder.append(child_folder)
 
         return phantom.APP_SUCCESS
 
@@ -1222,7 +1223,7 @@ class Office365Connector(BaseConnector):
     def _getChildFolder(self, action_result, folder, parent_id, email):
 
         params = {}
-        params['$filter'] = "displayName eq '{}'".format(folder)
+        params['$filter'] = "displayName eq '{}'".format(folder.encode('utf-8'))
         endpoint = "/users/{}/mailFolders/{}/childFolders".format(email, parent_id)
 
         ret_val, response = self._make_rest_call_helper(action_result, endpoint, params=params)
@@ -1243,7 +1244,7 @@ class Office365Connector(BaseConnector):
 
         ret_val, response = self._make_rest_call_helper(action_result, endpoint, data=data, method="post")
         if (phantom.is_fail(ret_val)):
-            raise RestException()
+            raise ReturnException()
 
         if response.get('id', False):
             self._currentdir = response
@@ -1262,7 +1263,7 @@ class Office365Connector(BaseConnector):
 
         ret_val, response = self._make_rest_call_helper(action_result, endpoint, data=data, method="post")
         if (phantom.is_fail(ret_val)):
-            raise RestException()
+            raise ReturnException()
 
         if response.get('id', False):
             self._currentdir = response
@@ -1280,7 +1281,12 @@ class Office365Connector(BaseConnector):
         action_result = self.add_action_result(ActionResult(dict(param)))
 
         email = param["email_address"]
-        folder = param["folder"].decode("utf-8", 'ignore').translate({92: 47})
+
+        try:
+            folder = param["folder"].decode("utf-8", 'ignore').translate({92: 47})
+        except:
+            return action_result.set_status(phantom.APP_ERROR, "Please check your input parameters")
+
         minusp = param.get("all_subdirs", False)
 
         path = [x for x in folder.strip().split("/") if x]
@@ -1361,7 +1367,7 @@ class Office365Connector(BaseConnector):
         action_result.update_summary({"folders created": len(action_result.get_data()), folder: self._currentdir['id']})
         return action_result.set_status(phantom.APP_SUCCESS)
 
-    def _paginator(self, action_result, endpoint, limit=None, params=None):
+    def _paginator(self, action_result, endpoint, limit=None, params=None, query=None):
         """
         This action is used to create an iterator that will paginate through responses from called methods.
 
@@ -1383,6 +1389,9 @@ class Office365Connector(BaseConnector):
             params.update({"$top": page_size})
         else:
             params = {"$top": page_size}
+
+        if query:
+            params.update({"$filter": query})
 
         while True:
             if next_link:
@@ -1515,6 +1524,7 @@ class Office365Connector(BaseConnector):
         action_result = ActionResult()
 
         self._currentdir = None
+        self._list_folder = list()
 
         # Load the state in initialize
         config = self.get_config()

@@ -268,7 +268,10 @@
                 },
                 {
                     "data_path": "action_result.parameter.filter",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "subject eq 'Test2'"
+                    ]
                 },
                 {
                     "data_path": "action_result.parameter.group_id",
@@ -572,11 +575,17 @@
             "type": "investigate",
             "read_only": true,
             "parameters": {
+                "filter": {
+                    "description": "Search for specific results",
+                    "data_type": "string",
+                    "required": false,
+                    "order": 0
+                },
                 "limit": {
                     "description": "Maximum number of matters to return",
                     "data_type": "numeric",
                     "required": false,
-                    "order": 0
+                    "order": 1
                 }
             },
             "output": [
@@ -586,6 +595,13 @@
                     "example_values": [
                         "success",
                         "failed"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.filter",
+                    "data_type": "string",
+                    "example_values": [
+                        "displayName eq 'User Name'"
                     ]
                 },
                 {
@@ -725,11 +741,17 @@
             "type": "investigate",
             "read_only": true,
             "parameters": {
+                "filter": {
+                    "description": "Search for specific results",
+                    "data_type": "string",
+                    "required": false,
+                    "order": 0
+                },
                 "limit": {
                     "description": "Maximum number of matters to return",
                     "data_type": "numeric",
                     "required": false,
-                    "order": 0
+                    "order": 1
                 }
             },
             "output": [
@@ -739,6 +761,12 @@
                     "example_values": [
                         "success",
                         "failed"
+                    ]
+                },{
+                    "data_path": "action_result.parameter.filter",
+                    "data_type": "string",
+                    "example_values": [
+                        "displayName eq 'Group Name'"
                     ]
                 },
                 {
@@ -783,7 +811,7 @@
                     "data_path": "action_result.data.*.displayName",
                     "data_type": "string",
                     "example_values": [
-                        "Phantom-test-site"
+                        "Test-test-site"
                     ],
                     "column_name": "Display Name",
                     "column_order": 2
@@ -817,7 +845,7 @@
                     "data_path": "action_result.data.*.mail",
                     "data_type": "string",
                     "example_values": [
-                        "Phantom-test-site@testphantom.onmicrosoft.com"
+                        "Test-test-site@testdomain.onmicrosoft.com"
                     ],
                     "contains": [
                         "email"
@@ -837,7 +865,7 @@
                     "data_path": "action_result.data.*.mailNickname",
                     "data_type": "string",
                     "example_values": [
-                        "Phantom-test-site"
+                        "Test-test-site"
                     ]
                 },
                 {
