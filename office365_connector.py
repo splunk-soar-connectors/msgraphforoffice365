@@ -790,7 +790,7 @@ class Office365Connector(BaseConnector):
             endpoint = '/groups/{0}/calendar/events'.format(group_id)
 
         if query:
-            endpoint = '{0}?{1}'.format(endpoint, query)
+            endpoint = "{0}?{1}".format(endpoint, query)
 
         ret_val, events = self._paginator(action_result, endpoint, limit)
 
@@ -798,7 +798,7 @@ class Office365Connector(BaseConnector):
                 return action_result.get_status()
 
         if not events:
-            return action_result.set_status(phantom.APP_ERROR, "No data found")
+            return action_result.set_status(phantom.APP_SUCCESS, "No data found")
 
         for event in events:
             categories = []
@@ -834,7 +834,7 @@ class Office365Connector(BaseConnector):
                 return action_result.get_status()
 
         if not groups:
-            return action_result.set_status(phantom.APP_ERROR, "No data found")
+            return action_result.set_status(phantom.APP_SUCCESS, "No data found")
 
         for group in groups:
             action_result.add_data(group)
@@ -863,7 +863,7 @@ class Office365Connector(BaseConnector):
                 return action_result.get_status()
 
         if not users:
-            return action_result.set_status(phantom.APP_ERROR, "No data found")
+            return action_result.set_status(phantom.APP_SUCCESS, "No data found")
 
         for user in users:
             action_result.add_data(user)
@@ -878,38 +878,47 @@ class Office365Connector(BaseConnector):
         self.save_progress('In action handler for: {0}'.format(self.get_action_identifier()))
         action_result = self.add_action_result(ActionResult(dict(param)))
 
+        list_folder = list()
         user_id = param['user_id']
+        folder_id = param.get('folder_id')
 
-        # fetching root level folders
-        ret_val, root_folders = self._fetch_root_folders(action_result, user_id)
+        if not folder_id:
+            # fetching root level folders
+            ret_val, root_folders = self._fetch_root_folders(action_result, user_id)
 
-        if (phantom.is_fail(ret_val)):
-            return action_result.get_status()
+            if (phantom.is_fail(ret_val)):
+                return action_result.get_status()
 
-        # adding root folders to main list of folders
-        self._list_folder.append(root_folders)
+            # adding root folders to main list of folders
+            list_folder.extend(root_folders)
 
-        # checking for child folder if have, add it in list of folders
-        for root_folder in root_folders:
-            if root_folder['childFolderCount'] == 0:
-                continue
-            else:
-                ret_val = self._list_child_folders(action_result, user_id=user_id, parent_folder=root_folder)
+            # checking for child folder if have, add it in list of folders
+            for root_folder in root_folders:
 
-                if (phantom.is_fail(ret_val)):
-                    return action_result.get_status()
+                if root_folder['childFolderCount'] == 0:
+                    continue
+                else:
+                    ret_val = self._list_child_folders(action_result, list_folder, user_id=user_id, parent_folder=root_folder)
 
-        for folder in self._list_folder:
+                    if (phantom.is_fail(ret_val)):
+                        return action_result.get_status()
+        else:
+            ret_val = self._list_child_folders(action_result, list_folder, user_id=user_id, folder_id=folder_id)
+
+            if (phantom.is_fail(ret_val)):
+                return action_result.get_status()
+
+        for folder in list_folder:
             action_result.add_data(folder)
 
-        num_folders = len(self._list_folder)
+        num_folders = len(list_folder)
         action_result.update_summary({'total_folders_returned': num_folders})
 
         return action_result.set_status(phantom.APP_SUCCESS, 'Successfully retrieved {} mail folder{}'.format(num_folders, '' if num_folders == 1 else 's'))
 
     def _fetch_root_folders(self, action_result, user_id):
 
-        endpoint = '/users/{user_id}/mailFolders'.format(user_id=user_id)
+        endpoint = "/users/{user_id}/mailFolders".format(user_id=user_id)
 
         ret_val, folders = self._paginator(action_result, endpoint)
 
@@ -917,29 +926,34 @@ class Office365Connector(BaseConnector):
                 return action_result.get_status()
 
         if not folders:
-            return action_result.set_status(phantom.APP_ERROR, "No data found"), None
+            return action_result.set_status(phantom.APP_SUCCESS, "No data found"), None
 
         return phantom.APP_SUCCESS, folders
 
-    def _list_child_folders(self, action_result, user_id, parent_folder):
+    def _list_child_folders(self, action_result, list_folder, user_id, parent_folder=None, folder_id=None):
 
         # fetching root level folders
-        ret_val, child_folders = self._fetch_child_folders(action_result, user_id, parent_folder['id'])
+        if not folder_id:
+            ret_val, child_folders = self._fetch_child_folders(action_result, user_id, parent_folder['id'])
+        else:
+            ret_val, child_folders = self._fetch_child_folders(action_result, user_id, folder_id)
 
         if (phantom.is_fail(ret_val)):
             return action_result.get_status()
+
         # checking for child folder if have, add it in list of folders
         for child_folder in child_folders:
+
             if child_folder['childFolderCount'] == 0:
-                self._list_folder.append(child_folder)
+                list_folder.append(child_folder)
                 continue
             else:
-                ret_val = self._list_child_folders(action_result, user_id, parent_folder=child_folder)
+                ret_val = self._list_child_folders(action_result, list_folder, user_id=user_id, parent_folder=child_folder)
 
                 if (phantom.is_fail(ret_val)):
                     return action_result.get_status()
 
-                self._list_folder.append(child_folder)
+                list_folder.append(child_folder)
 
         return phantom.APP_SUCCESS
 
@@ -950,10 +964,7 @@ class Office365Connector(BaseConnector):
         ret_val, folders = self._paginator(action_result, endpoint)
 
         if (phantom.is_fail(ret_val)):
-                return action_result.get_status()
-
-        if not folders:
-            return action_result.set_status(phantom.APP_ERROR, "No data found"), None
+                return action_result.get_status(), None
 
         return phantom.APP_SUCCESS, folders
 
@@ -1194,7 +1205,7 @@ class Office365Connector(BaseConnector):
                 return action_result.get_status()
 
         if not messages:
-            return action_result.set_status(phantom.APP_ERROR, "No data found")
+            return action_result.set_status(phantom.APP_SUCCESS, "No data found")
 
         for message in messages:
             action_result.add_data(message)
