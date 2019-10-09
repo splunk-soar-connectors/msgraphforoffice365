@@ -14,7 +14,7 @@
     "utctime_updated": "2019-07-19T21:28:35.000000Z",
     "package_name": "phantom_msgraphoffice365",
     "main_module": "office365_connector.pyc",
-    "min_phantom_version": "4.0.1068",
+    "min_phantom_version": "4.2.7532",
     "app_wizard_version": "1.0.0",
     "rest_handler": "office365_connector.handle_request",
     "configuration": {
@@ -78,7 +78,9 @@
                     "example_values": [
                         "success",
                         "failed"
-                    ]
+                    ],
+                    "column_name": "Status",
+                    "column_order": 0
                 },
                 {
                     "data_path": "action_result.data",
@@ -91,8 +93,11 @@
                 {
                     "data_path": "action_result.message",
                     "data_type": "string",
-                    "column_name": "status",
-                    "column_order": 0
+                    "example_values": [
+                        "Token generated"
+                    ],
+                    "column_name": "Message",
+                    "column_order": 1
                 },
                 {
                     "data_path": "summary.total_objects",
@@ -117,7 +122,7 @@
         {
             "action": "oof check",
             "identifier": "oof_check",
-            "description": "List user's out of office status",
+            "description": "Get user's out of office status",
             "type": "investigate",
             "read_only": true,
             "parameters": {
@@ -132,13 +137,6 @@
                         "email"
                     ],
                     "order": 0
-                },
-                "filter": {
-                    "description": "OData Query to filter/search for specific results",
-                    "data_type": "string",
-                    "required": false,
-                    "primary": false,
-                    "order": 1
                 }
             },
             "output": [
@@ -149,10 +147,6 @@
                         "success",
                         "failed"
                     ]
-                },
-                {
-                    "data_path": "action_result.parameter.filter",
-                    "data_type": "string"
                 },
                 {
                     "data_path": "action_result.parameter.user_id",
@@ -270,7 +264,8 @@
                     "data_path": "action_result.parameter.filter",
                     "data_type": "string",
                     "example_values": [
-                        "$filter=subject eq 'Test2'"
+                        "$filter=subject eq 'Test2'",
+                        "$orderby=organizer/emailAddress/name desc"
                     ]
                 },
                 {
@@ -282,7 +277,10 @@
                 },
                 {
                     "data_path": "action_result.parameter.limit",
-                    "data_type": "numeric"
+                    "data_type": "numeric",
+                    "example_values": [
+                        20
+                    ]
                 },
                 {
                     "data_path": "action_result.parameter.user_id",
@@ -291,49 +289,85 @@
                         "msgoffice365 user id",
                         "msgoffice365 user principle name",
                         "email"
+                    ],
+                    "example_values": [
+                        "test@testdomain.onmicrosoft.com"
                     ]
                 },
                 {
                     "data_path": "action_result.data.*.@odata.etag",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "W/\"b1MzKFCcdkuJ24Mc2VsdjwABAdhQhg==\""
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.attendee_list",
                     "data_type": "string",
                     "column_name": "Attendee(s)",
-                    "column_order": 3
+                    "column_order": 3,
+                    "example_values": [
+                        "H-test, o365group"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.attendees.*.emailAddress.address",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "H-test@testdomain.onmicrosoft.com"
+                    ],
+                    "contains": [
+                        "email"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.attendees.*.emailAddress.name",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "H-test"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.attendees.*.status.response",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "none"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.attendees.*.status.time",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "0001-01-01T00:00:00Z"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.attendees.*.type",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "required"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.body.content",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "<html><head><meta name=\"Generator\" content=\"Microsoft Exchange Server\">\r\n<!-- converted from text -->\r\n<style><!-- .EmailQuote { margin-left: 1pt; padding-left: 4pt; border-left: #800000 2px solid; } --></style></head>\r\n<body>\r\n<font size=\"2\"><span style=\"font-size:11pt;\"><div class=\"PlainText\">&nbsp;</div></span></font>\r\n</body>\r\n</html>\r\n"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.body.contentType",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "html"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.bodyPreview",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        ""
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.categories.*.name",
@@ -341,21 +375,33 @@
                 },
                 {
                     "data_path": "action_result.data.*.changeKey",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "b1MzKFCcdkuJ24Mc2VsdjwABAdhQhg=="
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.createdDateTime",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "2019-10-03T09:03:42.4958512Z"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.end.dateTime",
                     "data_type": "string",
                     "column_name": "End Time",
-                    "column_order": 2
+                    "column_order": 2,
+                    "example_values": [
+                        "2019-10-04T15:30:00.0000000"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.end.timeZone",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "UTC"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.hasAttachments",
@@ -367,15 +413,24 @@
                 },
                 {
                     "data_path": "action_result.data.*.iCalUId",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "040000008200E00074C5B7101A82E00800000000347B5D74C979D5010000000000000000100000003F2152B556F23543B1B9C751CCD711A3"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.id",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "AAMkAGFmNTRhODA4LWIxMjQtNDJjYy05NDM2LWQ5MzY1MGFhMTkzYwBGAAAAAADRlY7ewL4xToKRDciQog5UBwBvUzMoUJx2S4nbgxzZWx2PAAAAAAENAABvUzMoUJx2S4nbgxzZWx2PAAEB90vfAAA="
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.importance",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "normal"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.isAllDay",
@@ -411,42 +466,192 @@
                 },
                 {
                     "data_path": "action_result.data.*.lastModifiedDateTime",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "2019-10-04T15:24:43.0639836Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.location.address.city",
+                    "data_type": "string",
+                    "example_values": [
+                        "City"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.location.address.countryOrRegion",
+                    "data_type": "string",
+                    "example_values": [
+                        "Country"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.location.address.postalCode",
+                    "data_type": "string",
+                    "example_values": [
+                        ""
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.location.address.state",
+                    "data_type": "string",
+                    "example_values": [
+                        "State"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.location.address.street",
+                    "data_type": "string",
+                    "example_values": [
+                        "Location Address"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.location.coordinates.latitude",
+                    "data_type": "numeric",
+                    "example_values": [
+                        23.0011
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.location.coordinates.longitude",
+                    "data_type": "numeric",
+                    "example_values": [
+                        72.4994
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.location.displayName",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        ""
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.location.locationType",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "default"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.location.locationUri",
+                    "data_type": "string",
+                    "example_values": [
+                        "https://www.bingapis.com/api/v6/localbusinesses/YN4070x2912827763012539383?setLang=en"
+                    ],
+                    "contains": [
+                        "url"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.location.uniqueId",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "f30c3e81-78b7-4f47-8890-f60c3f57e199"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.location.uniqueIdType",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "unknown"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.locations.*.address.city",
+                    "data_type": "string",
+                    "example_values": [
+                        "City"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.locations.*.address.countryOrRegion",
+                    "data_type": "string",
+                    "example_values": [
+                        "Country"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.locations.*.address.postalCode",
+                    "data_type": "string",
+                    "example_values": [
+                        ""
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.locations.*.address.state",
+                    "data_type": "string",
+                    "example_values": [
+                        "State"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.locations.*.address.street",
+                    "data_type": "string",
+                    "example_values": [
+                        "Location Address"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.locations.*.coordinates.latitude",
+                    "data_type": "numeric",
+                    "example_values": [
+                        23.0011
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.locations.*.coordinates.longitude",
+                    "data_type": "numeric",
+                    "example_values": [
+                        72.4994
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.locations.*.displayName",
+                    "data_type": "string",
+                    "example_values": [
+                        "Test Building Address Bus Stop"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.locations.*.locationType",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "localBusiness"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.locations.*.locationUri",
+                    "data_type": "string",
+                    "example_values": [
+                        "https://www.bingapis.com/api/v6/localbusinesses/YN4070x2912827763012539383?setLang=en"
+                    ],
+                    "contains": [
+                        "url"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.locations.*.uniqueId",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "f30c3e81-78b7-4f47-8890-f60c3f57e199"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.locations.*.uniqueIdType",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "locationStore"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.onlineMeetingUrl",
                     "data_type": "string",
                     "contains": [
                         "url"
-                    ]
+                    ],
+                    "example_values": []
                 },
                 {
                     "data_path": "action_result.data.*.organizer.emailAddress.address",
@@ -454,19 +659,31 @@
                     "contains": [
                         "msgoffice365 user principle name",
                         "email"
+                    ],
+                    "example_values": [
+                        "test@testdomain.onmicrosoft.com"
                     ]
                 },
                 {
                     "data_path": "action_result.data.*.organizer.emailAddress.name",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "Test Name"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.originalEndTimeZone",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "Pacific Standard Time"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.originalStartTimeZone",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "Pacific Standard Time"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.recurrence",
@@ -474,23 +691,39 @@
                 },
                 {
                     "data_path": "action_result.data.*.reminderMinutesBeforeStart",
-                    "data_type": "numeric"
+                    "data_type": "numeric",
+                    "example_values": [
+                        15
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.responseRequested",
-                    "data_type": "boolean"
+                    "data_type": "boolean",
+                    "example_values": [
+                        false,
+                        true
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.responseStatus.response",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "organizer"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.responseStatus.time",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "0001-01-01T00:00:00Z"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.sensitivity",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "normal"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.seriesMasterId",
@@ -498,33 +731,51 @@
                 },
                 {
                     "data_path": "action_result.data.*.showAs",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "busy"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.start.dateTime",
                     "data_type": "string",
                     "column_name": "Start Time",
-                    "column_order": 1
+                    "column_order": 1,
+                    "example_values": [
+                        "2019-10-04T15:00:00.0000000"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.start.timeZone",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "UTC"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.subject",
                     "data_type": "string",
-                    "column_name": "subject",
-                    "column_order": 0
+                    "column_name": "Subject",
+                    "column_order": 0,
+                    "example_values": [
+                        "New event - 1"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.type",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "singleInstance"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.webLink",
                     "data_type": "string",
                     "contains": [
                         "url"
+                    ],
+                    "example_values": [
+                        "https://outlook.office365.com/owa/?itemid=AAMkAGFmNTRhODA4LWIxMjQtNDJjYy05NDM2LWQ5MzY1MGFhMTkzYwBGAAAAAADRlY7ewL4xToKRDciQog5UBwBvUzMoUJx2S4nbgxzZWx2PAAAAAAENAABvUzMoUJx2S4nbgxzZWx2PAAEB90vfAAA%3D&exvsurl=1&path=/calendar/item"
                     ]
                 },
                 {
@@ -535,14 +786,15 @@
                     "data_path": "action_result.summary.events_matched",
                     "data_type": "numeric",
                     "example_values": [
-                        1
+                        1,
+                        8
                     ]
                 },
                 {
                     "data_path": "action_result.message",
                     "data_type": "string",
                     "example_values": [
-                        "Successfully retrieved 3 events"
+                        "Successfully retrieved 8 events"
                     ]
                 },
                 {
@@ -582,7 +834,7 @@
                     "order": 0
                 },
                 "limit": {
-                    "description": "Maximum number of matters to return",
+                    "description": "Maximum number of users to return",
                     "data_type": "numeric",
                     "required": false,
                     "order": 1
@@ -622,7 +874,7 @@
                     "data_path": "action_result.data.*.displayName",
                     "data_type": "string",
                     "example_values": [
-                        "Global Admin"
+                        "Test Admin"
                     ],
                     "column_name": "Display Name",
                     "column_order": 2
@@ -631,7 +883,7 @@
                     "data_path": "action_result.data.*.givenName",
                     "data_type": "string",
                     "example_values": [
-                        "Matt"
+                        "Test"
                     ],
                     "column_name": "Given Name",
                     "column_order": 3
@@ -679,7 +931,7 @@
                     "data_path": "action_result.data.*.surname",
                     "data_type": "string",
                     "example_values": [
-                        "Globalmaster"
+                        "Globaltest"
                     ],
                     "column_name": "Surname",
                     "column_order": 4
@@ -748,7 +1000,7 @@
                     "order": 0
                 },
                 "limit": {
-                    "description": "Maximum number of matters to return",
+                    "description": "Maximum number of groups to return",
                     "data_type": "numeric",
                     "required": false,
                     "order": 1
@@ -1154,7 +1406,8 @@
                     "primary": true,
                     "contains": [
                         "msgoffice365 mail folder",
-                        "msgoffice365 mail folder path"
+                        "msgoffice365 mail folder path",
+                        "msgoffice365 folder id"
                     ],
                     "order": 2
                 },
@@ -1179,7 +1432,7 @@
                     "contains": [
                         "email"
                     ],
-                    "column_name": "email",
+                    "column_name": "Email",
                     "column_order": 0,
                     "example_values": [
                         "test@testdomain.onmicrosoft.com"
@@ -1190,9 +1443,10 @@
                     "data_type": "string",
                     "contains": [
                         "msgoffice365 mail folder",
-                        "msgoffice365 mail folder path"
+                        "msgoffice365 mail folder path",
+                        "msgoffice365 folder id"
                     ],
-                    "column_name": "folder",
+                    "column_name": "Folder",
                     "column_order": 1,
                     "example_values": [
                         "AQMkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQAuAAADyW3X5P7Hb0_MMHKonvdoWQEAQSl1b8BFiEmbqZql_JiUtwAAAgEbAAAA"
@@ -1535,7 +1789,7 @@
         {
             "action": "move email",
             "identifier": "move_email",
-            "description": "move an email to a folder",
+            "description": "Move an email to a folder",
             "type": "generic",
             "read_only": false,
             "parameters": {
@@ -1553,6 +1807,7 @@
                     "description": "Source Mailbox (Email)",
                     "data_type": "string",
                     "required": true,
+                    "primary": true,
                     "contains": [
                         "email"
                     ],
@@ -1566,7 +1821,8 @@
                     "primary": true,
                     "contains": [
                         "msgoffice365 mail folder",
-                        "msgoffice365 mail folder path"
+                        "msgoffice365 mail folder path",
+                        "msgoffice365 folder id"
                     ],
                     "order": 2
                 },
@@ -1591,7 +1847,7 @@
                     "contains": [
                         "email"
                     ],
-                    "column_name": "email",
+                    "column_name": "Email",
                     "column_order": 0,
                     "example_values": [
                         "test@testdomain.onmicrosoft.com"
@@ -1602,9 +1858,10 @@
                     "data_type": "string",
                     "contains": [
                         "msgoffice365 mail folder",
-                        "msgoffice365 mail folder path"
+                        "msgoffice365 mail folder path",
+                        "msgoffice365 folder id"
                     ],
-                    "column_name": "folder",
+                    "column_name": "Folder",
                     "column_order": 1,
                     "example_values": [
                         "AQMkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQAuAAADyW3X5P7Hb0_MMHKonvdoWQEAQSl1b8BFiEmbqZql_JiUtwAAAgEbAAAA"
@@ -1612,7 +1869,11 @@
                 },
                 {
                     "data_path": "action_result.parameter.get_folder_id",
-                    "data_type": "boolean"
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
                 },
                 {
                     "data_path": "action_result.parameter.id",
@@ -1756,7 +2017,7 @@
                 {
                     "data_path": "action_result.data.*.id",
                     "data_type": "string",
-                    "column_name": "New Email ID",
+                    "column_name": "New Message ID",
                     "column_order": 2,
                     "contains": [
                         "msgoffice365 message id"
@@ -1912,7 +2173,7 @@
                     "data_path": "action_result.message",
                     "data_type": "string",
                     "example_values": [
-                        "Successfully copied email"
+                        "Successfully moved email"
                     ]
                 },
                 {
@@ -1941,12 +2202,12 @@
         {
             "action": "delete email",
             "identifier": "delete_email",
-            "description": "Delete emails",
+            "description": "Delete an email",
             "type": "contain",
             "read_only": false,
             "parameters": {
                 "id": {
-                    "description": "Message IDs to delete",
+                    "description": "Message ID to delete",
                     "data_type": "string",
                     "required": true,
                     "primary": true,
@@ -2662,6 +2923,9 @@
                     "data_type": "string",
                     "example_values": [
                         "Just wanted to say hello"
+                    ],
+                    "contains": [
+                        "msgoffice365 subject"
                     ]
                 },
                 {
@@ -3092,7 +3356,8 @@
                     "column_order": 2,
                     "contains": [
                         "msgoffice365 mail folder",
-                        "msgoffice365 mail folder path"
+                        "msgoffice365 mail folder path",
+                        "msgoffice365 folder id"
                     ],
                     "example_values": [
                         "AAMkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQAuAAAAAADJbdfk-sdvT4wwcqie92hZAQBBKXVvwEWISZupmqX4mJS3AACEV3zJAAA="
@@ -3151,8 +3416,8 @@
             "identifier": "get_folder_id",
             "description": "get folder id",
             "verbose": "Get the API ID of the folder",
-            "type": "generic",
-            "read_only": false,
+            "type": "investigate",
+            "read_only": true,
             "parameters": {
                 "email_address": {
                     "description": "User's email (Mailbox)",
@@ -3192,7 +3457,7 @@
                         "email"
                     ],
                     "example_values": [
-                        "matt@testphantom.onmicrosoft.com"
+                        "test@testdomain.onmicrosoft.com"
                     ]
                 },
                 {
@@ -3209,7 +3474,7 @@
                 {
                     "data_path": "action_result.data.*.folder",
                     "data_type": "string",
-                    "column_name": "folder_name",
+                    "column_name": "Folder Name",
                     "column_order": 1,
                     "contains": [
                         "msgoffice365 mail folder",
@@ -3222,7 +3487,7 @@
                 {
                     "data_path": "action_result.data.*.folder_id",
                     "data_type": "string",
-                    "column_name": "folder_id",
+                    "column_name": "Folder ID",
                     "column_order": 2,
                     "example_values": [
                         "AAMkAGFmNTRhODA4LWIxMjQtNDJjYy05NDM2LWQ5MzY1MGFhMTkzYwAuAAAAAADRlY7ewL4xToKRDciQog5UAQBvUzMoUJx2S4nbgxzZWx2PAAEApxCRAAA="
@@ -3231,7 +3496,7 @@
                 {
                     "data_path": "action_result.data.*.path",
                     "data_type": "string",
-                    "column_name": "path",
+                    "column_name": "Path",
                     "column_order": 0
                 },
                 {
