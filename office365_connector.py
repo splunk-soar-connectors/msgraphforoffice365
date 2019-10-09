@@ -236,7 +236,6 @@ class Office365Connector(BaseConnector):
         self._scope = None
         self._access_token = None
         self._refresh_token = None
-        self._list_folder = None
 
     def _process_empty_reponse(self, response, action_result):
 
@@ -720,6 +719,17 @@ class Office365Connector(BaseConnector):
 
         body = {'DestinationId': param['folder']}
 
+        if param.get('get_folder_id', False):		
+            try:		
+                dir_id, error, _ = self._get_folder_id(action_result, param['folder'], email_addr)		
+            except ReturnException:		
+                return action_result.get_status()		
+            if dir_id:		
+                body['DestinationId'] = dir_id		
+            else:		
+                self.save_progress(error)		
+                return action_result.set_status(phantom.APP_ERROR, error)
+
         ret_val, response = self._make_rest_call_helper(action_result, endpoint, data=json.dumps(body), method='post')
         if (phantom.is_fail(ret_val)):
             return action_result.get_status()
@@ -727,6 +737,39 @@ class Office365Connector(BaseConnector):
         action_result.add_data(response)
 
         return action_result.set_status(phantom.APP_SUCCESS, "Successfully copied email")
+
+    def _handle_move_email(self, param):
+
+        self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
+        action_result = self.add_action_result(ActionResult(dict(param)))
+
+        email_addr = param['email_address']
+        endpoint = '/users/{0}'.format(email_addr)
+
+        endpoint += '/messages/{0}/move'.format(param['id'])
+
+        body = {'DestinationId': param['folder']}
+        if param.get('get_folder_id', False):
+            try:
+                dir_id, error, _ = self._get_folder_id(action_result, param['folder'], email_addr)
+
+            except ReturnException:
+                return action_result.get_status()
+
+            if dir_id:
+                body['DestinationId'] = dir_id
+
+            else:
+                self.save_progress(error)
+                return action_result.set_status(phantom.APP_ERROR, error)
+
+        ret_val, response = self._make_rest_call_helper(action_result, endpoint, data=json.dumps(body), method='post')
+        if (phantom.is_fail(ret_val)):
+            return action_result.get_status()
+
+        action_result.add_data(response)
+
+        return action_result.set_status(phantom.APP_SUCCESS, "Successfully moved email")
 
     def _handle_delete_email(self, param):
 
@@ -738,7 +781,7 @@ class Office365Connector(BaseConnector):
 
         endpoint += '/messages/{0}'.format(param['id'])
 
-        ret_val, response = self._make_rest_call_helper(action_result, endpoint, method='delete')
+        ret_val, _ = self._make_rest_call_helper(action_result, endpoint, method='delete')
         if (phantom.is_fail(ret_val)):
             return action_result.get_status()
 
@@ -798,6 +841,8 @@ class Office365Connector(BaseConnector):
                 return action_result.get_status()
 
         if not events:
+            # No events found is a valid scenario that there can be 0 events returned
+            # even if the API call is a success for the correct given inputs and hence, returning APP_SUCCESS.
             return action_result.set_status(phantom.APP_SUCCESS, "No data found")
 
         for event in events:
@@ -1161,7 +1206,20 @@ class Office365Connector(BaseConnector):
 
         # folder
         if ('folder' in param):
-            endpoint += '/mailFolders/{0}'.format(param['folder'])
+            folder = param['folder']
+
+            if param.get('get_folder_id', False):		
+                try:		
+                    dir_id, error, ret = self._get_folder_id(action_result, folder, email_addr)		
+                    print("ret",ret)		
+                except ReturnException:		
+                    return action_result.get_status()		
+                if dir_id:		
+                    folder = dir_id		
+                else:		
+                    self.save_progress(error)		
+                    return action_result.set_status(phantom.APP_ERROR, error)		
+            endpoint += '/mailFolders/{0}'.format(folder)
 
         # that should be enough to create the endpoint
         endpoint += '/messages'
@@ -1214,7 +1272,26 @@ class Office365Connector(BaseConnector):
 
         return action_result.set_status(phantom.APP_SUCCESS)
 
-    def _getFolder(self, action_result, folder, email):
+    def _get_folder_id(self, action_result, folder, email):
+        path = [x for x in folder.strip().split("/") if x]
+
+        ret = list()
+        dir_id = self._get_folder(action_result, path[0], email)
+        if not dir_id:
+            return None, "Error: folder not found; {}".format(path[0]), ret
+        ret.append({"path":path[0], "folder":path[0], "folder_id":dir_id})
+
+        for i, subf in enumerate(path[1:]):
+            subpath = "/".join(path[0:i+2])
+            parent_id = dir_id
+            dir_id = self._get_child_folder(action_result, subf, parent_id, email)
+            if not dir_id:
+                    return None, "Error: child folder not found; {}".format(subpath)
+            ret.append({"path":subpath, "folder":subf, "folder_id":dir_id})
+
+        return dir_id, None, ret
+
+    def _get_folder(self, action_result, folder, email):
 
         params = {}
         params['$filter'] = "displayName eq '{}'".format(folder)
@@ -1231,7 +1308,7 @@ class Office365Connector(BaseConnector):
 
         return None
 
-    def _getChildFolder(self, action_result, folder, parent_id, email):
+    def _get_child_folder(self, action_result, folder, parent_id, email):
 
         params = {}
         params['$filter'] = "displayName eq '{}'".format(folder.encode('utf-8'))
@@ -1248,7 +1325,7 @@ class Office365Connector(BaseConnector):
 
         return None
 
-    def _newFolder(self, action_result, folder, email):
+    def _new_folder(self, action_result, folder, email):
 
         data = json.dumps({ "displayName": folder })
         endpoint = "/users/{}/mailFolders".format(email)
@@ -1267,7 +1344,7 @@ class Office365Connector(BaseConnector):
         action_result.set_status(phantom.APP_ERROR, msg)
         raise ReturnException()
 
-    def _newChildFolder(self, action_result, folder, parent_id, email, pathsofar):
+    def _new_child_folder(self, action_result, folder, parent_id, email, pathsofar):
 
         data = json.dumps({ "displayName": folder })
         endpoint = "/users/{}/mailFolders/{}/childFolders".format(email, parent_id)
@@ -1281,7 +1358,7 @@ class Office365Connector(BaseConnector):
             self.save_progress("Success({}): created child folder in folder {}".format(folder, pathsofar))
             return response['id']
 
-        msg = "Error({}): unable to create child folder in folde {}".format(folder, pathsofar)
+        msg = "Error({}): unable to create child folder in folder {}".format(folder, pathsofar)
         self.save_progress(msg)
         action_result.set_status(phantom.APP_ERROR, msg)
         raise ReturnException()
@@ -1308,7 +1385,7 @@ class Office365Connector(BaseConnector):
 
         try:
 
-            dir_id = self._getFolder(action_result, path[0], email)
+            dir_id = self._get_folder(action_result, path[0], email)
 
             # only one, create as "Folder" in mailbox
             if len(path) == 1:
@@ -1318,7 +1395,7 @@ class Office365Connector(BaseConnector):
                     self.save_progress(msg)
                     return action_result.set_status(phantom.APP_ERROR, msg)
 
-                self._newFolder(action_result, path[0], email)
+                self._new_folder(action_result, path[0], email)
                 action_result.add_data(self._currentdir)
 
             # walk the path elements, creating each as needed
@@ -1329,7 +1406,7 @@ class Office365Connector(BaseConnector):
                 # first deal with the initial Folder
                 if not dir_id:
                     if minusp:
-                        dir_id = self._newFolder(action_result, path[0], email)
+                        dir_id = self._new_folder(action_result, path[0], email)
                         action_result.add_data(self._currentdir)
 
                     else:
@@ -1347,11 +1424,11 @@ class Office365Connector(BaseConnector):
                 # next all the childFolders in between
                 for subf in path:
 
-                    dir_id = self._getChildFolder(action_result, subf, parent_id, email)
+                    dir_id = self._get_child_folder(action_result, subf, parent_id, email)
 
                     if not dir_id:
                         if minusp:
-                            dir_id = self._newChildFolder(action_result, subf, parent_id, email, pathsofar)
+                            dir_id = self._new_child_folder(action_result, subf, parent_id, email, pathsofar)
                             action_result.add_data(self._currentdir)
 
                         else:
@@ -1363,13 +1440,13 @@ class Office365Connector(BaseConnector):
                     parent_id = dir_id
 
                 # finally, the actual folder
-                dir_id = self._getChildFolder(action_result, final, parent_id, email)
+                dir_id = self._get_child_folder(action_result, final, parent_id, email)
                 if dir_id:
-                    msg = "Error({}): child folder already exists in folder".format(final, pathsofar)
+                    msg = "Error: child folder {0} already exists in the folder {1}".format(final, pathsofar)
                     self.save_progress(msg)
                     return action_result.set_status(phantom.APP_ERROR, msg)
 
-                self._newChildFolder(action_result, final, parent_id, email, pathsofar)
+                self._new_child_folder(action_result, final, parent_id, email, pathsofar)
                 action_result.add_data(self._currentdir)
 
         except ReturnException:
@@ -1377,6 +1454,32 @@ class Office365Connector(BaseConnector):
 
         action_result.update_summary({"folders created": len(action_result.get_data()), folder: self._currentdir['id']})
         return action_result.set_status(phantom.APP_SUCCESS)
+
+    def _handle_get_folder_id(self, param):
+
+        self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
+        action_result = self.add_action_result(ActionResult(dict(param)))
+
+        email = param["email_address"]
+        folder = param["folder"].decode("utf8", 'ignore').translate({92: 47})
+
+        try:
+            dir_id, error, ret = self._get_folder_id(action_result, folder, email)
+
+        except ReturnException:
+            return action_result.get_status()
+
+        if len(ret) > 0:
+            for x in ret:
+                action_result.add_data(x)
+
+        if dir_id:
+            action_result.update_summary({"folder_id":dir_id})
+            return action_result.set_status(phantom.APP_SUCCESS)
+
+        else:
+            self.save_progress(error)
+            return action_result.set_status(phantom.APP_ERROR, error)
 
     def _paginator(self, action_result, endpoint, limit=None, params=None, query=None):
         """
@@ -1444,6 +1547,9 @@ class Office365Connector(BaseConnector):
         elif action_id == 'copy_email':
             ret_val = self._handle_copy_email(param)
 
+        elif action_id == 'move_email':		
+            ret_val = self._handle_move_email(param)
+
         elif action_id == 'delete_email':
             ret_val = self._handle_delete_email(param)
 
@@ -1476,6 +1582,9 @@ class Office365Connector(BaseConnector):
 
         elif action_id == 'create_folder':
             ret_val = self._handle_create_folder(param)
+
+        elif action_id == 'get_folder_id':		
+            ret_val = self._handle_get_folder_id(param)
 
         return ret_val
 
@@ -1535,7 +1644,6 @@ class Office365Connector(BaseConnector):
         action_result = ActionResult()
 
         self._currentdir = None
-        self._list_folder = list()
 
         # Load the state in initialize
         config = self.get_config()
