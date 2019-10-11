@@ -8,7 +8,7 @@
     "logo_dark": "logo_microsoftoffice365_dark.svg",
     "product_name": "Office 365 (MS Graph)",
     "product_version_regex": ".*",
-    "publisher": "Phantom",
+    "publisher": "Splunk",
     "license": "Copyright (c) 2017-2019 Splunk Inc.",
     "app_version": "1.0.22",
     "utctime_updated": "2019-07-19T21:28:35.000000Z",
@@ -47,7 +47,7 @@
             "order": 4
         },
         "scope": {
-            "description": "Access scope (for use with non-admin access; space-separated)",
+            "description": "Access Scope (for use with non-admin access; space-separated)",
             "data_type": "string",
             "default": "https://graph.microsoft.com/Calendars.Read https://graph.microsoft.com/User.Read",
             "order": 5
@@ -364,10 +364,7 @@
                 },
                 {
                     "data_path": "action_result.data.*.bodyPreview",
-                    "data_type": "string",
-                    "example_values": [
-                        ""
-                    ]
+                    "data_type": "string"
                 },
                 {
                     "data_path": "action_result.data.*.categories.*.name",
@@ -489,7 +486,7 @@
                     "data_path": "action_result.data.*.location.address.postalCode",
                     "data_type": "string",
                     "example_values": [
-                        ""
+                        "245004"
                     ]
                 },
                 {
@@ -524,7 +521,7 @@
                     "data_path": "action_result.data.*.location.displayName",
                     "data_type": "string",
                     "example_values": [
-                        ""
+                        "Test"
                     ]
                 },
                 {
@@ -576,7 +573,7 @@
                     "data_path": "action_result.data.*.locations.*.address.postalCode",
                     "data_type": "string",
                     "example_values": [
-                        ""
+                        "245004"
                     ]
                 },
                 {
@@ -650,14 +647,12 @@
                     "data_type": "string",
                     "contains": [
                         "url"
-                    ],
-                    "example_values": []
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.organizer.emailAddress.address",
                     "data_type": "string",
                     "contains": [
-                        "msgoffice365 user principle name",
                         "email"
                     ],
                     "example_values": [
@@ -786,7 +781,6 @@
                     "data_path": "action_result.summary.events_matched",
                     "data_type": "numeric",
                     "example_values": [
-                        1,
                         8
                     ]
                 },
@@ -908,7 +902,6 @@
                     "data_path": "action_result.data.*.mail",
                     "data_type": "string",
                     "contains": [
-                        "msgoffice365 user principle name",
                         "email"
                     ],
                     "example_values": [
@@ -1223,7 +1216,7 @@
             "action": "list folders",
             "identifier": "list_folders",
             "description": "Retrieve a list of mail folders",
-            "verbose": "If you want to list all child folders(all sub level) of specific parent folder, then you have to provide parent folder_id parameter. If you don't provide folder_id it will list all the folders(includes all the sub level folders).",
+            "verbose": "If you want to list all child folders(includes all the sub level) of specific parent folder, then you have to provide parent folder_id parameter. If you don't provide folder_id it will list all the folders(includes all the sub level folders).",
             "type": "investigate",
             "read_only": true,
             "parameters": {
@@ -1306,7 +1299,10 @@
                         "AAMkAGFmNTRhODA4LWIxMjQtNDJjYy05NDM2LWQ5MzY1MGFhMTkzYwAuAAAAAADRlY7ewL4xToKRDciQog5UAQBvUzMoUJx2S4nbgxzZWx2PAAD9nLiRAAA="
                     ],
                     "column_name": "Folder ID",
-                    "column_order": 1
+                    "column_order": 1,
+                    "contains": [
+                        "msgoffice365 folder id"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.parentFolderId",
@@ -1315,7 +1311,10 @@
                         "AAMkAGFmNTRhODA4LWIxMjQtNDJjYy05NDM2LWQ5MzY1MGFhMTkzYwAuAAAAAADRlY7ewL4xToKRDciQog5UAQBvUzMoUJx2S4nbgxzZWx2PAAAAAAEIAAA="
                     ],
                     "column_name": "Parent Folder ID",
-                    "column_order": 2
+                    "column_order": 2,
+                    "contains": [
+                        "msgoffice365 folder id"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.totalItemCount",
@@ -1376,6 +1375,7 @@
             "action": "copy email",
             "identifier": "copy_email",
             "description": "Copy an email to a folder",
+            "verbose": "The <b>get_folder_id</b> parameter should be enabled only when you specified folder_name/path in the folder parameter. The <b>folder</b> parameter must be either a (case sensitive) well-known name [list here; https://docs.microsoft.com/en-us/graph/api/resources/mailfolder?view=graph-rest-1.0] or the internal o365 folder ID.",
             "type": "generic",
             "read_only": false,
             "parameters": {
@@ -1399,8 +1399,7 @@
                     "order": 1
                 },
                 "folder": {
-                    "description": "Destination folder; This must be either a (case sensitive) well-known name or the internal o365 folder ID.",
-                    "verbose": "Destination Mail Folder id. This must be either a (case sensitive) well-known name [list here; https://docs.microsoft.com/en-us/graph/api/resources/mailfolder?view=graph-rest-1.0] or the internal o365 folder ID.",
+                    "description": "Destination folder; This must be either a (case sensitive) well-known name or the internal o365 folder ID",
                     "data_type": "string",
                     "required": true,
                     "primary": true,
@@ -1414,6 +1413,7 @@
                 "get_folder_id": {
                     "description": "Assume the folder parameter contains a folder_name/path, separated by \"/\" or \"\\\" ; i.e. Inbox/dir1/dir2/dir3. Retrieve the folder_id and replace the parameter",
                     "data_type": "boolean",
+                    "default": true,
                     "order": 3
                 }
             },
@@ -1676,8 +1676,7 @@
                     "data_path": "action_result.data.*.parentFolderId",
                     "data_type": "string",
                     "contains": [
-                        "msgoffice365 mail folder",
-                        "msgoffice365 mail folder path"
+                        "msgoffice365 folder id"
                     ],
                     "example_values": [
                         "AQMkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQAuAAADyW3X5P7Hb0_MMHKonvdoWQEAQSl1b8BFiEmbqZql_JiUtwAAAgEbAAAA"
@@ -1723,6 +1722,9 @@
                     "data_type": "string",
                     "example_values": [
                         "more body formats?"
+                    ],
+                    "contains": [
+                        "msgoffice365 subject"
                     ]
                 },
                 {
@@ -1790,6 +1792,7 @@
             "action": "move email",
             "identifier": "move_email",
             "description": "Move an email to a folder",
+            "verbose": "The <b>get_folder_id</b> parameter should be enabled only when you specified folder_name/path in the folder parameter. The <b>folder</b> parameter must be either a (case sensitive) well-known name [list here; https://docs.microsoft.com/en-us/graph/api/resources/mailfolder?view=graph-rest-1.0] or the internal o365 folder ID.",
             "type": "generic",
             "read_only": false,
             "parameters": {
@@ -1814,8 +1817,7 @@
                     "order": 1
                 },
                 "folder": {
-                    "description": "Destination folder; This must be either a (case sensitive) well-known name or the internal o365 folder ID.",
-                    "verbose": "Destination Mail Folder id. This must be either a (case sensitive) well-known name [list here; https://docs.microsoft.com/en-us/graph/api/resources/mailfolder?view=graph-rest-1.0] or the internal o365 folder ID.",
+                    "description": "Destination folder; This must be either a (case sensitive) well-known name or the internal o365 folder ID",
                     "data_type": "string",
                     "required": true,
                     "primary": true,
@@ -1829,6 +1831,7 @@
                 "get_folder_id": {
                     "description": "Assume the folder parameter contains a folder_name/path, separated by \"/\" or \"\\\" ; i.e. Inbox/dir1/dir2/dir3. Retrieve the folder_id and replace the parameter",
                     "data_type": "boolean",
+                    "default": true,
                     "order": 3
                 }
             },
@@ -2046,6 +2049,8 @@
                     "example_values": [
                         "<CABO4XoNKorysqU1nR=of7qDBFbR1cv9icBSb38M=g3ryBb=CrA@mail.gmail.com>"
                     ],
+                    "column_name": "Internet Message ID",
+                    "column_order": 3,
                     "contains": [
                         "msgoffice365 internet message id"
                     ]
@@ -2089,8 +2094,7 @@
                     "data_path": "action_result.data.*.parentFolderId",
                     "data_type": "string",
                     "contains": [
-                        "msgoffice365 mail folder",
-                        "msgoffice365 mail folder path"
+                        "msgoffice365 folder id"
                     ],
                     "example_values": [
                         "AQMkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQAuAAADyW3X5P7Hb0_MMHKonvdoWQEAQSl1b8BFiEmbqZql_JiUtwAAAgEbAAAA"
@@ -2136,6 +2140,9 @@
                     "data_type": "string",
                     "example_values": [
                         "more body formats?"
+                    ],
+                    "contains": [
+                        "msgoffice365 subject"
                     ]
                 },
                 {
@@ -2338,9 +2345,10 @@
                 },
                 {
                     "data_path": "action_result.parameter.download_attachments",
-                    "data_type": "string",
+                    "data_type": "boolean",
                     "example_values": [
-                        "true"
+                        true,
+                        false
                     ]
                 },
                 {
@@ -2641,8 +2649,7 @@
                     "data_path": "action_result.data.*.parentFolderId",
                     "data_type": "string",
                     "contains": [
-                        "mail folder",
-                        "mail folder path"
+                        "msgoffice365 folder id"
                     ],
                     "example_values": [
                         "AQMkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQAuAAADyW3X5P7Hb0_MMHKonvdoWQEAQSl1b8BFiEmbqZql_JiUtwAAAgEMAAAA"
@@ -2762,7 +2769,7 @@
             "action": "run query",
             "identifier": "run_query",
             "description": "Search emails",
-            "verbose": "If the <b>query</b> or <b>internet_message_id</b> parameters are included, the <b>subject</b>, <b>sender</b>, <b>body</b>, and <b>range</b> parameters will be ignored. The <b>internet_message_id</b> parameter will take precedence over the <b>query</b> parameter.<br><br>For information on formatting the <b>query</b> parameter, see https://developer.microsoft.com/en-us/graph/docs/concepts/query_parameters.<br><br>If the <b>limit</b> parameter is not included, the action will default to limiting to ten emails that match the rest of the query.",
+            "verbose": "If the <b>query</b> or <b>internet_message_id</b> parameters are included, the <b>subject</b>, <b>sender</b>, <b>body</b>, and <b>range</b> parameters will be ignored. The <b>internet_message_id</b> parameter will take precedence over the <b>query</b> parameter.<br><br>For information on formatting the <b>query</b> parameter, see https://developer.microsoft.com/en-us/graph/docs/concepts/query_parameters.<br><br>If the <b>limit</b> parameter is not included, the action will default to limiting to ten emails that match the rest of the query. The <b>get_folder_id</b> parameter should be enabled only when you specified folder_name/path in the folder parameter. The <b>folder</b> parameter must be either a (case sensitive) well-known name [list here; https://docs.microsoft.com/en-us/graph/api/resources/mailfolder?view=graph-rest-1.0] or the internal o365 folder ID.",
             "type": "investigate",
             "read_only": true,
             "parameters": {
@@ -2777,13 +2784,14 @@
                     "order": 0
                 },
                 "folder": {
-                    "description": "Folder Name/Path (to search in)",
+                    "description": "Destination folder; This must be either a (case sensitive) well-known name or the internal o365 folder ID",
                     "data_type": "string",
                     "required": false,
                     "primary": true,
                     "contains": [
                         "msgoffice365 mail folder",
-                        "msgoffice365 mail folder path"
+                        "msgoffice365 mail folder path",
+                        "msgoffice365 folder id"
                     ],
                     "default": "Inbox",
                     "order": 1
@@ -2791,6 +2799,7 @@
                 "get_folder_id": {
                     "description": "Assume the folder parameter contains a folder_name/path, separated by \"/\" or \"\\\" ; i.e. Inbox/dir1/dir2/dir3. Retrieve the folder_id and replace the parameter",
                     "data_type": "boolean",
+                    "default": true,
                     "order": 2
                 },
                 "subject": {
@@ -2873,7 +2882,8 @@
                     "data_type": "string",
                     "contains": [
                         "msgoffice365 mail folder",
-                        "msgoffice365 mail folder path"
+                        "msgoffice365 mail folder path",
+                        "msgoffice365 folder id"
                     ],
                     "example_values": [
                         "Archive"
@@ -2896,7 +2906,7 @@
                 },
                 {
                     "data_path": "action_result.parameter.limit",
-                    "data_type": "string",
+                    "data_type": "numeric",
                     "example_values": [
                         5
                     ]
@@ -2905,7 +2915,7 @@
                     "data_path": "action_result.parameter.query",
                     "data_type": "string",
                     "example_values": [
-                        "$top=5&skip=10&filter=contains(subject,'Urgent')"
+                        "$filter=contains(subject,'Urgent')"
                     ]
                 },
                 {
@@ -3127,8 +3137,7 @@
                     "data_path": "action_result.data.*.parentFolderId",
                     "data_type": "string",
                     "contains": [
-                        "msgoffice365 mail folder",
-                        "msgoffice365 mail folder path"
+                        "msgoffice365 folder id"
                     ],
                     "example_values": [
                         "AAMkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQAuAAAAAADJbdfk-sdvT4wwcqie92hZAQBBKXVvwEWISZupmqX4mJS3AACEV3zJAAA="
@@ -3180,6 +3189,9 @@
                     "column_order": 2,
                     "example_values": [
                         "Just wanted to say hello"
+                    ],
+                    "contains": [
+                        "msgoffice365 subject"
                     ]
                 },
                 {
@@ -3187,6 +3199,9 @@
                     "data_type": "string",
                     "example_values": [
                         "Test@testdomain.onmicrosoft.com"
+                    ],
+                    "contains": [
+                        "email"
                     ]
                 },
                 {
@@ -3355,8 +3370,6 @@
                     "column_name": "Parent Folder ID",
                     "column_order": 2,
                     "contains": [
-                        "msgoffice365 mail folder",
-                        "msgoffice365 mail folder path",
                         "msgoffice365 folder id"
                     ],
                     "example_values": [
@@ -3491,13 +3504,20 @@
                     "column_order": 2,
                     "example_values": [
                         "AAMkAGFmNTRhODA4LWIxMjQtNDJjYy05NDM2LWQ5MzY1MGFhMTkzYwAuAAAAAADRlY7ewL4xToKRDciQog5UAQBvUzMoUJx2S4nbgxzZWx2PAAEApxCRAAA="
+                    ],
+                    "contains": [
+                        "msgoffice365 folder id"
                     ]
                 },
                 {
                     "data_path": "action_result.data.*.path",
                     "data_type": "string",
                     "column_name": "Path",
-                    "column_order": 0
+                    "column_order": 0,
+                    "contains": [
+                        "msgoffice365 mail folder",
+                        "msgoffice365 mail folder path"
+                    ]
                 },
                 {
                     "data_path": "action_result.summary",

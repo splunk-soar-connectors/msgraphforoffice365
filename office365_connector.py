@@ -373,7 +373,7 @@ class Office365Connector(BaseConnector):
         asset_name = resp_json.get('name')
 
         if (not asset_name):
-            return (action_result.set_status(phantom.APP_ERROR, "Asset Name for ID: {0} not found.".format(asset_id), None))
+            return (action_result.set_status(phantom.APP_ERROR, "Asset Name for ID: {0} not found".format(asset_id), None))
 
         return (phantom.APP_SUCCESS, asset_name)
 
@@ -625,7 +625,7 @@ class Office365Connector(BaseConnector):
         _save_app_state(self._state, self.get_asset_id(), self)
         self.save_state(self._state)
 
-        self.save_progress('Please connect to the following URL from a different tab to continue the connectivity process.')
+        self.save_progress('Please connect to the following URL from a different tab to continue the connectivity process')
         self.save_progress(url_to_show)
 
         time.sleep(5)
@@ -713,15 +713,16 @@ class Office365Connector(BaseConnector):
         action_result = self.add_action_result(ActionResult(dict(param)))
 
         email_addr = param['email_address']
+        folder = param["folder"].decode("utf-8", 'ignore').translate({92: 47})
         endpoint = '/users/{0}'.format(email_addr)
 
         endpoint += '/messages/{0}/copy'.format(param['id'])
 
-        body = {'DestinationId': param['folder']}
+        body = {'DestinationId': folder}
 
         if param.get('get_folder_id', False):
             try:
-                dir_id, error, _ = self._get_folder_id(action_result, param['folder'], email_addr)
+                dir_id, error, _ = self._get_folder_id(action_result, folder, email_addr)
             except ReturnException:
                 return action_result.get_status()
 
@@ -745,14 +746,15 @@ class Office365Connector(BaseConnector):
         action_result = self.add_action_result(ActionResult(dict(param)))
 
         email_addr = param['email_address']
+        folder = param["folder"].decode("utf-8", 'ignore').translate({92: 47})
         endpoint = '/users/{0}'.format(email_addr)
 
         endpoint += '/messages/{0}/move'.format(param['id'])
 
-        body = {'DestinationId': param['folder']}
+        body = {'DestinationId': folder}
         if param.get('get_folder_id', False):
             try:
-                dir_id, error, _ = self._get_folder_id(action_result, param['folder'], email_addr)
+                dir_id, error, _ = self._get_folder_id(action_result, folder, email_addr)
 
             except ReturnException:
                 return action_result.get_status()
@@ -819,10 +821,10 @@ class Office365Connector(BaseConnector):
         limit = param.get('limit')
 
         if(user_id is None and group_id is None):
-            return action_result.set_status(phantom.APP_ERROR, 'Either a user_id or group_id must be supplied to the "list_events" action.')
+            return action_result.set_status(phantom.APP_ERROR, 'Either a user_id or group_id must be supplied to the "list_events" action')
 
         if user_id and group_id and user_id != "" and group_id != "":
-            return action_result.set_status(phantom.APP_ERROR, 'Either a user_id or group_id can be supplied to the "list_events" action - not both.')
+            return action_result.set_status(phantom.APP_ERROR, 'Either a user_id or group_id can be supplied to the "list_events" action - not both')
 
         if (limit and not str(limit).isdigit()) or limit == 0:
             return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_LIMIT)
@@ -1037,7 +1039,7 @@ class Office365Connector(BaseConnector):
 
             for attachment in attach_resp.get('value', []):
                 if not self._handle_attachment(attachment, self.get_container_id()):
-                    return action_result.set_status(phantom.APP_ERROR, 'Could not process attachment. See logs for details.')
+                    return action_result.set_status(phantom.APP_ERROR, 'Could not process attachment. See logs for details')
 
             response['attachments'] = attach_resp['value']
 
@@ -1207,7 +1209,7 @@ class Office365Connector(BaseConnector):
 
         # folder
         if ('folder' in param):
-            folder = param['folder']
+            folder = param['folder'].decode('utf-8', 'ignore').translate({92: 47})
 
             if param.get('get_folder_id', False):
                 try:
@@ -1234,9 +1236,6 @@ class Office365Connector(BaseConnector):
             endpoint += "?{0}".format(param['query'])
 
         else:
-
-            params = dict()
-
             # search params
             search_query = ''
             if ('subject' in param):
@@ -1298,7 +1297,7 @@ class Office365Connector(BaseConnector):
     def _get_folder(self, action_result, folder, email):
 
         params = {}
-        params['$filter'] = "displayName eq '{}'".format(folder)
+        params['$filter'] = "displayName eq '{}'".format(folder.encode('utf-8'))
         endpoint = "/users/{}/mailFolders".format(email)
 
         ret_val, response = self._make_rest_call_helper(action_result, endpoint, params=params)
@@ -1342,10 +1341,10 @@ class Office365Connector(BaseConnector):
 
         if response.get('id', False):
             self._currentdir = response
-            self.save_progress("Success({}): created folder in mailbox".format(folder))
+            self.save_progress("Success({}): created folder in mailbox".format(folder.encode('utf-8')))
             return response['id']
 
-        msg = "Error({}): unable to create folder in mailbox".format(folder)
+        msg = "Error({}): unable to create folder in mailbox".format(folder.encode('utf-8'))
         self.save_progress(msg)
         action_result.set_status(phantom.APP_ERROR, msg)
         raise ReturnException()
@@ -1361,10 +1360,10 @@ class Office365Connector(BaseConnector):
 
         if response.get('id', False):
             self._currentdir = response
-            self.save_progress("Success({}): created child folder in folder {}".format(folder, pathsofar))
+            self.save_progress("Success({}): created child folder in folder {}".format(folder.encode('utf-8'), pathsofar))
             return response['id']
 
-        msg = "Error({}): unable to create child folder in folder {}".format(folder, pathsofar)
+        msg = "Error({}): unable to create child folder in folder {}".format(folder.encode('utf-8'), pathsofar)
         self.save_progress(msg)
         action_result.set_status(phantom.APP_ERROR, msg)
         raise ReturnException()
@@ -1375,11 +1374,7 @@ class Office365Connector(BaseConnector):
         action_result = self.add_action_result(ActionResult(dict(param)))
 
         email = param["email_address"]
-
-        try:
-            folder = param["folder"].decode("utf-8", 'ignore').translate({92: 47})
-        except:
-            return action_result.set_status(phantom.APP_ERROR, "Please check your input parameters")
+        folder = param["folder"].decode("utf-8", 'ignore').translate({92: 47})
 
         minusp = param.get("all_subdirs", False)
 
@@ -1397,7 +1392,7 @@ class Office365Connector(BaseConnector):
             if len(path) == 1:
 
                 if dir_id:
-                    msg = "Error({}): folder already exists in mailbox".format(path[0])
+                    msg = "Error({}): folder already exists in mailbox".format(path[0].encode('utf-8'))
                     self.save_progress(msg)
                     return action_result.set_status(phantom.APP_ERROR, msg)
 
@@ -1438,7 +1433,7 @@ class Office365Connector(BaseConnector):
                             action_result.add_data(self._currentdir)
 
                         else:
-                            msg = "Error({}): child folder doesn't exists in folder {}".format(subf, pathsofar)
+                            msg = "Error({}): child folder doesn't exists in folder {}".format(subf.encode('utf-8'), pathsofar)
                             self.save_progress(msg)
                             return action_result.set_status(phantom.APP_ERROR, msg)
 
@@ -1448,17 +1443,17 @@ class Office365Connector(BaseConnector):
                 # finally, the actual folder
                 dir_id = self._get_child_folder(action_result, final, parent_id, email)
                 if dir_id:
-                    msg = "Error: child folder {0} already exists in the folder {1}".format(final, pathsofar)
+                    msg = "Error: child folder {0} already exists in the folder {1}".format(final.encode('utf-8'), pathsofar)
                     self.save_progress(msg)
                     return action_result.set_status(phantom.APP_ERROR, msg)
 
-                self._new_child_folder(action_result, final, parent_id, email, pathsofar)
+                dir_id = self._new_child_folder(action_result, final, parent_id, email, pathsofar)
                 action_result.add_data(self._currentdir)
 
         except ReturnException:
             return action_result.get_status()
 
-        action_result.update_summary({"folders created": len(action_result.get_data()), folder: self._currentdir['id']})
+        action_result.update_summary({"folders created": len(action_result.get_data()), "folder": self._currentdir['id']})
         return action_result.set_status(phantom.APP_SUCCESS)
 
     def _handle_get_folder_id(self, param):
@@ -1467,7 +1462,7 @@ class Office365Connector(BaseConnector):
         action_result = self.add_action_result(ActionResult(dict(param)))
 
         email = param["email_address"]
-        folder = param["folder"].decode("utf8", 'ignore').translate({92: 47})
+        folder = param["folder"].decode("utf-8", 'ignore').translate({92: 47})
 
         try:
             dir_id, error, ret = self._get_folder_id(action_result, folder, email)
@@ -1711,15 +1706,16 @@ if __name__ == '__main__':
     session_id = None
 
     if (args.username and args.password):
+        login_url = BaseConnector._get_phantom_base_url() + "login"
         try:
             print ("Accessing the Login page")
-            r = requests.get("https://127.0.0.1/login", verify=False)
+            r = requests.get(login_url, verify=False)
             csrftoken = r.cookies['csrftoken']
             data = {'username': args.username, 'password': args.password, 'csrfmiddlewaretoken': csrftoken}
-            headers = {'Cookie': 'csrftoken={0}'.format(csrftoken), 'Referer': 'https://127.0.0.1/login'}
+            headers = {'Cookie': 'csrftoken={0}'.format(csrftoken), 'Referer': login_url}
 
             print ("Logging into Platform to get the session id")
-            r2 = requests.post("https://127.0.0.1/login", verify=False, data=data, headers=headers)
+            r2 = requests.post(login_url, verify=False, data=data, headers=headers)
             session_id = r2.cookies['sessionid']
 
         except Exception as e:
