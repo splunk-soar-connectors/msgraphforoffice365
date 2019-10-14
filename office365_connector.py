@@ -841,7 +841,11 @@ class Office365Connector(BaseConnector):
         ret_val, events = self._paginator(action_result, endpoint, limit)
 
         if (phantom.is_fail(ret_val)):
-                return action_result.get_status()
+            msg = action_result.get_message()
+            if '$top' in msg or '$top/top' in msg:
+                msg += "The '$top' parameter is already used internally to handle pagination logic. "
+                msg += "If you restirct results in terms of number of output results, you can use the 'limit' parameter."
+                return action_result.set_status(phantom.APP_ERROR, msg)
 
         if not events:
             # No events found is a valid scenario that there can be 0 events returned
@@ -971,7 +975,7 @@ class Office365Connector(BaseConnector):
         ret_val, folders = self._paginator(action_result, endpoint)
 
         if (phantom.is_fail(ret_val)):
-                return action_result.get_status()
+                return action_result.get_status(), None
 
         if not folders:
             return action_result.set_status(phantom.APP_SUCCESS, "No data found"), None
@@ -1259,7 +1263,11 @@ class Office365Connector(BaseConnector):
         ret_val, messages = self._paginator(action_result, endpoint, limit, params=params)
 
         if (phantom.is_fail(ret_val)):
-                return action_result.get_status()
+            msg = action_result.get_message()
+            if '$top' in msg or '$top/top' in msg:
+                msg += "The '$top' parameter is already used internally to handle pagination logic. "
+                msg += "If you want to restirct results in terms of number of output results, you can use the 'limit' parameter."
+            return action_result.set_status(phantom.APP_ERROR, msg)
 
         if not messages:
             return action_result.set_status(phantom.APP_SUCCESS, "No data found")
@@ -1275,22 +1283,28 @@ class Office365Connector(BaseConnector):
         path = [x for x in folder.strip().split("/") if x]
 
         ret = list()
-        dir_id = self._get_folder(action_result, path[0], email)
+        try:
+            dir_id = self._get_folder(action_result, path[0], email)
+        except ReturnException:
+            return action_result.get_status()
 
         if not dir_id:
             return None, "Error: folder not found; {}".format(path[0]), ret
 
         ret.append({"path": path[0], "folder": path[0], "folder_id": dir_id})
 
-        for i, subf in enumerate(path[1:]):
-            subpath = "/".join(path[0:i + 2])
-            parent_id = dir_id
-            dir_id = self._get_child_folder(action_result, subf, parent_id, email)
+        try:
+            for i, subf in enumerate(path[1:]):
+                subpath = "/".join(path[0:i + 2])
+                parent_id = dir_id
+                dir_id = self._get_child_folder(action_result, subf, parent_id, email)
 
-            if not dir_id:
-                    return None, "Error: child folder not found; {}".format(subpath)
+                if not dir_id:
+                    return None, "Error: child folder not found; {}".format(subpath), ret
 
-            ret.append({"path": subpath, "folder": subf, "folder_id": dir_id})
+                ret.append({"path": subpath, "folder": subf, "folder_id": dir_id})
+        except ReturnException:
+            return None, action_result.get_message(), None
 
         return dir_id, None, ret
 

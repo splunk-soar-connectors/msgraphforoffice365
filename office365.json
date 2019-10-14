@@ -19,7 +19,7 @@
     "rest_handler": "office365_connector.handle_request",
     "configuration": {
         "tenant": {
-            "description": "Tenant (e.g. contoso.onmicrosoft.com)",
+            "description": "Tenant ID (e.g. 1e309abf-db6c-XXXX-a1d2-XXXXXXXXXXXX)",
             "data_type": "string",
             "required": true,
             "order": 0
@@ -1375,7 +1375,7 @@
             "action": "copy email",
             "identifier": "copy_email",
             "description": "Copy an email to a folder",
-            "verbose": "The <b>get_folder_id</b> parameter should be enabled only when you specified folder_name/path in the folder parameter. The <b>folder</b> parameter must be either a (case sensitive) well-known name [list here; https://docs.microsoft.com/en-us/graph/api/resources/mailfolder?view=graph-rest-1.0] or the internal o365 folder ID.",
+            "verbose": "The <b>get_folder_id</b> parameter should be enabled only when you specified folder_name/path in the folder parameter. If you provide folder ID in the 'folder' parameter and set 'get_folder_id' parameter to true, it will throw an error (It considers folder parameter value as folder name/path). The <b>folder</b> parameter must be either a (case sensitive) well-known name [list here; https://docs.microsoft.com/en-us/graph/api/resources/mailfolder?view=graph-rest-1.0] or the internal o365 folder ID.",
             "type": "generic",
             "read_only": false,
             "parameters": {
@@ -1792,7 +1792,7 @@
             "action": "move email",
             "identifier": "move_email",
             "description": "Move an email to a folder",
-            "verbose": "The <b>get_folder_id</b> parameter should be enabled only when you specified folder_name/path in the folder parameter. The <b>folder</b> parameter must be either a (case sensitive) well-known name [list here; https://docs.microsoft.com/en-us/graph/api/resources/mailfolder?view=graph-rest-1.0] or the internal o365 folder ID.",
+            "verbose": "The <b>get_folder_id</b> parameter should be enabled only when you specified folder_name/path in the folder parameter. If you provide folder ID in the 'folder' parameter and set 'get_folder_id' parameter to true, it will throw an error (It considers folder parameter value as folder name/path). The <b>folder</b> parameter must be either a (case sensitive) well-known name [list here; https://docs.microsoft.com/en-us/graph/api/resources/mailfolder?view=graph-rest-1.0] or the internal o365 folder ID.",
             "type": "generic",
             "read_only": false,
             "parameters": {
@@ -2252,7 +2252,10 @@
                         "email"
                     ],
                     "column_name": "Email",
-                    "column_order": 1
+                    "column_order": 1,
+                    "example_values": [
+                        "test@testdomain.onmicrosoft.com"
+                    ]
                 },
                 {
                     "data_path": "action_result.parameter.id",
@@ -2261,7 +2264,10 @@
                         "msgoffice365 message id"
                     ],
                     "column_name": "Message ID",
-                    "column_order": 0
+                    "column_order": 0,
+                    "example_values": [
+                        "AAMkAGFmNTRhODA4LWIxMjQtNDJjYy05NDM2LWQ5MzY1MGFhMTkzYwBGAAAAAADRlY7ewL4xToKRDciQog5UBwBvUzMoUJx2S4nbgxzZWx2PAAAAAAEMAABvUzMoUJx2S4nbgxzZWx2PAAEIbt7NAAA="
+                    ]
                 },
                 {
                     "data_path": "action_result.data",
@@ -2769,7 +2775,7 @@
             "action": "run query",
             "identifier": "run_query",
             "description": "Search emails",
-            "verbose": "If the <b>query</b> or <b>internet_message_id</b> parameters are included, the <b>subject</b>, <b>sender</b>, <b>body</b>, and <b>range</b> parameters will be ignored. The <b>internet_message_id</b> parameter will take precedence over the <b>query</b> parameter.<br><br>For information on formatting the <b>query</b> parameter, see https://developer.microsoft.com/en-us/graph/docs/concepts/query_parameters.<br><br>If the <b>limit</b> parameter is not included, the action will default to limiting to ten emails that match the rest of the query. The <b>get_folder_id</b> parameter should be enabled only when you specified folder_name/path in the folder parameter. The <b>folder</b> parameter must be either a (case sensitive) well-known name [list here; https://docs.microsoft.com/en-us/graph/api/resources/mailfolder?view=graph-rest-1.0] or the internal o365 folder ID.",
+            "verbose": "If the <b>query</b> or <b>internet_message_id</b> parameters are included, the <b>subject</b>, <b>sender</b>, <b>body</b>, and <b>range</b> parameters will be ignored. The <b>internet_message_id</b> parameter will take precedence over the <b>query</b> parameter.<br><br>For information on formatting the <b>query</b> parameter, see https://developer.microsoft.com/en-us/graph/docs/concepts/query_parameters.<br><br>If the <b>limit</b> parameter is not included, the action will default to limiting to ten emails that match the rest of the query. The <b>get_folder_id</b> parameter should be enabled only when you specified folder_name/path in the folder parameter. If you provide folder ID in the 'folder' parameter and set 'get_folder_id' parameter to true, it will throw an error (It considers folder parameter value as folder name/path). The <b>folder</b> parameter must be either a (case sensitive) well-known name [list here; https://docs.microsoft.com/en-us/graph/api/resources/mailfolder?view=graph-rest-1.0] or the internal o365 folder ID.",
             "type": "investigate",
             "read_only": true,
             "parameters": {
@@ -2915,7 +2921,8 @@
                     "data_path": "action_result.parameter.query",
                     "data_type": "string",
                     "example_values": [
-                        "$filter=contains(subject,'Urgent')"
+                        "$filter=contains(subject,'Urgent')",
+                        "$orderby=propertyName desc"
                     ]
                 },
                 {
@@ -3528,6 +3535,9 @@
                     "data_type": "string",
                     "example_values": [
                         "AAMkAGFmNTRhODA4LWIxMjQtNDJjYy05NDM2LWQ5MzY1MGFhMTkzYwAuAAAAAADRlY7ewL4xToKRDciQog5UAQBvUzMoUJx2S4nbgxzZWx2PAAEApxCTAAA="
+                    ],
+                    "contains": [
+                        "msgoffice365 folder id"
                     ]
                 },
                 {
