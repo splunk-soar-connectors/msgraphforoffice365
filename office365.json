@@ -1411,7 +1411,7 @@
                     "order": 2
                 },
                 "get_folder_id": {
-                    "description": "Assume the folder parameter contains a folder_name/path, separated by \"/\" or \"\\\" ; i.e. Inbox/dir1/dir2/dir3. Retrieve the folder_id and replace the parameter",
+                    "description": "Assume the folder parameter contains a folder_name/path, separated by \"/\" or \"\\\" ; i.e. Inbox/dir1/dir2/dir3. Retrieve the folder_id and replace the parameter value (Enabled when you specify folder name/path in the folder parameter)",
                     "data_type": "boolean",
                     "default": true,
                     "order": 3
@@ -1829,7 +1829,7 @@
                     "order": 2
                 },
                 "get_folder_id": {
-                    "description": "Assume the folder parameter contains a folder_name/path, separated by \"/\" or \"\\\" ; i.e. Inbox/dir1/dir2/dir3. Retrieve the folder_id and replace the parameter",
+                    "description": "Assume the folder parameter contains a folder_name/path, separated by \"/\" or \"\\\" ; i.e. Inbox/dir1/dir2/dir3. Retrieve the folder_id and replace the parameter value (Enabled when you specify folder name/path in the folder parameter)",
                     "data_type": "boolean",
                     "default": true,
                     "order": 3
@@ -2803,7 +2803,7 @@
                     "order": 1
                 },
                 "get_folder_id": {
-                    "description": "Assume the folder parameter contains a folder_name/path, separated by \"/\" or \"\\\" ; i.e. Inbox/dir1/dir2/dir3. Retrieve the folder_id and replace the parameter",
+                    "description": "Assume the folder parameter contains a folder_name/path, separated by \"/\" or \"\\\" ; i.e. Inbox/dir1/dir2/dir3. Retrieve the folder_id and replace the parameter value (Enabled when you specify folder name/path in the folder parameter)",
                     "data_type": "boolean",
                     "default": true,
                     "order": 2

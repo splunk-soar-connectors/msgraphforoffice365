@@ -846,6 +846,7 @@ class Office365Connector(BaseConnector):
                 msg += "The '$top' parameter is already used internally to handle pagination logic. "
                 msg += "If you restirct results in terms of number of output results, you can use the 'limit' parameter."
                 return action_result.set_status(phantom.APP_ERROR, msg)
+            return action_result.get_status()
 
         if not events:
             # No events found is a valid scenario that there can be 0 events returned
@@ -1267,7 +1268,8 @@ class Office365Connector(BaseConnector):
             if '$top' in msg or '$top/top' in msg:
                 msg += "The '$top' parameter is already used internally to handle pagination logic. "
                 msg += "If you want to restirct results in terms of number of output results, you can use the 'limit' parameter."
-            return action_result.set_status(phantom.APP_ERROR, msg)
+                return action_result.set_status(phantom.APP_ERROR, msg)
+            return action_result.get_status()
 
         if not messages:
             return action_result.set_status(phantom.APP_SUCCESS, "No data found")
@@ -1289,7 +1291,7 @@ class Office365Connector(BaseConnector):
             return action_result.get_status()
 
         if not dir_id:
-            return None, "Error: folder not found; {}".format(path[0]), ret
+            return None, "Error: folder not found; {}".format(path[0].encode('utf-8')), ret
 
         ret.append({"path": path[0], "folder": path[0], "folder_id": dir_id})
 
@@ -1300,7 +1302,7 @@ class Office365Connector(BaseConnector):
                 dir_id = self._get_child_folder(action_result, subf, parent_id, email)
 
                 if not dir_id:
-                    return None, "Error: child folder not found; {}".format(subpath), ret
+                    return None, "Error: child folder not found; {}".format(subpath.encode('utf-8')), ret
 
                 ret.append({"path": subpath, "folder": subf, "folder_id": dir_id})
         except ReturnException:
