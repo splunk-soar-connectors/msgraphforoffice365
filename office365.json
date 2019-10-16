@@ -807,10 +807,12 @@
                 }
             ],
             "render": {
-                "width": 4,
+                "width": 12,
                 "title": "Calendar Events",
-                "type": "table",
-                "height": 5
+                "type": "custom",
+                "height": 5,
+                "view": "office365_view.display_view"
+
             },
             "versions": "EQ(*)"
         },
