@@ -458,7 +458,7 @@ class Office365Connector(BaseConnector):
         try:
 
             if hasattr(Vault, "create_attachment"):
-                vault_ret = Vault.create_attachment(attachment.pop('contentBytes'), container_id, file_name=attachment['name'])
+                vault_ret = Vault.create_attachment(base64.b64decode(attachment.pop('contentBytes')), container_id, file_name=attachment['name'])
 
             else:
                 if hasattr(Vault, 'get_vault_tmp_dir'):

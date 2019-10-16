@@ -1216,7 +1216,7 @@
             "action": "list folders",
             "identifier": "list_folders",
             "description": "Retrieve a list of mail folders",
-            "verbose": "If you want to list all the child folders (includes all the sub levels) of specific parent folder, then, you have to provide parent <b>folder_id</b> parameter. If you don't provide <b>folder_id</b> it will list all the folders on Office 365 account (includes all the sub level folders).",
+            "verbose": "If you want to list all the child folders (includes all the sub-levels) of the specific parent folder, then, you have to provide the parent <b>folder_id</b> parameter. If you don't provide <b>folder_id</b> it will list all the folders on Office 365 account (includes all the sub-level folders).",
             "type": "investigate",
             "read_only": true,
             "parameters": {
