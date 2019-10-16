@@ -323,7 +323,7 @@ class Office365Connector(BaseConnector):
             return self._process_html_response(r, action_result)
 
         if r.status_code == 404:
-            return RetVal(action_result.set_status(phantom.APP_ERROR, "email not found"), None)
+            return RetVal(action_result.set_status(phantom.APP_ERROR, "Email not found"), None)
 
         if 200 <= r.status_code <= 204:
             return RetVal(phantom.APP_SUCCESS, None)
@@ -844,7 +844,7 @@ class Office365Connector(BaseConnector):
             msg = action_result.get_message()
             if '$top' in msg or '$top/top' in msg:
                 msg += "The '$top' parameter is already used internally to handle pagination logic. "
-                msg += "If you restirct results in terms of number of output results, you can use the 'limit' parameter."
+                msg += "If you want to restirct results in terms of number of output results, you can use the 'limit' parameter."
                 return action_result.set_status(phantom.APP_ERROR, msg)
             return action_result.get_status()
 
@@ -1511,7 +1511,7 @@ class Office365Connector(BaseConnector):
         next_link = None
 
         # maximum page size
-        page_size = 999
+        page_size = MSGOFFICE365_PER_PAGE_COUNT
 
         if limit and limit < page_size:
             page_size = limit

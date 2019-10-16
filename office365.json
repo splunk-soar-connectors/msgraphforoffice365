@@ -1,7 +1,7 @@
 {
     "appid": "0a0a4087-10e8-4c96-9872-b740ff26d8bb",
     "name": "MS Graph for Office 365",
-    "description": "Connects to Office 365 using the MS Graph API",
+    "description": "This app connects to Office 365 using the MS Graph API to support investigate and generic actions related to the email messages and calendar events",
     "type": "email",
     "product_vendor": "Microsoft",
     "logo": "logo_microsoftoffice365.svg",
@@ -127,7 +127,7 @@
             "read_only": true,
             "parameters": {
                 "user_id": {
-                    "description": "User ID/Principal Name",
+                    "description": "User ID/Principal name",
                     "data_type": "string",
                     "required": true,
                     "primary": true,
@@ -217,7 +217,7 @@
             "read_only": true,
             "parameters": {
                 "user_id": {
-                    "description": "User ID/Principal Name",
+                    "description": "User ID/Principal name",
                     "data_type": "string",
                     "required": false,
                     "primary": true,
@@ -239,7 +239,7 @@
                     "order": 1
                 },
                 "filter": {
-                    "description": "OData Query to filter/search for specific results",
+                    "description": "OData query to filter/search for specific results",
                     "data_type": "string",
                     "required": false,
                     "order": 2
@@ -982,7 +982,7 @@
         {
             "action": "list groups",
             "identifier": "list_groups",
-            "description": "List all the groups in an organization, including but not limited to Office 365 Groups",
+            "description": "List all the groups in an organization, including but not limited to Office 365 groups",
             "type": "investigate",
             "read_only": true,
             "parameters": {
@@ -1216,12 +1216,12 @@
             "action": "list folders",
             "identifier": "list_folders",
             "description": "Retrieve a list of mail folders",
-            "verbose": "If you want to list all child folders(includes all the sub level) of specific parent folder, then you have to provide parent folder_id parameter. If you don't provide folder_id it will list all the folders(includes all the sub level folders).",
+            "verbose": "If you want to list all the child folders (includes all the sub levels) of specific parent folder, then, you have to provide parent <b>folder_id</b> parameter. If you don't provide <b>folder_id</b> it will list all the folders on Office 365 account (includes all the sub level folders).",
             "type": "investigate",
             "read_only": true,
             "parameters": {
                 "user_id": {
-                    "description": "User ID/Principal Name",
+                    "description": "User ID/Principal name",
                     "data_type": "string",
                     "required": true,
                     "primary": true,
@@ -1233,7 +1233,7 @@
                     ]
                 },
                 "folder_id": {
-                    "description": "Parent Mail Folder ID",
+                    "description": "Parent mail folder ID",
                     "data_type": "string",
                     "required": false,
                     "primary": true,
@@ -1375,7 +1375,7 @@
             "action": "copy email",
             "identifier": "copy_email",
             "description": "Copy an email to a folder",
-            "verbose": "The <b>get_folder_id</b> parameter should be enabled only when you specified folder_name/path in the folder parameter. If you provide folder ID in the 'folder' parameter and set 'get_folder_id' parameter to true, it will throw an error (It considers folder parameter value as folder name/path). The <b>folder</b> parameter must be either a (case sensitive) well-known name [list here; https://docs.microsoft.com/en-us/graph/api/resources/mailfolder?view=graph-rest-1.0] or the internal o365 folder ID.",
+            "verbose": "The <b>get_folder_id</b> parameter should be enabled only when you have specified folder name/folder path in the <b>folder</b> parameter. If you provide folder ID in the <b>folder</b> parameter and set <b>get_folder_id</b> parameter to true, it will throw an error of folder ID not found for given folder name (because the action considers folder parameter value as folder name/folder path). The <b>folder</b> parameter must be either a (case sensitive) well-known name [list here; https://docs.microsoft.com/en-us/graph/api/resources/mailfolder?view=graph-rest-1.0] or the internal o365 folder ID.",
             "type": "generic",
             "read_only": false,
             "parameters": {
@@ -1390,7 +1390,7 @@
                     "order": 0
                 },
                 "email_address": {
-                    "description": "Source Mailbox (Email)",
+                    "description": "Source mailbox (email)",
                     "data_type": "string",
                     "required": true,
                     "contains": [
@@ -1399,7 +1399,7 @@
                     "order": 1
                 },
                 "folder": {
-                    "description": "Destination folder; This must be either a (case sensitive) well-known name or the internal o365 folder ID",
+                    "description": "Destination folder; this must be either a (case-sensitive) well-known name or the internal o365 folder ID",
                     "data_type": "string",
                     "required": true,
                     "primary": true,
@@ -1411,7 +1411,7 @@
                     "order": 2
                 },
                 "get_folder_id": {
-                    "description": "Assume the folder parameter contains a folder_name/path, separated by \"/\" or \"\\\" ; i.e. Inbox/dir1/dir2/dir3. Retrieve the folder_id and replace the parameter value (Enabled when you specify folder name/path in the folder parameter)",
+                    "description": "Assume the folder parameter contains a folder name/folder path, separated by \"/\" or \"\\\" ; i.e. Inbox/dir1/dir2/dir3. If this parameter is enabled, it retrieves the folder ID for the provided folder name/folder path automatically and replaces the parameter value",
                     "data_type": "boolean",
                     "default": true,
                     "order": 3
@@ -1792,7 +1792,7 @@
             "action": "move email",
             "identifier": "move_email",
             "description": "Move an email to a folder",
-            "verbose": "The <b>get_folder_id</b> parameter should be enabled only when you specified folder_name/path in the folder parameter. If you provide folder ID in the 'folder' parameter and set 'get_folder_id' parameter to true, it will throw an error (It considers folder parameter value as folder name/path). The <b>folder</b> parameter must be either a (case sensitive) well-known name [list here; https://docs.microsoft.com/en-us/graph/api/resources/mailfolder?view=graph-rest-1.0] or the internal o365 folder ID.",
+            "verbose": "The <b>get_folder_id</b> parameter should be enabled only when you have specified folder name/folder path in the <b>folder</b> parameter. If you provide folder ID in the <b>folder</b> parameter and set <b>get_folder_id</b> parameter to true, it will throw an error of folder ID not found for given folder name (because the action considers folder parameter value as folder name/folder path). The <b>folder</b> parameter must be either a (case sensitive) well-known name [list here; https://docs.microsoft.com/en-us/graph/api/resources/mailfolder?view=graph-rest-1.0] or the internal o365 folder ID.",
             "type": "generic",
             "read_only": false,
             "parameters": {
@@ -1807,7 +1807,7 @@
                     "order": 0
                 },
                 "email_address": {
-                    "description": "Source Mailbox (Email)",
+                    "description": "Source mailbox (email)",
                     "data_type": "string",
                     "required": true,
                     "primary": true,
@@ -1817,7 +1817,7 @@
                     "order": 1
                 },
                 "folder": {
-                    "description": "Destination folder; This must be either a (case sensitive) well-known name or the internal o365 folder ID",
+                    "description": "Destination folder; this must be either a (case-sensitive) well-known name or the internal o365 folder ID",
                     "data_type": "string",
                     "required": true,
                     "primary": true,
@@ -1829,7 +1829,7 @@
                     "order": 2
                 },
                 "get_folder_id": {
-                    "description": "Assume the folder parameter contains a folder_name/path, separated by \"/\" or \"\\\" ; i.e. Inbox/dir1/dir2/dir3. Retrieve the folder_id and replace the parameter value (Enabled when you specify folder name/path in the folder parameter)",
+                    "description": "Assume the folder parameter contains a folder name/folder path, separated by \"/\" or \"\\\" ; i.e. Inbox/dir1/dir2/dir3. If this parameter is enabled, it retrieves the folder ID for the provided folder name/folder path automatically and replaces the parameter value",
                     "data_type": "boolean",
                     "default": true,
                     "order": 3
@@ -2775,12 +2775,12 @@
             "action": "run query",
             "identifier": "run_query",
             "description": "Search emails",
-            "verbose": "If the <b>query</b> or <b>internet_message_id</b> parameters are included, the <b>subject</b>, <b>sender</b>, <b>body</b>, and <b>range</b> parameters will be ignored. The <b>internet_message_id</b> parameter will take precedence over the <b>query</b> parameter.<br><br>For information on formatting the <b>query</b> parameter, see https://developer.microsoft.com/en-us/graph/docs/concepts/query_parameters.<br><br>If the <b>limit</b> parameter is not included, the action will default to limiting to ten emails that match the rest of the query. The <b>get_folder_id</b> parameter should be enabled only when you specified folder_name/path in the folder parameter. If you provide folder ID in the 'folder' parameter and set 'get_folder_id' parameter to true, it will throw an error (It considers folder parameter value as folder name/path). The <b>folder</b> parameter must be either a (case sensitive) well-known name [list here; https://docs.microsoft.com/en-us/graph/api/resources/mailfolder?view=graph-rest-1.0] or the internal o365 folder ID.",
+            "verbose": "If the <b>query</b> or <b>internet_message_id</b> parameters are included, the <b>subject</b>, <b>sender</b>, <b>body</b>, and <b>range</b> parameters will be ignored. The <b>internet_message_id</b> parameter will take precedence over the <b>query</b> parameter.<br><br>For information on formatting the <b>query</b> parameter, see https://developer.microsoft.com/en-us/graph/docs/concepts/query_parameters.<br><br>If the <b>limit</b> parameter is not included, the action will default to limiting to ten emails that match the rest of the query. The <b>get_folder_id</b> parameter should be enabled only when you specified folder name/folder path in the folder parameter. If you provide folder ID in the <b>folder</b> parameter and set <b>get_folder_id</b> parameter to true, it will throw an error of folder ID not found for given folder name (because the action considers folder parameter value as folder name/folder path). The <b>folder</b> parameter must be either a (case sensitive) well-known name [list here; https://docs.microsoft.com/en-us/graph/api/resources/mailfolder?view=graph-rest-1.0] or the internal o365 folder ID.",
             "type": "investigate",
             "read_only": true,
             "parameters": {
                 "email_address": {
-                    "description": "User's email (Mailbox to search in)",
+                    "description": "User's email (mailbox to search in)",
                     "data_type": "string",
                     "required": true,
                     "primary": true,
@@ -2790,7 +2790,7 @@
                     "order": 0
                 },
                 "folder": {
-                    "description": "Destination folder; This must be either a (case sensitive) well-known name or the internal o365 folder ID",
+                    "description": "Destination folder; this must be either a (case-sensitive) well-known name or the internal o365 folder ID",
                     "data_type": "string",
                     "required": false,
                     "primary": true,
@@ -2803,13 +2803,13 @@
                     "order": 1
                 },
                 "get_folder_id": {
-                    "description": "Assume the folder parameter contains a folder_name/path, separated by \"/\" or \"\\\" ; i.e. Inbox/dir1/dir2/dir3. Retrieve the folder_id and replace the parameter value (Enabled when you specify folder name/path in the folder parameter)",
+                    "description": "Assume the folder parameter contains a folder name/folder path, separated by \"/\" or \"\\\" ; i.e. Inbox/dir1/dir2/dir3. If this parameter is enabled, it retrieves the folder ID for the provided folder name/folder path automatically and replaces the parameter value",
                     "data_type": "boolean",
                     "default": true,
                     "order": 2
                 },
                 "subject": {
-                    "description": "Substring to search in Subject",
+                    "description": "Substring to search in subject",
                     "data_type": "string",
                     "required": false,
                     "primary": true,
@@ -2819,7 +2819,7 @@
                     "order": 3
                 },
                 "body": {
-                    "description": "Substring to search in Body",
+                    "description": "Substring to search in body",
                     "data_type": "string",
                     "order": 4,
                     "required": false
@@ -2847,7 +2847,7 @@
                     "order": 7
                 },
                 "internet_message_id": {
-                    "description": "Internet Message ID",
+                    "description": "Internet message ID",
                     "data_type": "string",
                     "required": false,
                     "primary": true,
@@ -3269,12 +3269,12 @@
             "action": "create folder",
             "identifier": "create_folder",
             "description": "Create a new folder",
-            "verbose": "Create a new folder, either in the mailbox root or inside an existing folder",
+            "verbose": "Create a new folder either in the mailbox root or inside an existing folder.",
             "type": "generic",
             "read_only": false,
             "parameters": {
                 "email_address": {
-                    "description": "User's email (Mailbox to create folders)",
+                    "description": "User's email (mailbox to create folders)",
                     "data_type": "string",
                     "required": true,
                     "primary": true,
@@ -3284,7 +3284,7 @@
                     "order": 0
                 },
                 "folder": {
-                    "description": "Folder Name/Path (to create). Use \"/\" or \"\\\" to separate folder elements; ie. Inbox/dir1/dir2/dir3",
+                    "description": "Folder Name/Path. Use \"/\" or \"\\\" to separate folder elements; i.e. Inbox/dir1/dir2/dir3",
                     "data_type": "string",
                     "required": true,
                     "primary": true,
@@ -3434,13 +3434,12 @@
         {
             "action": "get folder id",
             "identifier": "get_folder_id",
-            "description": "get folder id",
-            "verbose": "Get the API ID of the folder",
+            "description": "Get the API ID of the folder",
             "type": "investigate",
             "read_only": true,
             "parameters": {
                 "email_address": {
-                    "description": "User's email (Mailbox)",
+                    "description": "User's email (mailbox)",
                     "data_type": "string",
                     "required": true,
                     "primary": true,

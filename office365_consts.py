@@ -6,6 +6,7 @@
 
 
 TC_STATUS_SLEEP = 2
+MSGOFFICE365_PER_PAGE_COUNT = 999
 PHANTOM_SYS_INFO_URL = "{url}rest/system_info"
 PHANTOM_ASSET_INFO_URL = "{url}rest/asset/{asset_id}"
 O365_TIME_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
