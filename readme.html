@@ -7,23 +7,22 @@
 
 <p>
 <h2>Authentication</h2>
-<br>
-This app requires to create a Microsoft Graph Application. To do so, navigate to https://apps.dev.microsoft.com in a browser and log in with a Microsoft account, then click <b>Add an app</b>.
+This app requires to create a Microsoft Graph Application. To do so, navigate to the URL https://apps.dev.microsoft.com in a browser and log in with the Microsoft account, then, click <b>Add an app</b>.
 <br><br>
-On the next page, give your application a name and click on <b>Create</b>.
+On the next page, provide a name to your application and click on <b>Create</b>.
 <br><br>
-Once the app is created, the below three steps need to be taken on the next page:
+Once the app is created, follow the below three steps:
 <ul>
     <li>Under <b>Application Secrets</b> select <b>Generate New Password</b>. Note down this key somewhere secure, as it cannot be retrieved after closing the window.</li>
-    <li>Under <b>Platforms</b> select <b>Add Platform</b>. In the <b>Add Platform</b> window, select <b>Web</b>. The <b>Redirect URLs</b> field will be filled in a later step.</li>
+    <li>Under <b>Platforms</b> select <b>Add Platform</b>. In the <b>Add Platform</b> window, select <b>Web</b>. The <b>Redirect URLs</b> field will be filled in the later steps.</li>
     <li>Under <b>Microsoft Graph Permissions</b> the following <b>Application Permissions</b> need to be added:
     <ul>
         <li>Mail.Read (https://graph.microsoft.com/Mail.Read)</li>
         <li>Mail.ReadWrite (https://graph.microsoft.com/Mail.ReadWrite)</li>
         <li>User.Read.All (https://graph.microsoft.com/User.Read.All)</li>
-        <li>Group.Read.All (https://graph.microsoft.com/Group.Read.All)- necessary only if you want to use the "list events" action for the group's calendar and for the "list groups" action</li>
-        <li>Calendar.Read (https://graph.microsoft.com/Calendars.Read)- necessary only if you want to use the "list events" action for the user's calendar</li>
-        <li>MailboxSettings.Read (https://graph.microsoft.com/MailboxSettings.Read)- necessary only if you want to use the "oof status" action</li>
+        <li>Group.Read.All (https://graph.microsoft.com/Group.Read.All)- It is required only if you want to run the <b>list events</b> action for the group's calendar and for the <b>list groups</b> action</li>
+        <li>Calendar.Read (https://graph.microsoft.com/Calendars.Read)- It is required only if you want to run the <b>list events</b> action for the user's calendar</li>
+        <li>MailboxSettings.Read (https://graph.microsoft.com/MailboxSettings.Read)- It is required only if you want to run the <b>oof status</b> action</li>
     </ul>
 </ul>
 After making these changes, click <b>Grant admin consent for Test Phantom</b> at the bottom of the screen.
@@ -52,7 +51,8 @@ The app should now be ready to be used.
 <br />
 <h3>Note</h3>
 <ul>
-    <li>An optional parameter "Admin Access Required" has been added to this app. In most cases, this should remain checked, as admin access is required for email use cases. If the desired integration is to integrate with only one user's calendar, you may consider unchecking this box. If unchecked, it allows a non-admin user to provide access to a specific account. This functionality will ONLY work with the "list events" functionality. If unchecked, the "Access scope" <em>must</em> be used. The default scope will work for listing calendar events. Additional information on scope can be found <a href="https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-permissions-and-consent#openid-connect-scopes" target="_blank">here.</a></li>
-    <li>As per the Microsoft known issues for "Group.Read.All" permission (<a href="https://docs.microsoft.com/en-us/graph/known-issues#groups" target="_blank">here</a>), if you want to run the "list events" for fetching group's calendar events, you have to uncheck an optional parameter "Admin Access Required" and provide "Group.Read.All(https://graph.microsoft.com/Group.Read.All)" permission into the scope parameter in the asset configuration parameters. If an asset parameter "Admin Access Required" checked and configured the app with above mentioned all the application permissions(which includes Group.Read.All application permission), it throws an error like "Access is denied" while running "list events" action for fetching group's calendar events. Because of the known issue of "Group.Read.All" application permission, this permission required admin consent(on behalf of the user permission) to fetch the group's calendar events.</li>
+    <li>An optional parameter <b>Admin Access Required</b> has been added to this app. In most cases, this should remain checked, as admin access is required for email use cases. If the desired integration is to integrate with only one user's calendar, you may consider unchecking this box. If unchecked, it allows a non-admin user to provide access to a specific account. This functionality will ONLY work with the <b>list events</b> functionality. If unchecked, the <b>Access scope</b> <em>must</em> be used. The default scope will work for listing calendar events. Additional information on scope can be found <a href="https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-permissions-and-consent#openid-connect-scopes" target="_blank">here.</a></li>
+    <li>As per the Microsoft known issues for <b>Group.Read.All</b> permission (<a href="https://docs.microsoft.com/en-us/graph/known-issues#groups" target="_blank">here</a>), if you want to run the <b>list events</b> for fetching group's calendar events, you have to uncheck an optional parameter <b>Admin Access Required</b> and provide <b>Group.Read.All (https://graph.microsoft.com/Group.Read.All)</b> permission into the scope parameter in the asset configuration parameters. If an asset parameter <b>Admin Access Required</b> checked and configured the app with above mentioned all the application permissions (which includes <b>Group.Read.All</b> application permission), it throws an error like <b>Access is denied</b> while running <b>list events</b> action for fetching group's calendar events. Because of the known issue of <b>Group.Read.All</b> application permission, this permission required admin consent (on behalf of the user permission) to fetch the group's calendar events.</li>
+    <li>If the parameter <b>Admin Access Required</b> is unchecked, you have to provide a <b>scope</b> parameter in the asset configuration. All the actions will get executed according to the scopes provided in the <b>scope</b> config parameter. The actions will throw an appropriate error if the corresponding permissions scope is not provided by the end user.</li>
 </ul>
 </p>
