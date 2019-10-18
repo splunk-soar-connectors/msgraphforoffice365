@@ -18,8 +18,8 @@ from bs4 import BeautifulSoup
 
 import process_email
 import requests
-import tempfile
 import base64
+import uuid
 import json
 import time
 import pwd
@@ -32,119 +32,13 @@ MSGRAPH_API_URL = "https://graph.microsoft.com/v1.0"
 MAX_END_OFFSET_VAL = 2147483646
 
 
+class ReturnException(Exception):
+    pass
+
+
 class RetVal(tuple):
     def __new__(cls, val1, val2):
         return tuple.__new__(RetVal, (val1, val2))
-
-
-def _process_empty_reponse(response, action_result):
-
-    if response.status_code == 200:
-        return RetVal(phantom.APP_SUCCESS, {})
-
-    return RetVal(action_result.set_status(phantom.APP_ERROR, "Empty response and no information in the header"), None)
-
-
-def _process_html_response(response, action_result):
-
-    # An html response, treat it like an error
-    status_code = response.status_code
-
-    try:
-        soup = BeautifulSoup(response.text, "html.parser")
-        error_text = soup.text
-        split_lines = error_text.split('\n')
-        split_lines = [x.strip() for x in split_lines if x.strip()]
-        error_text = '\n'.join(split_lines)
-    except:
-        error_text = "Cannot parse error details"
-
-    message = "Status Code: {0}. Data from server:\n{1}\n".format(status_code,
-            error_text)
-
-    message = message.replace('{', '{{').replace('}', '}}')
-
-    return RetVal(action_result.set_status(phantom.APP_ERROR, message), None)
-
-
-def _process_json_response(r, action_result):
-
-    # Try a json parse
-    try:
-        resp_json = r.json()
-    except Exception as e:
-        return RetVal(action_result.set_status(phantom.APP_ERROR, "Unable to parse JSON response. Error: {0}".format(str(e))), None)
-
-    # Please specify the status codes here
-    if 200 <= r.status_code < 399:
-        return RetVal(phantom.APP_SUCCESS, resp_json)
-
-    # You should process the error returned in the json
-    message = "Error from server. Status Code: {0} Data from server: {1}".format(
-            r.status_code, r.text.replace('{', '{{').replace('}', '}}'))
-
-    return RetVal(action_result.set_status(phantom.APP_ERROR, message), None)
-
-
-def _process_response(r, action_result):
-
-    # store the r_text in debug data, it will get dumped in the logs if the action fails
-    if hasattr(action_result, 'add_debug_data'):
-        action_result.add_debug_data({'r_status_code': r.status_code})
-        action_result.add_debug_data({'r_text': r.text})
-        action_result.add_debug_data({'r_headers': r.headers})
-
-    # Process each 'Content-Type' of response separately
-
-    # Process a json response
-    content_type = r.headers.get('Content-Type', '')
-    if 'json' in content_type or 'javascript' in content_type:
-        return _process_json_response(r, action_result)
-
-    # Process an HTML resonse, Do this no matter what the api talks.
-    # There is a high chance of a PROXY in between phantom and the rest of
-    # world, in case of errors, PROXY's return HTML, this function parses
-    # the error and adds it to the action_result.
-    if 'html' in r.headers.get('Content-Type', ''):
-        return _process_html_response(r, action_result)
-
-    if r.status_code == 404:
-        return RetVal(action_result.set_status(phantom.APP_ERROR, "email not found"), None)
-
-    if 200 <= r.status_code <= 204:
-        return RetVal(phantom.APP_SUCCESS, None)
-
-    # it's not content-type that is to be parsed, handle an empty response
-    if not r.text:
-        return _process_empty_reponse(r, action_result)
-
-    # everything else is actually an error at this point
-    message = "Can't process response from server. Status Code: {0} Data from server: {1}".format(
-            r.status_code, r.text.replace('{', '{{').replace('}', '}}'))
-
-    return RetVal(action_result.set_status(phantom.APP_ERROR, message), None)
-
-
-def _make_rest_call(action_result, url, verify=True, headers=None, params=None, data=None, method="get"):
-
-    resp_json = None
-
-    try:
-        request_func = getattr(requests, method)
-    except AttributeError:
-        return RetVal(action_result.set_status(phantom.APP_ERROR, "Invalid method: {0}".format(method)), resp_json)
-
-    try:
-        r = request_func(
-                        url,
-                        data=data,
-                        headers=headers,
-                        verify=verify,
-                        params=params)
-    except Exception as e:
-        return RetVal(action_result.set_status( phantom.APP_ERROR, "Error Connecting to server. Details: {0}".format(str(e))), resp_json)
-
-    return _process_response(r, action_result)
 
 
 def _load_app_state(asset_id, app_connector=None):
@@ -153,7 +47,6 @@ def _load_app_state(asset_id, app_connector=None):
     # get the directory of the file
     dirpath = os.path.split(__file__)[0]
     state_file = "{0}/{1}_state.json".format(dirpath, asset_id)
-
     state = {}
 
     try:
@@ -214,27 +107,30 @@ def _handle_oauth_result(request, path_parts):
     code = (request.GET.get('code'))
 
     if (not admin_consent and not(code)):
-        return HttpResponse("ERROR: admin_consent not found in URL\n{0}".format(json.dumps(request.GET)))
+        return HttpResponse("ERROR: admin_consent or authorization code not found in URL\n{0}".format(json.dumps(request.GET)))
 
     # Load the data
     state = _load_app_state(asset_id)
 
-    if (admin_consent == 'True'):
-        admin_consent = True
-    else:
-        admin_consent = False
+    if admin_consent:
+        if admin_consent == 'True':
+            admin_consent = True
+        else:
+            admin_consent = False
 
-    if not(admin_consent):
-        admin_consent = code
+        state['admin_consent'] = admin_consent
+        _save_app_state(state, asset_id, None)
 
-    state['admin_consent'] = admin_consent
+        # If admin_consent is True
+        if admin_consent:
+            return HttpResponse('Admin Consent received. Please close this window.')
+        return HttpResponse('Admin Consent declined. Please close this window and try again later.')
 
+    # If value of admin_consent is not available, value of code is available
+    state['code'] = code
     _save_app_state(state, asset_id, None)
 
-    if (admin_consent):
-        return HttpResponse("Admin Consent received. Please close this window, the action will continue to get new token")
-
-    return HttpResponse("Admin Consent declined. Please close this window and try again later" + str(admin_consent) + ' ' + str(request.GET.get('code')))
+    return HttpResponse('Code received. Please close this window, the action will continue to get new token.')
 
 
 def _handle_oauth_start(request, path_parts):
@@ -280,7 +176,6 @@ def handle_request(request, path_parts):
 
         # process the 'code'
         ret_val = _handle_oauth_result(request, path_parts)
-
         asset_id = request.GET.get('state')
 
         if (asset_id):
@@ -334,6 +229,135 @@ class Office365Connector(BaseConnector):
         # Do note that the app json defines the asset config, so please
         # modify this as you deem fit.
         self._base_url = None
+        self._tenant = None
+        self._client_id = None
+        self._client_secret = None
+        self._admin_access = None
+        self._scope = None
+        self._access_token = None
+        self._refresh_token = None
+
+    def _process_empty_reponse(self, response, action_result):
+
+        if response.status_code == 200:
+            return RetVal(phantom.APP_SUCCESS, {})
+
+        return RetVal(action_result.set_status(phantom.APP_ERROR, "Empty response and no information in the header"), None)
+
+    def _process_html_response(self, response, action_result):
+
+        # An html response, treat it like an error
+        status_code = response.status_code
+
+        try:
+            soup = BeautifulSoup(response.text, "html.parser")
+            error_text = soup.text
+            split_lines = error_text.split('\n')
+            split_lines = [x.strip() for x in split_lines if x.strip()]
+            error_text = '\n'.join(split_lines)
+        except:
+            error_text = "Cannot parse error details"
+
+        message = "Status Code: {0}. Data from server:\n{1}\n".format(status_code,
+                error_text)
+
+        message = message.replace('{', '{{').replace('}', '}}')
+
+        return RetVal(action_result.set_status(phantom.APP_ERROR, message), None)
+
+    def _process_json_response(self, r, action_result):
+
+        # Try a json parse
+        try:
+            resp_json = r.json()
+        except Exception as e:
+            return RetVal(action_result.set_status(phantom.APP_ERROR, "Unable to parse JSON response. Error: {0}".format(str(e))), None)
+
+        # Please specify the status codes here
+        if 200 <= r.status_code < 399:
+            return RetVal(phantom.APP_SUCCESS, resp_json)
+
+        try:
+            if resp_json.get('error', {}).get('message'):
+                try:
+                    soup = BeautifulSoup(resp_json.get('error', {}).get('message'), "html.parser")
+                    error_text = soup.text
+                    split_lines = error_text.split('\n')
+                    split_lines = [x.strip() for x in split_lines if x.strip()]
+                    error_text = '\n'.join(split_lines)
+                    if len(error_text) > 500:
+                        error_text = 'Error while connecting to a server (Please check input parameters or asset configuration parameters)'
+                except:
+                    error_text = "Cannot parse error details"
+            else:
+                error_text = r.text.replace('{', '{{').replace('}', '}}')
+        except:
+            error_text = r.text.replace('{', '{{').replace('}', '}}')
+
+        # You should process the error returned in the json
+        message = "Error from server. Status Code: {0} Data from server: {1}".format(
+                r.status_code, error_text.encode('utf-8'))
+
+        return RetVal(action_result.set_status(phantom.APP_ERROR, message), None)
+
+    def _process_response(self, r, action_result):
+
+        # store the r_text in debug data, it will get dumped in the logs if the action fails
+        if hasattr(action_result, 'add_debug_data'):
+            action_result.add_debug_data({'r_status_code': r.status_code})
+            action_result.add_debug_data({'r_text': r.text})
+            action_result.add_debug_data({'r_headers': r.headers})
+
+        # Process each 'Content-Type' of response separately
+
+        # Process a json response
+        content_type = r.headers.get('Content-Type', '')
+        if 'json' in content_type or 'javascript' in content_type:
+            return self._process_json_response(r, action_result)
+
+        # Process an HTML resonse, Do this no matter what the api talks.
+        # There is a high chance of a PROXY in between phantom and the rest of
+        # world, in case of errors, PROXY's return HTML, this function parses
+        # the error and adds it to the action_result.
+        if 'html' in r.headers.get('Content-Type', ''):
+            return self._process_html_response(r, action_result)
+
+        if r.status_code == 404:
+            return RetVal(action_result.set_status(phantom.APP_ERROR, "Email not found"), None)
+
+        if 200 <= r.status_code <= 204:
+            return RetVal(phantom.APP_SUCCESS, None)
+
+        # it's not content-type that is to be parsed, handle an empty response
+        if not r.text:
+            return self._process_empty_reponse(r, action_result)
+
+        # everything else is actually an error at this point
+        message = "Can't process response from server. Status Code: {0} Data from server: {1}".format(
+                r.status_code, r.text.replace('{', '{{').replace('}', '}}'))
+
+        return RetVal(action_result.set_status(phantom.APP_ERROR, message), None)
+
+    def _make_rest_call(self, action_result, url, verify=True, headers=None, params=None, data=None, method="get"):
+
+        resp_json = None
+
+        try:
+            request_func = getattr(requests, method)
+        except AttributeError:
+            return RetVal(action_result.set_status(phantom.APP_ERROR, "Invalid method: {0}".format(method)), resp_json)
+
+        try:
+            r = request_func(
+                            url,
+                            data=data,
+                            headers=headers,
+                            verify=verify,
+                            params=params)
+        except Exception as e:
+            return RetVal(action_result.set_status( phantom.APP_ERROR, "Error Connecting to server. Details: {0}".format(str(e))), resp_json)
+
+        return self._process_response(r, action_result)
 
     def _get_asset_name(self, action_result):
 
@@ -341,7 +365,7 @@ class Office365Connector(BaseConnector):
 
         rest_endpoint = PHANTOM_ASSET_INFO_URL.format(url=self.get_phantom_base_url(), asset_id=asset_id)
 
-        ret_val, resp_json = _make_rest_call(action_result, rest_endpoint, False)
+        ret_val, resp_json = self._make_rest_call(action_result, rest_endpoint, False)
 
         if (phantom.is_fail(ret_val)):
             return (ret_val, None)
@@ -349,13 +373,13 @@ class Office365Connector(BaseConnector):
         asset_name = resp_json.get('name')
 
         if (not asset_name):
-            return (action_result.set_status(phantom.APP_ERROR, "Asset Name for id: {0} not found.".format(asset_id), None))
+            return (action_result.set_status(phantom.APP_ERROR, "Asset Name for ID: {0} not found".format(asset_id), None))
 
         return (phantom.APP_SUCCESS, asset_name)
 
     def _get_phantom_base_url(self, action_result):
 
-        ret_val, resp_json = _make_rest_call(action_result, PHANTOM_SYS_INFO_URL.format(url=self.get_phantom_base_url()), False)
+        ret_val, resp_json = self._make_rest_call(action_result, PHANTOM_SYS_INFO_URL.format(url=self.get_phantom_base_url()), False)
 
         if (phantom.is_fail(ret_val)):
             return (ret_val, None)
@@ -397,38 +421,59 @@ class Office365Connector(BaseConnector):
 
         return (phantom.APP_SUCCESS, url_to_app_rest)
 
-    def _make_rest_call_helper(self, action_result, endpoint, verify=True, headers=None, params=None, data=None, method="get"):
+    def _make_rest_call_helper(self, action_result, endpoint, verify=True, headers=None, params=None, data=None, method="get", nextLink=None):
 
-        url = "{0}{1}".format(MSGRAPH_API_URL, endpoint)
+        if nextLink:
+            url = nextLink
+        else:
+            url = "{0}{1}".format(MSGRAPH_API_URL, endpoint)
 
         if (headers is None):
             headers = {}
 
         headers.update({
-                'Authorization': 'Bearer {0}'.format(self._state['token']['access_token']),
+                'Authorization': 'Bearer {0}'.format(self._access_token),
                 'Accept': 'application/json',
                 'Content-Type': 'application/json'})
 
-        return _make_rest_call(action_result, url, verify, headers, params, data, method)
+        ret_val, resp_json = self._make_rest_call(action_result, url, verify, headers, params, data, method)
+
+        # If token is expired, generate a new token
+        msg = action_result.get_message()
+
+        if msg and 'token is invalid' in msg or 'Access token has expired' in msg or 'ExpiredAuthenticationToken' in msg or 'AuthenticationFailed' in msg:
+            ret_val = self._get_token(action_result)
+
+            headers.update({ 'Authorization': 'Bearer {0}'.format(self._access_token)})
+
+            ret_val, resp_json = self._make_rest_call(action_result, url, verify, headers, params, data, method)
+
+        if phantom.is_fail(ret_val):
+            return action_result.get_status(), None
+
+        return phantom.APP_SUCCESS, resp_json
 
     def _handle_attachment(self, attachment, container_id, artifact_json=None):
 
         try:
 
             if hasattr(Vault, "create_attachment"):
-                vault_ret = Vault.create_attachment(attachment.pop('contentBytes'), container_id, file_name=attachment['name'])
+                vault_ret = Vault.create_attachment(base64.b64decode(attachment.pop('contentBytes')), container_id, file_name=attachment['name'])
 
             else:
+                if hasattr(Vault, 'get_vault_tmp_dir'):
+                    temp_dir = Vault.get_vault_tmp_dir()
+                else:
+                    temp_dir = '/opt/phantom/vault/tmp'
 
-                file_desc, file_path = tempfile.mkstemp(dir='/vault/tmp/')
+                temp_dir = temp_dir + '/{}'.format(uuid.uuid4())
+                os.makedirs(temp_dir)
+                file_path = os.path.join(temp_dir, attachment['name'])
 
-                download_file = open(file_path, 'w')
-                download_file.write(base64.b64decode(attachment.pop('contentBytes')))
-                download_file.close()
+                with open(file_path, 'w') as f:
+                    f.write(base64.b64decode(attachment.pop('contentBytes')))
 
-                os.close(file_desc)
-
-                vault_ret = Vault.add_attachment(file_path, container_id, attachment['name'])
+                vault_ret = Vault.add_attachment(file_path, container_id, file_name=attachment['name'])
 
         except Exception as e:
             self.debug_print("Error saving file to vault: ", str(e))
@@ -530,12 +575,9 @@ class Office365Connector(BaseConnector):
     def _handle_test_connectivity(self, param):
         """ Function that handles the test connectivity action, it is much simpler than other action handlers."""
 
-        # Progress
-        # self.save_progress("Generating Authentication URL")
-        app_state = {}
         action_result = self.add_action_result(ActionResult(param))
-
         self.save_progress("Getting App REST endpoint URL")
+
         # Get the URL to the app's REST Endpiont, this is the url that the TC dialog
         # box will ask the user to connect to
         ret_val, app_rest_url = self._get_url_to_app_rest(action_result)
@@ -549,37 +591,42 @@ class Office365Connector(BaseConnector):
         # (success and failure), this is added to the state so that the request handler will access
         # it later on
         redirect_uri = "{0}/result".format(app_rest_url)
-        app_state['redirect_uri'] = redirect_uri
+        self._state['redirect_uri'] = redirect_uri
 
         self.save_progress("Using OAuth Redirect URL as:")
         self.save_progress(redirect_uri)
 
-        config = self.get_config()
-
-        if config.get("admin_access"):
-            # Create the url authorization, this is the one pointing to the oauth server side
-            admin_consent_url = "https://login.microsoftonline.com/{0}/adminconsent".format(config['tenant'])
-            admin_consent_url += "?client_id={0}".format(config['client_id'])
-            admin_consent_url += "&redirect_uri={0}".format(redirect_uri)
+        if self._admin_access:
+            # Create the url for fetching administrator consent
+            admin_consent_url = "https://login.microsoftonline.com/{0}/adminconsent".format(self._tenant)
+            admin_consent_url += "?client_id={0}".format(self._client_id)
+            admin_consent_url += "&redirect_uri={0}".format(self._state['redirect_uri'])
             admin_consent_url += "&state={0}".format(self.get_asset_id())
         else:
-            admin_consent_url = "https://login.microsoftonline.com/{0}/oauth2/v2.0/authorize".format(config['tenant'])
-            admin_consent_url += "?client_id={0}".format(config['client_id'])
+            # Scope is required for non-admin access
+            if not self._scope:
+                return self.set_status(phantom.APP_ERROR, "Please provide scope for non-admin access in the asset configuration")
+
+            # Create the url authorization, this is the one pointing to the oauth server side
+            admin_consent_url = "https://login.microsoftonline.com/{0}/oauth2/v2.0/authorize".format(self._tenant)
+            admin_consent_url += "?client_id={0}".format(self._client_id)
             admin_consent_url += "&redirect_uri={0}".format(redirect_uri)
             admin_consent_url += "&state={0}".format(self.get_asset_id())
-            admin_consent_url += "&scope={0}".format(config.get("scope"))
+            admin_consent_url += "&scope={0}".format(self._scope)
             admin_consent_url += "&response_type=code"
 
-        app_state['admin_consent_url'] = admin_consent_url
+        self._state['admin_consent_url'] = admin_consent_url
 
         # The URL that the user should open in a different tab.
         # This is pointing to a REST endpoint that points to the app
         url_to_show = "{0}/start_oauth?asset_id={1}&".format(app_rest_url, self.get_asset_id())
 
         # Save the state, will be used by the request handler
-        _save_app_state(app_state, self.get_asset_id(), self)
+        _save_app_state(self._state, self.get_asset_id(), self)
+        self.save_state(self._state)
 
-        self.save_progress('Please connect to the following URL from a different tab to continue the connectivity process\n{0}'.format(url_to_show))
+        self.save_progress('Please connect to the following URL from a different tab to continue the connectivity process')
+        self.save_progress(url_to_show)
 
         time.sleep(5)
 
@@ -588,7 +635,10 @@ class Office365Connector(BaseConnector):
         app_dir = os.path.dirname(os.path.abspath(__file__))
         auth_status_file_path = "{0}/{1}_{2}".format(app_dir, self.get_asset_id(), TC_FILE)
 
-        self.save_progress('Waiting for Admin Consent to complete')
+        if self._admin_access:
+            self.save_progress('Waiting for Admin Consent to complete')
+        else:
+            self.save_progress('Waiting for Autorization Code to complete')
 
         for i in range(0, 40):
 
@@ -607,30 +657,44 @@ class Office365Connector(BaseConnector):
 
         self.send_progress("")
 
-        # Load the state again, since the http request handlers would have saved the result of the admin consent
-        app_state = _load_app_state(self.get_asset_id(), self)
+        # Load the state again, since the http request handlers would have saved the result of the admin consent or authorization
+        self._state = _load_app_state(self.get_asset_id(), self)
 
-        if (not app_state) or (not app_state.get('admin_consent')):
-            self.save_progress("Admin consent not received or not given")
+        if not self._state:
+            self.save_progress("Authorization not received or not given")
             self.save_progress("Test Connectivity Failed")
             return self.set_status(phantom.APP_ERROR)
-
-        # The authentication seems to be done, let's see if it was successfull
-        self._state['admin_consent'] = app_state['admin_consent']
+        else:
+            if self._admin_access:
+                if not self._state.get('admin_consent'):
+                    self.save_progress("Admin Consent not received or not given")
+                    self.save_progress("Test Connectivity Failed")
+                    return self.set_status(phantom.APP_ERROR)
+            else:
+                if not self._state.get('code'):
+                    self.save_progress("Authorization code not received or not given")
+                    self.save_progress("Test Connectivity Failed")
+                    return self.set_status(phantom.APP_ERROR)
 
         self.save_progress("Getting the token")
         ret_val = self._get_token(action_result)
+
         if (phantom.is_fail(ret_val)):
             return action_result.get_status()
 
-        self.save_progress("Getting info about a single user to verify token")
         params = {'$top': '1'}
-        if config.get('admin_access'):
+        msg_failed = ""
+        if self._admin_access:
+            msg_failed = "API to fetch details of all the users failed"
+            self.save_progress("Getting info about all users to verify token")
             ret_val, response = self._make_rest_call_helper(action_result, "/users", params=params)
         else:
+            msg_failed = "API to get user details failed"
+            self.save_progress("Getting info about a single user to verify token")
             ret_val, response = self._make_rest_call_helper(action_result, "/me", params=params)
+
         if (phantom.is_fail(ret_val)):
-            self.save_progress("API to get users failed")
+            self.save_progress(msg_failed)
             self.save_progress("Test Connectivity Failed")
             return self.set_status(phantom.APP_ERROR)
 
@@ -649,11 +713,24 @@ class Office365Connector(BaseConnector):
         action_result = self.add_action_result(ActionResult(dict(param)))
 
         email_addr = param['email_address']
+        folder = param["folder"].decode("utf-8", 'ignore').translate({92: 47})
         endpoint = '/users/{0}'.format(email_addr)
 
         endpoint += '/messages/{0}/copy'.format(param['id'])
 
-        body = {'DestinationId': param['folder']}
+        body = {'DestinationId': folder}
+
+        if param.get('get_folder_id', False):
+            try:
+                dir_id, error, _ = self._get_folder_id(action_result, folder, email_addr)
+            except ReturnException:
+                return action_result.get_status()
+
+            if dir_id:
+                body['DestinationId'] = dir_id
+            else:
+                self.save_progress(error)
+                return action_result.set_status(phantom.APP_ERROR, error)
 
         ret_val, response = self._make_rest_call_helper(action_result, endpoint, data=json.dumps(body), method='post')
         if (phantom.is_fail(ret_val)):
@@ -662,6 +739,40 @@ class Office365Connector(BaseConnector):
         action_result.add_data(response)
 
         return action_result.set_status(phantom.APP_SUCCESS, "Successfully copied email")
+
+    def _handle_move_email(self, param):
+
+        self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
+        action_result = self.add_action_result(ActionResult(dict(param)))
+
+        email_addr = param['email_address']
+        folder = param["folder"].decode("utf-8", 'ignore').translate({92: 47})
+        endpoint = '/users/{0}'.format(email_addr)
+
+        endpoint += '/messages/{0}/move'.format(param['id'])
+
+        body = {'DestinationId': folder}
+        if param.get('get_folder_id', False):
+            try:
+                dir_id, error, _ = self._get_folder_id(action_result, folder, email_addr)
+
+            except ReturnException:
+                return action_result.get_status()
+
+            if dir_id:
+                body['DestinationId'] = dir_id
+
+            else:
+                self.save_progress(error)
+                return action_result.set_status(phantom.APP_ERROR, error)
+
+        ret_val, response = self._make_rest_call_helper(action_result, endpoint, data=json.dumps(body), method='post')
+        if (phantom.is_fail(ret_val)):
+            return action_result.get_status()
+
+        action_result.add_data(response)
+
+        return action_result.set_status(phantom.APP_SUCCESS, "Successfully moved email")
 
     def _handle_delete_email(self, param):
 
@@ -673,25 +784,50 @@ class Office365Connector(BaseConnector):
 
         endpoint += '/messages/{0}'.format(param['id'])
 
-        ret_val, response = self._make_rest_call_helper(action_result, endpoint, method='delete')
+        ret_val, _ = self._make_rest_call_helper(action_result, endpoint, method='delete')
         if (phantom.is_fail(ret_val)):
             return action_result.get_status()
 
-        return action_result.set_status(phantom.APP_SUCCESS, "successfully deleted email")
+        return action_result.set_status(phantom.APP_SUCCESS, "Successfully deleted email")
+
+    def _handle_oof_check(self, param):
+        self.save_progress('In action handler for: {0}'.format(self.get_action_identifier()))
+        action_result = self.add_action_result(ActionResult(dict(param)))
+
+        user_id = param['user_id']
+
+        endpoint = '/users/{0}/mailboxSettings/automaticRepliesSetting'.format(user_id)
+
+        ret_val, response = self._make_rest_call_helper(action_result, endpoint, method='get')
+        if (phantom.is_fail(ret_val)):
+            return action_result.get_status()
+
+        action_result.add_data(response)
+
+        action_result.update_summary({'events_matched': action_result.get_data_size()})
+
+        return action_result.set_status(phantom.APP_SUCCESS, "Successfully retrieved out of office status")
 
     def _handle_list_events(self, param):
         self.save_progress('In action handler for: {0}'.format(self.get_action_identifier()))
         action_result = self.add_action_result(ActionResult(dict(param)))
 
-        user_id = param.get('user_id')
-        group_id = param.get('group_id')
-        query = param.get('filter')
+        try:
+            user_id = param.get('user_id').encode('utf-8') if param.get('user_id') else None
+            group_id = param.get('group_id') if param.get('group_id') else None
+            query = param.get('filter') if param.get('filter') else None
+        except:
+            return action_result.set_status(phantom.APP_ERROR, "Please check your input parameters")
+        limit = param.get('limit')
 
         if(user_id is None and group_id is None):
-            return action_result.set_status(phantom.APP_ERROR, 'Either a user_id or group_id must be supplied to the "list_events" action.')
-        if user_id and group_id and user_id != "" and group_id != "":
-            return action_result.set_status(phantom.APP_ERROR, 'Either a user_id or group_id can be supplied to the "list_events" action - not both.')
+            return action_result.set_status(phantom.APP_ERROR, 'Either a user_id or group_id must be supplied to the "list_events" action')
 
+        if user_id and group_id and user_id != "" and group_id != "":
+            return action_result.set_status(phantom.APP_ERROR, 'Either a user_id or group_id can be supplied to the "list_events" action - not both')
+
+        if (limit and not str(limit).isdigit()) or limit == 0:
+            return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_LIMIT)
         endpoint = ''
 
         if user_id:
@@ -700,15 +836,24 @@ class Office365Connector(BaseConnector):
             endpoint = '/groups/{0}/calendar/events'.format(group_id)
 
         if query:
-            endpoint = '{0}?{1}'.format(endpoint, query)
+            endpoint = "{0}?{1}".format(endpoint, query)
 
-        self.debug_print("list events enpdoint", endpoint)
+        ret_val, events = self._paginator(action_result, endpoint, limit)
 
-        ret_val, response = self._make_rest_call_helper(action_result, endpoint)
         if (phantom.is_fail(ret_val)):
+            msg = action_result.get_message()
+            if '$top' in msg or '$top/top' in msg:
+                msg += "The '$top' parameter is already used internally to handle pagination logic. "
+                msg += "If you want to restirct results in terms of number of output results, you can use the 'limit' parameter."
+                return action_result.set_status(phantom.APP_ERROR, msg)
             return action_result.get_status()
 
-        for event in response["value"]:
+        if not events:
+            # No events found is a valid scenario that there can be 0 events returned
+            # even if the API call is a success for the correct given inputs and hence, returning APP_SUCCESS.
+            return action_result.set_status(phantom.APP_SUCCESS, "No data found")
+
+        for event in events:
             categories = []
             attendees = []
             for category in event["categories"]:
@@ -718,9 +863,163 @@ class Office365Connector(BaseConnector):
             event["attendee_list"] = ", ".join(attendees)
             action_result.add_data(event)
 
+        num_events = len(events)
         action_result.update_summary({'events_matched': action_result.get_data_size()})
 
-        return action_result.set_status(phantom.APP_SUCCESS, "Successfully retrieved events")
+        return action_result.set_status(phantom.APP_SUCCESS, 'Successfully retrieved {} event{}'.format(num_events, '' if num_events == 1 else 's'))
+
+    def _handle_list_groups(self, param):
+
+        self.save_progress('In action handler for: {0}'.format(self.get_action_identifier()))
+        action_result = self.add_action_result(ActionResult(dict(param)))
+
+        limit = param.get('limit')
+        query = param.get('filter') if param.get('filter') else None
+
+        if (limit and not str(limit).isdigit()) or limit == 0:
+            return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_LIMIT)
+
+        endpoint = '/groups'
+
+        ret_val, groups = self._paginator(action_result, endpoint, limit, query=query)
+
+        if (phantom.is_fail(ret_val)):
+                return action_result.get_status()
+
+        if not groups:
+            return action_result.set_status(phantom.APP_SUCCESS, "No data found")
+
+        for group in groups:
+            action_result.add_data(group)
+
+        num_groups = len(groups)
+        action_result.update_summary({'total_groups_returned': num_groups})
+
+        return action_result.set_status(phantom.APP_SUCCESS, 'Successfully retrieved {} group{}'.format(num_groups, '' if num_groups == 1 else 's'))
+
+    def _handle_list_users(self, param):
+
+        self.save_progress('In action handler for: {0}'.format(self.get_action_identifier()))
+        action_result = self.add_action_result(ActionResult(dict(param)))
+
+        limit = param.get('limit')
+        query = param.get('filter') if param.get('filter') else None
+
+        if (limit and not str(limit).isdigit()) or limit == 0:
+            return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_LIMIT)
+
+        endpoint = '/users'
+
+        ret_val, users = self._paginator(action_result, endpoint, limit, query=query)
+
+        if (phantom.is_fail(ret_val)):
+                return action_result.get_status()
+
+        if not users:
+            return action_result.set_status(phantom.APP_SUCCESS, "No data found")
+
+        for user in users:
+            action_result.add_data(user)
+
+        num_users = len(users)
+        action_result.update_summary({'total_users_returned': num_users})
+
+        return action_result.set_status(phantom.APP_SUCCESS, 'Successfully retrieved {} user{}'.format(num_users, '' if num_users == 1 else 's'))
+
+    def _handle_list_folders(self, param):
+
+        self.save_progress('In action handler for: {0}'.format(self.get_action_identifier()))
+        action_result = self.add_action_result(ActionResult(dict(param)))
+
+        list_folder = list()
+        user_id = param['user_id']
+        folder_id = param.get('folder_id')
+
+        if not folder_id:
+            # fetching root level folders
+            ret_val, root_folders = self._fetch_root_folders(action_result, user_id)
+
+            if (phantom.is_fail(ret_val)):
+                return action_result.get_status()
+
+            # adding root folders to main list of folders
+            list_folder.extend(root_folders)
+
+            # checking for child folder if have, add it in list of folders
+            for root_folder in root_folders:
+
+                if root_folder['childFolderCount'] == 0:
+                    continue
+                else:
+                    ret_val = self._list_child_folders(action_result, list_folder, user_id=user_id, parent_folder=root_folder)
+
+                    if (phantom.is_fail(ret_val)):
+                        return action_result.get_status()
+        else:
+            ret_val = self._list_child_folders(action_result, list_folder, user_id=user_id, folder_id=folder_id)
+
+            if (phantom.is_fail(ret_val)):
+                return action_result.get_status()
+
+        for folder in list_folder:
+            action_result.add_data(folder)
+
+        num_folders = len(list_folder)
+        action_result.update_summary({'total_folders_returned': num_folders})
+
+        return action_result.set_status(phantom.APP_SUCCESS, 'Successfully retrieved {} mail folder{}'.format(num_folders, '' if num_folders == 1 else 's'))
+
+    def _fetch_root_folders(self, action_result, user_id):
+
+        endpoint = "/users/{user_id}/mailFolders".format(user_id=user_id)
+
+        ret_val, folders = self._paginator(action_result, endpoint)
+
+        if (phantom.is_fail(ret_val)):
+                return action_result.get_status(), None
+
+        if not folders:
+            return action_result.set_status(phantom.APP_SUCCESS, "No data found"), None
+
+        return phantom.APP_SUCCESS, folders
+
+    def _list_child_folders(self, action_result, list_folder, user_id, parent_folder=None, folder_id=None):
+
+        # fetching root level folders
+        if not folder_id:
+            ret_val, child_folders = self._fetch_child_folders(action_result, user_id, parent_folder['id'])
+        else:
+            ret_val, child_folders = self._fetch_child_folders(action_result, user_id, folder_id)
+
+        if (phantom.is_fail(ret_val)):
+            return action_result.get_status()
+
+        # checking for child folder if have, add it in list of folders
+        for child_folder in child_folders:
+
+            if child_folder['childFolderCount'] == 0:
+                list_folder.append(child_folder)
+                continue
+            else:
+                ret_val = self._list_child_folders(action_result, list_folder, user_id=user_id, parent_folder=child_folder)
+
+                if (phantom.is_fail(ret_val)):
+                    return action_result.get_status()
+
+                list_folder.append(child_folder)
+
+        return phantom.APP_SUCCESS
+
+    def _fetch_child_folders(self, action_result, user_id, folder_id):
+
+        endpoint = '/users/{user_id}/mailFolders/{folder_id}/childFolders'.format(user_id=user_id, folder_id=folder_id)
+
+        ret_val, folders = self._paginator(action_result, endpoint)
+
+        if (phantom.is_fail(ret_val)):
+                return action_result.get_status(), None
+
+        return phantom.APP_SUCCESS, folders
 
     def _handle_get_email(self, param):
 
@@ -745,13 +1044,13 @@ class Office365Connector(BaseConnector):
 
             for attachment in attach_resp.get('value', []):
                 if not self._handle_attachment(attachment, self.get_container_id()):
-                    return action_result.set_status('Could not process attachment. See logs for details.')
+                    return action_result.set_status(phantom.APP_ERROR, 'Could not process attachment. See logs for details')
 
             response['attachments'] = attach_resp['value']
 
         action_result.add_data(response)
 
-        return action_result.set_status(phantom.APP_SUCCESS, "Successfully copied email")
+        return action_result.set_status(phantom.APP_SUCCESS, "Successfully fetched email")
 
     def _handle_on_poll(self, param):
 
@@ -866,8 +1165,7 @@ class Office365Connector(BaseConnector):
                 return action_result.set_status(phantom.APP_ERROR, message)
 
         if not self.is_poll_now() and len(emails) == int(max_emails):
-            self._state['last_time'] = (datetime.strptime(emails[-1]['lastModifiedDateTime'], O365_TIME_FORMAT) +
-                    timedelta(seconds=1)).strftime(O365_TIME_FORMAT)
+            self._state['last_time'] = (datetime.strptime(emails[-1]['lastModifiedDateTime'], O365_TIME_FORMAT) + timedelta(seconds=1)).strftime(O365_TIME_FORMAT)
 
         return action_result.set_status(phantom.APP_SUCCESS)
 
@@ -905,17 +1203,34 @@ class Office365Connector(BaseConnector):
         self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
         action_result = self.add_action_result(ActionResult(dict(param)))
 
+        limit = param.get('limit')
+
+        if (limit and not str(limit).isdigit()) or limit == 0:
+            return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_LIMIT)
+
         # user
         email_addr = param['email_address']
         endpoint = "/users/{0}".format(email_addr)
 
         # folder
         if ('folder' in param):
-            endpoint += '/mailFolders/{0}'.format(param['folder'])
+            folder = param['folder'].decode('utf-8', 'ignore').translate({92: 47})
+
+            if param.get('get_folder_id', False):
+                try:
+                    dir_id, error, _ = self._get_folder_id(action_result, folder, email_addr)
+                except ReturnException:
+                    return action_result.get_status()
+                if dir_id:
+                    folder = dir_id
+                else:
+                    self.save_progress(error)
+                    return action_result.set_status(phantom.APP_ERROR, error)
+            endpoint += '/mailFolders/{0}'.format(folder)
 
         # that should be enough to create the endpoint
         endpoint += '/messages'
-        params = None
+        params = dict()
 
         if ('internet_message_id' in param):
             params = {
@@ -926,11 +1241,6 @@ class Office365Connector(BaseConnector):
             endpoint += "?{0}".format(param['query'])
 
         else:
-
-            # range
-            limit = param.get('limit', 10)
-            params = {'$top': limit}
-
             # search params
             search_query = ''
             if ('subject' in param):
@@ -951,18 +1261,293 @@ class Office365Connector(BaseConnector):
             if search_query:
                 params['$search'] = '"{0}"'.format(search_query)
 
-        ret_val, response = self._make_rest_call_helper(action_result, endpoint, params=params)
+        ret_val, messages = self._paginator(action_result, endpoint, limit, params=params)
+
         if (phantom.is_fail(ret_val)):
+            msg = action_result.get_message()
+            if '$top' in msg or '$top/top' in msg:
+                msg += "The '$top' parameter is already used internally to handle pagination logic. "
+                msg += "If you want to restirct results in terms of number of output results, you can use the 'limit' parameter."
+                return action_result.set_status(phantom.APP_ERROR, msg)
             return action_result.get_status()
 
-        value = response.get('value')
+        if not messages:
+            return action_result.set_status(phantom.APP_SUCCESS, "No data found")
 
-        for curr_value in value:
-            action_result.add_data(curr_value)
+        for message in messages:
+            action_result.add_data(message)
 
         action_result.update_summary({'emails_matched': action_result.get_data_size()})
 
         return action_result.set_status(phantom.APP_SUCCESS)
+
+    def _get_folder_id(self, action_result, folder, email):
+        path = [x for x in folder.strip().split("/") if x]
+
+        ret = list()
+        try:
+            dir_id = self._get_folder(action_result, path[0], email)
+        except ReturnException:
+            return action_result.get_status()
+
+        if not dir_id:
+            return None, "Error: folder not found; {}".format(path[0].encode('utf-8')), ret
+
+        ret.append({"path": path[0], "folder": path[0], "folder_id": dir_id})
+
+        try:
+            for i, subf in enumerate(path[1:]):
+                subpath = "/".join(path[0:i + 2])
+                parent_id = dir_id
+                dir_id = self._get_child_folder(action_result, subf, parent_id, email)
+
+                if not dir_id:
+                    return None, "Error: child folder not found; {}".format(subpath.encode('utf-8')), ret
+
+                ret.append({"path": subpath, "folder": subf, "folder_id": dir_id})
+        except ReturnException:
+            return None, action_result.get_message(), None
+
+        return dir_id, None, ret
+
+    def _get_folder(self, action_result, folder, email):
+
+        params = {}
+        params['$filter'] = "displayName eq '{}'".format(folder.encode('utf-8'))
+        endpoint = "/users/{}/mailFolders".format(email)
+
+        ret_val, response = self._make_rest_call_helper(action_result, endpoint, params=params)
+
+        if (phantom.is_fail(ret_val)):
+            raise ReturnException()
+
+        value = response.get('value', [])
+        if len(value) > 0:
+            self._currentdir = value[0]
+            return value[0]['id']
+
+        return None
+
+    def _get_child_folder(self, action_result, folder, parent_id, email):
+
+        params = {}
+        params['$filter'] = "displayName eq '{}'".format(folder.encode('utf-8'))
+        endpoint = "/users/{}/mailFolders/{}/childFolders".format(email, parent_id)
+
+        ret_val, response = self._make_rest_call_helper(action_result, endpoint, params=params)
+
+        if (phantom.is_fail(ret_val)):
+            raise ReturnException()
+
+        value = response.get('value', [])
+        if len(value) > 0:
+            self._currentdir = value[0]
+            return value[0]['id']
+
+        return None
+
+    def _new_folder(self, action_result, folder, email):
+
+        data = json.dumps({ "displayName": folder })
+        endpoint = "/users/{}/mailFolders".format(email)
+
+        ret_val, response = self._make_rest_call_helper(action_result, endpoint, data=data, method="post")
+        if (phantom.is_fail(ret_val)):
+            raise ReturnException()
+
+        if response.get('id', False):
+            self._currentdir = response
+            self.save_progress("Success({}): created folder in mailbox".format(folder.encode('utf-8')))
+            return response['id']
+
+        msg = "Error({}): unable to create folder in mailbox".format(folder.encode('utf-8'))
+        self.save_progress(msg)
+        action_result.set_status(phantom.APP_ERROR, msg)
+        raise ReturnException()
+
+    def _new_child_folder(self, action_result, folder, parent_id, email, pathsofar):
+
+        data = json.dumps({ "displayName": folder })
+        endpoint = "/users/{}/mailFolders/{}/childFolders".format(email, parent_id)
+
+        ret_val, response = self._make_rest_call_helper(action_result, endpoint, data=data, method="post")
+        if (phantom.is_fail(ret_val)):
+            raise ReturnException()
+
+        if response.get('id', False):
+            self._currentdir = response
+            self.save_progress("Success({}): created child folder in folder {}".format(folder.encode('utf-8'), pathsofar))
+            return response['id']
+
+        msg = "Error({}): unable to create child folder in folder {}".format(folder.encode('utf-8'), pathsofar)
+        self.save_progress(msg)
+        action_result.set_status(phantom.APP_ERROR, msg)
+        raise ReturnException()
+
+    def _handle_create_folder(self, param):
+
+        self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
+        action_result = self.add_action_result(ActionResult(dict(param)))
+
+        email = param["email_address"]
+        folder = param["folder"].decode("utf-8", 'ignore').translate({92: 47})
+
+        minusp = param.get("all_subdirs", False)
+
+        path = [x for x in folder.strip().split("/") if x]
+        if len(path) == 0:
+            msg = "Error: Invalid folder path"
+            self.save_progress(msg)
+            return action_result.set_status(phantom.APP_ERROR, msg)
+
+        try:
+
+            dir_id = self._get_folder(action_result, path[0], email)
+
+            # only one, create as "Folder" in mailbox
+            if len(path) == 1:
+
+                if dir_id:
+                    msg = "Error({}): folder already exists in mailbox".format(path[0].encode('utf-8'))
+                    self.save_progress(msg)
+                    return action_result.set_status(phantom.APP_ERROR, msg)
+
+                self._new_folder(action_result, path[0], email)
+                action_result.add_data(self._currentdir)
+
+            # walk the path elements, creating each as needed
+            else:
+
+                pathsofar = ""
+
+                # first deal with the initial Folder
+                if not dir_id:
+                    if minusp:
+                        dir_id = self._new_folder(action_result, path[0], email)
+                        action_result.add_data(self._currentdir)
+
+                    else:
+                        msg = "Error({}): folder doesn't exists in mailbox".format(path[0])
+                        self.save_progress(msg)
+                        return action_result.set_status(phantom.APP_ERROR, msg)
+
+                pathsofar += "/" + path[0]
+                parent_id = dir_id
+
+                # next extract the final childFolder
+                final = path[-1]
+                path = path[1:-1]
+
+                # next all the childFolders in between
+                for subf in path:
+
+                    dir_id = self._get_child_folder(action_result, subf, parent_id, email)
+
+                    if not dir_id:
+                        if minusp:
+                            dir_id = self._new_child_folder(action_result, subf, parent_id, email, pathsofar)
+                            action_result.add_data(self._currentdir)
+
+                        else:
+                            msg = "Error({}): child folder doesn't exists in folder {}".format(subf.encode('utf-8'), pathsofar)
+                            self.save_progress(msg)
+                            return action_result.set_status(phantom.APP_ERROR, msg)
+
+                    pathsofar += "/" + subf
+                    parent_id = dir_id
+
+                # finally, the actual folder
+                dir_id = self._get_child_folder(action_result, final, parent_id, email)
+                if dir_id:
+                    msg = "Error: child folder {0} already exists in the folder {1}".format(final.encode('utf-8'), pathsofar)
+                    self.save_progress(msg)
+                    return action_result.set_status(phantom.APP_ERROR, msg)
+
+                dir_id = self._new_child_folder(action_result, final, parent_id, email, pathsofar)
+                action_result.add_data(self._currentdir)
+
+        except ReturnException:
+            return action_result.get_status()
+
+        action_result.update_summary({"folders created": len(action_result.get_data()), "folder": self._currentdir['id']})
+        return action_result.set_status(phantom.APP_SUCCESS)
+
+    def _handle_get_folder_id(self, param):
+
+        self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
+        action_result = self.add_action_result(ActionResult(dict(param)))
+
+        email = param["email_address"]
+        folder = param["folder"].decode("utf-8", 'ignore').translate({92: 47})
+
+        try:
+            dir_id, error, ret = self._get_folder_id(action_result, folder, email)
+
+        except ReturnException:
+            return action_result.get_status()
+
+        if len(ret) > 0:
+            for x in ret:
+                action_result.add_data(x)
+
+        if dir_id:
+            action_result.update_summary({"folder_id": dir_id})
+            return action_result.set_status(phantom.APP_SUCCESS)
+
+        else:
+            self.save_progress(error)
+            return action_result.set_status(phantom.APP_ERROR, error)
+
+    def _paginator(self, action_result, endpoint, limit=None, params=None, query=None):
+        """
+        This action is used to create an iterator that will paginate through responses from called methods.
+
+        :param method_name: Name of method whose response is to be paginated
+        :param action_result: Object of ActionResult class
+        :param **kwargs: Dictionary of Input parameters
+        """
+
+        list_items = list()
+        next_link = None
+
+        # maximum page size
+        page_size = MSGOFFICE365_PER_PAGE_COUNT
+
+        if limit and limit < page_size:
+            page_size = limit
+
+        if isinstance(params, dict):
+            params.update({"$top": page_size})
+        else:
+            params = {"$top": page_size}
+
+        if query:
+            params.update({"$filter": query})
+
+        while True:
+            if next_link:
+                ret_val, response = self._make_rest_call_helper(action_result, endpoint, nextLink=next_link, params=params)
+            else:
+                ret_val, response = self._make_rest_call_helper(action_result, endpoint, params=params)
+
+            if (phantom.is_fail(ret_val)):
+                return action_result.get_status(), None
+
+            if response.get("value"):
+                list_items.extend(response.get("value"))
+
+            if limit and len(list_items) >= limit:
+                return phantom.APP_SUCCESS, list_items[:limit]
+
+            next_link = response.get('@odata.nextLink', None)
+            if not next_link:
+                break
+
+            del(params['$top'])
+            if params == {}:
+                params = None
+
+        return phantom.APP_SUCCESS, list_items
 
     def handle_action(self, param):
 
@@ -979,6 +1564,9 @@ class Office365Connector(BaseConnector):
         elif action_id == 'copy_email':
             ret_val = self._handle_copy_email(param)
 
+        elif action_id == 'move_email':
+            ret_val = self._handle_move_email(param)
+
         elif action_id == 'delete_email':
             ret_val = self._handle_delete_email(param)
 
@@ -994,79 +1582,118 @@ class Office365Connector(BaseConnector):
         elif action_id == 'list_events':
             ret_val = self._handle_list_events(param)
 
+        elif action_id == 'list_groups':
+            ret_val = self._handle_list_groups(param)
+
+        elif action_id == 'list_users':
+            ret_val = self._handle_list_users(param)
+
+        elif action_id == 'list_folders':
+            ret_val = self._handle_list_folders(param)
+
+        elif action_id == 'oof_check':
+            ret_val = self._handle_oof_check(param)
+
         elif action_id == 'generate_token':
             ret_val = self._handle_generate_token(param)
 
+        elif action_id == 'create_folder':
+            ret_val = self._handle_create_folder(param)
+
+        elif action_id == 'get_folder_id':
+            ret_val = self._handle_get_folder_id(param)
+
         return ret_val
 
-    def _get_token(self, action_result, from_action=False):
+    def _get_token(self, action_result):
 
-        config = self.get_config()
+        req_url = SERVER_TOKEN_URL.format(self._tenant)
+        headers = {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        }
 
-        client_id = config['client_id']
-
-        client_secret = config['client_secret']
-
-        tenant = config['tenant']
-
-        req_url = SERVER_TOKEN_URL.format(tenant)
         data = {
-                'client_id': client_id,
-                'scope': 'https://graph.microsoft.com/.default',
-                'client_secret': client_secret,
-                'grant_type': 'client_credentials'}
+                    'client_id': self._client_id,
+                    'client_secret': self._client_secret,
+                    'grant_type': 'client_credentials'
+                }
 
-        if not(config.get("admin_access")):
-            data['redirect_uri'] = self._state.get('redirect_uri')
-            data['scope'] = 'offline_access ' + config.get("scope")
-            if from_action:
-                data['grant_type'] = "refresh_token"
-                data['refresh_token'] = self._state['token']['refresh_token']
+        if not self._admin_access:
+            data['scope'] = 'offline_access ' + self._scope
+        else:
+            data['scope'] = 'https://graph.microsoft.com/.default'
+
+        if not self._admin_access:
+            if self._state.get('non_admin_auth', {}).get('refresh_token'):
+                data['refresh_token'] = self._state.get('non_admin_auth').get('refresh_token')
+                data['grant_type'] = 'refresh_token'
+            elif self._state.get('code'):
+                data['redirect_uri'] = self._state.get('redirect_uri')
+                data['code'] = self._state.get('code')
+                data['grant_type'] = 'authorization_code'
             else:
-                data['grant_type'] = "authorization_code"
-                data['code'] = self._state.get('admin_consent')
+                return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_RUN_CONNECTIVITY_MSG)
 
-        ret_val, resp_json = _make_rest_call(action_result, req_url, data=data)
+        ret_val, resp_json = self._make_rest_call(action_result, req_url, headers=headers, data=data, method='post')
 
-        if (phantom.is_fail(ret_val)):
+        if phantom.is_fail(ret_val):
             return action_result.get_status()
 
-        self._state['token'] = resp_json
+        # Save the response on the basis of admin_acess
+        if self._admin_access:
+            self._state['admin_auth'] = resp_json
+        else:
+            self._state['non_admin_auth'] = resp_json
+
+        # Fetching the acces token and refresh token
+        self._access_token = resp_json.get('access_token')
+        self._refresh_token = resp_json.get('refresh_token')
+
+        # Save state
+        self.save_state(self._state)
+        _save_app_state(self._state, self.get_asset_id(), self)
 
         return (phantom.APP_SUCCESS)
 
     def initialize(self):
 
-        # Load the state in initialize
-        self._state = self.load_state()
-
-        # check if admin consent was granted
-        admin_consent = self._state.get('admin_consent')
         action_id = self.get_action_identifier()
-
-        if (action_id == 'generate_token'):
-            return phantom.APP_SUCCESS
-
-        # if it was not and the current action is not test connectivity then it's an error
-        if (not admin_consent) and (action_id != 'test_connectivity'):
-            return self.set_status(phantom.APP_ERROR,
-                    "Please Run test connectivity first to get an admin consent and generate a token that the app can use to make calls to the server")
-
-        if (action_id == 'test_connectivity'):
-            # User is trying to get the admin consent, so just return True from here so that test connectivity continues
-            return phantom.APP_SUCCESS
-
-        # if reached here, means it is some other action and admin has consented, so let's get a token
         action_result = ActionResult()
 
+        self._currentdir = None
+
+        # Load the state in initialize
         config = self.get_config()
 
-        if not(config.get('admin_access')):
-            ret_val = self._get_token(action_result, from_action=True)
+        # Load all the asset configuration in global variables
+        self._state = self.load_state()
+        self._tenant = config['tenant'].encode('utf-8')
+        self._client_id = config['client_id'].encode('utf-8')
+        self._client_secret = config['client_secret'].encode('utf-8')
+        self._admin_access = config.get('admin_access')
+        self._scope = config.get('scope').encode('utf-8') if config.get('scope') else None
+
+        if not self._admin_access:
+            self._access_token = self._state.get('non_admin_auth', {}).get('access_token')
+            self._refresh_token = self._state.get('non_admin_auth', {}).get('refresh_token')
         else:
+            self._access_token = self._state.get('admin_auth', {}).get('access_token')
+
+        if action_id == 'test_connectivity':
+            # User is trying to complete the authentication flow, so just return True from here so that test connectivity continues
+            return phantom.APP_SUCCESS
+
+        admin_consent = self._state.get('admin_consent')
+
+        # if it was not and the current action is not test connectivity then it's an error
+        if self._admin_access and not admin_consent and action_id != 'test_connectivity':
+            return self.set_status(phantom.APP_ERROR, MSGOFFICE365_RUN_CONNECTIVITY_MSG)
+
+        if not self._admin_access and action_id != 'test_connectivity' and (not self._access_token or not self._refresh_token):
             ret_val = self._get_token(action_result)
-        if (phantom.is_fail(ret_val)):
-            return self.set_status(phantom.APP_ERROR, action_result.get_message())
+
+            if phantom.is_fail(ret_val):
+                return self.set_status(phantom.APP_ERROR, "{0}. {1}".format(MSGOFFICE365_RUN_CONNECTIVITY_MSG, action_result.get_message()))
 
         return phantom.APP_SUCCESS
 
@@ -1074,6 +1701,7 @@ class Office365Connector(BaseConnector):
 
         # Save the state, this data is saved accross actions and app upgrades
         self.save_state(self._state)
+        _save_app_state(self._state, self.get_asset_id(), self)
         return phantom.APP_SUCCESS
 
 
@@ -1094,15 +1722,16 @@ if __name__ == '__main__':
     session_id = None
 
     if (args.username and args.password):
+        login_url = BaseConnector._get_phantom_base_url() + "login"
         try:
             print ("Accessing the Login page")
-            r = requests.get("https://127.0.0.1/login", verify=False)
+            r = requests.get(login_url, verify=False)
             csrftoken = r.cookies['csrftoken']
             data = {'username': args.username, 'password': args.password, 'csrfmiddlewaretoken': csrftoken}
-            headers = {'Cookie': 'csrftoken={0}'.format(csrftoken), 'Referer': 'https://127.0.0.1/login'}
+            headers = {'Cookie': 'csrftoken={0}'.format(csrftoken), 'Referer': login_url}
 
             print ("Logging into Platform to get the session id")
-            r2 = requests.post("https://127.0.0.1/login", verify=False, data=data, headers=headers)
+            r2 = requests.post(login_url, verify=False, data=data, headers=headers)
             session_id = r2.cookies['sessionid']
 
         except Exception as e:

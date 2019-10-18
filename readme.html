@@ -7,27 +7,27 @@
 
 <p>
 <h2>Authentication</h2>
-<br>
-This app requires creating a Microsoft Graph Application. To do so, navigate to https://apps.dev.microsoft.com in a browser and log in with a Microsoft account, then select <b>Add and app</b>.
+This app requires to create a Microsoft Graph Application. To do so, navigate to the URL https://apps.dev.microsoft.com in a browser and log in with the Microsoft account, then, click <b>Add an app</b>.
 <br><br>
-On the next page, give your application a name and select <b>Create</b>.
+On the next page, provide a name to your application and click on <b>Create</b>.
 <br><br>
-Once the app is created, three steps need to be taken on the next page:
+Once the app is created, follow the below three steps:
 <ul>
-    <li>Under <b>Application Secrets</b> select <b>Generate New Password</b>. Note this key somewhere secure, as it cannot be retrieved after closing the window.</li>
-    <li>Under <b>Platforms</b> select <b>Add Platform</b>. In the <b>Add Platform</b> window, select <b>Web</b>. The <b>Redirect URLs</b> field will be filled in during a later step.</li>
+    <li>Under <b>Application Secrets</b> select <b>Generate New Password</b>. Note down this key somewhere secure, as it cannot be retrieved after closing the window.</li>
+    <li>Under <b>Platforms</b> select <b>Add Platform</b>. In the <b>Add Platform</b> window, select <b>Web</b>. The <b>Redirect URLs</b> field will be filled in the later steps.</li>
     <li>Under <b>Microsoft Graph Permissions</b> the following <b>Application Permissions</b> need to be added:
     <ul>
-        <li>Mail.Read</li>
-        <li>Mail.ReadWrite</li>
-        <li>User.Read</li>
-        <li>User.Read.All</li>
-        <li>Calendar.Read - necessary only if you want to use the "list events" action</li>
+        <li>Mail.Read (https://graph.microsoft.com/Mail.Read)</li>
+        <li>Mail.ReadWrite (https://graph.microsoft.com/Mail.ReadWrite)</li>
+        <li>User.Read.All (https://graph.microsoft.com/User.Read.All)</li>
+        <li>Group.Read.All (https://graph.microsoft.com/Group.Read.All)- It is required only if you want to run the <b>list events</b> action for the group's calendar and for the <b>list groups</b> action</li>
+        <li>Calendar.Read (https://graph.microsoft.com/Calendars.Read)- It is required only if you want to run the <b>list events</b> action for the user's calendar</li>
+        <li>MailboxSettings.Read (https://graph.microsoft.com/MailboxSettings.Read)- It is required only if you want to run the <b>oof status</b> action</li>
     </ul>
 </ul>
-After making these changes, click <b>Save</b> at the bottom of the screen.
+After making these changes, click <b>Grant admin consent for Test Phantom</b> at the bottom of the screen.
 <h2>Phantom Graph Asset</h2>
-When creating an asset for the <b>MS Graph for Office 365</b> app, place <b>Application Id</b> of the app created during the previous step in the <b>Application ID</b> field and place the password generated during the app creation process in the <b>Application Secret</b> field. Then, after filling out the <b>Tenant</b> field, click <b>SAVE</b>.
+When creating an asset for the <b>MS Graph for Office 365</b> app, place <b>Application ID</b> of the app created during the previous step in the <b>Application ID</b> field and place the password generated during the app creation process in the <b>Application Secret</b> field. Then, after filling out the <b>Tenant</b> field, click <b>SAVE</b>.
 <br><br>
 After saving, a new field will appear in the <b>Asset Settings</b> tab. Take the URL found in the <b>POST incoming for MS Graph for Office 365 to this location</b> field and place it in the <b>Redirect URLs</b> field mentioned in a previous step. To this URL, add <b>/result</b>. After doing so the URL should look something like:
 <br><br>
@@ -38,16 +38,21 @@ https://&lt;phantom_host&gt;/rest/handler/msgraphforoffice365_0a0a4087-10e8-4c96
 Once again, click save at the bottom of the screen.
 <br>
 <h2>User Permissions</h2>
-To complete the authorization process, this app needs permission to view assets, which is not granted by default. First, under <b>asset settings</b>, check which user is listed under <b>Select a user on behalf of which automated actions can be executed</b>. By default, the user will be <b>automation</b>, but this user can be changed by clicking <b>EDIT</b> at the bottom of the window. To give this user permission to view assets, follow these steps:
+To complete the authorization process, this app needs permission to view assets, which is not granted by default. First, under <b>asset settings</b>, check which user has listed under <b>Select a user on behalf of which automated actions can be executed</b>. By default, the user will be <b>automation</b>, but this user can be changed by clicking <b>EDIT</b> at the bottom of the window. To give this user permission to view assets, follow these steps:
 <ul>
     <li>In the main drop-down menu, select <b>Administration</b>, then select the <b>User Management</b>, and under that tab, select <b>Roles</b>. Finally, click <b>+ ROLE</b>.</li>
     <li>In the <b>Add Role</b> wizard, give the role a name (e.g <b>Asset Viewer</b>), and provide a description. Subsequently, under <b>Available Users</b>, add the user assigned to the asset viewed earlier. Then click the <b>Permissions</b> tab.</li>
     <li>On the permission tab, under <b>Available Privileges</b>, give the role the <b>View Assets</b> privilege. Then click <b>SAVE</b>.</li>
 </ul>
 <h3>Test connectivity</h3>
-After setting up the asset and user, click the <b>TEST CONNECTIVITY</b> button. A window should pop up and display a URL. Navigate to this URL in a separate browser tab. This new tab will redirect to a Microsoft login page. Log in to a Microsoft account with administrator privileges to the desired mailboxes. After logging in, review the requested permissions listed, then click <b>Accept</b>. Finally, close that tab. The test connectivity window should show the success.
+After setting up the asset and user, click the <b>TEST CONNECTIVITY</b> button. A window should pop up and display a URL. Navigate to this URL in a separate browser tab. This new tab will redirect to a Microsoft login page. Log in to a Microsoft account with administrator privileges to the desired mailboxes. After logging in, review the requested permissions listed, then click <b>Accept</b>. Finally, close that tab. The test connectivity window should show success.
 <br><br>
 The app should now be ready to be used.
 <br />
-Note: An optional parameter "Admin Access Required" has been added to this app. In most cases this should remain checked, as admin access is required for email use cases. If the desired integration is to integrate with only one user's calendar, you may consider unchecking this box. If unchecked, it allows a non admin user to provide access to a specific account. This functionality will ONLY work with the "list events" functionality. If unchecked, the "Access scope" <em>must</em> be used. The default scope will work for listing calendar events. Additional information on scope can be found <a href="https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-permissions-and-consent#openid-connect-scopes">here.</a>
+<h3>Note</h3>
+<ul>
+    <li>An optional parameter <b>Admin Access Required</b> has been added to this app. In most cases, this should remain checked, as admin access is required for email use cases. If the desired integration is to integrate with only one user's calendar, you may consider unchecking this box. If unchecked, it allows a non-admin user to provide access to a specific account. This functionality will ONLY work with the <b>list events</b> functionality. If unchecked, the <b>Access scope</b> <em>must</em> be used. The default scope will work for listing calendar events. Additional information on scope can be found <a href="https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-permissions-and-consent#openid-connect-scopes" target="_blank">here.</a></li>
+    <li>As per the Microsoft known issues for <b>Group.Read.All</b> permission (<a href="https://docs.microsoft.com/en-us/graph/known-issues#groups" target="_blank">here</a>), if you want to run the <b>list events</b> for fetching group's calendar events, you have to uncheck an optional parameter <b>Admin Access Required</b> and provide <b>Group.Read.All (https://graph.microsoft.com/Group.Read.All)</b> permission into the scope parameter in the asset configuration parameters. If an asset parameter <b>Admin Access Required</b> checked and configured the app with above mentioned all the application permissions (which includes <b>Group.Read.All</b> application permission), it throws an error like <b>Access is denied</b> while running <b>list events</b> action for fetching group's calendar events. Because of the known issue of <b>Group.Read.All</b> application permission, this permission required admin consent (on behalf of the user permission) to fetch the group's calendar events.</li>
+    <li>If the parameter <b>Admin Access Required</b> is unchecked, you have to provide a <b>scope</b> parameter in the asset configuration. All the actions will get executed according to the scopes provided in the <b>scope</b> config parameter. The actions will throw an appropriate error if the corresponding permissions scope is not provided by the end user.</li>
+</ul>
 </p>
