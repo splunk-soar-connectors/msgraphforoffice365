@@ -1,25 +1,25 @@
 {
     "appid": "0a0a4087-10e8-4c96-9872-b740ff26d8bb",
     "name": "MS Graph for Office 365",
-    "description": "Connects to Office 365 using the MS Graph API",
+    "description": "This app connects to Office 365 using the MS Graph API to support investigate and generic actions related to the email messages and calendar events",
     "type": "email",
     "product_vendor": "Microsoft",
     "logo": "logo_microsoftoffice365.svg",
     "logo_dark": "logo_microsoftoffice365_dark.svg",
     "product_name": "Office 365 (MS Graph)",
     "product_version_regex": ".*",
-    "publisher": "Phantom",
+    "publisher": "Splunk",
     "license": "Copyright (c) 2017-2019 Splunk Inc.",
-    "app_version": "1.0.21",
-    "utctime_updated": "2019-07-08T21:28:35.000000Z",
+    "app_version": "1.0.22",
+    "utctime_updated": "2019-07-19T21:28:35.000000Z",
     "package_name": "phantom_msgraphoffice365",
     "main_module": "office365_connector.pyc",
-    "min_phantom_version": "4.0.1068",
+    "min_phantom_version": "4.2.7532",
     "app_wizard_version": "1.0.0",
     "rest_handler": "office365_connector.handle_request",
     "configuration": {
         "tenant": {
-            "description": "Tenant (e.g. contoso.onmicrosoft.com)",
+            "description": "Tenant ID (e.g. 1e309abf-db6c-XXXX-a1d2-XXXXXXXXXXXX)",
             "data_type": "string",
             "required": true,
             "order": 0
@@ -47,9 +47,9 @@
             "order": 4
         },
         "scope": {
-            "description": "Access scope (for use with non-admin access; space-separated)",
+            "description": "Access Scope (for use with non-admin access; space-separated)",
             "data_type": "string",
-            "default": "https://graph.microsoft.com/calendars.read https://graph.microsoft.com/user.read",
+            "default": "https://graph.microsoft.com/Calendars.Read https://graph.microsoft.com/User.Read",
             "order": 5
         }
     },
@@ -67,15 +67,20 @@
         {
             "action": "generate token",
             "identifier": "generate_token",
-            "description": "Generates a token",
-            "verbose": "",
+            "description": "Generate a token",
             "type": "generic",
             "read_only": false,
             "parameters": {},
             "output": [
                 {
                     "data_path": "action_result.status",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ],
+                    "column_name": "Status",
+                    "column_order": 0
                 },
                 {
                     "data_path": "action_result.data",
@@ -88,16 +93,25 @@
                 {
                     "data_path": "action_result.message",
                     "data_type": "string",
-                    "column_name": "status",
-                    "column_order": 0
+                    "example_values": [
+                        "Token generated"
+                    ],
+                    "column_name": "Message",
+                    "column_order": 1
                 },
                 {
                     "data_path": "summary.total_objects",
-                    "data_type": "numeric"
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
                 },
                 {
                     "data_path": "summary.total_objects_successful",
-                    "data_type": "numeric"
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
                 }
             ],
             "render": {
@@ -106,88 +120,247 @@
             "versions": "EQ(*)"
         },
         {
-            "action": "list events",
-            "identifier": "list_events",
-            "description": "List events from user or group calendar",
-            "type": "generic",
-            "read_only": false,
+            "action": "oof check",
+            "identifier": "oof_check",
+            "description": "Get user's out of office status",
+            "type": "investigate",
+            "read_only": true,
             "parameters": {
                 "user_id": {
-                    "description": "User ID/Principal Name",
+                    "description": "User ID/Principal name",
                     "data_type": "string",
-                    "required": false,
+                    "required": true,
                     "primary": true,
+                    "contains": [
+                        "msgoffice365 user id",
+                        "msgoffice365 user principle name",
+                        "email"
+                    ],
                     "order": 0
-                },
-                "group_id": {
-                    "description": "Group ID",
-                    "data_type": "string",
-                    "required": false,
-                    "primary": false,
-                    "order": 1
-                },
-                "filter": {
-                    "description": "OData Query to filter/search for specific results",
-                    "data_type": "string",
-                    "required": false,
-                    "primary": false,
-                    "order": 2
                 }
             },
             "output": [
                 {
                     "data_path": "action_result.status",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.parameter.filter",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.parameter.group_id",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
                 },
                 {
                     "data_path": "action_result.parameter.user_id",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "contains": [
+                        "msgoffice365 user id",
+                        "msgoffice365 user principle name",
+                        "email"
+                    ],
+                    "column_name": "User ID/Principle Name",
+                    "column_order": 0
                 },
                 {
                     "data_path": "action_result.data.*.@odata.etag",
                     "data_type": "string"
                 },
                 {
+                    "data_path": "action_result.data.*.status",
+                    "data_type": "string",
+                    "column_name": "Out of Office Status",
+                    "column_order": 1,
+                    "example_values": [
+                        "alwaysEnabled"
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary.events_matched",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "Successfully retrieved out of office status"
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                }
+            ],
+            "render": {
+                "width": 4,
+                "title": "Out of Office Status",
+                "type": "table",
+                "height": 5
+            },
+            "versions": "EQ(*)"
+        },
+        {
+            "action": "list events",
+            "identifier": "list_events",
+            "description": "List events from user or group calendar",
+            "type": "investigate",
+            "read_only": true,
+            "parameters": {
+                "user_id": {
+                    "description": "User ID/Principal name",
+                    "data_type": "string",
+                    "required": false,
+                    "primary": true,
+                    "contains": [
+                        "msgoffice365 user id",
+                        "msgoffice365 user principle name",
+                        "email"
+                    ],
+                    "order": 0
+                },
+                "group_id": {
+                    "description": "Group ID",
+                    "data_type": "string",
+                    "required": false,
+                    "primary": true,
+                    "contains": [
+                        "msgoffice365 group id"
+                    ],
+                    "order": 1
+                },
+                "filter": {
+                    "description": "OData query to filter/search for specific results",
+                    "data_type": "string",
+                    "required": false,
+                    "order": 2
+                },
+                "limit": {
+                    "description": "Maximum number of events to return",
+                    "data_type": "numeric",
+                    "required": false,
+                    "order": 3
+                }
+            },
+            "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.filter",
+                    "data_type": "string",
+                    "example_values": [
+                        "$filter=subject eq 'Test2'",
+                        "$orderby=organizer/emailAddress/name desc"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.group_id",
+                    "data_type": "string",
+                    "contains": [
+                        "msgoffice365 group id"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.limit",
+                    "data_type": "numeric",
+                    "example_values": [
+                        20
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.user_id",
+                    "data_type": "string",
+                    "contains": [
+                        "msgoffice365 user id",
+                        "msgoffice365 user principle name",
+                        "email"
+                    ],
+                    "example_values": [
+                        "test@testdomain.onmicrosoft.com"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.@odata.etag",
+                    "data_type": "string",
+                    "example_values": [
+                        "W/\"b1MzKFCcdkuJ24Mc2VsdjwABAdhQhg==\""
+                    ]
+                },
+                {
                     "data_path": "action_result.data.*.attendee_list",
                     "data_type": "string",
                     "column_name": "Attendee(s)",
-                    "column_order": 3
+                    "column_order": 3,
+                    "example_values": [
+                        "H-test, o365group"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.attendees.*.emailAddress.address",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "H-test@testdomain.onmicrosoft.com"
+                    ],
+                    "contains": [
+                        "email"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.attendees.*.emailAddress.name",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "H-test"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.attendees.*.status.response",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "none"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.attendees.*.status.time",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "0001-01-01T00:00:00Z"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.attendees.*.type",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "required"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.body.content",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "<html><head><meta name=\"Generator\" content=\"Microsoft Exchange Server\">\r\n<!-- converted from text -->\r\n<style><!-- .EmailQuote { margin-left: 1pt; padding-left: 4pt; border-left: #800000 2px solid; } --></style></head>\r\n<body>\r\n<font size=\"2\"><span style=\"font-size:11pt;\"><div class=\"PlainText\">&nbsp;</div></span></font>\r\n</body>\r\n</html>\r\n"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.body.contentType",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "html"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.bodyPreview",
@@ -199,85 +372,275 @@
                 },
                 {
                     "data_path": "action_result.data.*.changeKey",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "b1MzKFCcdkuJ24Mc2VsdjwABAdhQhg=="
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.createdDateTime",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "2019-10-03T09:03:42.4958512Z"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.end.dateTime",
                     "data_type": "string",
                     "column_name": "End Time",
-                    "column_order": 1
+                    "column_order": 2,
+                    "example_values": [
+                        "2019-10-04T15:30:00.0000000"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.end.timeZone",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "UTC"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.hasAttachments",
-                    "data_type": "boolean"
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.iCalUId",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "040000008200E00074C5B7101A82E00800000000347B5D74C979D5010000000000000000100000003F2152B556F23543B1B9C751CCD711A3"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.id",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "AAMkAGFmNTRhODA4LWIxMjQtNDJjYy05NDM2LWQ5MzY1MGFhMTkzYwBGAAAAAADRlY7ewL4xToKRDciQog5UBwBvUzMoUJx2S4nbgxzZWx2PAAAAAAENAABvUzMoUJx2S4nbgxzZWx2PAAEB90vfAAA="
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.importance",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "normal"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.isAllDay",
-                    "data_type": "boolean"
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.isCancelled",
-                    "data_type": "boolean"
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.isOrganizer",
-                    "data_type": "boolean"
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.isReminderOn",
-                    "data_type": "boolean"
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.lastModifiedDateTime",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "2019-10-04T15:24:43.0639836Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.location.address.city",
+                    "data_type": "string",
+                    "example_values": [
+                        "City"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.location.address.countryOrRegion",
+                    "data_type": "string",
+                    "example_values": [
+                        "Country"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.location.address.postalCode",
+                    "data_type": "string",
+                    "example_values": [
+                        "245004"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.location.address.state",
+                    "data_type": "string",
+                    "example_values": [
+                        "State"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.location.address.street",
+                    "data_type": "string",
+                    "example_values": [
+                        "Location Address"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.location.coordinates.latitude",
+                    "data_type": "numeric",
+                    "example_values": [
+                        23.0011
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.location.coordinates.longitude",
+                    "data_type": "numeric",
+                    "example_values": [
+                        72.4994
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.location.displayName",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "Test"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.location.locationType",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "default"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.location.locationUri",
+                    "data_type": "string",
+                    "example_values": [
+                        "https://www.bingapis.com/api/v6/localbusinesses/YN4070x2912827763012539383?setLang=en"
+                    ],
+                    "contains": [
+                        "url"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.location.uniqueId",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "f30c3e81-78b7-4f47-8890-f60c3f57e199"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.location.uniqueIdType",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "unknown"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.locations.*.address.city",
+                    "data_type": "string",
+                    "example_values": [
+                        "City"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.locations.*.address.countryOrRegion",
+                    "data_type": "string",
+                    "example_values": [
+                        "Country"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.locations.*.address.postalCode",
+                    "data_type": "string",
+                    "example_values": [
+                        "245004"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.locations.*.address.state",
+                    "data_type": "string",
+                    "example_values": [
+                        "State"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.locations.*.address.street",
+                    "data_type": "string",
+                    "example_values": [
+                        "Location Address"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.locations.*.coordinates.latitude",
+                    "data_type": "numeric",
+                    "example_values": [
+                        23.0011
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.locations.*.coordinates.longitude",
+                    "data_type": "numeric",
+                    "example_values": [
+                        72.4994
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.locations.*.displayName",
+                    "data_type": "string",
+                    "example_values": [
+                        "Test Building Address Bus Stop"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.locations.*.locationType",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "localBusiness"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.locations.*.locationUri",
+                    "data_type": "string",
+                    "example_values": [
+                        "https://www.bingapis.com/api/v6/localbusinesses/YN4070x2912827763012539383?setLang=en"
+                    ],
+                    "contains": [
+                        "url"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.locations.*.uniqueId",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "f30c3e81-78b7-4f47-8890-f60c3f57e199"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.locations.*.uniqueIdType",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "locationStore"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.onlineMeetingUrl",
@@ -288,19 +651,34 @@
                 },
                 {
                     "data_path": "action_result.data.*.organizer.emailAddress.address",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "contains": [
+                        "email"
+                    ],
+                    "example_values": [
+                        "test@testdomain.onmicrosoft.com"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.organizer.emailAddress.name",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "Test Name"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.originalEndTimeZone",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "Pacific Standard Time"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.originalStartTimeZone",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "Pacific Standard Time"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.recurrence",
@@ -308,23 +686,39 @@
                 },
                 {
                     "data_path": "action_result.data.*.reminderMinutesBeforeStart",
-                    "data_type": "numeric"
+                    "data_type": "numeric",
+                    "example_values": [
+                        15
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.responseRequested",
-                    "data_type": "boolean"
+                    "data_type": "boolean",
+                    "example_values": [
+                        false,
+                        true
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.responseStatus.response",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "organizer"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.responseStatus.time",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "0001-01-01T00:00:00Z"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.sensitivity",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "normal"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.seriesMasterId",
@@ -332,33 +726,51 @@
                 },
                 {
                     "data_path": "action_result.data.*.showAs",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "busy"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.start.dateTime",
                     "data_type": "string",
                     "column_name": "Start Time",
-                    "column_order": 0
+                    "column_order": 1,
+                    "example_values": [
+                        "2019-10-04T15:00:00.0000000"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.start.timeZone",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "UTC"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.subject",
                     "data_type": "string",
-                    "column_name": "subject",
-                    "column_order": 2
+                    "column_name": "Subject",
+                    "column_order": 0,
+                    "example_values": [
+                        "New event - 1"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.type",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "singleInstance"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.webLink",
                     "data_type": "string",
                     "contains": [
                         "url"
+                    ],
+                    "example_values": [
+                        "https://outlook.office365.com/owa/?itemid=AAMkAGFmNTRhODA4LWIxMjQtNDJjYy05NDM2LWQ5MzY1MGFhMTkzYwBGAAAAAADRlY7ewL4xToKRDciQog5UBwBvUzMoUJx2S4nbgxzZWx2PAAAAAAENAABvUzMoUJx2S4nbgxzZWx2PAAEB90vfAAA%3D&exvsurl=1&path=/calendar/item"
                     ]
                 },
                 {
@@ -367,33 +779,605 @@
                 },
                 {
                     "data_path": "action_result.summary.events_matched",
-                    "data_type": "numeric"
+                    "data_type": "numeric",
+                    "example_values": [
+                        8
+                    ]
                 },
                 {
                     "data_path": "action_result.message",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "Successfully retrieved 8 events"
+                    ]
                 },
                 {
                     "data_path": "summary.total_objects",
-                    "data_type": "numeric"
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
                 },
                 {
                     "data_path": "summary.total_objects_successful",
-                    "data_type": "numeric"
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
                 }
             ],
             "render": {
-                "width": 4,
+                "width": 12,
                 "title": "Calendar Events",
-                "type": "table",
-                "height": 5
+                "type": "custom",
+                "height": 5,
+                "view": "office365_view.display_view"
+
             },
             "versions": "EQ(*)"
+        },
+        {
+            "action": "list users",
+            "identifier": "list_users",
+            "description": "Retrieve a list of users",
+            "type": "investigate",
+            "read_only": true,
+            "parameters": {
+                "filter": {
+                    "description": "Search for specific results",
+                    "data_type": "string",
+                    "required": false,
+                    "order": 0
+                },
+                "limit": {
+                    "description": "Maximum number of users to return",
+                    "data_type": "numeric",
+                    "required": false,
+                    "order": 1
+                }
+            },
+            "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.filter",
+                    "data_type": "string",
+                    "example_values": [
+                        "displayName eq 'User Name'"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.limit",
+                    "data_type": "numeric",
+                    "example_values": [
+                        20
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.businessPhones",
+                    "data_type": "string",
+                    "example_values": [
+                        "2056120271"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.displayName",
+                    "data_type": "string",
+                    "example_values": [
+                        "Test Admin"
+                    ],
+                    "column_name": "Display Name",
+                    "column_order": 2
+                },
+                {
+                    "data_path": "action_result.data.*.givenName",
+                    "data_type": "string",
+                    "example_values": [
+                        "Test"
+                    ],
+                    "column_name": "Given Name",
+                    "column_order": 3
+                },
+                {
+                    "data_path": "action_result.data.*.id",
+                    "data_type": "string",
+                    "example_values": [
+                        "6132ca31-7a09-434f-a269-abe836d0c01e"
+                    ],
+                    "contains": [
+                        "msgoffice365 user id"
+                    ],
+                    "column_name": "User ID",
+                    "column_order": 0
+                },
+                {
+                    "data_path": "action_result.data.*.jobTitle",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.mail",
+                    "data_type": "string",
+                    "contains": [
+                        "email"
+                    ],
+                    "example_values": [
+                        "test@testdomain.onmicrosoft.com"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.mobilePhone",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.officeLocation",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.preferredLanguage",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.surname",
+                    "data_type": "string",
+                    "example_values": [
+                        "Globaltest"
+                    ],
+                    "column_name": "Surname",
+                    "column_order": 4
+                },
+                {
+                    "data_path": "action_result.data.*.userPrincipalName",
+                    "data_type": "string",
+                    "example_values": [
+                        "test@testdomain.onmicrosoft.com"
+                    ],
+                    "contains": [
+                        "msgoffice365 user principle name",
+                        "email"
+                    ],
+                    "column_name": "User Principle Name",
+                    "column_order": 1
+                },
+                {
+                    "data_path": "action_result.summary.total_users_returned",
+                    "data_type": "numeric",
+                    "example_values": [
+                        11
+                    ]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "Successfully retrieved 11 users"
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                }
+            ],
+            "versions": "EQ(*)",
+            "render": {
+                "width": 12,
+                "title": "List Users",
+                "type": "table",
+                "height": 5
+            }
+        },
+        {
+            "action": "list groups",
+            "identifier": "list_groups",
+            "description": "List all the groups in an organization, including but not limited to Office 365 groups",
+            "type": "investigate",
+            "read_only": true,
+            "parameters": {
+                "filter": {
+                    "description": "Search for specific results",
+                    "data_type": "string",
+                    "required": false,
+                    "order": 0
+                },
+                "limit": {
+                    "description": "Maximum number of groups to return",
+                    "data_type": "numeric",
+                    "required": false,
+                    "order": 1
+                }
+            },
+            "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.filter",
+                    "data_type": "string",
+                    "example_values": [
+                        "displayName eq 'Group Name'"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.limit",
+                    "data_type": "numeric",
+                    "example_values": [
+                        20
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.classification",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.createdDateTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "2018-09-11T09:51:07Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.creationOptions",
+                    "data_type": "string",
+                    "example_values": [
+                        "ExchangeProvisioningFlags:3552"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.deletedDateTime",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "This is for testing purpose"
+                    ],
+                    "column_name": "Description",
+                    "column_order": 3
+                },
+                {
+                    "data_path": "action_result.data.*.displayName",
+                    "data_type": "string",
+                    "example_values": [
+                        "Test-test-site"
+                    ],
+                    "column_name": "Display Name",
+                    "column_order": 2
+                },
+                {
+                    "data_path": "action_result.data.*.groupTypes",
+                    "data_type": "string",
+                    "example_values": [
+                        "Unified"
+                    ],
+                    "column_name": "Group Type",
+                    "column_order": 4
+                },
+                {
+                    "data_path": "action_result.data.*.id",
+                    "data_type": "string",
+                    "example_values": [
+                        "2a201c95-101b-42d9-a7af-9a2fdf8193f1"
+                    ],
+                    "contains": [
+                        "msgoffice365 group id"
+                    ],
+                    "column_name": "Group ID",
+                    "column_order": 0
+                },
+                {
+                    "data_path": "action_result.data.*.isAssignableToRole",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.mail",
+                    "data_type": "string",
+                    "example_values": [
+                        "Test-test-site@testdomain.onmicrosoft.com"
+                    ],
+                    "contains": [
+                        "email"
+                    ],
+                    "column_name": "Group Mail ID",
+                    "column_order": 1
+                },
+                {
+                    "data_path": "action_result.data.*.mailEnabled",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.mailNickname",
+                    "data_type": "string",
+                    "example_values": [
+                        "Test-test-site"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.onPremisesLastSyncDateTime",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.onPremisesSecurityIdentifier",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.onPremisesSyncEnabled",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.preferredDataLocation",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.proxyAddresses",
+                    "data_type": "string",
+                    "example_values": [
+                        "SMTP:test-h@testdomain.onmicrosoft.com"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.renewedDateTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "2018-09-11T09:51:07Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.resourceBehaviorOptions",
+                    "data_type": "string",
+                    "example_values": [
+                        "WelcomeEmailDisabled"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.resourceProvisioningOptions",
+                    "data_type": "string",
+                    "example_values": [
+                        "Team"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.securityEnabled",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.visibility",
+                    "data_type": "string",
+                    "example_values": [
+                        "Private"
+                    ],
+                    "column_name": "Visibility",
+                    "column_order": 4
+                },
+                {
+                    "data_path": "action_result.summary.total_groups_returned",
+                    "data_type": "numeric",
+                    "example_values": [
+                        9
+                    ]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "Successfully retrieved 9 groups"
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                }
+            ],
+            "versions": "EQ(*)",
+            "render": {
+                "width": 12,
+                "title": "List Groups",
+                "type": "table",
+                "height": 5
+            }
+        },
+        {
+            "action": "list folders",
+            "identifier": "list_folders",
+            "description": "Retrieve a list of mail folders",
+            "verbose": "If you want to list all the child folders (includes all the sub-levels) of the specific parent folder, then, you have to provide the parent <b>folder_id</b> parameter. If you don't provide <b>folder_id</b> it will list all the folders on Office 365 account (includes all the sub-level folders).",
+            "type": "investigate",
+            "read_only": true,
+            "parameters": {
+                "user_id": {
+                    "description": "User ID/Principal name",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": true,
+                    "order": 0,
+                    "contains": [
+                        "msgoffice365 user id",
+                        "msgoffice365 user principle name",
+                        "email"
+                    ]
+                },
+                "folder_id": {
+                    "description": "Parent mail folder ID",
+                    "data_type": "string",
+                    "required": false,
+                    "primary": true,
+                    "order": 1,
+                    "contains": [
+                        "msgoffice365 folder id"
+                    ]
+                }
+            },
+            "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.folder_id",
+                    "data_type": "string",
+                    "example_values": [
+                        "AAMkAGFmNTRhODA4LWIxMjQtNDJjYy05NDM2LWQ5MzY1MGFhMTkzYwAuAAAAAADRlY7ewL4xToKRDciQog5UAQBvUzMoUJx2S4nbgxzZWx2PAAD9nLiRAAA="
+                    ],
+                    "contains": [
+                        "msgoffice365 folder id"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.user_id",
+                    "data_type": "string",
+                    "example_values": [
+                        "test@testdomain.onmicrosoft.com"
+                    ],
+                    "contains": [
+                        "msgoffice365 user id",
+                        "msgoffice365 user principle name",
+                        "email"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.childFolderCount",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ],
+                    "column_name": "Child Folder Count",
+                    "column_order": 3
+                },
+                {
+                    "data_path": "action_result.data.*.displayName",
+                    "data_type": "string",
+                    "example_values": [
+                        "test"
+                    ],
+                    "column_name": "Display Name",
+                    "column_order": 0
+                },
+                {
+                    "data_path": "action_result.data.*.id",
+                    "data_type": "string",
+                    "example_values": [
+                        "AAMkAGFmNTRhODA4LWIxMjQtNDJjYy05NDM2LWQ5MzY1MGFhMTkzYwAuAAAAAADRlY7ewL4xToKRDciQog5UAQBvUzMoUJx2S4nbgxzZWx2PAAD9nLiRAAA="
+                    ],
+                    "column_name": "Folder ID",
+                    "column_order": 1,
+                    "contains": [
+                        "msgoffice365 folder id"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.parentFolderId",
+                    "data_type": "string",
+                    "example_values": [
+                        "AAMkAGFmNTRhODA4LWIxMjQtNDJjYy05NDM2LWQ5MzY1MGFhMTkzYwAuAAAAAADRlY7ewL4xToKRDciQog5UAQBvUzMoUJx2S4nbgxzZWx2PAAAAAAEIAAA="
+                    ],
+                    "column_name": "Parent Folder ID",
+                    "column_order": 2,
+                    "contains": [
+                        "msgoffice365 folder id"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.totalItemCount",
+                    "data_type": "numeric",
+                    "example_values": [
+                        0
+                    ],
+                    "column_name": "Total Item Count",
+                    "column_order": 5
+                },
+                {
+                    "data_path": "action_result.data.*.unreadItemCount",
+                    "data_type": "numeric",
+                    "example_values": [
+                        0
+                    ],
+                    "column_name": "Unread Item Count",
+                    "column_order": 4
+                },
+                {
+                    "data_path": "action_result.summary.total_folders_returned",
+                    "data_type": "numeric",
+                    "example_values": [
+                        14
+                    ]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "Successfully retrieved 14 mail folders"
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                }
+            ],
+            "versions": "EQ(*)",
+            "render": {
+                "width": 12,
+                "title": "List Folders",
+                "type": "table",
+                "height": 5
+            }
         },
         {
             "action": "copy email",
             "identifier": "copy_email",
             "description": "Copy an email to a folder",
+            "verbose": "The <b>get_folder_id</b> parameter should be enabled only when you have specified folder name/folder path in the <b>folder</b> parameter. If you provide folder ID in the <b>folder</b> parameter and set <b>get_folder_id</b> parameter to true, it will throw an error of folder ID not found for given folder name (because the action considers folder parameter value as folder name/folder path). The <b>folder</b> parameter must be either a (case sensitive) well-known name [list here; https://docs.microsoft.com/en-us/graph/api/resources/mailfolder?view=graph-rest-1.0] or the internal o365 folder ID.",
             "type": "generic",
             "read_only": false,
             "parameters": {
@@ -403,12 +1387,12 @@
                     "required": true,
                     "primary": true,
                     "contains": [
-                        "email id"
+                        "msgoffice365 message id"
                     ],
                     "order": 0
                 },
                 "email_address": {
-                    "description": "Source Mailbox (Email)",
+                    "description": "Source mailbox (email)",
                     "data_type": "string",
                     "required": true,
                     "contains": [
@@ -417,15 +1401,22 @@
                     "order": 1
                 },
                 "folder": {
-                    "description": "Destination Mail Folder Name/Path",
+                    "description": "Destination folder; this must be either a (case-sensitive) well-known name or the internal o365 folder ID",
                     "data_type": "string",
                     "required": true,
                     "primary": true,
                     "contains": [
-                        "mail folder",
-                        "mail folder path"
+                        "msgoffice365 mail folder",
+                        "msgoffice365 mail folder path",
+                        "msgoffice365 folder id"
                     ],
                     "order": 2
+                },
+                "get_folder_id": {
+                    "description": "Assume the folder parameter contains a folder name/folder path, separated by \"/\" or \"\\\" ; i.e. Inbox/dir1/dir2/dir3. If this parameter is enabled, it retrieves the folder ID for the provided folder name/folder path automatically and replaces the parameter value",
+                    "data_type": "boolean",
+                    "default": true,
+                    "order": 3
                 }
             },
             "output": [
@@ -433,7 +1424,8 @@
                     "data_path": "action_result.status",
                     "data_type": "string",
                     "example_values": [
-                        "success"
+                        "success",
+                        "failed"
                     ]
                 },
                 {
@@ -442,30 +1434,39 @@
                     "contains": [
                         "email"
                     ],
-                    "column_name": "email",
+                    "column_name": "Email",
                     "column_order": 0,
                     "example_values": [
-                        "herman@phantomengineering.onmicrosoft.com"
+                        "test@testdomain.onmicrosoft.com"
                     ]
                 },
                 {
                     "data_path": "action_result.parameter.folder",
                     "data_type": "string",
                     "contains": [
-                        "mail folder",
-                        "mail folder path"
+                        "msgoffice365 mail folder",
+                        "msgoffice365 mail folder path",
+                        "msgoffice365 folder id"
                     ],
-                    "column_name": "folder",
+                    "column_name": "Folder",
                     "column_order": 1,
                     "example_values": [
                         "AQMkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQAuAAADyW3X5P7Hb0_MMHKonvdoWQEAQSl1b8BFiEmbqZql_JiUtwAAAgEbAAAA"
                     ]
                 },
                 {
+                    "data_path": "action_result.parameter.get_folder_id",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
                     "data_path": "action_result.parameter.id",
                     "data_type": "string",
                     "contains": [
-                        "email id"
+                        "msgoffice365 message id"
                     ],
                     "example_values": [
                         "AQMkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQBGAAADyW3X5P7Hb0_MMHKonvdoWQcAQSl1b8BFiEmbqZql_JiUtwAAAgEMAAAAQSl1b8BFiEmbqZql_JiUtwABS2DpdwAAAA=="
@@ -502,14 +1503,14 @@
                         "email"
                     ],
                     "example_values": [
-                        "susan@phantomengineering.onmicrosoft.com"
+                        "test@testdomain.onmicrosoft.com"
                     ]
                 },
                 {
                     "data_path": "action_result.data.*.bccRecipients.name",
                     "data_type": "string",
                     "example_values": [
-                        "Susan Edwards"
+                        "Test Name"
                     ]
                 },
                 {
@@ -544,14 +1545,14 @@
                         "email"
                     ],
                     "example_values": [
-                        "susan@phantomengineering.onmicrosoft.com"
+                        "test@testdomain.onmicrosoft.com"
                     ]
                 },
                 {
                     "data_path": "action_result.data.*.ccRecipients.name",
                     "data_type": "string",
                     "example_values": [
-                        "Susan Edwards"
+                        "Test Name"
                     ]
                 },
                 {
@@ -579,7 +1580,7 @@
                     "data_path": "action_result.data.*.from.emailAddress.address",
                     "data_type": "string",
                     "example_values": [
-                        "susan@phantomengineering.onmicrosoft.com"
+                        "test@testdomain.onmicrosoft.com"
                     ],
                     "contains": [
                         "email"
@@ -589,7 +1590,7 @@
                     "data_path": "action_result.data.*.from.emailAddress.name",
                     "data_type": "string",
                     "example_values": [
-                        "Susan Edwards"
+                        "Test Name"
                     ]
                 },
                 {
@@ -603,10 +1604,10 @@
                 {
                     "data_path": "action_result.data.*.id",
                     "data_type": "string",
-                    "column_name": "New Email ID",
+                    "column_name": "New Message ID",
                     "column_order": 2,
                     "contains": [
-                        "email id"
+                        "msgoffice365 message id"
                     ],
                     "example_values": [
                         "AQMkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQBGAAADyW3X5P7Hb0_MMHKonvdoWQcAQSl1b8BFiEmbqZql_JiUtwAAAgEbAAAAQSl1b8BFiEmbqZql_JiUtwABUH-stgAAAA=="
@@ -631,7 +1632,12 @@
                     "data_type": "string",
                     "example_values": [
                         "<CABO4XoNKorysqU1nR=of7qDBFbR1cv9icBSb38M=g3ryBb=CrA@mail.gmail.com>"
-                    ]
+                    ],
+                    "contains": [
+                        "msgoffice365 internet message id"
+                    ],
+                    "column_name": "Internet Message ID",
+                    "column_order": 3
                 },
                 {
                     "data_path": "action_result.data.*.isDeliveryReceiptRequested",
@@ -672,8 +1678,7 @@
                     "data_path": "action_result.data.*.parentFolderId",
                     "data_type": "string",
                     "contains": [
-                        "mail folder",
-                        "mail folder path"
+                        "msgoffice365 folder id"
                     ],
                     "example_values": [
                         "AQMkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQAuAAADyW3X5P7Hb0_MMHKonvdoWQEAQSl1b8BFiEmbqZql_JiUtwAAAgEbAAAA"
@@ -694,7 +1699,7 @@
                     "data_path": "action_result.data.*.sender.emailAddress.address",
                     "data_type": "string",
                     "example_values": [
-                        "susan@phantomengineering.onmicrosoft.com"
+                        "test@testdomain.onmicrosoft.com"
                     ],
                     "contains": [
                         "email"
@@ -704,7 +1709,7 @@
                     "data_path": "action_result.data.*.sender.emailAddress.name",
                     "data_type": "string",
                     "example_values": [
-                        "Susan Edwards"
+                        "Test Name"
                     ]
                 },
                 {
@@ -719,13 +1724,16 @@
                     "data_type": "string",
                     "example_values": [
                         "more body formats?"
+                    ],
+                    "contains": [
+                        "msgoffice365 subject"
                     ]
                 },
                 {
                     "data_path": "action_result.data.*.toRecipients.*.emailAddress.address",
                     "data_type": "string",
                     "example_values": [
-                        "Herman@phantomengineering.onmicrosoft.com"
+                        "Test@testdomain.onmicrosoft.com"
                     ],
                     "contains": [
                         "email"
@@ -735,7 +1743,7 @@
                     "data_path": "action_result.data.*.toRecipients.*.emailAddress.name",
                     "data_type": "string",
                     "example_values": [
-                        "Herman Edwards"
+                        "Test Name"
                     ]
                 },
                 {
@@ -783,19 +1791,437 @@
             }
         },
         {
-            "action": "delete email",
-            "identifier": "delete_email",
-            "description": "Delete emails",
-            "type": "contain",
+            "action": "move email",
+            "identifier": "move_email",
+            "description": "Move an email to a folder",
+            "verbose": "The <b>get_folder_id</b> parameter should be enabled only when you have specified folder name/folder path in the <b>folder</b> parameter. If you provide folder ID in the <b>folder</b> parameter and set <b>get_folder_id</b> parameter to true, it will throw an error of folder ID not found for given folder name (because the action considers folder parameter value as folder name/folder path). The <b>folder</b> parameter must be either a (case sensitive) well-known name [list here; https://docs.microsoft.com/en-us/graph/api/resources/mailfolder?view=graph-rest-1.0] or the internal o365 folder ID.",
+            "type": "generic",
             "read_only": false,
             "parameters": {
                 "id": {
-                    "description": "Message IDs to delete",
+                    "description": "Message ID to move",
                     "data_type": "string",
                     "required": true,
                     "primary": true,
                     "contains": [
-                        "email id"
+                        "msgoffice365 message id"
+                    ],
+                    "order": 0
+                },
+                "email_address": {
+                    "description": "Source mailbox (email)",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": true,
+                    "contains": [
+                        "email"
+                    ],
+                    "order": 1
+                },
+                "folder": {
+                    "description": "Destination folder; this must be either a (case-sensitive) well-known name or the internal o365 folder ID",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": true,
+                    "contains": [
+                        "msgoffice365 mail folder",
+                        "msgoffice365 mail folder path",
+                        "msgoffice365 folder id"
+                    ],
+                    "order": 2
+                },
+                "get_folder_id": {
+                    "description": "Assume the folder parameter contains a folder name/folder path, separated by \"/\" or \"\\\" ; i.e. Inbox/dir1/dir2/dir3. If this parameter is enabled, it retrieves the folder ID for the provided folder name/folder path automatically and replaces the parameter value",
+                    "data_type": "boolean",
+                    "default": true,
+                    "order": 3
+                }
+            },
+            "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.email_address",
+                    "data_type": "string",
+                    "contains": [
+                        "email"
+                    ],
+                    "column_name": "Email",
+                    "column_order": 0,
+                    "example_values": [
+                        "test@testdomain.onmicrosoft.com"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.folder",
+                    "data_type": "string",
+                    "contains": [
+                        "msgoffice365 mail folder",
+                        "msgoffice365 mail folder path",
+                        "msgoffice365 folder id"
+                    ],
+                    "column_name": "Folder",
+                    "column_order": 1,
+                    "example_values": [
+                        "AQMkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQAuAAADyW3X5P7Hb0_MMHKonvdoWQEAQSl1b8BFiEmbqZql_JiUtwAAAgEbAAAA"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.get_folder_id",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.id",
+                    "data_type": "string",
+                    "contains": [
+                        "msgoffice365 message id"
+                    ],
+                    "example_values": [
+                        "AQMkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQBGAAADyW3X5P7Hb0_MMHKonvdoWQcAQSl1b8BFiEmbqZql_JiUtwAAAgEMAAAAQSl1b8BFiEmbqZql_JiUtwABS2DpdwAAAA=="
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.@odata.context",
+                    "data_type": "string",
+                    "example_values": [
+                        "https://graph.microsoft.com/v1.0/$metadata#message"
+                    ],
+                    "contains": [
+                        "url"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.@odata.etag",
+                    "data_type": "string",
+                    "example_values": [
+                        "W/\"CQAAABYAAABBKXVvwEWISZupmqX4mJS3AAFQwHj9\""
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.@odata.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "#microsoft.graph.message"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.bccRecipients.email",
+                    "data_type": "string",
+                    "contains": [
+                        "email"
+                    ],
+                    "example_values": [
+                        "test@testdomain.onmicrosoft.com"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.bccRecipients.name",
+                    "data_type": "string",
+                    "example_values": [
+                        "Susan Edwards"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.body.content",
+                    "data_type": "string",
+                    "example_values": [
+                        "plain text?\r\n"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.body.contentType",
+                    "data_type": "string",
+                    "example_values": [
+                        "text"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.bodyPreview",
+                    "data_type": "string",
+                    "example_values": [
+                        "plain text?"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.categories",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.ccRecipients.email",
+                    "data_type": "string",
+                    "contains": [
+                        "email"
+                    ],
+                    "example_values": [
+                        "test@testdomain.onmicrosoft.com"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.ccRecipients.name",
+                    "data_type": "string",
+                    "example_values": [
+                        "Test Name"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.changeKey",
+                    "data_type": "string",
+                    "example_values": [
+                        "CQAAABYAAABBKXVvwEWISZupmqX4mJS3AAFQwHj9"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.conversationId",
+                    "data_type": "string",
+                    "example_values": [
+                        "AAQkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQAQANDpL7xEHORGgd1idbVXqcg="
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.createdDateTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "2017-10-25T22:29:01Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.from.emailAddress.address",
+                    "data_type": "string",
+                    "example_values": [
+                        "test@testdomain.onmicrosoft.com"
+                    ],
+                    "contains": [
+                        "email"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.from.emailAddress.name",
+                    "data_type": "string",
+                    "example_values": [
+                        "Test Name"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.hasAttachments",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.id",
+                    "data_type": "string",
+                    "column_name": "New Message ID",
+                    "column_order": 2,
+                    "contains": [
+                        "msgoffice365 message id"
+                    ],
+                    "example_values": [
+                        "AQMkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQBGAAADyW3X5P7Hb0_MMHKonvdoWQcAQSl1b8BFiEmbqZql_JiUtwAAAgEbAAAAQSl1b8BFiEmbqZql_JiUtwABUH-stgAAAA=="
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.importance",
+                    "data_type": "string",
+                    "example_values": [
+                        "normal"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.inferenceClassification",
+                    "data_type": "string",
+                    "example_values": [
+                        "focused"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageId",
+                    "data_type": "string",
+                    "example_values": [
+                        "<CABO4XoNKorysqU1nR=of7qDBFbR1cv9icBSb38M=g3ryBb=CrA@mail.gmail.com>"
+                    ],
+                    "column_name": "Internet Message ID",
+                    "column_order": 3,
+                    "contains": [
+                        "msgoffice365 internet message id"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.isDeliveryReceiptRequested",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.isDraft",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.isRead",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.isReadReceiptRequested",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.lastModifiedDateTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "2017-11-02T23:58:59Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.parentFolderId",
+                    "data_type": "string",
+                    "contains": [
+                        "msgoffice365 folder id"
+                    ],
+                    "example_values": [
+                        "AQMkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQAuAAADyW3X5P7Hb0_MMHKonvdoWQEAQSl1b8BFiEmbqZql_JiUtwAAAgEbAAAA"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.receivedDateTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "2017-10-25T22:29:01Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.replyTo",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.sender.emailAddress.address",
+                    "data_type": "string",
+                    "example_values": [
+                        "test@testdomain.onmicrosoft.com"
+                    ],
+                    "contains": [
+                        "email"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.sender.emailAddress.name",
+                    "data_type": "string",
+                    "example_values": [
+                        "Test Name"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.sentDateTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "2017-10-25T22:28:57Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.subject",
+                    "data_type": "string",
+                    "example_values": [
+                        "more body formats?"
+                    ],
+                    "contains": [
+                        "msgoffice365 subject"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.toRecipients.*.emailAddress.address",
+                    "data_type": "string",
+                    "example_values": [
+                        "Test@testdomain.onmicrosoft.com"
+                    ],
+                    "contains": [
+                        "email"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.toRecipients.*.emailAddress.name",
+                    "data_type": "string",
+                    "example_values": [
+                        "Test Name"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.webLink",
+                    "data_type": "string",
+                    "example_values": [
+                        "https://outlook.office365.com/owa/?ItemID=AQMkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQBGAAADyW3X5P7Hb0%2BMMHKonvdoWQcAQSl1b8BFiEmbqZql%2BJiUtwAAAgEbAAAAQSl1b8BFiEmbqZql%2BJiUtwABUH%2FstgAAAA%3D%3D&exvsurl=1&viewmodel=ReadMessageItem"
+                    ],
+                    "contains": [
+                        "url"
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "Successfully moved email"
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                }
+            ],
+            "versions": "EQ(*)",
+            "render": {
+                "width": 12,
+                "title": "Move Email",
+                "type": "table",
+                "height": 5
+            }
+        },
+        {
+            "action": "delete email",
+            "identifier": "delete_email",
+            "description": "Delete an email",
+            "type": "contain",
+            "read_only": false,
+            "parameters": {
+                "id": {
+                    "description": "Message ID to delete",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": true,
+                    "contains": [
+                        "msgoffice365 message id"
                     ],
                     "order": 0
                 },
@@ -803,7 +2229,7 @@
                     "description": "Email address of the mailbox owner",
                     "data_type": "string",
                     "required": true,
-                    "primary": false,
+                    "primary": true,
                     "contains": [
                         "email"
                     ],
@@ -814,8 +2240,12 @@
                 {
                     "data_path": "action_result.status",
                     "data_type": "string",
-                    "column_name": "status",
-                    "column_order": 2
+                    "column_name": "Status",
+                    "column_order": 2,
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
                 },
                 {
                     "data_path": "action_result.parameter.email_address",
@@ -823,17 +2253,23 @@
                     "contains": [
                         "email"
                     ],
-                    "column_name": "email",
-                    "column_order": 1
+                    "column_name": "Email",
+                    "column_order": 1,
+                    "example_values": [
+                        "test@testdomain.onmicrosoft.com"
+                    ]
                 },
                 {
                     "data_path": "action_result.parameter.id",
                     "data_type": "string",
                     "contains": [
-                        "email id"
+                        "msgoffice365 message id"
                     ],
-                    "column_name": "id",
-                    "column_order": 0
+                    "column_name": "Message ID",
+                    "column_order": 0,
+                    "example_values": [
+                        "AAMkAGFmNTRhODA4LWIxMjQtNDJjYy05NDM2LWQ5MzY1MGFhMTkzYwBGAAAAAADRlY7ewL4xToKRDciQog5UBwBvUzMoUJx2S4nbgxzZWx2PAAAAAAEMAABvUzMoUJx2S4nbgxzZWx2PAAEIbt7NAAA="
+                    ]
                 },
                 {
                     "data_path": "action_result.data",
@@ -845,18 +2281,33 @@
                 },
                 {
                     "data_path": "action_result.message",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "Successfully deleted email"
+                    ]
                 },
                 {
                     "data_path": "summary.total_objects",
-                    "data_type": "numeric"
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
                 },
                 {
                     "data_path": "summary.total_objects_successful",
-                    "data_type": "numeric"
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
                 }
             ],
-            "versions": "EQ(*)"
+            "versions": "EQ(*)",
+            "render": {
+                "width": 12,
+                "title": "Delete email",
+                "type": "table",
+                "height": 5
+            }
         },
         {
             "action": "get email",
@@ -871,7 +2322,7 @@
                     "required": true,
                     "primary": true,
                     "contains": [
-                        "email id"
+                        "msgoffice365 message id"
                     ],
                     "order": 0
                 },
@@ -879,7 +2330,7 @@
                     "description": "Email address of the mailbox owner",
                     "data_type": "string",
                     "required": true,
-                    "primary": false,
+                    "primary": true,
                     "contains": [
                         "email"
                     ],
@@ -888,8 +2339,6 @@
                 "download_attachments": {
                     "description": "Download attachments to vault",
                     "data_type": "boolean",
-                    "required": true,
-                    "primary": false,
                     "order": 2
                 }
             },
@@ -897,17 +2346,17 @@
                 {
                     "data_path": "action_result.status",
                     "data_type": "string",
-                    "column_name": "status",
-                    "column_order": 2,
                     "example_values": [
-                        "success"
+                        "success",
+                        "failed"
                     ]
                 },
                 {
                     "data_path": "action_result.parameter.download_attachments",
-                    "data_type": "string",
+                    "data_type": "boolean",
                     "example_values": [
-                        "true"
+                        true,
+                        false
                     ]
                 },
                 {
@@ -916,14 +2365,14 @@
                     "contains": [
                         "email"
                     ],
-                    "column_name": "email",
-                    "column_order": 1
+                    "column_name": "Email",
+                    "column_order": 2
                 },
                 {
                     "data_path": "action_result.parameter.id",
                     "data_type": "string",
                     "contains": [
-                        "email id"
+                        "msgoffice365 message id"
                     ],
                     "example_values": [
                         "AQMkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQBGAAADyW3X5P7Hb0_MMHKonvdoWQcAQSl1b8BFiEmbqZql_JiUtwAAAgEMAAAAQSl1b8BFiEmbqZql_JiUtwABS2DpfAAAAA=="
@@ -1027,14 +2476,14 @@
                         "email"
                     ],
                     "example_values": [
-                        "susan@phantomengineering.onmicrosoft.com"
+                        "test@testdomain.onmicrosoft.com"
                     ]
                 },
                 {
                     "data_path": "action_result.data.*.bccRecipients.name",
                     "data_type": "string",
                     "example_values": [
-                        "Susan Edwards"
+                        "Test Name"
                     ]
                 },
                 {
@@ -1055,7 +2504,7 @@
                     "data_path": "action_result.data.*.bodyPreview",
                     "data_type": "string",
                     "column_name": "Body Preview",
-                    "column_order": 1,
+                    "column_order": 3,
                     "example_values": [
                         "Have a good time with these."
                     ]
@@ -1071,14 +2520,14 @@
                         "email"
                     ],
                     "example_values": [
-                        "susan@phantomengineering.onmicrosoft.com"
+                        "test@testdomain.onmicrosoft.com"
                     ]
                 },
                 {
                     "data_path": "action_result.data.*.ccRecipients.name",
                     "data_type": "string",
                     "example_values": [
-                        "Susan Edwards"
+                        "Test Domain"
                     ]
                 },
                 {
@@ -1106,9 +2555,9 @@
                     "data_path": "action_result.data.*.from.emailAddress.address",
                     "data_type": "string",
                     "column_name": "From",
-                    "column_order": 2,
+                    "column_order": 4,
                     "example_values": [
-                        "susan@phantomengineering.onmicrosoft.com"
+                        "test@testdomain.onmicrosoft.com"
                     ],
                     "contains": [
                         "email"
@@ -1118,14 +2567,14 @@
                     "data_path": "action_result.data.*.from.emailAddress.name",
                     "data_type": "string",
                     "example_values": [
-                        "Susan Edwards"
+                        "Test Name"
                     ]
                 },
                 {
                     "data_path": "action_result.data.*.hasAttachments",
                     "data_type": "boolean",
                     "column_name": "Has Attachments",
-                    "column_order": 4,
+                    "column_order": 6,
                     "example_values": [
                         true,
                         false
@@ -1136,7 +2585,12 @@
                     "data_type": "string",
                     "example_values": [
                         "AQMkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQBGAAADyW3X5P7Hb0_MMHKonvdoWQcAQSl1b8BFiEmbqZql_JiUtwAAAgEMAAAAQSl1b8BFiEmbqZql_JiUtwABS2DpfAAAAA=="
-                    ]
+                    ],
+                    "contains": [
+                        "msgoffice365 message id"
+                    ],
+                    "column_name": "Message ID",
+                    "column_order": 0
                 },
                 {
                     "data_path": "action_result.data.*.importance",
@@ -1157,7 +2611,12 @@
                     "data_type": "string",
                     "example_values": [
                         "<CABO4XoP4y0jiKDGWr5yQ=-AwrRC-Vbc4LSNju1-Mroxrwn=Rrg@mail.gmail.com>"
-                    ]
+                    ],
+                    "contains": [
+                        "msgoffice365 internet message id"
+                    ],
+                    "column_name": "Internet Message ID",
+                    "column_order": 7
                 },
                 {
                     "data_path": "action_result.data.*.isDeliveryReceiptRequested",
@@ -1198,8 +2657,7 @@
                     "data_path": "action_result.data.*.parentFolderId",
                     "data_type": "string",
                     "contains": [
-                        "mail folder",
-                        "mail folder path"
+                        "msgoffice365 folder id"
                     ],
                     "example_values": [
                         "AQMkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQAuAAADyW3X5P7Hb0_MMHKonvdoWQEAQSl1b8BFiEmbqZql_JiUtwAAAgEMAAAA"
@@ -1220,7 +2678,7 @@
                     "data_path": "action_result.data.*.sender.emailAddress.address",
                     "data_type": "string",
                     "example_values": [
-                        "susan@phantomengineering.onmicrosoft.com"
+                        "test@testdomain.onmicrosoft.com"
                     ],
                     "contains": [
                         "email"
@@ -1230,7 +2688,7 @@
                     "data_path": "action_result.data.*.sender.emailAddress.name",
                     "data_type": "string",
                     "example_values": [
-                        "Susan Edwards"
+                        "Test Name"
                     ]
                 },
                 {
@@ -1244,18 +2702,21 @@
                     "data_path": "action_result.data.*.subject",
                     "data_type": "string",
                     "column_name": "Subject",
-                    "column_order": 0,
+                    "column_order": 1,
                     "example_values": [
                         "more attachments"
+                    ],
+                    "contains": [
+                        "msgoffice365 subject"
                     ]
                 },
                 {
                     "data_path": "action_result.data.*.toRecipients.*.emailAddress.address",
                     "data_type": "string",
                     "column_name": "To",
-                    "column_order": 3,
+                    "column_order": 5,
                     "example_values": [
-                        "Herman@phantomengineering.onmicrosoft.com"
+                        "Test@testdomain.onmicrosoft.com"
                     ],
                     "contains": [
                         "email"
@@ -1265,7 +2726,7 @@
                     "data_path": "action_result.data.*.toRecipients.*.emailAddress.name",
                     "data_type": "string",
                     "example_values": [
-                        "Herman Edwards"
+                        "Test Name"
                     ]
                 },
                 {
@@ -1286,7 +2747,7 @@
                     "data_path": "action_result.message",
                     "data_type": "string",
                     "example_values": [
-                        ""
+                        "Successfully fetched email"
                     ]
                 },
                 {
@@ -1305,7 +2766,10 @@
                 }
             ],
             "render": {
-                "type": "table"
+                "width": 12,
+                "title": "Get email",
+                "type": "table",
+                "height": 5
             },
             "versions": "EQ(*)"
         },
@@ -1313,12 +2777,12 @@
             "action": "run query",
             "identifier": "run_query",
             "description": "Search emails",
-            "verbose": "If the <b>query</b> or <b>internet_message_id</b> parameters are included, the <b>subject</b>, <b>sender</b>, <b>body</b>, and <b>range</b> parameters will be ignored. The <b>internet_message_id</b> parameter will take precedence over the <b>query</b> parameter.<br><br>For information on formatting the <b>query</b> parameter, see https://developer.microsoft.com/en-us/graph/docs/concepts/query_parameters.<br><br>If the <b>limit</b> parameter is not included, the action will default to limiting to ten emails that match the rest of the query.",
+            "verbose": "If the <b>query</b> or <b>internet_message_id</b> parameters are included, the <b>subject</b>, <b>sender</b>, <b>body</b>, and <b>range</b> parameters will be ignored. The <b>internet_message_id</b> parameter will take precedence over the <b>query</b> parameter.<br><br>For information on formatting the <b>query</b> parameter, see https://developer.microsoft.com/en-us/graph/docs/concepts/query_parameters.<br><br>If the <b>limit</b> parameter is not included, the action will default to limiting to ten emails that match the rest of the query. The <b>get_folder_id</b> parameter should be enabled only when you specified folder name/folder path in the folder parameter. If you provide folder ID in the <b>folder</b> parameter and set <b>get_folder_id</b> parameter to true, it will throw an error of folder ID not found for given folder name (because the action considers folder parameter value as folder name/folder path). The <b>folder</b> parameter must be either a (case sensitive) well-known name [list here; https://docs.microsoft.com/en-us/graph/api/resources/mailfolder?view=graph-rest-1.0] or the internal o365 folder ID.",
             "type": "investigate",
             "read_only": true,
             "parameters": {
                 "email_address": {
-                    "description": "User's email (Mailbox to search in)",
+                    "description": "User's email (mailbox to search in)",
                     "data_type": "string",
                     "required": true,
                     "primary": true,
@@ -1328,29 +2792,38 @@
                     "order": 0
                 },
                 "folder": {
-                    "description": "Folder Name/Path (to search in)",
+                    "description": "Destination folder; this must be either a (case-sensitive) well-known name or the internal o365 folder ID",
                     "data_type": "string",
                     "required": false,
-                    "primary": false,
+                    "primary": true,
                     "contains": [
-                        "mail folder",
-                        "mail folder path"
+                        "msgoffice365 mail folder",
+                        "msgoffice365 mail folder path",
+                        "msgoffice365 folder id"
                     ],
                     "default": "Inbox",
                     "order": 1
                 },
-                "subject": {
-                    "description": "Substring to search in Subject",
-                    "data_type": "string",
-                    "required": false,
-                    "primary": false,
+                "get_folder_id": {
+                    "description": "Assume the folder parameter contains a folder name/folder path, separated by \"/\" or \"\\\" ; i.e. Inbox/dir1/dir2/dir3. If this parameter is enabled, it retrieves the folder ID for the provided folder name/folder path automatically and replaces the parameter value",
+                    "data_type": "boolean",
+                    "default": true,
                     "order": 2
                 },
-                "body": {
-                    "description": "Substring to search in Body",
+                "subject": {
+                    "description": "Substring to search in subject",
                     "data_type": "string",
-                    "order": 3,
-                    "primary": false,
+                    "required": false,
+                    "primary": true,
+                    "contains": [
+                        "msgoffice365 subject"
+                    ],
+                    "order": 3
+                },
+                "body": {
+                    "description": "Substring to search in body",
+                    "data_type": "string",
+                    "order": 4,
                     "required": false
                 },
                 "sender": {
@@ -1361,32 +2834,29 @@
                     "contains": [
                         "email"
                     ],
-                    "order": 4
+                    "order": 5
                 },
                 "limit": {
                     "description": "Maximum emails to return",
                     "data_type": "numeric",
                     "required": false,
-                    "primary": false,
-                    "default": "10",
-                    "order": 5
+                    "order": 6
                 },
                 "query": {
                     "description": "MS Graph query string",
                     "data_type": "string",
                     "required": false,
-                    "primary": false,
-                    "order": 6
+                    "order": 7
                 },
                 "internet_message_id": {
-                    "description": "Internet Message ID",
+                    "description": "Internet message ID",
                     "data_type": "string",
                     "required": false,
                     "primary": true,
                     "contains": [
-                        "internet message id"
+                        "msgoffice365 internet message id"
                     ],
-                    "order": 7
+                    "order": 8
                 }
             },
             "output": [
@@ -1394,7 +2864,8 @@
                     "data_path": "action_result.status",
                     "data_type": "string",
                     "example_values": [
-                        "success"
+                        "success",
+                        "failed"
                     ]
                 },
                 {
@@ -1411,30 +2882,39 @@
                         "email"
                     ],
                     "example_values": [
-                        "herman@phantomengineering.onmicrosoft.com"
+                        "test@testdomain.onmicrosoft.com"
                     ]
                 },
                 {
                     "data_path": "action_result.parameter.folder",
                     "data_type": "string",
                     "contains": [
-                        "mail folder",
-                        "mail folder path"
+                        "msgoffice365 mail folder",
+                        "msgoffice365 mail folder path",
+                        "msgoffice365 folder id"
                     ],
                     "example_values": [
                         "Archive"
                     ]
                 },
                 {
+                    "data_path": "action_result.parameter.get_folder_id",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
                     "data_path": "action_result.parameter.internet_message_id",
                     "data_type": "string",
                     "contains": [
-                        "internet message id"
+                        "msgoffice365 internet message id"
                     ]
                 },
                 {
                     "data_path": "action_result.parameter.limit",
-                    "data_type": "string",
+                    "data_type": "numeric",
                     "example_values": [
                         5
                     ]
@@ -1443,7 +2923,8 @@
                     "data_path": "action_result.parameter.query",
                     "data_type": "string",
                     "example_values": [
-                        "$top=5&skip=10&filter=contains(subject,'Urgent')"
+                        "$filter=contains(subject,'Urgent')",
+                        "$orderby=propertyName desc"
                     ]
                 },
                 {
@@ -1453,7 +2934,7 @@
                         "email"
                     ],
                     "example_values": [
-                        "susan@phantomengineering.onmicrosoft.com"
+                        "test@testdomain.onmicrosoft.com"
                     ]
                 },
                 {
@@ -1461,6 +2942,9 @@
                     "data_type": "string",
                     "example_values": [
                         "Just wanted to say hello"
+                    ],
+                    "contains": [
+                        "msgoffice365 subject"
                     ]
                 },
                 {
@@ -1477,21 +2961,21 @@
                         "email"
                     ],
                     "example_values": [
-                        "susan@phantomengineering.onmicrosoft.com"
+                        "test@testdomain.onmicrosoft.com"
                     ]
                 },
                 {
                     "data_path": "action_result.data.*.bccRecipients.name",
                     "data_type": "string",
                     "example_values": [
-                        "Susan Edwards"
+                        "Test Name"
                     ]
                 },
                 {
                     "data_path": "action_result.data.*.body.content",
                     "data_type": "string",
                     "example_values": [
-                        "How are you doing this fine evening?\r\n"
+                        "<html>\r\n<head>\r\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">\r\n<meta content=\"text/html; charset=iso-8859-1\">\r\n<style type=\"text/css\" style=\"display:none\">\r\n<!--\r\np\r\n\t{margin-top:0;\r\n\tmargin-bottom:0}\r\n-->\r\n</style>\r\n</head>\r\n<body dir=\"ltr\">\r\n<div style=\"font-family:Calibri,Arial,Helvetica,sans-serif; font-size:12pt; color:rgb(0,0,0)\">\r\nTest<br>\r\n</div>\r\n</body>\r\n</html>\r\n"
                     ]
                 },
                 {
@@ -1521,14 +3005,14 @@
                         "email"
                     ],
                     "example_values": [
-                        "susan@phantomengineering.onmicrosoft.com"
+                        "test@testdomain.onmicrosoft.com"
                     ]
                 },
                 {
                     "data_path": "action_result.data.*.ccRecipients.name",
                     "data_type": "string",
                     "example_values": [
-                        "Susan Edwards"
+                        "Test Name"
                     ]
                 },
                 {
@@ -1553,10 +3037,17 @@
                     ]
                 },
                 {
+                    "data_path": "action_result.data.*.flag.flagStatus",
+                    "data_type": "string",
+                    "example_values": [
+                        "notFlagged"
+                    ]
+                },
+                {
                     "data_path": "action_result.data.*.from.emailAddress.address",
                     "data_type": "string",
                     "example_values": [
-                        "susan@phantomengineering.onmicrosoft.com"
+                        "test@testdomain.onmicrosoft.com"
                     ],
                     "contains": [
                         "email"
@@ -1566,7 +3057,7 @@
                     "data_path": "action_result.data.*.from.emailAddress.name",
                     "data_type": "string",
                     "example_values": [
-                        "Susan Edwards"
+                        "Test Name"
                     ]
                 },
                 {
@@ -1580,10 +3071,10 @@
                 {
                     "data_path": "action_result.data.*.id",
                     "data_type": "string",
-                    "column_name": "ID",
+                    "column_name": "Message ID",
                     "column_order": 4,
                     "contains": [
-                        "email id"
+                        "msgoffice365 message id"
                     ],
                     "example_values": [
                         "AAMkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQBGAAAAAADJbdfk-sdvT4wwcqie92hZBwBBKXVvwEWISZupmqX4mJS3AACEV3zJAABBKXVvwEWISZupmqX4mJS3AAFOZwS4AAA="
@@ -1607,8 +3098,14 @@
                     "data_path": "action_result.data.*.internetMessageId",
                     "data_type": "string",
                     "example_values": [
-                        "<CABO4XoM2X=z02-=jmuvtis3MUxHgvTcH7vkVgVC=dwcuN5yT6Q@mail.gmail.com>"
-                    ]
+                        "<CABO4XoM2X=z02-=jmuvtis3MUxHgvTcH7vkVgVC=dwcuN5yT6Q@mail.gmail.com>",
+                        "<BYAPR17MB3031A8F1998135A8D717F54495820@BYAPR17MB3031.namprd17.prod.outlook.com>"
+                    ],
+                    "contains": [
+                        "msgoffice365 internet message id"
+                    ],
+                    "column_name": "Internet Message ID",
+                    "column_order": 5
                 },
                 {
                     "data_path": "action_result.data.*.isDeliveryReceiptRequested",
@@ -1649,8 +3146,7 @@
                     "data_path": "action_result.data.*.parentFolderId",
                     "data_type": "string",
                     "contains": [
-                        "mail folder",
-                        "mail folder path"
+                        "msgoffice365 folder id"
                     ],
                     "example_values": [
                         "AAMkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQAuAAAAAADJbdfk-sdvT4wwcqie92hZAQBBKXVvwEWISZupmqX4mJS3AACEV3zJAAA="
@@ -1675,7 +3171,7 @@
                     "column_name": "Sender",
                     "column_order": 0,
                     "example_values": [
-                        "susan@phantomengineering.onmicrosoft.com"
+                        "test@testdomain.onmicrosoft.com"
                     ],
                     "contains": [
                         "email"
@@ -1685,7 +3181,7 @@
                     "data_path": "action_result.data.*.sender.emailAddress.name",
                     "data_type": "string",
                     "example_values": [
-                        "Susan Edwards"
+                        "Test Name"
                     ]
                 },
                 {
@@ -1702,20 +3198,26 @@
                     "column_order": 2,
                     "example_values": [
                         "Just wanted to say hello"
+                    ],
+                    "contains": [
+                        "msgoffice365 subject"
                     ]
                 },
                 {
                     "data_path": "action_result.data.*.toRecipients.*.emailAddress.address",
                     "data_type": "string",
                     "example_values": [
-                        "Herman@phantomengineering.onmicrosoft.com"
+                        "Test@testdomain.onmicrosoft.com"
+                    ],
+                    "contains": [
+                        "email"
                     ]
                 },
                 {
                     "data_path": "action_result.data.*.toRecipients.*.emailAddress.name",
                     "data_type": "string",
                     "example_values": [
-                        "Herman Edwards"
+                        "Test Name"
                     ]
                 },
                 {
@@ -1758,7 +3260,314 @@
                 }
             ],
             "render": {
-                "type": "table"
+                "width": 12,
+                "title": "Run query",
+                "type": "table",
+                "height": 5
+            },
+            "versions": "EQ(*)"
+        },
+        {
+            "action": "create folder",
+            "identifier": "create_folder",
+            "description": "Create a new folder",
+            "verbose": "Create a new folder either in the mailbox root or inside an existing folder.",
+            "type": "generic",
+            "read_only": false,
+            "parameters": {
+                "email_address": {
+                    "description": "User's email (mailbox to create folders)",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": true,
+                    "contains": [
+                        "email"
+                    ],
+                    "order": 0
+                },
+                "folder": {
+                    "description": "Folder Name/Path. Use \"/\" or \"\\\" to separate folder elements; i.e. Inbox/dir1/dir2/dir3",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": true,
+                    "contains": [
+                        "msgoffice365 mail folder",
+                        "msgoffice365 mail folder path"
+                    ],
+                    "order": 1
+                },
+                "all_subdirs": {
+                    "description": "Make any missing directories in the path if they don't exist instead of failing",
+                    "data_type": "boolean",
+                    "required": false,
+                    "order": 2
+                }
+            },
+            "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.all_subdirs",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.email_address",
+                    "data_type": "string",
+                    "contains": [
+                        "email"
+                    ],
+                    "example_values": [
+                        "test@testdomain.onmicrosoft.com"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.folder",
+                    "data_type": "string",
+                    "contains": [
+                        "msgoffice365 mail folder",
+                        "msgoffice365 mail folder path"
+                    ],
+                    "example_values": [
+                        "Archive"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.@odata.etag",
+                    "data_type": "string",
+                    "example_values": [
+                        "W/\"CQAAABYAAABBKXVvwEWISZupmqX4mJS3AAFOpxtE\""
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.childFolderCount",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.displayName",
+                    "data_type": "string",
+                    "column_name": "Display Name",
+                    "column_order": 0
+                },
+                {
+                    "data_path": "action_result.data.*.id",
+                    "data_type": "string",
+                    "column_name": "Folder ID",
+                    "column_order": 1,
+                    "contains": [
+                        "msgoffice365 folder id"
+                    ],
+                    "example_values": [
+                        "AAMkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQBGAAAAAADJbdfk-sdvT4wwcqie92hZBwBBKXVvwEWISZupmqX4mJS3AACEV3zJAABBKXVvwEWISZupmqX4mJS3AAFOZwS4AAA="
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.parentFolderId",
+                    "data_type": "string",
+                    "column_name": "Parent Folder ID",
+                    "column_order": 2,
+                    "contains": [
+                        "msgoffice365 folder id"
+                    ],
+                    "example_values": [
+                        "AAMkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQAuAAAAAADJbdfk-sdvT4wwcqie92hZAQBBKXVvwEWISZupmqX4mJS3AACEV3zJAAA="
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.totalItemCount",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.unreadItemCount",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "Emails matched: 1"
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                }
+            ],
+            "render": {
+                "width": 12,
+                "title": "Create folder",
+                "type": "table",
+                "height": 5
+            },
+            "versions": "EQ(*)"
+        },
+        {
+            "action": "get folder id",
+            "identifier": "get_folder_id",
+            "description": "Get the API ID of the folder",
+            "type": "investigate",
+            "read_only": true,
+            "parameters": {
+                "email_address": {
+                    "description": "User's email (mailbox)",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": true,
+                    "contains": [
+                        "email"
+                    ],
+                    "order": 0
+                },
+                "folder": {
+                    "description": "Folder Name/Path. Use \"/\" or \"\\\" to separate folder elements; i.e. Inbox/dir1/dir2/dir3",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": true,
+                    "contains": [
+                        "msgoffice365 mail folder",
+                        "msgoffice365 mail folder path"
+                    ],
+                    "order": 1
+                }
+            },
+            "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.email_address",
+                    "data_type": "string",
+                    "contains": [
+                        "email"
+                    ],
+                    "example_values": [
+                        "test@testdomain.onmicrosoft.com"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.folder",
+                    "data_type": "string",
+                    "contains": [
+                        "msgoffice365 mail folder",
+                        "msgoffice365 mail folder path"
+                    ],
+                    "example_values": [
+                        "Test/Testy/subfolders"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.folder",
+                    "data_type": "string",
+                    "column_name": "Folder Name",
+                    "column_order": 1,
+                    "contains": [
+                        "msgoffice365 mail folder",
+                        "msgoffice365 mail folder path"
+                    ],
+                    "example_values": [
+                        "Test"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.folder_id",
+                    "data_type": "string",
+                    "column_name": "Folder ID",
+                    "column_order": 2,
+                    "example_values": [
+                        "AAMkAGFmNTRhODA4LWIxMjQtNDJjYy05NDM2LWQ5MzY1MGFhMTkzYwAuAAAAAADRlY7ewL4xToKRDciQog5UAQBvUzMoUJx2S4nbgxzZWx2PAAEApxCRAAA="
+                    ],
+                    "contains": [
+                        "msgoffice365 folder id"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.path",
+                    "data_type": "string",
+                    "column_name": "Path",
+                    "column_order": 0,
+                    "contains": [
+                        "msgoffice365 mail folder",
+                        "msgoffice365 mail folder path"
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.summary.folder_id",
+                    "data_type": "string",
+                    "example_values": [
+                        "AAMkAGFmNTRhODA4LWIxMjQtNDJjYy05NDM2LWQ5MzY1MGFhMTkzYwAuAAAAAADRlY7ewL4xToKRDciQog5UAQBvUzMoUJx2S4nbgxzZWx2PAAEApxCTAAA="
+                    ],
+                    "contains": [
+                        "msgoffice365 folder id"
+                    ]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "Folder id: AAMkAGFmNTRhODA4LWIxMjQtNDJjYy05NDM2LWQ5MzY1MGFhMTkzYwAuAAAAAADRlY7ewL4xToKRDciQog5UAQBvUzMoUJx2S4nbgxzZWx2PAAEApxCTAAA="
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                }
+            ],
+            "render": {
+                "width": 12,
+                "title": "Get Folder ID",
+                "type": "table",
+                "height": 5
             },
             "versions": "EQ(*)"
         }
