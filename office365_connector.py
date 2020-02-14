@@ -1,5 +1,5 @@
 # File: office365_connector.py
-# Copyright (c) 2017-2019 Splunk Inc.
+# Copyright (c) 2017-2020 Splunk Inc.
 #
 # SPLUNK CONFIDENTIAL - Use or disclosure of this material in whole or in part
 # without a valid written license from Splunk Inc. is PROHIBITED.
@@ -78,7 +78,7 @@ def _save_app_state(state, asset_id, app_connector):
         with open(state_file, 'w+') as f:
             f.write(json.dumps(state))
     except Exception as e:
-        print "Unable to save state file: {0}".format(str(e))
+        print("Unable to save state file: {0}".format(str(e)))
         pass
 
     return phantom.APP_SUCCESS
@@ -296,7 +296,7 @@ class Office365Connector(BaseConnector):
 
         # You should process the error returned in the json
         message = "Error from server. Status Code: {0} Data from server: {1}".format(
-                r.status_code, error_text.encode('utf-8'))
+                r.status_code, error_text)
 
         return RetVal(action_result.set_status(phantom.APP_ERROR, message), None)
 
@@ -713,7 +713,7 @@ class Office365Connector(BaseConnector):
         action_result = self.add_action_result(ActionResult(dict(param)))
 
         email_addr = param['email_address']
-        folder = param["folder"].decode("utf-8", 'ignore').translate({92: 47})
+        folder = param["folder"].translate({92: 47})
         endpoint = '/users/{0}'.format(email_addr)
 
         endpoint += '/messages/{0}/copy'.format(param['id'])
@@ -746,7 +746,7 @@ class Office365Connector(BaseConnector):
         action_result = self.add_action_result(ActionResult(dict(param)))
 
         email_addr = param['email_address']
-        folder = param["folder"].decode("utf-8", 'ignore').translate({92: 47})
+        folder = param["folder"].translate({92: 47})
         endpoint = '/users/{0}'.format(email_addr)
 
         endpoint += '/messages/{0}/move'.format(param['id'])
@@ -813,7 +813,7 @@ class Office365Connector(BaseConnector):
         action_result = self.add_action_result(ActionResult(dict(param)))
 
         try:
-            user_id = param.get('user_id').encode('utf-8') if param.get('user_id') else None
+            user_id = param.get('user_id') if param.get('user_id') else None
             group_id = param.get('group_id') if param.get('group_id') else None
             query = param.get('filter') if param.get('filter') else None
         except:
@@ -884,7 +884,7 @@ class Office365Connector(BaseConnector):
         ret_val, groups = self._paginator(action_result, endpoint, limit, query=query)
 
         if (phantom.is_fail(ret_val)):
-                return action_result.get_status()
+            return action_result.get_status()
 
         if not groups:
             return action_result.set_status(phantom.APP_SUCCESS, "No data found")
@@ -913,7 +913,7 @@ class Office365Connector(BaseConnector):
         ret_val, users = self._paginator(action_result, endpoint, limit, query=query)
 
         if (phantom.is_fail(ret_val)):
-                return action_result.get_status()
+            return action_result.get_status()
 
         if not users:
             return action_result.set_status(phantom.APP_SUCCESS, "No data found")
@@ -976,7 +976,7 @@ class Office365Connector(BaseConnector):
         ret_val, folders = self._paginator(action_result, endpoint)
 
         if (phantom.is_fail(ret_val)):
-                return action_result.get_status(), None
+            return action_result.get_status(), None
 
         if not folders:
             return action_result.set_status(phantom.APP_SUCCESS, "No data found"), None
@@ -1017,7 +1017,7 @@ class Office365Connector(BaseConnector):
         ret_val, folders = self._paginator(action_result, endpoint)
 
         if (phantom.is_fail(ret_val)):
-                return action_result.get_status(), None
+            return action_result.get_status(), None
 
         return phantom.APP_SUCCESS, folders
 
@@ -1208,13 +1208,15 @@ class Office365Connector(BaseConnector):
         if (limit and not str(limit).isdigit()) or limit == 0:
             return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_LIMIT)
 
+        limit = int(limit)
+
         # user
         email_addr = param['email_address']
         endpoint = "/users/{0}".format(email_addr)
 
         # folder
         if ('folder' in param):
-            folder = param['folder'].decode('utf-8', 'ignore').translate({92: 47})
+            folder = param['folder'].translate({92: 47})
 
             if param.get('get_folder_id', False):
                 try:
@@ -1291,7 +1293,7 @@ class Office365Connector(BaseConnector):
             return action_result.get_status()
 
         if not dir_id:
-            return None, "Error: folder not found; {}".format(path[0].encode('utf-8')), ret
+            return None, "Error: folder not found; {}".format(path[0]), ret
 
         ret.append({"path": path[0], "folder": path[0], "folder_id": dir_id})
 
@@ -1302,7 +1304,7 @@ class Office365Connector(BaseConnector):
                 dir_id = self._get_child_folder(action_result, subf, parent_id, email)
 
                 if not dir_id:
-                    return None, "Error: child folder not found; {}".format(subpath.encode('utf-8')), ret
+                    return None, "Error: child folder not found; {}".format(subpath), ret
 
                 ret.append({"path": subpath, "folder": subf, "folder_id": dir_id})
         except ReturnException:
@@ -1313,7 +1315,7 @@ class Office365Connector(BaseConnector):
     def _get_folder(self, action_result, folder, email):
 
         params = {}
-        params['$filter'] = "displayName eq '{}'".format(folder.encode('utf-8'))
+        params['$filter'] = "displayName eq '{}'".format(folder)
         endpoint = "/users/{}/mailFolders".format(email)
 
         ret_val, response = self._make_rest_call_helper(action_result, endpoint, params=params)
@@ -1331,7 +1333,7 @@ class Office365Connector(BaseConnector):
     def _get_child_folder(self, action_result, folder, parent_id, email):
 
         params = {}
-        params['$filter'] = "displayName eq '{}'".format(folder.encode('utf-8'))
+        params['$filter'] = "displayName eq '{}'".format(folder)
         endpoint = "/users/{}/mailFolders/{}/childFolders".format(email, parent_id)
 
         ret_val, response = self._make_rest_call_helper(action_result, endpoint, params=params)
@@ -1357,10 +1359,10 @@ class Office365Connector(BaseConnector):
 
         if response.get('id', False):
             self._currentdir = response
-            self.save_progress("Success({}): created folder in mailbox".format(folder.encode('utf-8')))
+            self.save_progress("Success({}): created folder in mailbox".format(folder))
             return response['id']
 
-        msg = "Error({}): unable to create folder in mailbox".format(folder.encode('utf-8'))
+        msg = "Error({}): unable to create folder in mailbox".format(folder)
         self.save_progress(msg)
         action_result.set_status(phantom.APP_ERROR, msg)
         raise ReturnException()
@@ -1376,10 +1378,10 @@ class Office365Connector(BaseConnector):
 
         if response.get('id', False):
             self._currentdir = response
-            self.save_progress("Success({}): created child folder in folder {}".format(folder.encode('utf-8'), pathsofar))
+            self.save_progress("Success({}): created child folder in folder {}".format(folder, pathsofar))
             return response['id']
 
-        msg = "Error({}): unable to create child folder in folder {}".format(folder.encode('utf-8'), pathsofar)
+        msg = "Error({}): unable to create child folder in folder {}".format(folder, pathsofar)
         self.save_progress(msg)
         action_result.set_status(phantom.APP_ERROR, msg)
         raise ReturnException()
@@ -1390,7 +1392,7 @@ class Office365Connector(BaseConnector):
         action_result = self.add_action_result(ActionResult(dict(param)))
 
         email = param["email_address"]
-        folder = param["folder"].decode("utf-8", 'ignore').translate({92: 47})
+        folder = param["folder"].translate({92: 47})
 
         minusp = param.get("all_subdirs", False)
 
@@ -1408,7 +1410,7 @@ class Office365Connector(BaseConnector):
             if len(path) == 1:
 
                 if dir_id:
-                    msg = "Error({}): folder already exists in mailbox".format(path[0].encode('utf-8'))
+                    msg = "Error({}): folder already exists in mailbox".format(path[0])
                     self.save_progress(msg)
                     return action_result.set_status(phantom.APP_ERROR, msg)
 
@@ -1449,7 +1451,7 @@ class Office365Connector(BaseConnector):
                             action_result.add_data(self._currentdir)
 
                         else:
-                            msg = "Error({}): child folder doesn't exists in folder {}".format(subf.encode('utf-8'), pathsofar)
+                            msg = "Error({}): child folder doesn't exists in folder {}".format(subf, pathsofar)
                             self.save_progress(msg)
                             return action_result.set_status(phantom.APP_ERROR, msg)
 
@@ -1459,7 +1461,7 @@ class Office365Connector(BaseConnector):
                 # finally, the actual folder
                 dir_id = self._get_child_folder(action_result, final, parent_id, email)
                 if dir_id:
-                    msg = "Error: child folder {0} already exists in the folder {1}".format(final.encode('utf-8'), pathsofar)
+                    msg = "Error: child folder {0} already exists in the folder {1}".format(final, pathsofar)
                     self.save_progress(msg)
                     return action_result.set_status(phantom.APP_ERROR, msg)
 
@@ -1478,7 +1480,7 @@ class Office365Connector(BaseConnector):
         action_result = self.add_action_result(ActionResult(dict(param)))
 
         email = param["email_address"]
-        folder = param["folder"].decode("utf-8", 'ignore').translate({92: 47})
+        folder = param["folder"].translate({92: 47})
 
         try:
             dir_id, error, ret = self._get_folder_id(action_result, folder, email)
@@ -1667,11 +1669,11 @@ class Office365Connector(BaseConnector):
 
         # Load all the asset configuration in global variables
         self._state = self.load_state()
-        self._tenant = config['tenant'].encode('utf-8')
-        self._client_id = config['client_id'].encode('utf-8')
-        self._client_secret = config['client_secret'].encode('utf-8')
+        self._tenant = config['tenant']
+        self._client_id = config['client_id']
+        self._client_secret = config['client_secret']
         self._admin_access = config.get('admin_access')
-        self._scope = config.get('scope').encode('utf-8') if config.get('scope') else None
+        self._scope = config.get('scope') if config.get('scope') else None
 
         if not self._admin_access:
             self._access_token = self._state.get('non_admin_auth', {}).get('access_token')
@@ -1724,22 +1726,22 @@ if __name__ == '__main__':
     if (args.username and args.password):
         login_url = BaseConnector._get_phantom_base_url() + "login"
         try:
-            print ("Accessing the Login page")
+            print("Accessing the Login page")
             r = requests.get(login_url, verify=False)
             csrftoken = r.cookies['csrftoken']
             data = {'username': args.username, 'password': args.password, 'csrfmiddlewaretoken': csrftoken}
             headers = {'Cookie': 'csrftoken={0}'.format(csrftoken), 'Referer': login_url}
 
-            print ("Logging into Platform to get the session id")
+            print("Logging into Platform to get the session id")
             r2 = requests.post(login_url, verify=False, data=data, headers=headers)
             session_id = r2.cookies['sessionid']
 
         except Exception as e:
-            print ("Unable to get session id from the platform. Error: {0}".format(str(e)))
+            print("Unable to get session id from the platform. Error: {0}".format(str(e)))
             exit(1)
 
     if (len(sys.argv) < 2):
-        print "No test json specified as input"
+        print("No test json specified as input")
         exit(0)
 
     with open(sys.argv[1]) as f:
@@ -1754,6 +1756,6 @@ if __name__ == '__main__':
             in_json['user_session_token'] = session_id
 
         ret_val = connector._handle_action(json.dumps(in_json), None)
-        print (json.dumps(json.loads(ret_val), indent=4))
+        print(json.dumps(json.loads(ret_val), indent=4))
 
     exit(0)
