@@ -91,7 +91,7 @@ def _handle_oauth_result(request, path_parts):
     """
     asset_id = request.GET.get('state')
     if (not asset_id):
-        return HttpResponse("ERROR: Asset ID not found in URL\n{0}".format(json.dumps(request.GET)))
+        return HttpResponse("ERROR: Asset ID not found in URL\n{0}".format(json.dumps(request.GET)), content_type="text/plain", status=400)
 
     # first check for error info
     error = request.GET.get('error')
@@ -101,13 +101,13 @@ def _handle_oauth_result(request, path_parts):
         message = "Error: {0}".format(error)
         if (error_description):
             message += " Details: {0}".format(error_description)
-        return HttpResponse("Server returned {0}".format(message))
+        return HttpResponse("Server returned {0}".format(message), content_type="text/plain", status=400)
 
     admin_consent = (request.GET.get('admin_consent'))
     code = (request.GET.get('code'))
 
     if (not admin_consent and not(code)):
-        return HttpResponse("ERROR: admin_consent or authorization code not found in URL\n{0}".format(json.dumps(request.GET)))
+        return HttpResponse("ERROR: admin_consent or authorization code not found in URL\n{0}".format(json.dumps(request.GET)), content_type="text/plain", status=400)
 
     # Load the data
     state = _load_app_state(asset_id)
@@ -123,14 +123,14 @@ def _handle_oauth_result(request, path_parts):
 
         # If admin_consent is True
         if admin_consent:
-            return HttpResponse('Admin Consent received. Please close this window.')
-        return HttpResponse('Admin Consent declined. Please close this window and try again later.')
+            return HttpResponse('Admin Consent received. Please close this window.', content_type="text/plain")
+        return HttpResponse('Admin Consent declined. Please close this window and try again later.', content_type="text/plain", status=400)
 
     # If value of admin_consent is not available, value of code is available
     state['code'] = code
     _save_app_state(state, asset_id, None)
 
-    return HttpResponse('Code received. Please close this window, the action will continue to get new token.')
+    return HttpResponse('Code received. Please close this window, the action will continue to get new token.', content_type="text/plain")
 
 
 def _handle_oauth_start(request, path_parts):
@@ -138,7 +138,7 @@ def _handle_oauth_start(request, path_parts):
     # get the asset id, the state file is created for each asset
     asset_id = request.GET.get('asset_id')
     if (not asset_id):
-        return HttpResponse("ERROR: Asset ID not found in URL")
+        return HttpResponse("ERROR: Asset ID not found in URL", content_type="text/plain", status=404)
 
     # Load the state that was created for the asset
     state = _load_app_state(asset_id)
@@ -147,7 +147,7 @@ def _handle_oauth_start(request, path_parts):
     admin_consent_url = state.get('admin_consent_url')
 
     if (not admin_consent_url):
-        return HttpResponse("App state is invalid, admin_consent_url key not found")
+        return HttpResponse("App state is invalid, admin_consent_url key not found", content_type="text/plain", status=400)
 
     # Redirect to this link, the user will then require to enter credentials interactively
     response = HttpResponse(status=302)
@@ -164,7 +164,7 @@ def handle_request(request, path_parts):
 
     # get the type of data requested, it's the last part of the URL used to post to the REST endpoint
     if (len(path_parts) < 2):
-        return {'error': True, 'message': 'Invalid REST endpoint request'}
+        return HttpResponse('error: True, message: Invalid REST endpoint request', content_type="text/plain", status=404)
 
     call_type = path_parts[1]
 
@@ -201,7 +201,7 @@ def handle_request(request, path_parts):
         return _handle_oauth_refresh_token(request, path_parts)
     """
 
-    return {'error': 'Invalid endpoint'}
+    return HttpResponse('error: Invalid endpoint', content_type="text/plain", status=404)
 
 
 def _get_dir_name_from_app_name(app_name):
