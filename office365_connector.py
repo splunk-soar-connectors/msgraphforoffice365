@@ -42,47 +42,76 @@ class RetVal(tuple):
 
 
 def _load_app_state(asset_id, app_connector=None):
-    """ Loads the data that was added to """
+    """ This function is used to load the current state file.
 
-    # get the directory of the file
-    dirpath = os.path.split(__file__)[0]
-    state_file = "{0}/{1}_state.json".format(dirpath, asset_id)
+    :param asset_id: asset_id
+    :param app_connector: Object of app_connector class
+    :return: state: Current state file as a dictionary
+    """
+
+    asset_id = str(asset_id)
+    if not asset_id or not asset_id.isalnum():
+        if app_connector:
+            app_connector.debug_print('In _load_app_state: Invalid asset_id')
+        return {}
+
+    app_dir = os.path.dirname(os.path.abspath(__file__))
+    state_file = '{0}/{1}_state.json'.format(app_dir, asset_id)
+    real_state_file_path = os.path.realpath(state_file)
+    if not os.path.dirname(real_state_file_path) == app_dir:
+        if app_connector:
+            app_connector.debug_print('In _load_app_state: Invalid asset_id')
+        return {}
+
     state = {}
-
     try:
-        with open(state_file, 'r') as f:
-            in_json = f.read()
-            state = json.loads(in_json)
+        with open(real_state_file_path, 'r') as state_file_obj:
+            state_file_data = state_file_obj.read()
+            state = json.loads(state_file_data)
     except Exception as e:
-        if (app_connector):
-            app_connector.debug_print("In _load_app_state: Exception: {0}".format(str(e)))
-        pass
+        if app_connector:
+            app_connector.debug_print('In _load_app_state: Exception: {0}'.format(str(e)))
 
-    if (app_connector):
-        app_connector.debug_print("Loaded state: ", state)
+    if app_connector:
+        app_connector.debug_print('Loaded state: ', state)
 
     return state
 
 
 def _save_app_state(state, asset_id, app_connector):
-    """ Saves the state into the same file """
+    """ This function is used to save current state in file.
 
-    # get the directory of the file
-    dirpath = os.path.split(__file__)[0]
-    state_file = "{0}/{1}_state.json".format(dirpath, asset_id)
+    :param state: Dictionary which contains data to write in state file
+    :param asset_id: asset_id
+    :param app_connector: Object of app_connector class
+    :return: status: phantom.APP_SUCCESS
+    """
 
-    if (app_connector):
-        app_connector.debug_print("Saving state: ", state)
+    asset_id = str(asset_id)
+    if not asset_id or not asset_id.isalnum():
+        if app_connector:
+            app_connector.debug_print('In _save_app_state: Invalid asset_id')
+        return {}
+
+    app_dir = os.path.split(__file__)[0]
+    state_file = '{0}/{1}_state.json'.format(app_dir, asset_id)
+
+    real_state_file_path = os.path.realpath(state_file)
+    if not os.path.dirname(real_state_file_path) == app_dir:
+        if app_connector:
+            app_connector.debug_print('In _save_app_state: Invalid asset_id')
+        return {}
+
+    if app_connector:
+        app_connector.debug_print('Saving state: ', state)
 
     try:
-        with open(state_file, 'w+') as f:
-            f.write(json.dumps(state))
+        with open(real_state_file_path, 'w+') as state_file_obj:
+            state_file_obj.write(json.dumps(state))
     except Exception as e:
-        print("Unable to save state file: {0}".format(str(e)))
-        pass
+        print 'Unable to save state file: {0}'.format(str(e))
 
     return phantom.APP_SUCCESS
-
 
 def _handle_oauth_result(request, path_parts):
 
@@ -91,7 +120,7 @@ def _handle_oauth_result(request, path_parts):
     """
     asset_id = request.GET.get('state')
     if (not asset_id):
-        return HttpResponse("ERROR: Asset ID not found in URL\n{0}".format(json.dumps(request.GET)))
+        return HttpResponse("ERROR: Asset ID not found in URL\n{0}".format(json.dumps(request.GET)), content_type="text/plain", status=400)
 
     # first check for error info
     error = request.GET.get('error')
@@ -101,13 +130,13 @@ def _handle_oauth_result(request, path_parts):
         message = "Error: {0}".format(error)
         if (error_description):
             message += " Details: {0}".format(error_description)
-        return HttpResponse("Server returned {0}".format(message))
+        return HttpResponse("Server returned {0}".format(message), content_type="text/plain", status=400)
 
     admin_consent = (request.GET.get('admin_consent'))
     code = (request.GET.get('code'))
 
     if (not admin_consent and not(code)):
-        return HttpResponse("ERROR: admin_consent or authorization code not found in URL\n{0}".format(json.dumps(request.GET)))
+        return HttpResponse("ERROR: admin_consent or authorization code not found in URL\n{0}".format(json.dumps(request.GET)), content_type="text/plain", status=400)
 
     # Load the data
     state = _load_app_state(asset_id)
@@ -123,14 +152,14 @@ def _handle_oauth_result(request, path_parts):
 
         # If admin_consent is True
         if admin_consent:
-            return HttpResponse('Admin Consent received. Please close this window.')
-        return HttpResponse('Admin Consent declined. Please close this window and try again later.')
+            return HttpResponse('Admin Consent received. Please close this window.', content_type="text/plain")
+        return HttpResponse('Admin Consent declined. Please close this window and try again later.', content_type="text/plain", status=400)
 
     # If value of admin_consent is not available, value of code is available
     state['code'] = code
     _save_app_state(state, asset_id, None)
 
-    return HttpResponse('Code received. Please close this window, the action will continue to get new token.')
+    return HttpResponse('Code received. Please close this window, the action will continue to get new token.', content_type="text/plain")
 
 
 def _handle_oauth_start(request, path_parts):
@@ -138,16 +167,18 @@ def _handle_oauth_start(request, path_parts):
     # get the asset id, the state file is created for each asset
     asset_id = request.GET.get('asset_id')
     if (not asset_id):
-        return HttpResponse("ERROR: Asset ID not found in URL")
+        return HttpResponse("ERROR: Asset ID not found in URL", content_type="text/plain", status=404)
 
     # Load the state that was created for the asset
     state = _load_app_state(asset_id)
+    if not state:
+        return HttpResponse('ERROR: Invalid asset_id', content_type="text/plain", status=400)
 
     # get the url to point to the authorize url of OAuth
     admin_consent_url = state.get('admin_consent_url')
 
     if (not admin_consent_url):
-        return HttpResponse("App state is invalid, admin_consent_url key not found")
+        return HttpResponse("App state is invalid, admin_consent_url key not found", content_type="text/plain", status=400)
 
     # Redirect to this link, the user will then require to enter credentials interactively
     response = HttpResponse(status=302)
@@ -164,7 +195,7 @@ def handle_request(request, path_parts):
 
     # get the type of data requested, it's the last part of the URL used to post to the REST endpoint
     if (len(path_parts) < 2):
-        return {'error': True, 'message': 'Invalid REST endpoint request'}
+        return HttpResponse('error: True, message: Invalid REST endpoint request', content_type="text/plain", status=404)
 
     call_type = path_parts[1]
 
@@ -177,18 +208,16 @@ def handle_request(request, path_parts):
         # process the 'code'
         ret_val = _handle_oauth_result(request, path_parts)
         asset_id = request.GET.get('state')
-
-        if (asset_id):
-            # create the file that the 'test connectivity' action is waiting on
+        if asset_id and asset_id.isalnum():
             app_dir = os.path.dirname(os.path.abspath(__file__))
-            auth_status_file_path = "{0}/{1}_{2}".format(app_dir, asset_id, TC_FILE)
+            auth_status_file_path = '{0}/{1}_{2}'.format(app_dir, asset_id, TC_FILE)
+            real_auth_status_file_path = os.path.realpath(auth_status_file_path)
+            if not os.path.dirname(real_auth_status_file_path) == app_dir:
+                return HttpResponse("Error: Invalid asset_id", content_type="text/plain", status=400)
             open(auth_status_file_path, 'w').close()
-
             try:
                 uid = pwd.getpwnam("apache").pw_uid
                 gid = grp.getgrnam("phantom").gr_gid
-
-                # set
                 os.chown(auth_status_file_path, uid, gid)
                 os.chmod(auth_status_file_path, "0664")
             except:
@@ -201,7 +230,7 @@ def handle_request(request, path_parts):
         return _handle_oauth_refresh_token(request, path_parts)
     """
 
-    return {'error': 'Invalid endpoint'}
+    return HttpResponse('error: Invalid endpoint', content_type="text/plain", status=404)
 
 
 def _get_dir_name_from_app_name(app_name):
