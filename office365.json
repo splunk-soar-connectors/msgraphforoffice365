@@ -10,17 +10,16 @@
     "product_version_regex": ".*",
     "publisher": "Splunk",
     "license": "Copyright (c) 2017-2020 Splunk Inc.",
-    "app_version": "2.0.0",
-    "utctime_updated": "2019-10-23T20:13:26.000000Z",
+    "app_version": "2.0.5",
+    "utctime_updated": "2020-07-08T20:26:50.000000Z",
     "package_name": "phantom_msgraphoffice365",
     "main_module": "office365_connector.py",
     "min_phantom_version": "4.8.24304",
     "latest_tested_versions": [
-        "v1 API 2020-07-08"
+        "Cloud 2020-02-14"
     ],
     "app_wizard_version": "1.0.0",
     "python_version": "3",
-    "latest_tested_versions": ["Cloud 2020-02-14"],
     "rest_handler": "office365_connector.handle_request",
     "configuration": {
         "tenant": {
