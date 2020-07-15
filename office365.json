@@ -1931,7 +1931,7 @@
                     "data_path": "action_result.data.*.bccRecipients.name",
                     "data_type": "string",
                     "example_values": [
-                        "Susan Edwards"
+                        "Test User"
                     ]
                 },
                 {
@@ -2376,7 +2376,7 @@
                     "column_name": "Email",
                     "column_order": 2,
                     "example_values": [
-                        "herman@phantomengineering.onmicrosoft.com"
+                        "test@onmicrosoft.com"
                     ]
                 },
                 {
@@ -2394,7 +2394,7 @@
                     "data_path": "action_result.data.*.@odata.context",
                     "data_type": "string",
                     "example_values": [
-                        "https://graph.microsoft.com/v1.0/$metadata#users('herman%40phantomengineering.onmicrosoft.com')/messages/$entity"
+                        "https://graph.microsoft.com/v1.0/$metadata#users('test%40onmicrosoft.com')/messages/$entity"
                     ],
                     "contains": [
                         "url"
@@ -2576,8 +2576,7 @@
                     "column_name": "From",
                     "column_order": 4,
                     "example_values": [
-                        "test@testdomain.onmicrosoft.com",
-                        "notifications@phantom.us"
+                        "test@testdomain.onmicrosoft.com"
                     ],
                     "contains": [
                         "email"
@@ -2587,8 +2586,7 @@
                     "data_path": "action_result.data.*.from.emailAddress.name",
                     "data_type": "string",
                     "example_values": [
-                        "Test Name",
-                        "notifications@phantom.us"
+                        "Test Name"
                     ],
                     "contains": [
                         "email"
@@ -2708,8 +2706,7 @@
                     "data_path": "action_result.data.*.sender.emailAddress.address",
                     "data_type": "string",
                     "example_values": [
-                        "test@testdomain.onmicrosoft.com",
-                        "notifications@phantom.us"
+                        "test@testdomain.onmicrosoft.com"
                     ],
                     "contains": [
                         "email"
@@ -2719,8 +2716,7 @@
                     "data_path": "action_result.data.*.sender.emailAddress.name",
                     "data_type": "string",
                     "example_values": [
-                        "Test Name",
-                        "notifications@phantom.us"
+                        "Test Name"
                     ],
                     "contains": [
                         "email"
@@ -2753,8 +2749,7 @@
                     "column_name": "To",
                     "column_order": 5,
                     "example_values": [
-                        "Test@testdomain.onmicrosoft.com",
-                        "Herman@phantomengineering.onmicrosoft.com"
+                        "Test@testdomain.onmicrosoft.com"
                     ],
                     "contains": [
                         "email"
@@ -2764,8 +2759,7 @@
                     "data_path": "action_result.data.*.toRecipients.*.emailAddress.name",
                     "data_type": "string",
                     "example_values": [
-                        "Test Name",
-                        "Herman Edwards"
+                        "Test Name"
                     ]
                 },
                 {
@@ -2815,7 +2809,7 @@
                     "data_path": "action_result.data.*.internetMessageHeaders.Return-Path",
                     "data_type": "string",
                     "example_values": [
-                        "notifications@phantom.us"
+                        "notifications@testdomain.com"
                     ],
                     "contains": [
                         "email"
@@ -2839,14 +2833,14 @@
                     "data_path": "action_result.data.*.internetMessageHeaders.Received-SPF",
                     "data_type": "string",
                     "example_values": [
-                        "Pass (protection.outlook.com: domain of phantom.us designates 209.85.210.171 as permitted sender) receiver=protection.outlook.com; client-ip=209.85.210.171; helo=mail-pf1-f171.google.com;"
+                        "Pass (protection.outlook.com: domain of testdomain.com designates 209.85.210.171 as permitted sender) receiver=protection.outlook.com; client-ip=209.85.210.171; helo=mail-pf1-f171.google.com;"
                     ]
                 },
                 {
                     "data_path": "action_result.data.*.internetMessageHeaders.Authentication-Results",
                     "data_type": "string",
                     "example_values": [
-                        "spf=pass (sender IP is 209.85.210.171) smtp.mailfrom=phantom.us; phantomengineering.onmicrosoft.com; dkim=pass (signature was verified) header.d=phantom-us.20150623.gappssmtp.com;phantomengineering.onmicrosoft.com; dmarc=pass action=none header.from=phantom.us;compauth=pass reason=100"
+                        "spf=pass (sender IP is 209.85.210.171) smtp.mailfrom=testdomain.com; .onmicrosoft.com; dkim=pass (signature was verified) header.d=testdomain.com.20150623.gappssmtp.com;.onmicrosoft.com; dmarc=pass action=none header.from=testdomain.com;compauth=pass reason=100"
                     ]
                 },
                 {
@@ -2951,7 +2945,7 @@
                     "data_path": "action_result.data.*.internetMessageHeaders.Received",
                     "data_type": "string",
                     "example_values": [
-                        "from localhost.localdomain (host-240.splunk.com. [204.107.141.240])        by smtp.gmail.com with UTF8SMTPSA id ng12sm1923252pjb.15.2020.06.18.02.11.26        for <herman@phantomengineering.onmicrosoft.com>        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);        Thu, 18 Jun 2020 02:11:26 -0700 (PDT)"
+                        "from localhost.localdomain (host-240.splunk.com. [204.107.141.240])        by smtp.gmail.com with UTF8SMTPSA id ng12sm1923252pjb.15.2020.06.18.02.11.26        for <test@onmicrosoft.com>        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);        Thu, 18 Jun 2020 02:11:26 -0700 (PDT)"
                     ]
                 },
                 {
@@ -3063,7 +3057,7 @@
                     "data_path": "action_result.data.*.internetMessageHeaders.DKIM-Signature",
                     "data_type": "string",
                     "example_values": [
-                        "v=1; a=rsa-sha256; c=relaxed/relaxed;        d=phantom-us.20150623.gappssmtp.com; s=20150623;        h=message-id:date:mime-version:from:to:subject;        bh=tlTaRbacq4aWozhUPvcWg8i8flbpYQGZNs27nncn83I=;        b=avAAeJ8jF08K4oIBhxTirRmyB+SXHwdU0zdxv7eqs/zWaWWcgmT0007KP560TTgo5u         oD4nb6TvKxpRyWW4QwmkbuMIwHsMvehd2l1gispV3AawyGJjpmN7ErVYfLtIkz2Tap3V         YxmluV+SqeyyxTU8pFAEZ7+2C2lOb1DO5TC7xCMv+dyzevSscJdbeN0dFkG+C93zCqkg         w2fxubx2HDD7b/U6m2wXllYhH608wKJ/qYzyvQyqxYqNiQOtPRg2gw4sZ2UgN3+UQyVq         8ubO39ZuqakJpzEzYMw10d6E7SQhvHDJH7mFwhBlzhvOpb2gLJDN8n8dJaZo05BozQqq         MsvA=="
+                        "v=1; a=rsa-sha256; c=relaxed/relaxed;        d=testdomain.com.20150623.gappssmtp.com; s=20150623;        h=message-id:date:mime-version:from:to:subject;        bh=tlTaRbacq4aWozhUPvcWg8i8flbpYQGZNs27nncn83I=;        b=avAAeJ8jF08K4oIBhxTirRmyB+SXHwdU0zdxv7eqs/zWaWWcgmT0007KP560TTgo5u         oD4nb6TvKxpRyWW4QwmkbuMIwHsMvehd2l1gispV3AawyGJjpmN7ErVYfLtIkz2Tap3V         YxmluV+SqeyyxTU8pFAEZ7+2C2lOb1DO5TC7xCMv+dyzevSscJdbeN0dFkG+C93zCqkg         w2fxubx2HDD7b/U6m2wXllYhH608wKJ/qYzyvQyqxYqNiQOtPRg2gw4sZ2UgN3+UQyVq         8ubO39ZuqakJpzEzYMw10d6E7SQhvHDJH7mFwhBlzhvOpb2gLJDN8n8dJaZo05BozQqq         MsvA=="
                     ]
                 },
                 {
@@ -3198,7 +3192,7 @@
                     "data_path": "action_result.data.*.sender.emailAddress.name",
                     "data_type": "string",
                     "example_values": [
-                        "notifications@phantom.us"
+                        "notifications@testdomain.com"
                     ],
                     "contains": [
                         "email"
@@ -3208,7 +3202,7 @@
                     "data_path": "action_result.data.*.sender.emailAddress.address",
                     "data_type": "string",
                     "example_values": [
-                        "notifications@phantom.us"
+                        "notifications@testdomain.com"
                     ],
                     "contains": [
                         "email"
@@ -3218,8 +3212,8 @@
                     "data_path": "action_result.data.*.@odata.context",
                     "data_type": "string",
                     "example_values": [
-                        "https://graph.microsoft.com/v1.0/$metadata#users('herman%40phantomengineering.onmicrosoft.com')/messages(internetMessageHeaders,body,uniqueBody,sender,subject)/$entity",
-                        "https://graph.microsoft.com/v1.0/$metadata#users('herman%40phantomengineering.onmicrosoft.com')/messages(internetMessageHeaders,body,uniqueBody,sender,subject,receivedDateTime)/$entity"
+                        "https://graph.microsoft.com/v1.0/$metadata#users('user%40.onmicrosoft.com')/messages(internetMessageHeaders,body,uniqueBody,sender,subject)/$entity",
+                        "https://graph.microsoft.com/v1.0/$metadata#users('user%40.onmicrosoft.com')/messages(internetMessageHeaders,body,uniqueBody,sender,subject,receivedDateTime)/$entity"
                     ],
                     "contains": [
                         "url"
@@ -3311,7 +3305,7 @@
                     "data_path": "action_result.parameter.email_address",
                     "data_type": "string",
                     "example_values": [
-                        "herman@phantomengineering.onmicrosoft.com"
+                        "user@.onmicrosoft.com"
                     ],
                     "contains": [
                         "email"
@@ -3345,7 +3339,7 @@
                     "data_path": "action_result.data.*.internetMessageHeaders.Return-Path",
                     "data_type": "string",
                     "example_values": [
-                        "notifications@phantom.us"
+                        "notifications@testdomain.com"
                     ],
                     "contains": [
                         "email"
@@ -3369,14 +3363,14 @@
                     "data_path": "action_result.data.*.internetMessageHeaders.Received-SPF",
                     "data_type": "string",
                     "example_values": [
-                        "Pass (protection.outlook.com: domain of phantom.us designates 209.85.210.171 as permitted sender) receiver=protection.outlook.com; client-ip=209.85.210.171; helo=mail-pf1-f171.google.com;"
+                        "Pass (protection.outlook.com: domain of testdomain.com designates 209.85.210.171 as permitted sender) receiver=protection.outlook.com; client-ip=209.85.210.171; helo=mail-pf1-f171.google.com;"
                     ]
                 },
                 {
                     "data_path": "action_result.data.*.internetMessageHeaders.Authentication-Results",
                     "data_type": "string",
                     "example_values": [
-                        "spf=pass (sender IP is 209.85.210.171) smtp.mailfrom=phantom.us; phantomengineering.onmicrosoft.com; dkim=pass (signature was verified) header.d=phantom-us.20150623.gappssmtp.com;phantomengineering.onmicrosoft.com; dmarc=pass action=none header.from=phantom.us;compauth=pass reason=100"
+                        "spf=pass (sender IP is 209.85.210.171) smtp.mailfrom=testdomain.com; .onmicrosoft.com; dkim=pass (signature was verified) header.d=testdomain.com.20150623.gappssmtp.com;.onmicrosoft.com; dmarc=pass action=none header.from=testdomain.com;compauth=pass reason=100"
                     ]
                 },
                 {
@@ -3481,7 +3475,7 @@
                     "data_path": "action_result.data.*.internetMessageHeaders.Received",
                     "data_type": "string",
                     "example_values": [
-                        "from localhost.localdomain (host-240.splunk.com. [204.107.141.240])        by smtp.gmail.com with UTF8SMTPSA id ng12sm1923252pjb.15.2020.06.18.02.11.26        for <herman@phantomengineering.onmicrosoft.com>        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);        Thu, 18 Jun 2020 02:11:26 -0700 (PDT)"
+                        "from localhost.localdomain (host-240.splunk.com. [204.107.141.240])        by smtp.gmail.com with UTF8SMTPSA id ng12sm1923252pjb.15.2020.06.18.02.11.26        for <user@.onmicrosoft.com>        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);        Thu, 18 Jun 2020 02:11:26 -0700 (PDT)"
                     ]
                 },
                 {
@@ -3593,7 +3587,7 @@
                     "data_path": "action_result.data.*.internetMessageHeaders.DKIM-Signature",
                     "data_type": "string",
                     "example_values": [
-                        "v=1; a=rsa-sha256; c=relaxed/relaxed;        d=phantom-us.20150623.gappssmtp.com; s=20150623;        h=message-id:date:mime-version:from:to:subject;        bh=tlTaRbacq4aWozhUPvcWg8i8flbpYQGZNs27nncn83I=;        b=avAAeJ8jF08K4oIBhxTirRmyB+SXHwdU0zdxv7eqs/zWaWWcgmT0007KP560TTgo5u         oD4nb6TvKxpRyWW4QwmkbuMIwHsMvehd2l1gispV3AawyGJjpmN7ErVYfLtIkz2Tap3V         YxmluV+SqeyyxTU8pFAEZ7+2C2lOb1DO5TC7xCMv+dyzevSscJdbeN0dFkG+C93zCqkg         w2fxubx2HDD7b/U6m2wXllYhH608wKJ/qYzyvQyqxYqNiQOtPRg2gw4sZ2UgN3+UQyVq         8ubO39ZuqakJpzEzYMw10d6E7SQhvHDJH7mFwhBlzhvOpb2gLJDN8n8dJaZo05BozQqq         MsvA=="
+                        "v=1; a=rsa-sha256; c=relaxed/relaxed;        d=testdomain.com.20150623.gappssmtp.com; s=20150623;        h=message-id:date:mime-version:from:to:subject;        bh=tlTaRbacq4aWozhUPvcWg8i8flbpYQGZNs27nncn83I=;        b=avAAeJ8jF08K4oIBhxTirRmyB+SXHwdU0zdxv7eqs/zWaWWcgmT0007KP560TTgo5u         oD4nb6TvKxpRyWW4QwmkbuMIwHsMvehd2l1gispV3AawyGJjpmN7ErVYfLtIkz2Tap3V         YxmluV+SqeyyxTU8pFAEZ7+2C2lOb1DO5TC7xCMv+dyzevSscJdbeN0dFkG+C93zCqkg         w2fxubx2HDD7b/U6m2wXllYhH608wKJ/qYzyvQyqxYqNiQOtPRg2gw4sZ2UgN3+UQyVq         8ubO39ZuqakJpzEzYMw10d6E7SQhvHDJH7mFwhBlzhvOpb2gLJDN8n8dJaZo05BozQqq         MsvA=="
                     ]
                 },
                 {
