@@ -713,7 +713,7 @@ class Office365Connector(BaseConnector):
         action_result = self.add_action_result(ActionResult(dict(param)))
 
         email_addr = param['email_address']
-        folder = param["folder"].translate({92: 47})
+        folder = param["folder"].replace('\\','/')
         endpoint = '/users/{0}'.format(email_addr)
 
         endpoint += '/messages/{0}/copy'.format(param['id'])
@@ -746,7 +746,7 @@ class Office365Connector(BaseConnector):
         action_result = self.add_action_result(ActionResult(dict(param)))
 
         email_addr = param['email_address']
-        folder = param["folder"].translate({92: 47})
+        folder = param["folder"].replace('\\','/')
         endpoint = '/users/{0}'.format(email_addr)
 
         endpoint += '/messages/{0}/move'.format(param['id'])
@@ -1278,7 +1278,7 @@ class Office365Connector(BaseConnector):
 
         # folder
         if ('folder' in param):
-            folder = param['folder'].translate({92: 47})
+            folder = param['folder'].replace('\\','/')
 
             if param.get('get_folder_id', False):
                 try:
@@ -1454,7 +1454,7 @@ class Office365Connector(BaseConnector):
         action_result = self.add_action_result(ActionResult(dict(param)))
 
         email = param["email_address"]
-        folder = param["folder"].translate({92: 47})
+        folder = param["folder"].replace('\\','/')
 
         minusp = param.get("all_subdirs", False)
 
@@ -1542,7 +1542,7 @@ class Office365Connector(BaseConnector):
         action_result = self.add_action_result(ActionResult(dict(param)))
 
         email = param["email_address"]
-        folder = param["folder"].translate({92: 47})
+        folder = param["folder"].replace('\\','/')
 
         try:
             dir_id, error, ret = self._get_folder_id(action_result, folder, email)
