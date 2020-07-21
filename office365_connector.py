@@ -743,7 +743,7 @@ class Office365Connector(BaseConnector):
         action_result = self.add_action_result(ActionResult(dict(param)))
 
         email_addr = param['email_address']
-        folder = param["folder"].translate({92: 47})
+        folder = param["folder"].replace('\\','/')
         endpoint = '/users/{0}'.format(email_addr)
 
         endpoint += '/messages/{0}/copy'.format(param['id'])
@@ -776,7 +776,7 @@ class Office365Connector(BaseConnector):
         action_result = self.add_action_result(ActionResult(dict(param)))
 
         email_addr = param['email_address']
-        folder = param["folder"].translate({92: 47})
+        folder = param["folder"].replace('\\','/')
         endpoint = '/users/{0}'.format(email_addr)
 
         endpoint += '/messages/{0}/move'.format(param['id'])
@@ -1051,6 +1051,22 @@ class Office365Connector(BaseConnector):
 
         return phantom.APP_SUCCESS, folders
 
+    def _flatten_headers(self, headers):
+
+        new_headers = {}
+
+        for field in headers:
+
+            if field['name'] == 'Received':
+                if 'Received' not in new_headers:
+                    new_headers['Received'] = []
+                new_headers['Received'].append(field['value'])
+                continue
+
+            new_headers[field['name']] = field['value']
+
+        return new_headers
+
     def _handle_get_email(self, param):
 
         self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
@@ -1062,8 +1078,15 @@ class Office365Connector(BaseConnector):
         endpoint += '/messages/{0}'.format(param['id'])
 
         ret_val, response = self._make_rest_call_helper(action_result, endpoint)
-        if (phantom.is_fail(ret_val)):
+        if phantom.is_fail(ret_val):
             return action_result.get_status()
+
+        if param.get('extract_headers'):
+            header_endpoint = endpoint + '?$select=internetMessageHeaders'
+            ret_val, header_response = self._make_rest_call_helper(action_result, header_endpoint)
+            if phantom.is_fail(ret_val):
+                return action_result.get_status()
+            response['internetMessageHeaders'] = header_response['internetMessageHeaders']
 
         if param['download_attachments'] and response['hasAttachments']:
 
@@ -1077,6 +1100,45 @@ class Office365Connector(BaseConnector):
                     return action_result.set_status(phantom.APP_ERROR, 'Could not process attachment. See logs for details')
 
             response['attachments'] = attach_resp['value']
+
+        if 'internetMessageHeaders' in response:
+            response['internetMessageHeaders'] = self._flatten_headers(response['internetMessageHeaders'])
+
+        action_result.add_data(response)
+
+        return action_result.set_status(phantom.APP_SUCCESS, "Successfully fetched email")
+
+    def _handle_get_email_properties(self, param):
+
+        self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
+        action_result = self.add_action_result(ActionResult(dict(param)))
+
+        email_addr = param['email_address']
+        endpoint = '/users/{0}'.format(email_addr)
+
+        endpoint += '/messages/{0}'.format(param['id'])
+
+        select_list = []
+        if param.get('get_headers'):
+            select_list.append('internetMessageHeaders')
+        if param.get('get_body'):
+            select_list.append('body')
+        if param.get('get_unique_body'):
+            select_list.append('uniqueBody')
+        if param.get('get_sender'):
+            select_list.append('sender')
+        if 'properties_list' in param:
+            select_list += param['properties_list'].strip().split(',')
+
+        if select_list:
+            endpoint += '?$select={0}'.format(','.join(select_list))
+
+        ret_val, response = self._make_rest_call_helper(action_result, endpoint)
+        if phantom.is_fail(ret_val):
+            return action_result.get_status()
+
+        if 'internetMessageHeaders' in response:
+            response['internetMessageHeaders'] = self._flatten_headers(response['internetMessageHeaders'])
 
         action_result.add_data(response)
 
@@ -1235,10 +1297,10 @@ class Office365Connector(BaseConnector):
 
         limit = param.get('limit')
 
-        if (limit and not str(limit).isdigit()) or limit == 0:
-            return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_LIMIT)
-
-        limit = int(limit)
+        if limit:
+            if not str(limit).isdigit():
+                return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_LIMIT)
+            limit = int(limit)
 
         # user
         email_addr = param['email_address']
@@ -1246,7 +1308,7 @@ class Office365Connector(BaseConnector):
 
         # folder
         if ('folder' in param):
-            folder = param['folder'].translate({92: 47})
+            folder = param['folder'].replace('\\','/')
 
             if param.get('get_folder_id', False):
                 try:
@@ -1422,7 +1484,7 @@ class Office365Connector(BaseConnector):
         action_result = self.add_action_result(ActionResult(dict(param)))
 
         email = param["email_address"]
-        folder = param["folder"].translate({92: 47})
+        folder = param["folder"].replace('\\','/')
 
         minusp = param.get("all_subdirs", False)
 
@@ -1510,7 +1572,7 @@ class Office365Connector(BaseConnector):
         action_result = self.add_action_result(ActionResult(dict(param)))
 
         email = param["email_address"]
-        folder = param["folder"].translate({92: 47})
+        folder = param["folder"].replace('\\','/')
 
         try:
             dir_id, error, ret = self._get_folder_id(action_result, folder, email)
@@ -1604,6 +1666,9 @@ class Office365Connector(BaseConnector):
 
         elif action_id == 'get_email':
             ret_val = self._handle_get_email(param)
+
+        elif action_id == 'get_email_properties':
+            ret_val = self._handle_get_email_properties(param)
 
         elif action_id == 'on_poll':
             ret_val = self._handle_on_poll(param)
