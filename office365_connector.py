@@ -113,6 +113,7 @@ def _save_app_state(state, asset_id, app_connector):
 
     return phantom.APP_SUCCESS
 
+
 def _handle_oauth_result(request, path_parts):
 
     """

@@ -7,15 +7,15 @@
 
 <p>
 <h2>Authentication</h2>
-This app requires to create a Microsoft Graph Application. To do so, navigate to the URL https://apps.dev.microsoft.com in a browser and log in with the Microsoft account, then, click <b>Add an app</b>.
+This app requires registration of a Microsoft Graph Application. To do so, navigate to the URL <a href="https://portal.azure.com" target="_blank">https://portal.azure.com</a> in a browser and log in with the Microsoft account, then, click <b>App registrations</b>.
 <br><br>
-On the next page, provide a name to your application and click on <b>Create</b>.
+On the next page, select <b>New registration</b> and give your app a name.
 <br><br>
 Once the app is created, follow the below three steps:
 <ul>
-    <li>Under <b>Application Secrets</b> select <b>Generate New Password</b>. Note down this key somewhere secure, as it cannot be retrieved after closing the window.</li>
-    <li>Under <b>Platforms</b> select <b>Add Platform</b>. In the <b>Add Platform</b> window, select <b>Web</b>. The <b>Redirect URLs</b> field will be filled in the later steps.</li>
-    <li>Under <b>Microsoft Graph Permissions</b> the following <b>Application Permissions</b> need to be added:
+    <li>Under <b>Certificates & secrets</b> select <b>New client secret</b>. Note down this key somewhere secure, as it cannot be retrieved after closing the window.</li>
+    <li>Under <b>Overview</b> select <b>Add a redirect URI</b>. In the <b>Add Platform</b> window, select <b>Web</b>. The <b>Redirect URLs</b> field will be filled in the later steps.</li>
+    <li>Under <b>API Permissions</b> the following <b>Delegated Permissions</b> need to be added:
     <ul>
         <li>Mail.Read (https://graph.microsoft.com/Mail.Read)</li>
         <li>Mail.ReadWrite (https://graph.microsoft.com/Mail.ReadWrite)</li>
@@ -25,9 +25,9 @@ Once the app is created, follow the below three steps:
         <li>MailboxSettings.Read (https://graph.microsoft.com/MailboxSettings.Read)- It is required only if you want to run the <b>oof status</b> action</li>
     </ul>
 </ul>
-After making these changes, click <b>Grant admin consent for Test Phantom</b> at the bottom of the screen.
+After making these changes, click <b>Add permissions</b> then select <b>Grant admin consent for Test Phantom</b> at the bottom of the screen.
 <h2>Phantom Graph Asset</h2>
-When creating an asset for the <b>MS Graph for Office 365</b> app, place <b>Application ID</b> of the app created during the previous step in the <b>Application ID</b> field and place the password generated during the app creation process in the <b>Application Secret</b> field. Then, after filling out the <b>Tenant</b> field, click <b>SAVE</b>.
+When creating an asset for the <b>MS Graph for Office 365</b> app, place <b>Application ID</b> of the app created during the app registration on the Azure Portal in the <b>Application ID</b> field and place the client secret generated during the app registration process in the <b>Client Secret</b> field. Then, after filling out the <b>Tenant</b> field, click <b>SAVE</b>. Both the Application/Client ID and the Tenant ID can be found in the <b>Overview</b> tab on your app's Azure page.
 <br><br>
 After saving, a new field will appear in the <b>Asset Settings</b> tab. Take the URL found in the <b>POST incoming for MS Graph for Office 365 to this location</b> field and place it in the <b>Redirect URLs</b> field mentioned in a previous step. To this URL, add <b>/result</b>. After doing so the URL should look something like:
 <br><br>
