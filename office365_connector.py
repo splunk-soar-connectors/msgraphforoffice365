@@ -15,6 +15,7 @@ from datetime import datetime, timedelta
 from django.http import HttpResponse
 from office365_consts import *
 from bs4 import BeautifulSoup
+from bs4 import UnicodeDammit
 
 import process_email
 import requests
@@ -22,6 +23,7 @@ import base64
 import uuid
 import json
 import time
+import sys
 import pwd
 import grp
 import os
@@ -112,6 +114,52 @@ def _save_app_state(state, asset_id, app_connector):
         print('Unable to save state file: {0}'.format(str(e)))
 
     return phantom.APP_SUCCESS
+
+def _handle_py_ver_compat_for_input_str(python_version, input_str, app_connector=None):
+    """
+    This method returns the encoded|original string based on the Python version.
+    :param input_str: Input string to be processed
+    :return: input_str (Processed input string based on following logic 'input_str - Python 3; encoded input_str - Python 2')
+    """
+    try:
+        if input_str and python_version < 3:
+            input_str = UnicodeDammit(input_str).unicode_markup.encode('utf-8')
+    except:
+        if app_connector:
+            app_connector.debug_print("Error occurred while handling python 2to3 compatibility for the input string")
+
+    return input_str
+
+
+def _get_error_message_from_exception(python_version, e, app_connector=None):
+    """ This function is used to get appropriate error message from the exception.
+    :param e: Exception object
+    :return: error message
+    """
+    error_msg = "Unknown error occurred. Please check the asset configuration and|or action parameters."
+    try:
+        if e.args:
+            if len(e.args) > 1:
+                error_code = e.args[0]
+                error_msg = e.args[1]
+            elif len(e.args) == 1:
+                error_code = "Error code unavailable"
+                error_msg = e.args[0]
+        else:
+            error_code = "Error code unavailable"
+            error_msg = "Unknown error occurred. Please check the asset configuration and|or action parameters."
+    except:
+        error_code = "Error code unavailable"
+        error_msg = "Unknown error occurred. Please check the asset configuration and|or action parameters."
+
+    try:
+        error_msg = _handle_py_ver_compat_for_input_str(python_version, error_msg, app_connector)
+    except TypeError:
+        error_msg = "Error occurred while handling python 2to3 compatibility for the input string"
+    except:
+        error_msg = "Unknown error occurred. Please check the asset configuration and|or action parameters."
+
+    return error_code, error_msg
 
 
 def _handle_oauth_result(request, path_parts):
@@ -385,7 +433,8 @@ class Office365Connector(BaseConnector):
                             verify=verify,
                             params=params)
         except Exception as e:
-            return RetVal(action_result.set_status( phantom.APP_ERROR, "Error Connecting to server. Details: {0}".format(str(e))), resp_json)
+            error_code, error_msg = _get_error_message_from_exception(self._python_version, e, self)
+            return RetVal(action_result.set_status(phantom.APP_ERROR, "Error connecting to server. Error Code: {0}. Error Message: {1}".format(error_code, error_msg)), resp_json)
 
         return self._process_response(r, action_result)
 
@@ -548,7 +597,13 @@ class Office365Connector(BaseConnector):
 
         cef = {}
         email_artifact['cef'] = cef
-        for k, v in email.iteritems():
+
+        try:
+            email_items = email.iteritems()
+        except:
+            email_items = email.items()
+
+        for k, v in email_items:
             if v is not None:
                 cef[k] = v
 
@@ -1382,7 +1437,7 @@ class Office365Connector(BaseConnector):
         try:
             dir_id = self._get_folder(action_result, path[0], email)
         except ReturnException:
-            return action_result.get_status()
+            return action_result.get_status(), "Error occured while fetching folder", None
 
         if not dir_id:
             return None, "Error: folder not found; {}".format(path[0]), ret
@@ -1571,8 +1626,8 @@ class Office365Connector(BaseConnector):
         self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
         action_result = self.add_action_result(ActionResult(dict(param)))
 
-        email = param["email_address"]
-        folder = param["folder"].replace('\\','/')
+        email = _handle_py_ver_compat_for_input_str(self._python_version, param["email_address"], self)
+        folder = _handle_py_ver_compat_for_input_str(self._python_version, param["folder"].replace('\\','/'), self)
 
         try:
             dir_id, error, ret = self._get_folder_id(action_result, folder, email)
@@ -1580,7 +1635,7 @@ class Office365Connector(BaseConnector):
         except ReturnException:
             return action_result.get_status()
 
-        if len(ret) > 0:
+        if ret and len(ret) > 0:
             for x in ret:
                 action_result.add_data(x)
 
@@ -1759,16 +1814,22 @@ class Office365Connector(BaseConnector):
 
         self._currentdir = None
 
+        # Fetching the Python major version
+        try:
+            self._python_version = int(sys.version_info[0])
+        except:
+            return self.set_status(phantom.APP_ERROR, "Error occurred while getting the Phantom server's Python major version.")
+
         # Load the state in initialize
         config = self.get_config()
 
         # Load all the asset configuration in global variables
         self._state = self.load_state()
-        self._tenant = config['tenant']
-        self._client_id = config['client_id']
-        self._client_secret = config['client_secret']
+        self._tenant = _handle_py_ver_compat_for_input_str(self._python_version, config['tenant'], self)
+        self._client_id = _handle_py_ver_compat_for_input_str(self._python_version, config['client_id'], self)
+        self._client_secret = _handle_py_ver_compat_for_input_str(self._python_version, config['client_secret'], self)
         self._admin_access = config.get('admin_access')
-        self._scope = config.get('scope') if config.get('scope') else None
+        self._scope = _handle_py_ver_compat_for_input_str(self._python_version, config.get('scope'), self) if config.get('scope') else None
 
         if not self._admin_access:
             self._access_token = self._state.get('non_admin_auth', {}).get('access_token')
