@@ -402,6 +402,9 @@ class Office365Connector(BaseConnector):
             if error_message:
                 try:
                     soup = BeautifulSoup(resp_json.get('error', {}).get('message'), "html.parser")
+                    # Remove the script, style, footer and navigation part from the HTML message
+                    for element in soup(["script", "style", "footer", "nav"]):
+                        element.extract()
                     error_text = soup.text
                     split_lines = error_text.split('\n')
                     split_lines = [x.strip() for x in split_lines if x.strip()]
