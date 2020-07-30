@@ -351,12 +351,22 @@ class Office365Connector(BaseConnector):
 
         try:
             soup = BeautifulSoup(response.text, "html.parser")
+            # Remove the script, style, footer and navigation part from the HTML message
+            for element in soup(["script", "style", "footer", "nav"]):
+                element.extract()
             error_text = soup.text
             split_lines = error_text.split('\n')
             split_lines = [x.strip() for x in split_lines if x.strip()]
             error_text = '\n'.join(split_lines)
         except:
             error_text = "Cannot parse error details"
+
+        try:
+            error_text = _handle_py_ver_compat_for_input_str(self._python_version, error_text, self)
+        except TypeError:
+            error_text = "Error occurred while handling python 2to3 compatibility for the error string"
+        except:
+            error_text = "Unknown error occurred. Please check the asset configuration and|or action parameters."
 
         message = "Status Code: {0}. Data from server:\n{1}\n".format(status_code,
                 error_text)
@@ -371,7 +381,9 @@ class Office365Connector(BaseConnector):
         try:
             resp_json = r.json()
         except Exception as e:
-            return RetVal(action_result.set_status(phantom.APP_ERROR, "Unable to parse JSON response. Error: {0}".format(str(e))), None)
+            error_code, error_msg = _get_error_message_from_exception(self._python_version, e, self)
+            error_txt = "Error Code: {0}. Error Message: {1}".format(error_code, error_msg)
+            return RetVal(action_result.set_status(phantom.APP_ERROR, "Unable to parse JSON response. {0}".format(error_txt)), None)
 
         # Please specify the status codes here
         if 200 <= r.status_code < 399:
@@ -399,10 +411,24 @@ class Office365Connector(BaseConnector):
                 except:
                     error_text = "Cannot parse error details"
 
+            try:
+                error_text = _handle_py_ver_compat_for_input_str(self._python_version, error_text, self)
+            except TypeError:
+                error_text = "Error occurred while handling python 2to3 compatibility for the error message"
+            except:
+                error_text = "Unknown error occurred while parsing the error message"
+
             if error_code:
                 error_text = "{}. {}".format(error_code, error_text)
 
             if error_desc:
+                try:
+                    error_desc = _handle_py_ver_compat_for_input_str(self._python_version, error_desc, self)
+                except TypeError:
+                    error_desc = "Error occurred while handling python 2to3 compatibility for the error_description"
+                except:
+                    error_desc = "Unknown error occurred while parsing the error_description"
+
                 error_text = "{}. {}".format(error_desc, error_text)
 
             if not error_text:
@@ -600,7 +626,9 @@ class Office365Connector(BaseConnector):
                 vault_ret = Vault.add_attachment(file_path, container_id, file_name=attachment['name'])
 
         except Exception as e:
-            self.debug_print("Error saving file to vault: ", str(e))
+            error_code, error_msg = _get_error_message_from_exception(self._python_version, e, self)
+            error_txt = "Error Code: {0}. Error Message: {1}".format(error_code, error_msg)
+            self.debug_print("Error saving file to vault: {0}".format(error_txt))
             return phantom.APP_ERROR
 
         if not vault_ret.get('succeeded'):
@@ -1642,7 +1670,6 @@ class Office365Connector(BaseConnector):
         # remove empty elements
         path = list(filter(None, folder_names))
 
-        # path = [x for x in folder.strip().split("/") if x]
         if len(path) == 0:
             msg = "Error: Invalid folder path"
             self.save_progress(msg)
