@@ -787,6 +787,7 @@ class Office365Connector(BaseConnector):
 
         self.save_progress('Please connect to the following URL from a different tab to continue the connectivity process')
         self.save_progress(url_to_show)
+        self.save_progress(MSGOFFICE365_AUTHORIZE_TROUBLESHOOT_MSG)
 
         time.sleep(5)
 
@@ -1250,14 +1251,16 @@ class Office365Connector(BaseConnector):
 
         if param['download_attachments'] and response.get('hasAttachments'):
 
-            endpoint += '/attachments'
+            endpoint += '/attachments?$expand=microsoft.graph.itemattachment/item'
             ret_val, attach_resp = self._make_rest_call_helper(action_result, endpoint)
             if (phantom.is_fail(ret_val)):
                 return action_result.get_status()
 
             for attachment in attach_resp.get('value', []):
-                if not self._handle_attachment(attachment, self.get_container_id()):
-                    return action_result.set_status(phantom.APP_ERROR, 'Could not process attachment. See logs for details')
+                # If it is fileAttachment, then we have to ingest it
+                if attachment.get("@odata.type") == "#microsoft.graph.fileAttachment":
+                    if not self._handle_attachment(attachment, self.get_container_id()):
+                        return action_result.set_status(phantom.APP_ERROR, 'Could not process attachment. See logs for details')
 
             response['attachments'] = attach_resp['value']
 

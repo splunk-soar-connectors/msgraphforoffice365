@@ -15,3 +15,6 @@ MSGOFFICE365_RUN_CONNECTIVITY_MSG = "Please run test connectivity first to compl
 MSGOFFICE365_INVALID_LIMIT = "Please provide non-zero positive integer value in the 'limit' parameter."
 MSGOFFICE365_STATE_FILE_CORRUPT_ERROR = "Error occurred while loading the state file due to its unexpected format. Reseting the state file with the default format. \
 Please try again."
+MSGOFFICE365_AUTHORIZE_TROUBLESHOOT_MSG = 'If authorization URL fails to communicate with your Phantom instance, check whether you have:  '\
+                                ' 1. Specified the Web Redirect URL of your App -- The Redirect URL should be <POST URL>/result . '\
+                                ' 2. Configured the base URL of your Phantom Instance at Administration -> Company Settings -> Info'

@@ -2340,7 +2340,7 @@
                     "order": 1
                 },
                 "download_attachments": {
-                    "description": "Download attachments to vault",
+                    "description": "Download attachments to vault (ingest only '#microsoft.graph.fileAttachment' type of attachments)",
                     "data_type": "boolean",
                     "order": 2
                 },
