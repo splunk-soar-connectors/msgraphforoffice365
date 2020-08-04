@@ -50,6 +50,22 @@ After setting up the asset and user, click the <b>TEST CONNECTIVITY</b> button. 
 <br><br>
 The app should now be ready to be used.
 <br />
+
+<h2>State file permissions</h2>
+  <p>
+    Please check the permissions for the state file as mentioned below.
+    <h4>State file path</h4>
+    <ul>
+      <li>For Non-NRI instance: /opt/phantom/local_data/app_states/&lt;appid&gt;/&lt;asset_id&gt;_state.json</li>
+      <li>For NRI instance: /&lt;PHANTOM_HOME_DIRECTORY&gt;/local_data/app_states/&lt;appid&gt;/&lt;asset_id&gt;_state.json</li>
+    </ul>
+    <h4>State file permissions</h4>
+    <ul>
+      <li>File rights: rw-rw-r-- (664) (The phantom user should have read and write access for the state file)</li>
+      <li>File owner: Appropriate phantom user</li>
+    </ul>
+  </p>
+
 <h3>Note</h3>
 <ul>
     <li>An optional parameter <b>Admin Access Required</b> has been added to this app. In most cases, this should remain checked, as admin access is required for email use cases. If the desired integration is to integrate with only one user's calendar, you may consider unchecking this box. If unchecked, it allows a non-admin user to provide access to a specific account. This functionality will ONLY work with the <b>list events</b> functionality. If unchecked, the <b>Access scope</b> <em>must</em> be used. The default scope will work for listing calendar events. Additional information on scope can be found <a href="https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-permissions-and-consent#openid-connect-scopes" target="_blank">here.</a></li>

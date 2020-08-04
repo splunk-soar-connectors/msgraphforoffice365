@@ -18,3 +18,6 @@ Please try again."
 MSGOFFICE365_AUTHORIZE_TROUBLESHOOT_MSG = 'If authorization URL fails to communicate with your Phantom instance, check whether you have:  '\
                                 ' 1. Specified the Web Redirect URL of your App -- The Redirect URL should be <POST URL>/result . '\
                                 ' 2. Configured the base URL of your Phantom Instance at Administration -> Company Settings -> Info'
+MSGOFFICE365_INVALID_PERMISSION_ERR = "Error occurred while saving the newly generated access token (in place of the expired token) in the state file."
+MSGOFFICE365_INVALID_PERMISSION_ERR += " Please check the owner, owner group, and the permissions of the state file. The Phantom "
+MSGOFFICE365_INVALID_PERMISSION_ERR += "user should have the correct access rights and ownership for the corresponding state file (refer to readme file for more information)."

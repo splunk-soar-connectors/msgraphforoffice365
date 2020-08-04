@@ -1945,6 +1945,21 @@ class Office365Connector(BaseConnector):
         self.save_state(self._state)
         _save_app_state(self._state, self.get_asset_id(), self)
 
+        self._state = self.load_state()
+
+        # Scenario -
+        #
+        # If the corresponding state file doesn't have correct owner, owner group or permissions,
+        # the newely generated token is not being saved to state file and automatic workflow for token has been stopped.
+        # So we have to check that token from response and token which are saved to state file after successful generation of new token are same or not.
+
+        if self._admin_access:
+            if self._access_token != self._state.get('admin_auth', {}).get('access_token'):
+                return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_PERMISSION_ERR)
+        else:
+            if self._access_token != self._state.get('non_admin_auth', {}).get('access_token'):
+                return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_PERMISSION_ERR)
+
         return (phantom.APP_SUCCESS)
 
     def initialize(self):
