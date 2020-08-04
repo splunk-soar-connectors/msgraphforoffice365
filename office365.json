@@ -2373,8 +2373,6 @@
                     "contains": [
                         "email"
                     ],
-                    "column_name": "Email",
-                    "column_order": 2,
                     "example_values": [
                         "test@onmicrosoft.com"
                     ]
@@ -2413,6 +2411,20 @@
                     "data_type": "string",
                     "example_values": [
                         "#microsoft.graph.fileAttachment"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.attachments.*.attachmentType",
+                    "data_type": "string",
+                    "example_values": [
+                        "#microsoft.graph.fileAttachment"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.attachments.*.itemType",
+                    "data_type": "string",
+                    "example_values": [
+                        "#microsoft.graph.message"
                     ]
                 },
                 {
@@ -2518,8 +2530,6 @@
                 {
                     "data_path": "action_result.data.*.bodyPreview",
                     "data_type": "string",
-                    "column_name": "Body Preview",
-                    "column_order": 3,
                     "example_values": [
                         "Have a good time with these.",
                         "HTML heading\r\nHTML body."
@@ -2573,8 +2583,6 @@
                 {
                     "data_path": "action_result.data.*.from.emailAddress.address",
                     "data_type": "string",
-                    "column_name": "From",
-                    "column_order": 4,
                     "example_values": [
                         "test@testdomain.onmicrosoft.com"
                     ],
@@ -2595,8 +2603,6 @@
                 {
                     "data_path": "action_result.data.*.hasAttachments",
                     "data_type": "boolean",
-                    "column_name": "Has Attachments",
-                    "column_order": 6,
                     "example_values": [
                         true,
                         false
@@ -2611,9 +2617,7 @@
                     ],
                     "contains": [
                         "msgoffice365 message id"
-                    ],
-                    "column_name": "Message ID",
-                    "column_order": 0
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.importance",
@@ -2639,9 +2643,7 @@
                     ],
                     "contains": [
                         "msgoffice365 internet message id"
-                    ],
-                    "column_name": "Internet Message ID",
-                    "column_order": 7
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.isDeliveryReceiptRequested",
@@ -2733,8 +2735,6 @@
                 {
                     "data_path": "action_result.data.*.subject",
                     "data_type": "string",
-                    "column_name": "Subject",
-                    "column_order": 1,
                     "example_values": [
                         "more attachments",
                         "test html"
@@ -2746,8 +2746,6 @@
                 {
                     "data_path": "action_result.data.*.toRecipients.*.emailAddress.address",
                     "data_type": "string",
-                    "column_name": "To",
-                    "column_order": 5,
                     "example_values": [
                         "Test@testdomain.onmicrosoft.com"
                     ],
@@ -3107,8 +3105,9 @@
             "render": {
                 "width": 12,
                 "title": "Get email",
-                "type": "table",
-                "height": 5
+                "type": "custom",
+                "height": 5,
+                "view": "office365_view.display_view"
             },
             "versions": "EQ(*)"
         },
@@ -3846,8 +3845,6 @@
                 {
                     "data_path": "action_result.data.*.bodyPreview",
                     "data_type": "string",
-                    "column_name": "Body",
-                    "column_order": 3,
                     "example_values": [
                         "How are you doing this fine evening?"
                     ]
@@ -3929,8 +3926,6 @@
                 {
                     "data_path": "action_result.data.*.id",
                     "data_type": "string",
-                    "column_name": "Message ID",
-                    "column_order": 4,
                     "contains": [
                         "msgoffice365 message id"
                     ],
@@ -3961,9 +3956,7 @@
                     ],
                     "contains": [
                         "msgoffice365 internet message id"
-                    ],
-                    "column_name": "Internet Message ID",
-                    "column_order": 5
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.isDeliveryReceiptRequested",
@@ -4013,8 +4006,6 @@
                 {
                     "data_path": "action_result.data.*.receivedDateTime",
                     "data_type": "string",
-                    "column_name": "Received Time",
-                    "column_order": 1,
                     "example_values": [
                         "2017-10-30T22:32:42Z"
                     ]
@@ -4026,8 +4017,6 @@
                 {
                     "data_path": "action_result.data.*.sender.emailAddress.address",
                     "data_type": "string",
-                    "column_name": "Sender",
-                    "column_order": 0,
                     "example_values": [
                         "test@testdomain.onmicrosoft.com"
                     ],
@@ -4052,8 +4041,6 @@
                 {
                     "data_path": "action_result.data.*.subject",
                     "data_type": "string",
-                    "column_name": "Subject",
-                    "column_order": 2,
                     "example_values": [
                         "Just wanted to say hello"
                     ],
@@ -4120,8 +4107,9 @@
             "render": {
                 "width": 12,
                 "title": "Run query",
-                "type": "table",
-                "height": 5
+                "type": "custom",
+                "height": 5,
+                "view": "office365_view.display_view"
             },
             "versions": "EQ(*)"
         },

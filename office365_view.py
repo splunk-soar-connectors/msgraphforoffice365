@@ -54,4 +54,10 @@ def display_view(provides, all_app_runs, context):
     if provides == "list events":
        return_page = "office365_list_events.html"
 
+    if provides == "get email":
+       return_page = "office365_get_email.html"
+
+    if provides == "run query":
+       return_page = "office365_run_query.html"
+
     return return_page

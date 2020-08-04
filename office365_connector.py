@@ -1267,6 +1267,17 @@ class Office365Connector(BaseConnector):
         if 'internetMessageHeaders' in response:
             response['internetMessageHeaders'] = self._flatten_headers(response['internetMessageHeaders'])
 
+        # If the response has attachments, update every attachment data with its type
+        # 'attachmentType' key - indicates type of attachment
+        # and if an email has any itemAttachment, then also add itemType in the response
+        # 'itemType' key - indicates type of itemAttachment
+        if response.get('attachments', []):
+            for attachment in response['attachments']:
+                attachment_type = attachment.get('@odata.type', '')
+                attachment['attachmentType'] = attachment_type
+                if attachment_type == '#microsoft.graph.itemAttachment':
+                    attachment['itemType'] = attachment.get('item', {}).get('@odata.type', '')
+
         action_result.add_data(response)
 
         return action_result.set_status(phantom.APP_SUCCESS, "Successfully fetched email")
