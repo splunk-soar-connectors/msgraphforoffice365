@@ -2384,8 +2384,7 @@
                         "msgoffice365 message id"
                     ],
                     "example_values": [
-                        "AQMkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQBGAAADyW3X5P7Hb0_MMHKonvdoWQcAQSl1b8BFiEmbqZql_JiUtwAAAgEMAAAAQSl1b8BFiEmbqZql_JiUtwABS2DpfAAAAA==",
-                        "AQMkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQBGAAADyW3X5P7Hb0_MMHKonvdoWQcAQSl1b8BFiEmbqZql_JiUtwAAAgEMAAAAQSl1b8BFiEmbqZql_JiUtwADu9Tv8QAAAA=="
+                        "AQMkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQBGAAADyW3X5P7Hb0_MMHKonvdoWQcAQSl1b8BFiEmbqZql_JiUtwAAAgEMAAAAQSl1b8BFiEmbqZql_JiUtwABS2DpfAAAAA=="
                     ]
                 },
                 {
@@ -2612,8 +2611,7 @@
                     "data_path": "action_result.data.*.id",
                     "data_type": "string",
                     "example_values": [
-                        "AQMkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQBGAAADyW3X5P7Hb0_MMHKonvdoWQcAQSl1b8BFiEmbqZql_JiUtwAAAgEMAAAAQSl1b8BFiEmbqZql_JiUtwABS2DpfAAAAA==",
-                        "AQMkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQBGAAADyW3X5P7Hb0_MMHKonvdoWQcAQSl1b8BFiEmbqZql_JiUtwAAAgEMAAAAQSl1b8BFiEmbqZql_JiUtwADu9Tv8QAAAA=="
+                        "AQMkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQBGAAADyW3X5P7Hb0_MMHKonvdoWQcAQSl1b8BFiEmbqZql_JiUtwAAAgEMAAAAQSl1b8BFiEmbqZql_JiUtwABS2DpfAAAAA=="
                     ],
                     "contains": [
                         "msgoffice365 message id"
@@ -2764,8 +2762,7 @@
                     "data_path": "action_result.data.*.webLink",
                     "data_type": "string",
                     "example_values": [
-                        "https://outlook.office365.com/owa/?ItemID=AQMkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQBGAAADyW3X5P7Hb0%2BMMHKonvdoWQcAQSl1b8BFiEmbqZql%2BJiUtwAAAgEMAAAAQSl1b8BFiEmbqZql%2BJiUtwABS2DpfAAAAA%3D%3D&exvsurl=1&viewmodel=ReadMessageItem",
-                        "https://outlook.office365.com/owa/?ItemID=AQMkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQBGAAADyW3X5P7Hb0%2BMMHKonvdoWQcAQSl1b8BFiEmbqZql%2BJiUtwAAAgEMAAAAQSl1b8BFiEmbqZql%2BJiUtwADu9Tv8QAAAA%3D%3D&exvsurl=1&viewmodel=ReadMessageItem"
+                        "https://outlook.office365.com/owa/?ItemID=AQMkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQBGAAADyW3X5P7Hb0%2BMMHKonvdoWQcAQSl1b8BFiEmbqZql%2BJiUtwAAAgEMAAAAQSl1b8BFiEmbqZql%2BJiUtwABS2DpfAAAAA%3D%3D&exvsurl=1&viewmodel=ReadMessageItem"
                     ],
                     "contains": [
                         "url"
