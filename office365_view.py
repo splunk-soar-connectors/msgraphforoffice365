@@ -13,6 +13,11 @@ def get_ctx_result(provides, result):
     :return: response data
     """
 
+    file_attachment = []
+    item_attachment = []
+    reference_attachment = []
+    other_attachment = []
+
     ctx_result = {}
 
     param = result.get_param()
@@ -27,6 +32,33 @@ def get_ctx_result(provides, result):
     if not data:
         ctx_result['data'] = {}
         return ctx_result
+
+    if provides == "get email":
+        for result in data:
+            attachments = result.get('attachments', [])
+
+            if not attachments:
+                break
+
+            for attachment in attachments:
+                attachment_type = attachment.get('attachmentType', '')
+                if attachment_type == "#microsoft.graph.fileAttachment":
+                    file_attachment.append(attachment)
+                elif attachment_type == "#microsoft.graph.itemAttachment":
+                    item_attachment.append(attachment)
+                elif attachment_type == "#microsoft.graph.referenceAttachment":
+                    reference_attachment.append(attachment)
+                else:
+                    other_attachment.append(attachment)
+
+            attachment_data = {
+                'file_attachment': file_attachment,
+                'item_attachment': item_attachment,
+                'reference_attachment': reference_attachment,
+                'other_attachment': other_attachment
+            }
+
+            result.update({'attachment_data': attachment_data})
 
     ctx_result['data'] = data
 

@@ -189,69 +189,85 @@
 
             <div class="data">
                 {% with result.data|first as email_data %}
-                {% if email_data.attachments %}
+                {% if email_data.hasAttachments %}
                     <h4 class="wf-h4-style">Attachments</h4>
-                    {% for attachment in email_data.attachments %}
-                        {% if attachment.attachmentType == "#microsoft.graph.fileAttachment" %}
-                            <table class="phantom-table dataTable">
-                                <thead>
-                                    <th>Attachment Name</th>
-                                    <th>Vault ID</th>
-                                    <th>Attachment Type</th>
-                                    <th>Content Type</th>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>{{ attachment.name }}</td>
-                                        <td>
-                                            <a href="javascript:;" onclick="context_menu(this, [{'contains': ['sha1'],
-                                                'value': '{{ attachment.vaultId }}' }], 0, {{ container.id }}, null, false);">
-                                            {{ attachment.vaultId }}
-                                            &nbsp;
-                                            <span class="fa fa-caret-down" style="font-size: smaller;"></span>
-                                            </a>
-                                        </td>
-                                        <td>{{ attachment.attachmentType }}</td>
-                                        <td>{{ attachment.contentType }}</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        {% endif %}
-                        {% if attachment.attachmentType == "#microsoft.graph.itemAttachment" %}
-                            <table class="phantom-table dataTable">
-                                <thead>
-                                    <th>Attachment Name</th>
-                                    <th>Attachment Type</th>
-                                    <th>Item Attachment Type</th>
-                                    <th>Content Type</th>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>{{ attachment.name }}</td>
-                                        <td>{{ attachment.attachmentType }}</td>
-                                        <td>{{ attachment.itemType }}</td>
-                                        <td>{{ attachment.contentType }}</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        {% endif %}
-                        {% if attachment.attachmentType == "#microsoft.graph.referenceAttachment" %}
-                            <table class="phantom-table dataTable">
-                                <thead>
-                                    <th>Attachment Name</th>
-                                    <th>Attachment Type</th>
-                                    <th>Content Type</th>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>{{ attachment.name }}</td>
-                                        <td>{{ attachment.attachmentType }}</td>
-                                        <td>{{ attachment.contentType }}</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        {% endif %}
-                    {% endfor %}
+                    {% if email_data.attachment_data.file_attachment %}
+                        <table class="phantom-table dataTable">
+                            <thead>
+                                <th>Attachment Name</th>
+                                <th>Vault ID</th>
+                                <th>Attachment Type</th>
+                                <th>Content Type</th>
+                            </thead>
+                            <tbody>
+                                {% for file in email_data.attachment_data.file_attachment %}
+                                <tr>
+                                    <td>{{ file.name }}</td>
+                                    <td>
+                                        <a href="javascript:;" onclick="context_menu(this, [{'contains': ['sha1'],
+                                            'value': '{{ attachment.vaultId }}' }], 0, {{ container.id }}, null, false);">
+                                        {{ file.vaultId }}
+                                        &nbsp;
+                                        <span class="fa fa-caret-down" style="font-size: smaller;"></span>
+                                        </a>
+                                    </td>
+                                    <td>{{ file.attachmentType }}</td>
+                                    <td>{{ file.contentType }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% endif %}
+                    {% if email_data.attachment_data.item_attachment %}
+                        <table class="phantom-table dataTable">
+                            <thead>
+                                <th>Attachment Name</th>
+                                <th>Attachment Type</th>
+                                <th>Item Attachment Type</th>
+                                <th>Content Type</th>
+                            </thead>
+                            {% for item in email_data.attachment_data.item_attachment %}
+                                <tr>
+                                    <td>{{ item.name }}</td>
+                                    <td>{{ item.attachmentType }}</td>
+                                    <td>{{ item.itemType }}</td>
+                                    <td>{{ item.contentType }}</td>
+                                </tr>
+                            {% endfor %}
+                        </table>
+                    {% endif %}
+                    {% if email_data.attachment_data.reference_attachment %}
+                        <table class="phantom-table dataTable">
+                            <thead>
+                                <th>Attachment Name</th>
+                                <th>Attachment Type</th>
+                                <th>Content Type</th>
+                            </thead>
+                            {% for reference in email_data.attachment_data.reference_attachment %}
+                                <tr>
+                                    <td>{{ reference.name }}</td>
+                                    <td>{{ reference.attachmentType }}</td>
+                                    <td>{{ reference.contentType }}</td>
+                                </tr>
+                            {% endfor %}
+                        </table>
+                    {% endif %}
+                    {% if email_data.attachment_data.other_attachment %}
+                        <table class="phantom-table dataTable">
+                            <thead>
+                                <th>Attachment Name</th>
+                                <th>Attachment Type</th>
+                                <th>Content Type</th>
+                            </thead>
+                            {% for attachment in email_data.attachment_data.other_attachment %}
+                                <tr>
+                                    <td>{{ attachment.name }}</td>
+                                    <td>{{ attachment.attachmentType }}</td>
+                                    <td>{{ attachment.contentType }}</td>
+                                </tr>
+                            {% endfor %}
+                        </table>
+                    {% endif %}
                 {% endif %}
                 {% endwith %}
             </div>

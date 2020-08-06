@@ -3304,7 +3304,7 @@
                     "data_path": "action_result.parameter.email_address",
                     "data_type": "string",
                     "example_values": [
-                        "user@.onmicrosoft.com"
+                        "user@onmicrosoft.com"
                     ],
                     "contains": [
                         "email"
@@ -3474,7 +3474,7 @@
                     "data_path": "action_result.data.*.internetMessageHeaders.Received",
                     "data_type": "string",
                     "example_values": [
-                        "from localhost.localdomain (host-240.splunk.com. [204.107.141.240])        by smtp.gmail.com with UTF8SMTPSA id ng12sm1923252pjb.15.2020.06.18.02.11.26        for <user@.onmicrosoft.com>        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);        Thu, 18 Jun 2020 02:11:26 -0700 (PDT)"
+                        "from localhost.localdomain (host-240.splunk.com. [204.107.141.240])        by smtp.gmail.com with UTF8SMTPSA id ng12sm1923252pjb.15.2020.06.18.02.11.26        for <user@onmicrosoft.com>        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);        Thu, 18 Jun 2020 02:11:26 -0700 (PDT)"
                     ]
                 },
                 {
