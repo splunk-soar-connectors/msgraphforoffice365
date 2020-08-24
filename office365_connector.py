@@ -15,6 +15,7 @@ from datetime import datetime, timedelta
 from django.http import HttpResponse
 from office365_consts import *
 from bs4 import BeautifulSoup
+from bs4 import UnicodeDammit
 
 import process_email
 import requests
@@ -22,6 +23,7 @@ import base64
 import uuid
 import json
 import time
+import sys
 import pwd
 import grp
 import os
@@ -70,7 +72,15 @@ def _load_app_state(asset_id, app_connector=None):
             state = json.loads(state_file_data)
     except Exception as e:
         if app_connector:
-            app_connector.debug_print('In _load_app_state: Exception: {0}'.format(str(e)))
+            # Fetching the Python major version
+            try:
+                python_version = int(sys.version_info[0])
+            except:
+                app_connector.debug_print("Error occurred while getting the Phantom server's Python major version.")
+                return state
+
+            error_code, error_msg = _get_error_message_from_exception(python_version, e, app_connector)
+            app_connector.debug_print('In _load_app_state: Error Code: {0}. Error Message: {1}'.format(error_code, error_msg))
 
     if app_connector:
         app_connector.debug_print('Loaded state: ', state)
@@ -109,9 +119,69 @@ def _save_app_state(state, asset_id, app_connector):
         with open(real_state_file_path, 'w+') as state_file_obj:
             state_file_obj.write(json.dumps(state))
     except Exception as e:
-        print('Unable to save state file: {0}'.format(str(e)))
+        # Fetching the Python major version
+        try:
+            python_version = int(sys.version_info[0])
+        except:
+            if app_connector:
+                app_connector.debug_print("Error occurred while getting the Phantom server's Python major version.")
+            return phantom.APP_ERROR
+
+        error_code, error_msg = _get_error_message_from_exception(python_version, e, app_connector)
+        if app_connector:
+            app_connector.debug_print('Unable to save state file: Error Code: {0}. Error Message: {1}'.format(error_code, error_msg))
+        print('Unable to save state file: Error Code: {0}. Error Message: {1}'.format(error_code, error_msg))
+        return phantom.APP_ERROR
 
     return phantom.APP_SUCCESS
+
+
+def _handle_py_ver_compat_for_input_str(python_version, input_str, app_connector=None):
+    """
+    This method returns the encoded|original string based on the Python version.
+    :param input_str: Input string to be processed
+    :return: input_str (Processed input string based on following logic 'input_str - Python 3; encoded input_str - Python 2')
+    """
+    try:
+        if input_str and python_version < 3:
+            input_str = UnicodeDammit(input_str).unicode_markup.encode('utf-8')
+    except:
+        if app_connector:
+            app_connector.debug_print("Error occurred while handling python 2to3 compatibility for the input string")
+
+    return input_str
+
+
+def _get_error_message_from_exception(python_version, e, app_connector=None):
+    """ This function is used to get appropriate error message from the exception.
+    :param e: Exception object
+    :return: error message
+    """
+    error_msg = "Unknown error occurred. Please check the asset configuration and|or action parameters."
+    try:
+        if e.args:
+            if len(e.args) > 1:
+                error_code = e.args[0]
+                error_msg = e.args[1]
+            elif len(e.args) == 1:
+                error_code = "Error code unavailable"
+                error_msg = e.args[0]
+        else:
+            error_code = "Error code unavailable"
+            error_msg = "Unknown error occurred. Please check the asset configuration and|or action parameters."
+    except:
+        error_code = "Error code unavailable"
+        error_msg = "Unknown error occurred. Please check the asset configuration and|or action parameters."
+
+    try:
+        error_msg = _handle_py_ver_compat_for_input_str(python_version, error_msg, app_connector)
+    except TypeError:
+        error_msg = "Error occurred while handling python 2to3 compatibility for the input string"
+    except:
+        error_msg = "Unknown error occurred. Please check the asset configuration and|or action parameters."
+
+    return error_code, error_msg
+
 
 def _handle_oauth_result(request, path_parts):
 
@@ -265,6 +335,7 @@ class Office365Connector(BaseConnector):
         self._scope = None
         self._access_token = None
         self._refresh_token = None
+        self._REPLACE_CONST = "C53CEA8298BD401BA695F247633D0542"
 
     def _process_empty_reponse(self, response, action_result):
 
@@ -280,12 +351,22 @@ class Office365Connector(BaseConnector):
 
         try:
             soup = BeautifulSoup(response.text, "html.parser")
+            # Remove the script, style, footer and navigation part from the HTML message
+            for element in soup(["script", "style", "footer", "nav"]):
+                element.extract()
             error_text = soup.text
             split_lines = error_text.split('\n')
             split_lines = [x.strip() for x in split_lines if x.strip()]
             error_text = '\n'.join(split_lines)
         except:
             error_text = "Cannot parse error details"
+
+        try:
+            error_text = _handle_py_ver_compat_for_input_str(self._python_version, error_text, self)
+        except TypeError:
+            error_text = "Error occurred while handling python 2to3 compatibility for the error string"
+        except:
+            error_text = "Unknown error occurred. Please check the asset configuration and|or action parameters."
 
         message = "Status Code: {0}. Data from server:\n{1}\n".format(status_code,
                 error_text)
@@ -300,16 +381,30 @@ class Office365Connector(BaseConnector):
         try:
             resp_json = r.json()
         except Exception as e:
-            return RetVal(action_result.set_status(phantom.APP_ERROR, "Unable to parse JSON response. Error: {0}".format(str(e))), None)
+            error_code, error_msg = _get_error_message_from_exception(self._python_version, e, self)
+            error_txt = "Error Code: {0}. Error Message: {1}".format(error_code, error_msg)
+            return RetVal(action_result.set_status(phantom.APP_ERROR, "Unable to parse JSON response. {0}".format(error_txt)), None)
 
         # Please specify the status codes here
         if 200 <= r.status_code < 399:
             return RetVal(phantom.APP_SUCCESS, resp_json)
 
         try:
-            if resp_json.get('error', {}).get('message'):
+            error_code = ""
+            error_text = ""
+            error_message = ""
+            error = resp_json.get('error', '')
+            error_desc = resp_json.get('error_description', '')
+            if isinstance(error, dict):
+                error_code = error.get('code')
+                error_message = error.get('message')
+
+            if error_message:
                 try:
                     soup = BeautifulSoup(resp_json.get('error', {}).get('message'), "html.parser")
+                    # Remove the script, style, footer and navigation part from the HTML message
+                    for element in soup(["script", "style", "footer", "nav"]):
+                        element.extract()
                     error_text = soup.text
                     split_lines = error_text.split('\n')
                     split_lines = [x.strip() for x in split_lines if x.strip()]
@@ -318,10 +413,38 @@ class Office365Connector(BaseConnector):
                         error_text = 'Error while connecting to a server (Please check input parameters or asset configuration parameters)'
                 except:
                     error_text = "Cannot parse error details"
-            else:
+
+            try:
+                error_text = _handle_py_ver_compat_for_input_str(self._python_version, error_text, self)
+            except TypeError:
+                error_text = "Error occurred while handling python 2to3 compatibility for the error message"
+            except:
+                error_text = "Unknown error occurred while parsing the error message"
+
+            if error_code:
+                error_text = "{}. {}".format(error_code, error_text)
+
+            if error_desc:
+                try:
+                    error_desc = _handle_py_ver_compat_for_input_str(self._python_version, error_desc, self)
+                except TypeError:
+                    error_desc = "Error occurred while handling python 2to3 compatibility for the error_description"
+                except:
+                    error_desc = "Unknown error occurred while parsing the error_description"
+
+                error_text = "{}. {}".format(error_desc, error_text)
+
+            if not error_text:
                 error_text = r.text.replace('{', '{{').replace('}', '}}')
         except:
             error_text = r.text.replace('{', '{{').replace('}', '}}')
+
+        try:
+            error_text = _handle_py_ver_compat_for_input_str(self._python_version, error_text, self)
+        except TypeError:
+            error_text = "Error occurred while handling python 2to3 compatibility for the error string"
+        except:
+            error_text = "Unknown error occurred. Please check the asset configuration and|or action parameters."
 
         # You should process the error returned in the json
         message = "Error from server. Status Code: {0} Data from server: {1}".format(
@@ -384,7 +507,8 @@ class Office365Connector(BaseConnector):
                             verify=verify,
                             params=params)
         except Exception as e:
-            return RetVal(action_result.set_status( phantom.APP_ERROR, "Error Connecting to server. Details: {0}".format(str(e))), resp_json)
+            error_code, error_msg = _get_error_message_from_exception(self._python_version, e, self)
+            return RetVal(action_result.set_status(phantom.APP_ERROR, "Error connecting to server. Error Code: {0}. Error Message: {1}".format(error_code, error_msg)), resp_json)
 
         return self._process_response(r, action_result)
 
@@ -413,7 +537,7 @@ class Office365Connector(BaseConnector):
         if (phantom.is_fail(ret_val)):
             return (ret_val, None)
 
-        phantom_base_url = resp_json.get('base_url')
+        phantom_base_url = resp_json.get('base_url').rstrip("/")
 
         if (not phantom_base_url):
             return (action_result.set_status(phantom.APP_ERROR,
@@ -505,7 +629,9 @@ class Office365Connector(BaseConnector):
                 vault_ret = Vault.add_attachment(file_path, container_id, file_name=attachment['name'])
 
         except Exception as e:
-            self.debug_print("Error saving file to vault: ", str(e))
+            error_code, error_msg = _get_error_message_from_exception(self._python_version, e, self)
+            error_txt = "Error Code: {0}. Error Message: {1}".format(error_code, error_msg)
+            self.debug_print("Error saving file to vault: {0}".format(error_txt))
             return phantom.APP_ERROR
 
         if not vault_ret.get('succeeded'):
@@ -547,7 +673,13 @@ class Office365Connector(BaseConnector):
 
         cef = {}
         email_artifact['cef'] = cef
-        for k, v in email.iteritems():
+
+        try:
+            email_items = email.iteritems()
+        except:
+            email_items = email.items()
+
+        for k, v in email_items:
             if v is not None:
                 cef[k] = v
 
@@ -610,7 +742,7 @@ class Office365Connector(BaseConnector):
         # Get the URL to the app's REST Endpiont, this is the url that the TC dialog
         # box will ask the user to connect to
         ret_val, app_rest_url = self._get_url_to_app_rest(action_result)
-
+        app_state = {}
         if (phantom.is_fail(ret_val)):
             self.save_progress("Unable to get the URL to the app's REST Endpoint. Error: {0}".format(
                 action_result.get_message()))
@@ -620,7 +752,7 @@ class Office365Connector(BaseConnector):
         # (success and failure), this is added to the state so that the request handler will access
         # it later on
         redirect_uri = "{0}/result".format(app_rest_url)
-        self._state['redirect_uri'] = redirect_uri
+        app_state['redirect_uri'] = redirect_uri
 
         self.save_progress("Using OAuth Redirect URL as:")
         self.save_progress(redirect_uri)
@@ -629,7 +761,7 @@ class Office365Connector(BaseConnector):
             # Create the url for fetching administrator consent
             admin_consent_url = "https://login.microsoftonline.com/{0}/adminconsent".format(self._tenant)
             admin_consent_url += "?client_id={0}".format(self._client_id)
-            admin_consent_url += "&redirect_uri={0}".format(self._state['redirect_uri'])
+            admin_consent_url += "&redirect_uri={0}".format(redirect_uri)
             admin_consent_url += "&state={0}".format(self.get_asset_id())
         else:
             # Scope is required for non-admin access
@@ -644,18 +776,18 @@ class Office365Connector(BaseConnector):
             admin_consent_url += "&scope={0}".format(self._scope)
             admin_consent_url += "&response_type=code"
 
-        self._state['admin_consent_url'] = admin_consent_url
+        app_state['admin_consent_url'] = admin_consent_url
 
         # The URL that the user should open in a different tab.
         # This is pointing to a REST endpoint that points to the app
         url_to_show = "{0}/start_oauth?asset_id={1}&".format(app_rest_url, self.get_asset_id())
 
         # Save the state, will be used by the request handler
-        _save_app_state(self._state, self.get_asset_id(), self)
-        self.save_state(self._state)
+        _save_app_state(app_state, self.get_asset_id(), self)
 
         self.save_progress('Please connect to the following URL from a different tab to continue the connectivity process')
         self.save_progress(url_to_show)
+        self.save_progress(MSGOFFICE365_AUTHORIZE_TROUBLESHOOT_MSG)
 
         time.sleep(5)
 
@@ -741,11 +873,12 @@ class Office365Connector(BaseConnector):
         self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
         action_result = self.add_action_result(ActionResult(dict(param)))
 
-        email_addr = param['email_address']
-        folder = param["folder"].translate({92: 47})
+        email_addr = _handle_py_ver_compat_for_input_str(self._python_version, param['email_address'], self)
+        folder = _handle_py_ver_compat_for_input_str(self._python_version, param["folder"], self)
+        message_id = _handle_py_ver_compat_for_input_str(self._python_version, param['id'], self)
         endpoint = '/users/{0}'.format(email_addr)
 
-        endpoint += '/messages/{0}/copy'.format(param['id'])
+        endpoint += '/messages/{0}/copy'.format(message_id)
 
         body = {'DestinationId': folder}
 
@@ -774,11 +907,12 @@ class Office365Connector(BaseConnector):
         self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
         action_result = self.add_action_result(ActionResult(dict(param)))
 
-        email_addr = param['email_address']
-        folder = param["folder"].translate({92: 47})
+        email_addr = _handle_py_ver_compat_for_input_str(self._python_version, param['email_address'], self)
+        folder = _handle_py_ver_compat_for_input_str(self._python_version, param["folder"], self)
+        message_id = _handle_py_ver_compat_for_input_str(self._python_version, param['id'], self)
         endpoint = '/users/{0}'.format(email_addr)
 
-        endpoint += '/messages/{0}/move'.format(param['id'])
+        endpoint += '/messages/{0}/move'.format(message_id)
 
         body = {'DestinationId': folder}
         if param.get('get_folder_id', False):
@@ -808,10 +942,11 @@ class Office365Connector(BaseConnector):
         self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
         action_result = self.add_action_result(ActionResult(dict(param)))
 
-        email_addr = param['email_address']
+        email_addr = _handle_py_ver_compat_for_input_str(self._python_version, param['email_address'], self)
+        message_id = _handle_py_ver_compat_for_input_str(self._python_version, param['id'], self)
         endpoint = "/users/{0}".format(email_addr)
 
-        endpoint += '/messages/{0}'.format(param['id'])
+        endpoint += '/messages/{0}'.format(message_id)
 
         ret_val, _ = self._make_rest_call_helper(action_result, endpoint, method='delete')
         if (phantom.is_fail(ret_val)):
@@ -823,7 +958,7 @@ class Office365Connector(BaseConnector):
         self.save_progress('In action handler for: {0}'.format(self.get_action_identifier()))
         action_result = self.add_action_result(ActionResult(dict(param)))
 
-        user_id = param['user_id']
+        user_id = _handle_py_ver_compat_for_input_str(self._python_version, param['user_id'], self)
 
         endpoint = '/users/{0}/mailboxSettings/automaticRepliesSetting'.format(user_id)
 
@@ -842,9 +977,9 @@ class Office365Connector(BaseConnector):
         action_result = self.add_action_result(ActionResult(dict(param)))
 
         try:
-            user_id = param.get('user_id') if param.get('user_id') else None
-            group_id = param.get('group_id') if param.get('group_id') else None
-            query = param.get('filter') if param.get('filter') else None
+            user_id = _handle_py_ver_compat_for_input_str(self._python_version, param.get('user_id'), self) if param.get('user_id') else None
+            group_id = _handle_py_ver_compat_for_input_str(self._python_version, param.get('group_id'), self) if param.get('group_id') else None
+            query = _handle_py_ver_compat_for_input_str(self._python_version, param.get('filter'), self) if param.get('filter') else None
         except:
             return action_result.set_status(phantom.APP_ERROR, "Please check your input parameters")
         limit = param.get('limit')
@@ -855,8 +990,16 @@ class Office365Connector(BaseConnector):
         if user_id and group_id and user_id != "" and group_id != "":
             return action_result.set_status(phantom.APP_ERROR, 'Either a user_id or group_id can be supplied to the "list_events" action - not both')
 
-        if (limit and not str(limit).isdigit()) or limit == 0:
-            return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_LIMIT)
+        if limit is not None:
+            try:
+                if not float(limit).is_integer() or limit == 0:
+                    return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_LIMIT)
+                param['limit'] = limit = int(limit)
+                if limit < 0:
+                    return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_LIMIT)
+            except:
+                return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_LIMIT)
+
         endpoint = ''
 
         if user_id:
@@ -903,10 +1046,17 @@ class Office365Connector(BaseConnector):
         action_result = self.add_action_result(ActionResult(dict(param)))
 
         limit = param.get('limit')
-        query = param.get('filter') if param.get('filter') else None
+        query = _handle_py_ver_compat_for_input_str(self._python_version, param.get('filter'), self) if param.get('filter') else None
 
-        if (limit and not str(limit).isdigit()) or limit == 0:
-            return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_LIMIT)
+        if limit is not None:
+            try:
+                if not float(limit).is_integer() or limit == 0:
+                    return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_LIMIT)
+                param['limit'] = limit = int(limit)
+                if limit < 0:
+                    return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_LIMIT)
+            except:
+                return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_LIMIT)
 
         endpoint = '/groups'
 
@@ -932,10 +1082,17 @@ class Office365Connector(BaseConnector):
         action_result = self.add_action_result(ActionResult(dict(param)))
 
         limit = param.get('limit')
-        query = param.get('filter') if param.get('filter') else None
+        query = _handle_py_ver_compat_for_input_str(self._python_version, param.get('filter'), self) if param.get('filter') else None
 
-        if (limit and not str(limit).isdigit()) or limit == 0:
-            return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_LIMIT)
+        if limit is not None:
+            try:
+                if not float(limit).is_integer() or limit == 0:
+                    return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_LIMIT)
+                param['limit'] = limit = int(limit)
+                if limit < 0:
+                    return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_LIMIT)
+            except:
+                return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_LIMIT)
 
         endpoint = '/users'
 
@@ -961,8 +1118,8 @@ class Office365Connector(BaseConnector):
         action_result = self.add_action_result(ActionResult(dict(param)))
 
         list_folder = list()
-        user_id = param['user_id']
-        folder_id = param.get('folder_id')
+        user_id = _handle_py_ver_compat_for_input_str(self._python_version, param['user_id'], self)
+        folder_id = _handle_py_ver_compat_for_input_str(self._python_version, param.get('folder_id'), self)
 
         if not folder_id:
             # fetching root level folders
@@ -1050,32 +1207,114 @@ class Office365Connector(BaseConnector):
 
         return phantom.APP_SUCCESS, folders
 
+    def _flatten_headers(self, headers):
+
+        new_headers = {}
+        if not headers:
+            return new_headers
+
+        for field in headers:
+
+            if field['name'] == 'Received':
+                if 'Received' not in new_headers:
+                    new_headers['Received'] = []
+                new_headers['Received'].append(field['value'])
+                continue
+
+            new_headers[field['name']] = field['value']
+
+        return new_headers
+
     def _handle_get_email(self, param):
 
         self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
         action_result = self.add_action_result(ActionResult(dict(param)))
 
-        email_addr = param['email_address']
+        email_addr = _handle_py_ver_compat_for_input_str(self._python_version, param['email_address'], self)
+        message_id = _handle_py_ver_compat_for_input_str(self._python_version, param['id'], self)
         endpoint = '/users/{0}'.format(email_addr)
 
-        endpoint += '/messages/{0}'.format(param['id'])
+        endpoint += '/messages/{0}'.format(message_id)
 
         ret_val, response = self._make_rest_call_helper(action_result, endpoint)
-        if (phantom.is_fail(ret_val)):
+        if phantom.is_fail(ret_val):
             return action_result.get_status()
 
-        if param['download_attachments'] and response['hasAttachments']:
+        if param.get('extract_headers'):
+            header_endpoint = endpoint + '?$select=internetMessageHeaders'
+            ret_val, header_response = self._make_rest_call_helper(action_result, header_endpoint)
 
-            endpoint += '/attachments'
+            if phantom.is_fail(ret_val):
+                return action_result.get_status()
+            # For Drafts there might not be any internetMessageHeaders, so we have to use get() fetching insted of direct fetching from dictionary
+            response['internetMessageHeaders'] = header_response.get('internetMessageHeaders')
+
+        if param['download_attachments'] and response.get('hasAttachments'):
+
+            endpoint += '/attachments?$expand=microsoft.graph.itemattachment/item'
             ret_val, attach_resp = self._make_rest_call_helper(action_result, endpoint)
             if (phantom.is_fail(ret_val)):
                 return action_result.get_status()
 
             for attachment in attach_resp.get('value', []):
-                if not self._handle_attachment(attachment, self.get_container_id()):
-                    return action_result.set_status(phantom.APP_ERROR, 'Could not process attachment. See logs for details')
+                # If it is fileAttachment, then we have to ingest it
+                if attachment.get("@odata.type") == "#microsoft.graph.fileAttachment":
+                    if not self._handle_attachment(attachment, self.get_container_id()):
+                        return action_result.set_status(phantom.APP_ERROR, 'Could not process attachment. See logs for details')
 
             response['attachments'] = attach_resp['value']
+
+        if 'internetMessageHeaders' in response:
+            response['internetMessageHeaders'] = self._flatten_headers(response['internetMessageHeaders'])
+
+        # If the response has attachments, update every attachment data with its type
+        # 'attachmentType' key - indicates type of attachment
+        # and if an email has any itemAttachment, then also add itemType in the response
+        # 'itemType' key - indicates type of itemAttachment
+        if response.get('attachments', []):
+            for attachment in response['attachments']:
+                attachment_type = attachment.get('@odata.type', '')
+                attachment['attachmentType'] = attachment_type
+                if attachment_type == '#microsoft.graph.itemAttachment':
+                    attachment['itemType'] = attachment.get('item', {}).get('@odata.type', '')
+
+        action_result.add_data(response)
+
+        return action_result.set_status(phantom.APP_SUCCESS, "Successfully fetched email")
+
+    def _handle_get_email_properties(self, param):
+
+        self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
+        action_result = self.add_action_result(ActionResult(dict(param)))
+
+        email_addr = _handle_py_ver_compat_for_input_str(self._python_version, param['email_address'], self)
+        message_id = _handle_py_ver_compat_for_input_str(self._python_version, param['id'], self)
+        endpoint = '/users/{0}'.format(email_addr)
+
+        endpoint += '/messages/{0}'.format(message_id)
+
+        select_list = []
+        if param.get('get_headers'):
+            select_list.append('internetMessageHeaders')
+        if param.get('get_body'):
+            select_list.append('body')
+        if param.get('get_unique_body'):
+            select_list.append('uniqueBody')
+        if param.get('get_sender'):
+            select_list.append('sender')
+        if 'properties_list' in param:
+            properties_list = _handle_py_ver_compat_for_input_str(self._python_version, param['properties_list'], self)
+            select_list += properties_list.strip().split(',')
+
+        if select_list:
+            endpoint += '?$select={0}'.format(','.join(select_list))
+
+        ret_val, response = self._make_rest_call_helper(action_result, endpoint)
+        if phantom.is_fail(ret_val):
+            return action_result.get_status()
+
+        if 'internetMessageHeaders' in response:
+            response['internetMessageHeaders'] = self._flatten_headers(response['internetMessageHeaders'])
 
         action_result.add_data(response)
 
@@ -1234,18 +1473,23 @@ class Office365Connector(BaseConnector):
 
         limit = param.get('limit')
 
-        if (limit and not str(limit).isdigit()) or limit == 0:
-            return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_LIMIT)
-
-        limit = int(limit)
+        if limit is not None:
+            try:
+                if (not float(limit).is_integer()) or limit == 0:
+                    return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_LIMIT)
+                param['limit'] = limit = int(limit)
+                if limit < 0:
+                    return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_LIMIT)
+            except:
+                return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_LIMIT)
 
         # user
-        email_addr = param['email_address']
+        email_addr = _handle_py_ver_compat_for_input_str(self._python_version, param['email_address'], self)
         endpoint = "/users/{0}".format(email_addr)
 
         # folder
         if ('folder' in param):
-            folder = param['folder'].translate({92: 47})
+            folder = _handle_py_ver_compat_for_input_str(self._python_version, param['folder'], self)
 
             if param.get('get_folder_id', False):
                 try:
@@ -1265,11 +1509,11 @@ class Office365Connector(BaseConnector):
 
         if ('internet_message_id' in param):
             params = {
-                '$filter': "internetMessageId eq '{0}'".format(param['internet_message_id'])
+                '$filter': "internetMessageId eq '{0}'".format(_handle_py_ver_compat_for_input_str(self._python_version, param['internet_message_id'], self))
             }
 
         elif ('query' in param):
-            endpoint += "?{0}".format(param['query'])
+            endpoint += "?{0}".format(_handle_py_ver_compat_for_input_str(self._python_version, param['query'], self))
 
         else:
             # search params
@@ -1277,17 +1521,17 @@ class Office365Connector(BaseConnector):
             if ('subject' in param):
                 if (search_query):
                     search_query += ' '
-                search_query += "subject:{0}".format(param['subject'])
+                search_query += "subject:{0}".format(_handle_py_ver_compat_for_input_str(self._python_version, param['subject'], self))
 
             if ('body' in param):
                 if (search_query):
                     search_query += ' '
-                search_query += "body:{0}".format(param['body'])
+                search_query += "body:{0}".format(_handle_py_ver_compat_for_input_str(self._python_version, param['body'], self))
 
             if ('sender' in param):
                 if (search_query):
                     search_query += ' '
-                search_query += "sender:{0}".format(param['sender'])
+                search_query += "sender:{0}".format(_handle_py_ver_compat_for_input_str(self._python_version, param['sender'], self))
 
             if search_query:
                 params['$search'] = '"{0}"'.format(search_query)
@@ -1313,13 +1557,21 @@ class Office365Connector(BaseConnector):
         return action_result.set_status(phantom.APP_SUCCESS)
 
     def _get_folder_id(self, action_result, folder, email):
-        path = [x for x in folder.strip().split("/") if x]
+        # hindsight is always 20-20, set the folder path separator to be '/', thinking folder names allow '\' as a char.
+        # turns out even '/' is supported by office365, so let the action escape the '/' char if it's part of the folder name
+        folder_path = folder.replace('\\/', self._REPLACE_CONST)
+        folder_names = folder_path.split('/')
+        for i, folder_name in enumerate(folder_names):
+            folder_names[i] = folder_name.replace(self._REPLACE_CONST, '/').strip()
+
+        # remove empty elements
+        path = list(filter(None, folder_names))
 
         ret = list()
         try:
             dir_id = self._get_folder(action_result, path[0], email)
-        except ReturnException:
-            return action_result.get_status()
+        except ReturnException as e:
+            return None, "Error occured while fetching folder {}. {}".format(path[0], e), None
 
         if not dir_id:
             return None, "Error: folder not found; {}".format(path[0]), ret
@@ -1350,7 +1602,7 @@ class Office365Connector(BaseConnector):
         ret_val, response = self._make_rest_call_helper(action_result, endpoint, params=params)
 
         if (phantom.is_fail(ret_val)):
-            raise ReturnException()
+            raise ReturnException(action_result.get_message())
 
         value = response.get('value', [])
         if len(value) > 0:
@@ -1420,12 +1672,21 @@ class Office365Connector(BaseConnector):
         self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
         action_result = self.add_action_result(ActionResult(dict(param)))
 
-        email = param["email_address"]
-        folder = param["folder"].translate({92: 47})
+        email = _handle_py_ver_compat_for_input_str(self._python_version, param["email_address"], self)
+        folder = _handle_py_ver_compat_for_input_str(self._python_version, param["folder"], self)
 
         minusp = param.get("all_subdirs", False)
 
-        path = [x for x in folder.strip().split("/") if x]
+        # hindsight is always 20-20, set the folder path separator to be '/', thinking folder names allow '\' as a char.
+        # turns out even '/' is supported by office365, so let the action escape the '/' char if it's part of the folder name
+        folder_path = folder.replace('\\/', self._REPLACE_CONST)
+        folder_names = folder_path.split('/')
+        for i, folder_name in enumerate(folder_names):
+            folder_names[i] = folder_name.replace(self._REPLACE_CONST, '/').strip()
+
+        # remove empty elements
+        path = list(filter(None, folder_names))
+
         if len(path) == 0:
             msg = "Error: Invalid folder path"
             self.save_progress(msg)
@@ -1508,8 +1769,8 @@ class Office365Connector(BaseConnector):
         self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
         action_result = self.add_action_result(ActionResult(dict(param)))
 
-        email = param["email_address"]
-        folder = param["folder"].translate({92: 47})
+        email = _handle_py_ver_compat_for_input_str(self._python_version, param["email_address"], self)
+        folder = _handle_py_ver_compat_for_input_str(self._python_version, param["folder"], self)
 
         try:
             dir_id, error, ret = self._get_folder_id(action_result, folder, email)
@@ -1517,7 +1778,7 @@ class Office365Connector(BaseConnector):
         except ReturnException:
             return action_result.get_status()
 
-        if len(ret) > 0:
+        if ret and len(ret) > 0:
             for x in ret:
                 action_result.add_data(x)
 
@@ -1604,6 +1865,9 @@ class Office365Connector(BaseConnector):
         elif action_id == 'get_email':
             ret_val = self._handle_get_email(param)
 
+        elif action_id == 'get_email_properties':
+            ret_val = self._handle_get_email_properties(param)
+
         elif action_id == 'on_poll':
             ret_val = self._handle_on_poll(param)
 
@@ -1663,19 +1927,16 @@ class Office365Connector(BaseConnector):
                 data['code'] = self._state.get('code')
                 data['grant_type'] = 'authorization_code'
             else:
-                return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_RUN_CONNECTIVITY_MSG)
+                return action_result.set_status(phantom.APP_ERROR, "Unexpected details retrieved from the state file.")
 
         ret_val, resp_json = self._make_rest_call(action_result, req_url, headers=headers, data=data, method='post')
-
         if phantom.is_fail(ret_val):
             return action_result.get_status()
-
         # Save the response on the basis of admin_acess
         if self._admin_access:
             self._state['admin_auth'] = resp_json
         else:
             self._state['non_admin_auth'] = resp_json
-
         # Fetching the acces token and refresh token
         self._access_token = resp_json.get('access_token')
         self._refresh_token = resp_json.get('refresh_token')
@@ -1683,6 +1944,21 @@ class Office365Connector(BaseConnector):
         # Save state
         self.save_state(self._state)
         _save_app_state(self._state, self.get_asset_id(), self)
+
+        self._state = self.load_state()
+
+        # Scenario -
+        #
+        # If the corresponding state file doesn't have correct owner, owner group or permissions,
+        # the newely generated token is not being saved to state file and automatic workflow for token has been stopped.
+        # So we have to check that token from response and token which are saved to state file after successful generation of new token are same or not.
+
+        if self._admin_access:
+            if self._access_token != self._state.get('admin_auth', {}).get('access_token'):
+                return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_PERMISSION_ERR)
+        else:
+            if self._access_token != self._state.get('non_admin_auth', {}).get('access_token'):
+                return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_PERMISSION_ERR)
 
         return (phantom.APP_SUCCESS)
 
@@ -1693,18 +1969,34 @@ class Office365Connector(BaseConnector):
 
         self._currentdir = None
 
+        # Fetching the Python major version
+        try:
+            self._python_version = int(sys.version_info[0])
+        except:
+            return self.set_status(phantom.APP_ERROR, "Error occurred while getting the Phantom server's Python major version.")
+
         # Load the state in initialize
         config = self.get_config()
 
         # Load all the asset configuration in global variables
         self._state = self.load_state()
-        self._tenant = config['tenant']
-        self._client_id = config['client_id']
-        self._client_secret = config['client_secret']
+        if not isinstance(self._state, dict):
+            self.debug_print("Reseting the state file with the default format")
+            self._state = {
+                "app_version": self.get_app_json().get('app_version')
+            }
+            return self.set_status(phantom.APP_ERROR, MSGOFFICE365_STATE_FILE_CORRUPT_ERROR)
+
+        self._tenant = _handle_py_ver_compat_for_input_str(self._python_version, config['tenant'], self)
+        self._client_id = _handle_py_ver_compat_for_input_str(self._python_version, config['client_id'], self)
+        self._client_secret = _handle_py_ver_compat_for_input_str(self._python_version, config['client_secret'], self)
         self._admin_access = config.get('admin_access')
-        self._scope = config.get('scope') if config.get('scope') else None
+        self._scope = _handle_py_ver_compat_for_input_str(self._python_version, config.get('scope'), self) if config.get('scope') else None
 
         if not self._admin_access:
+            if not self._scope:
+                return self.set_status(phantom.APP_ERROR, "Please provide scope for non-admin access in the asset configuration")
+
             self._access_token = self._state.get('non_admin_auth', {}).get('access_token')
             self._refresh_token = self._state.get('non_admin_auth', {}).get('refresh_token')
         else:
@@ -1738,7 +2030,7 @@ class Office365Connector(BaseConnector):
 
 if __name__ == '__main__':
 
-    import sys
+    # import sys
     # import pudb
     import argparse
     # pudb.set_trace()

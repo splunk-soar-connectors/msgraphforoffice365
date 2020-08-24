@@ -1,0 +1,298 @@
+{% extends 'widgets/widget_template.html' %}
+{% load custom_template %}
+
+{% block custom_title_prop %}{% if title_logo %}style="background-size: auto 60%; background-position: 50%; background-repeat: no-repeat; background-image: url('/app_resource/{{ title_logo }}');"{% endif %}{% endblock %}
+{% block title1 %}{{ title1 }}{% endblock %}
+{% block title2 %}{{ title2 }}{% endblock %}
+{% block custom_tools %}
+{% endblock %}
+
+{% block widget_content %} <!-- Main Start Block -->
+
+<!-- File: office365_get_email.html
+  Copyright (c) 2017-2020 Splunk Inc.
+
+  SPLUNK CONFIDENTIAL - Use or disclosure of this material in whole or in part
+  without a valid written license from Splunk Inc. is PROHIBITED.
+-->
+<style>
+
+    .office365 a:hover {
+        text-decoration:underline;
+    }
+
+    .office365 .wf-h4-style {
+        font-size : 20px;
+    }
+
+    .office365 .wf-table-vertical {
+        width: initial;
+        font-size: 12px;
+    }
+
+    .office365 .wf-table-vertical td{
+        padding: 5px;
+        border: 1px solid !important;
+        overflow-x: auto;
+    }
+
+    .office365 .wf-table-vertical tr td:first-child {
+        font-weight: bold;
+    }
+
+    .office365 .wf-table-events {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    .office365 .dataTable th.widget-th {
+        border-top: 1px solid !important;
+        border-bottom: 1px solid !important;
+    }
+
+    .office365 .dataTable td {
+        vertical-align: top;
+    }
+
+    .office365 .dataTable td.widget-td a{
+        font-size: 12px;
+    }
+
+    .office365 .dataTable {
+        font-size: 12px;
+    }
+
+    .office365 .dataTable .glyphicon.glyphicon-dot:before {
+       content: "\25cf"; font-size: 10px;
+   }
+</style>
+
+<div class="office365" style="overflow: auto; width: 100% height: 100%; padding-left:10px; padding-right:10px">
+    <!-- Main Div -->
+
+    {% for result in results %} <!-- loop for each result -->
+        {% if not result.data %}
+            <h4 class="wf-h4-style">No data found</h4>
+        {% else %}
+            <div class="info">
+                <h4 class="wf-h4-style">Action Parameters</h4>
+                <table class="wf-table-vertical">
+                    <tr>
+                        <td>Message ID</td>
+                        <td><a href="javascript:;" onclick="context_menu(this, [{'contains': ['msgoffice365 message id'],
+                            'value': '{{ result.param.id }}' }], 0, {{ container.id }}, null, false);">
+                        {{ result.param.id }}
+                        &nbsp;
+                        <span class="fa fa-caret-down" style="font-size: smaller;"></span>
+                        </a></td>
+                    </tr>
+                    <tr>
+                        <td>Email Address</td>
+                        <td><a href="javascript:;" onclick="context_menu(this, [{'contains': ['email'],
+                            'value': '{{ result.param.email_address }}' }], 0, {{ container.id }}, null, false);">
+                        {{ result.param.email_address }}
+                        &nbsp;
+                        <span class="fa fa-caret-down" style="font-size: smaller;"></span>
+                        </a></td>
+                    </tr>
+                    {% if result.param.download_attachments %}
+                        <tr>
+                            <td>Download attachments to vault</td>
+                            <td>{{ result.param.download_attachments }}</td>
+                        </tr>
+                    {% endif %}
+                    {% if result.param.extract_headers %}
+                        <tr>
+                            <td>Extract email headers</td>
+                            <td>{{ result.param.extract_headers }}</td>
+                        </tr>
+                    {% endif %}
+                </table>
+            </div>
+
+            <div class="data">
+                <h4 class="wf-h4-style">Data</h4>
+                <table class="phantom-table dataTable">
+                    <thead>
+                        <th class="widget-th">Message ID</th>
+                        <th class="widget-th">Subject</th>
+                        <th class="widget-th">Body Perview</th>
+                        <th class="widget-th">From</th>
+                        <th class="widget-th">To</th>
+                        <th class="widget-th">Has Attachments?</th>
+                        <th class="widget-th">Internet Message ID</th>
+                    </thead>
+                    {% for data in result.data %}
+                        <tr>
+                            <td>
+                                <a href="javascript:;" onclick="context_menu(this, [{'contains': ['msgoffice365 message id'],
+                                'value': '{{ data.id }}' }], 0, {{ container.id }}, null, false);">
+                                {{ data.id }}
+                                &nbsp;
+                                <span class="fa fa-caret-down" style="font-size: smaller;"></span>
+                                </a>
+                            </td>
+                            <td>
+                                <a href="javascript:;" onclick="context_menu(this, [{'contains': ['msgoffice365 subject'],
+                                'value': '{{ data.subject }}' }], 0, {{ container.id }}, null, false);">
+                                {{ data.subject }}
+                                &nbsp;
+                                <span class="fa fa-caret-down" style="font-size: smaller;"></span>
+                                </a>
+                            </td>
+                            <td>{{ data.bodyPreview }}</td>
+                            {% if data.from %}
+                                <td>
+                                    <a href="javascript:;" onclick="context_menu(this, [{'contains': ['email'],
+                                        'value': '{{ data.from.emailAddress.address }}' }], 0, {{ container.id }}, null, false);">
+                                    {{ data.from.emailAddress.address }}
+                                    &nbsp;
+                                    <span class="fa fa-caret-down" style="font-size: smaller;"></span>
+                                    </a>
+                                </td>
+                            {% else %}
+                                <td></td>
+                            {% endif %}
+                            {% if data.toRecipients %}
+                                <td>
+                                    <table class="wf-table-vertical">
+                                        {% for to in data.toRecipients %}
+                                            <tr>
+                                                <td>
+                                                    <a href="javascript:;" onclick="context_menu(this, [{'contains': ['email'],
+                                                        'value': '{{ to.emailAddress.address }}' }], 0, {{ container.id }}, null, false);">
+                                                    {{ to.emailAddress.address }}
+                                                    &nbsp;
+                                                    <span class="fa fa-caret-down" style="font-size: smaller;"></span>
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </table>
+                                </td>
+                            {% else %}
+                                <td></td>
+                            {% endif %}
+                            <td>{{ data.hasAttachments }}</td>
+                            <td>
+                                <a href="javascript:;" onclick="context_menu(this, [{'contains': ['msgoffice365 internet message id'],
+                                    'value': '{{ data.internetMessageId }}' }], 0, {{ container.id }}, null, false);">
+                                {{ data.internetMessageId }}
+                                &nbsp;
+                                <span class="fa fa-caret-down" style="font-size: smaller;"></span>
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </div>
+
+            <div class="data">
+                {% with result.data|first as email_data %}
+                {% if email_data.hasAttachments %}
+                    <h4 class="wf-h4-style">Attachments</h4>
+                    {% if email_data.attachment_data.file_attachment %}
+                        <table class="phantom-table dataTable">
+                            <thead>
+                                <th>Attachment Name</th>
+                                <th>Vault ID</th>
+                                <th>Attachment Type</th>
+                                <th>Content Type</th>
+                            </thead>
+                            <tbody>
+                                {% for file in email_data.attachment_data.file_attachment %}
+                                <tr>
+                                    <td>{{ file.name }}</td>
+                                    <td>
+                                        <a href="javascript:;" onclick="context_menu(this, [{'contains': ['sha1'],
+                                            'value': '{{ attachment.vaultId }}' }], 0, {{ container.id }}, null, false);">
+                                        {{ file.vaultId }}
+                                        &nbsp;
+                                        <span class="fa fa-caret-down" style="font-size: smaller;"></span>
+                                        </a>
+                                    </td>
+                                    <td>{{ file.attachmentType }}</td>
+                                    <td>{{ file.contentType }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% endif %}
+                    {% if email_data.attachment_data.item_attachment %}
+                        <table class="phantom-table dataTable">
+                            <thead>
+                                <th>Attachment Name</th>
+                                <th>Attachment Type</th>
+                                <th>Item Attachment Type</th>
+                                <th>Content Type</th>
+                            </thead>
+                            {% for item in email_data.attachment_data.item_attachment %}
+                                <tr>
+                                    <td>{{ item.name }}</td>
+                                    <td>{{ item.attachmentType }}</td>
+                                    <td>{{ item.itemType }}</td>
+                                    <td>{{ item.contentType }}</td>
+                                </tr>
+                            {% endfor %}
+                        </table>
+                    {% endif %}
+                    {% if email_data.attachment_data.reference_attachment %}
+                        <table class="phantom-table dataTable">
+                            <thead>
+                                <th>Attachment Name</th>
+                                <th>Attachment Type</th>
+                                <th>Content Type</th>
+                            </thead>
+                            {% for reference in email_data.attachment_data.reference_attachment %}
+                                <tr>
+                                    <td>{{ reference.name }}</td>
+                                    <td>{{ reference.attachmentType }}</td>
+                                    <td>{{ reference.contentType }}</td>
+                                </tr>
+                            {% endfor %}
+                        </table>
+                    {% endif %}
+                    {% if email_data.attachment_data.other_attachment %}
+                        <table class="phantom-table dataTable">
+                            <thead>
+                                <th>Attachment Name</th>
+                                <th>Attachment Type</th>
+                                <th>Content Type</th>
+                            </thead>
+                            {% for attachment in email_data.attachment_data.other_attachment %}
+                                <tr>
+                                    <td>{{ attachment.name }}</td>
+                                    <td>{{ attachment.attachmentType }}</td>
+                                    <td>{{ attachment.contentType }}</td>
+                                </tr>
+                            {% endfor %}
+                        </table>
+                    {% endif %}
+                {% endif %}
+                {% endwith %}
+            </div>
+        {% endif %}
+    {% endfor %}
+</div>
+<script>
+$.extend(true, $.fn.dataTable.defaults, {
+    "searching": true,
+    "bLengthChange": false,
+    "language": {
+      "paginate": {
+        "previous": "<i class='fa fa-angle-left fa-lg'></i>",
+        "next": "<i class='fa fa-angle-right fa-lg'></i>"
+      },
+      "emptyTable": "No data available"
+    },
+    "dom": '<"top">rt<"bottom"p><"clear">',
+    drawCallback: function(settings) {
+      var pagination = $(this).closest('.dataTables_wrapper').find('.dataTables_paginate');
+      pagination.toggle(this.api().page.info().pages > 1);
+    }
+  });
+  $('.dataTable').DataTable();
+
+</script>
+
+{% endblock %}
