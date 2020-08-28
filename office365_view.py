@@ -1,5 +1,5 @@
 # File: office365_view.py
-# Copyright (c) 2017-2019 Splunk Inc.
+# Copyright (c) 2017-2020 Splunk Inc.
 #
 # SPLUNK CONFIDENTIAL - Use or disclosure of this material in whole or in part
 # without a valid written license from Splunk Inc. is PROHIBITED.
@@ -12,6 +12,11 @@ def get_ctx_result(provides, result):
     :param provides: action name
     :return: response data
     """
+
+    file_attachment = []
+    item_attachment = []
+    reference_attachment = []
+    other_attachment = []
 
     ctx_result = {}
 
@@ -27,6 +32,33 @@ def get_ctx_result(provides, result):
     if not data:
         ctx_result['data'] = {}
         return ctx_result
+
+    if provides == "get email":
+        for result in data:
+            attachments = result.get('attachments', [])
+
+            if not attachments:
+                break
+
+            for attachment in attachments:
+                attachment_type = attachment.get('attachmentType', '')
+                if attachment_type == "#microsoft.graph.fileAttachment":
+                    file_attachment.append(attachment)
+                elif attachment_type == "#microsoft.graph.itemAttachment":
+                    item_attachment.append(attachment)
+                elif attachment_type == "#microsoft.graph.referenceAttachment":
+                    reference_attachment.append(attachment)
+                else:
+                    other_attachment.append(attachment)
+
+            attachment_data = {
+                'file_attachment': file_attachment,
+                'item_attachment': item_attachment,
+                'reference_attachment': reference_attachment,
+                'other_attachment': other_attachment
+            }
+
+            result.update({'attachment_data': attachment_data})
 
     ctx_result['data'] = data
 
@@ -53,5 +85,11 @@ def display_view(provides, all_app_runs, context):
 
     if provides == "list events":
        return_page = "office365_list_events.html"
+
+    if provides == "get email":
+       return_page = "office365_get_email.html"
+
+    if provides == "run query":
+       return_page = "office365_run_query.html"
 
     return return_page
