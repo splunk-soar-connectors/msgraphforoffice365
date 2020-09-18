@@ -785,6 +785,9 @@ class Office365Connector(BaseConnector):
 
             app_state['admin_consent_url'] = admin_consent_url
 
+            # The URL that the user should open in a different tab.
+            # This is pointing to a REST endpoint that points to the app
+            url_to_show = "{0}/start_oauth?asset_id={1}&".format(app_rest_url, self.get_asset_id())
 
             # Save the state, will be used by the request handler
             _save_app_state(app_state, self.get_asset_id(), self)
@@ -792,13 +795,6 @@ class Office365Connector(BaseConnector):
             self.save_progress('Please connect to the following URL from a different tab to continue the connectivity process')
             self.save_progress(url_to_show)
             self.save_progress(MSGOFFICE365_AUTHORIZE_TROUBLESHOOT_MSG)
-
-            # Save the state, will be used by the request handler
-            _save_app_state(self._state, self.get_asset_id(), self)
-            self.save_state(self._state)
-
-            self.save_progress('Please connect to the following URL from a different tab to continue the connectivity process')
-            self.save_progress(url_to_show)
 
             time.sleep(5)
 
