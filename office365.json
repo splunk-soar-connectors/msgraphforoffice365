@@ -9,14 +9,14 @@
     "product_name": "Office 365 (MS Graph)",
     "product_version_regex": ".*",
     "publisher": "Splunk",
-    "license": "Copyright (c) 2017-2020 Splunk Inc.",
-    "app_version": "2.0.10",
-    "utctime_updated": "2020-08-28T21:51:14.000000Z",
+    "license": "Copyright (c) 2017-2021 Splunk Inc.",
+    "app_version": "2.1.2",
+    "utctime_updated": "2021-02-18T03:31:24.000000Z",
     "package_name": "phantom_msgraphoffice365",
     "main_module": "office365_connector.py",
-    "min_phantom_version": "4.8.24304",
+    "min_phantom_version": "4.9.39220",
     "latest_tested_versions": [
-        "Cloud 2020-02-14"
+        "Cloud 2021-02-05"
     ],
     "app_wizard_version": "1.0.0",
     "python_version": "3",
@@ -50,11 +50,17 @@
             "default": true,
             "order": 4
         },
+        "admin_consent": {
+            "description": "Admin Consent Already Provided",
+            "data_type": "boolean",
+            "default": false,
+            "order": 5
+        },
         "scope": {
             "description": "Access Scope (for use with non-admin access; space-separated)",
             "data_type": "string",
             "default": "https://graph.microsoft.com/Calendars.Read https://graph.microsoft.com/User.Read",
-            "order": 5
+            "order": 6
         }
     },
     "actions": [
