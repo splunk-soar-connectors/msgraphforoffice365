@@ -1538,7 +1538,7 @@ class Office365Connector(BaseConnector):
             if ('sender' in param):
                 if (search_query):
                     search_query += ' '
-                search_query += "sender:{0}".format(_handle_py_ver_compat_for_input_str(self._python_version, param['sender'], self))
+                search_query += "from:{0}".format(_handle_py_ver_compat_for_input_str(self._python_version, param['sender'], self))
 
             if search_query:
                 params['$search'] = '"{0}"'.format(search_query)
@@ -1842,7 +1842,16 @@ class Office365Connector(BaseConnector):
             if not next_link:
                 break
 
-            del(params['$top'])
+            if params is not None:
+                if '$top' in params:
+                    del(params['$top'])
+
+                if '$search' in params:
+                    del(params['$search'])
+
+                if '$filter' in params:
+                    del(params['$filter'])
+
             if params == {}:
                 params = None
 
