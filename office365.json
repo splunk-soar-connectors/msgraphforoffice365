@@ -10,13 +10,13 @@
     "product_version_regex": ".*",
     "publisher": "Splunk",
     "license": "Copyright (c) 2017-2021 Splunk Inc.",
-    "app_version": "2.2.6",
+    "app_version": "2.3.0",
     "utctime_updated": "2021-05-25T16:43:27.000000Z",
     "package_name": "phantom_msgraphoffice365",
     "main_module": "office365_connector.py",
-    "min_phantom_version": "4.9.39220",
+    "min_phantom_version": "4.10.0.40961",
     "latest_tested_versions": [
-        "Cloud 2021-03-17"
+        "Cloud 2021-09-28"
     ],
     "app_wizard_version": "1.0.0",
     "python_version": "3",
@@ -982,13 +982,13 @@
                     ]
                 }
             ],
-            "versions": "EQ(*)",
             "render": {
                 "width": 12,
                 "title": "List Users",
                 "type": "table",
                 "height": 5
-            }
+            },
+            "versions": "EQ(*)"
         },
         {
             "action": "list groups",
@@ -1184,7 +1184,7 @@
                         "Private"
                     ],
                     "column_name": "Visibility",
-                    "column_order": 4
+                    "column_order": 5
                 },
                 {
                     "data_path": "action_result.summary.total_groups_returned",
@@ -1215,13 +1215,13 @@
                     ]
                 }
             ],
-            "versions": "EQ(*)",
             "render": {
                 "width": 12,
                 "title": "List Groups",
                 "type": "table",
                 "height": 5
-            }
+            },
+            "versions": "EQ(*)"
         },
         {
             "action": "list folders",
@@ -1374,13 +1374,13 @@
                     ]
                 }
             ],
-            "versions": "EQ(*)",
             "render": {
                 "width": 12,
                 "title": "List Folders",
                 "type": "table",
                 "height": 5
-            }
+            },
+            "versions": "EQ(*)"
         },
         {
             "action": "copy email",
@@ -1791,13 +1791,13 @@
                     ]
                 }
             ],
-            "versions": "EQ(*)",
             "render": {
                 "width": 12,
                 "title": "Copy Email",
                 "type": "table",
                 "height": 5
-            }
+            },
+            "versions": "EQ(*)"
         },
         {
             "action": "move email",
@@ -2209,13 +2209,13 @@
                     ]
                 }
             ],
-            "versions": "EQ(*)",
             "render": {
                 "width": 12,
                 "title": "Move Email",
                 "type": "table",
                 "height": 5
-            }
+            },
+            "versions": "EQ(*)"
         },
         {
             "action": "delete email",
@@ -2310,13 +2310,13 @@
                     ]
                 }
             ],
-            "versions": "EQ(*)",
             "render": {
                 "width": 12,
                 "title": "Delete email",
                 "type": "table",
                 "height": 5
-            }
+            },
+            "versions": "EQ(*)"
         },
         {
             "action": "get email",
@@ -3118,7 +3118,7 @@
             "action": "get email properties",
             "identifier": "get_email_properties",
             "description": "Get non-standard email properties from the server",
-            "verbose": "For a list of possible properties to retrieve, visit https://docs.microsoft.com/en-us/graph/api/message-get?view=graph-rest-1.0&tabs=http",
+            "verbose": "For a list of possible properties to retrieve, visit https://docs.microsoft.com/en-us/graph/api/message-get?view=graph-rest-1.0&tabs=http.",
             "type": "investigate",
             "read_only": true,
             "parameters": {
@@ -3641,7 +3641,7 @@
             "action": "run query",
             "identifier": "run_query",
             "description": "Search emails",
-            "verbose": "If the <b>query</b> or <b>internet_message_id</b> parameters are included, the <b>subject</b>, <b>sender</b>, <b>body</b>, and <b>range</b> parameters will be ignored. The <b>internet_message_id</b> parameter will take precedence over the <b>query</b> parameter.<br><br>For information on formatting the <b>query</b> parameter, see https://developer.microsoft.com/en-us/graph/docs/concepts/query_parameters.<br><br>If the <b>limit</b> parameter is not included, the action will default to limiting to ten emails that match the rest of the query. The <b>get_folder_id</b> parameter should be enabled only when you specified folder name/folder path in the folder parameter. If you provide folder ID in the <b>folder</b> parameter and set <b>get_folder_id</b> parameter to true, it will throw an error of folder ID not found for given folder name (because the action considers folder parameter value as folder name/folder path). The <b>folder</b> parameter must be either a (case sensitive) well-known name [list here; https://docs.microsoft.com/en-us/graph/api/resources/mailfolder?view=graph-rest-1.0] or the internal o365 folder ID. The action supports searching for a folder that is nested within another. To copy in such a folder, specify the complete folder path using the <b>'/'</b> (forward slash) as the separator.<br>e.g. to search in a folder named <i>phishing</i> which is nested within (is a child of) <i>Inbox</i>, set the value as <b>Inbox/phishing</b>. If a folder name has a literal forward slash('/') in the name escape it with a backslash('\\') to differentiate.",
+            "verbose": "If the <b>query</b> or <b>internet_message_id</b> parameters are included, the <b>subject</b>, <b>sender</b>, <b>body</b>, and <b>range</b> parameters will be ignored. The <b>internet_message_id</b> parameter will take precedence over the <b>query</b> parameter.<br><br>For information on formatting the <b>query</b> parameter, see https://developer.microsoft.com/en-us/graph/docs/concepts/query_parameters.<br><br>If the <b>limit</b> parameter is not included, the action will default to limiting to ten emails that match the rest of the query. The <b>get_folder_id</b> parameter should be enabled only when you specified folder name/folder path in the folder parameter. If you provide folder ID in the <b>folder</b> parameter and set <b>get_folder_id</b> parameter to true, it will throw an error of folder ID not found for given folder name (because the action considers folder parameter value as folder name/folder path). The <b>folder</b> parameter must be either a (case sensitive) well-known name [list here; https://docs.microsoft.com/en-us/graph/api/resources/mailfolder?view=graph-rest-1.0] or the internal o365 folder ID. The action supports searching for a folder that is nested within another. To copy in such a folder, specify the complete folder path using the <b>'/'</b> (forward slash) as the separator.<br>e.g. to search in a folder named <i>phishing</i> which is nested within (is a child of) <i>Inbox</i>, set the value as <b>Inbox/phishing</b>. If a folder name has a literal forward slash('/') in the name escape it with a backslash('\\') to differentiate.<br>When the <b>search_well_known_folders</b> parameter is set to true, action will ignore values provided in the <b>folder</b> and <b>get_folder_id</b> parameters and the user will get details from all 17 well-known folders which are listed below:<br><ul style=\"columns: 2;-webkit-columns: 2; -moz-columns: 2\"> <li>Archive</li> <li>Clutter</li> <li>Conflicts</li> <li>Conversation History</li> <li>Deleted Items</li> <li>Drafts</li> <li>Inbox</li> <li>Junk Email</li> <li>Local Failures</li> <li>Msg Folder Root</li> <li>Outbox</li> <li>Recoverable Items Deletions</li> <li>Scheduled</li> <li>Search Folders</li> <li>Sent Items</li> <li>Server Failures</li> <li>Sync Issues</li></ul><br>If the <b>limit</b> parameter is provided, the user will get the number of messages provided in the <b>limit</b> from every folder if present.",
             "type": "investigate",
             "read_only": true,
             "parameters": {
@@ -3668,11 +3668,16 @@
                     "default": "Inbox",
                     "order": 1
                 },
+                "search_well_known_folders": {
+                    "description": "Checks all well known folders for messages, ignores folder name provided in parameter",
+                    "data_type": "boolean",
+                    "order": 2
+                },
                 "get_folder_id": {
                     "description": "Assume the folder parameter contains a folder name/folder path, separated by '/'(forward slash) ; i.e. Inbox/dir1/dir2/dir3. If this parameter is enabled, it retrieves the folder ID for the provided folder name/folder path automatically and replaces the parameter value",
                     "data_type": "boolean",
                     "default": true,
-                    "order": 2
+                    "order": 3
                 },
                 "subject": {
                     "description": "Substring to search in subject",
@@ -3682,12 +3687,12 @@
                     "contains": [
                         "msgoffice365 subject"
                     ],
-                    "order": 3
+                    "order": 4
                 },
                 "body": {
                     "description": "Substring to search in body",
                     "data_type": "string",
-                    "order": 4,
+                    "order": 5,
                     "required": false
                 },
                 "sender": {
@@ -3698,19 +3703,19 @@
                     "contains": [
                         "email"
                     ],
-                    "order": 5
+                    "order": 6
                 },
                 "limit": {
                     "description": "Maximum emails to return",
                     "data_type": "numeric",
                     "required": false,
-                    "order": 6
+                    "order": 7
                 },
                 "query": {
                     "description": "MS Graph query string",
                     "data_type": "string",
                     "required": false,
-                    "order": 7
+                    "order": 8
                 },
                 "internet_message_id": {
                     "description": "Internet message ID",
@@ -3720,7 +3725,7 @@
                     "contains": [
                         "msgoffice365 internet message id"
                     ],
-                    "order": 8
+                    "order": 9
                 }
             },
             "output": [
@@ -3774,6 +3779,9 @@
                     "data_type": "string",
                     "contains": [
                         "msgoffice365 internet message id"
+                    ],
+                    "example_values": [
+                        "<CAGUkOupas2JehJhTVYEK4qdwfLHOrGTHWAgAUZUoMfo5M7BZ_5N_w@mail.gmail.com>"
                     ]
                 },
                 {
@@ -4109,6 +4117,199 @@
                     "example_values": [
                         1
                     ]
+                },
+                {
+                    "data_path": "action_result.parameter.search_well_known_folders",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.conversationIndex",
+                    "data_type": "string",
+                    "example_values": [
+                        "AQHXHRZ01/QE6F/kQkdaSwXyspIYQagZQ=="
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.ccRecipients.*.emailAddress.name",
+                    "data_type": "string",
+                    "example_values": [
+                        "test3.test@gmail.com"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.ccRecipients.*.emailAddress.address",
+                    "data_type": "string",
+                    "example_values": [
+                        "test3.test@gmail.com"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.replyTo.*.emailAddress.name",
+                    "data_type": "string",
+                    "example_values": [
+                        "hellohi@okta.com"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.replyTo.*.emailAddress.address",
+                    "data_type": "string",
+                    "example_values": [
+                        "hellohi@okta.com"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.bccRecipients.*.emailAddress.name",
+                    "data_type": "string",
+                    "example_values": [
+                        "test3.test@gmail.com"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.bccRecipients.*.emailAddress.address",
+                    "data_type": "string",
+                    "example_values": [
+                        "test3.test@gmail.com"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "singleInstance"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.isAllDay",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.recurrence",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.@odata.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "#microsoft.graph.eventMessageRequests"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.endDateTime.dateTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "2020-08-15T12:30:00.0000000"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.endDateTime.timeZone",
+                    "data_type": "string",
+                    "example_values": [
+                        "UTC"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.isDelegated",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.isOutOfDate",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.startDateTime.dateTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "2020-08-15T12:00:00.0000000"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.startDateTime.timeZone",
+                    "data_type": "string",
+                    "example_values": [
+                        "UTC"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.previousLocation",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.responseRequested",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.meetingMessageType",
+                    "data_type": "string",
+                    "example_values": [
+                        "meetingRequest"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.meetingRequestType",
+                    "data_type": "string",
+                    "example_values": [
+                        "informationalUpdate"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.previousEndDateTime.dateTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "2020-08-15T12:30:00.0000000"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.previousEndDateTime.timeZone",
+                    "data_type": "string",
+                    "example_values": [
+                        "UTC"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.allowNewTimeProposals",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.previousStartDateTime.dateTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "2020-08-15T12:00:00.0000000"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.previousStartDateTime.timeZone",
+                    "data_type": "string",
+                    "example_values": [
+                        "UTC"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.previousEndDateTime",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.previousStartDateTime",
+                    "data_type": "string"
                 }
             ],
             "render": {
