@@ -11,7 +11,11 @@ PHANTOM_SYS_INFO_URL = "{url}rest/system_info"
 PHANTOM_ASSET_INFO_URL = "{url}rest/asset/{asset_id}"
 O365_TIME_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
 MSGOFFICE365_RUN_CONNECTIVITY_MSG = "Please run test connectivity first to complete authorization flow and generate a token that the app can use to make calls to the server "
-
+MSGOFFICE365_WELL_KNOWN_FOLDERS_FILTER = "displayName eq 'archive' or displayName eq 'clutter' or "\
+    "displayName eq 'conflicts' or displayName eq 'conversation history' or displayName eq 'deleted items' or "\
+    "displayName eq 'drafts' or displayName eq 'inbox' or displayName eq 'junk email' or displayName eq 'local failures' or"\
+    " displayName eq 'msg folder root' or displayName eq 'outbox' or displayName eq 'recoverable items deletions' or displayName eq 'scheduled' or"\
+    " displayName eq 'search folders' or displayName eq 'sent items' or displayName eq 'server failures' or displayName eq 'sync issues'"
 MSGOFFICE365_INVALID_LIMIT = "Please provide non-zero positive integer value in the 'limit' parameter."
 MSGOFFICE365_STATE_FILE_CORRUPT_ERROR = "Error occurred while loading the state file due to its unexpected format. Resetting the state file with the default format. \
 Please try again."

@@ -189,23 +189,23 @@ def _handle_oauth_result(request, path_parts):
     <base_url>?admin_consent=True&tenant=a417c578-c7ee-480d-a225-d48057e74df5&state=13
     """
     asset_id = request.GET.get('state')
-    if (not asset_id):
+    if not asset_id:
         return HttpResponse("ERROR: Asset ID not found in URL\n{0}".format(json.dumps(request.GET)), content_type="text/plain", status=400)
 
     # first check for error info
     error = request.GET.get('error')
     error_description = request.GET.get('error_description')
 
-    if (error):
+    if error:
         message = "Error: {0}".format(error)
-        if (error_description):
+        if error_description:
             message += " Details: {0}".format(error_description)
         return HttpResponse("Server returned {0}".format(message), content_type="text/plain", status=400)
 
     admin_consent = (request.GET.get('admin_consent'))
     code = (request.GET.get('code'))
 
-    if (not admin_consent and not(code)):
+    if not admin_consent and not(code):
         return HttpResponse("ERROR: admin_consent or authorization code not found in URL\n{0}".format(json.dumps(request.GET)), content_type="text/plain", status=400)
 
     # Load the data
@@ -236,7 +236,7 @@ def _handle_oauth_start(request, path_parts):
 
     # get the asset id, the state file is created for each asset
     asset_id = request.GET.get('asset_id')
-    if (not asset_id):
+    if not asset_id:
         return HttpResponse("ERROR: Asset ID not found in URL", content_type="text/plain", status=404)
 
     # Load the state that was created for the asset
@@ -247,7 +247,7 @@ def _handle_oauth_start(request, path_parts):
     # get the url to point to the authorize url of OAuth
     admin_consent_url = state.get('admin_consent_url')
 
-    if (not admin_consent_url):
+    if not admin_consent_url:
         return HttpResponse("App state is invalid, admin_consent_url key not found", content_type="text/plain", status=400)
 
     # Redirect to this link, the user will then require to enter credentials interactively
@@ -264,16 +264,16 @@ def handle_request(request, path_parts):
     """
 
     # get the type of data requested, it's the last part of the URL used to post to the REST endpoint
-    if (len(path_parts) < 2):
+    if len(path_parts) < 2:
         return HttpResponse('error: True, message: Invalid REST endpoint request', content_type="text/plain", status=404)
 
     call_type = path_parts[1]
 
-    if (call_type == 'start_oauth'):
+    if call_type == 'start_oauth':
         # start the authentication process
         return _handle_oauth_start(request, path_parts)
 
-    if (call_type == 'result'):
+    if call_type == 'result':
 
         # process the 'code'
         ret_val = _handle_oauth_result(request, path_parts)
@@ -296,7 +296,7 @@ def handle_request(request, path_parts):
         return ret_val
 
     """
-    if (call_type == 'refresh_token'):
+    if call_type == 'refresh_token':
         return _handle_oauth_refresh_token(request, path_parts)
     """
 
@@ -308,7 +308,7 @@ def _get_dir_name_from_app_name(app_name):
     app_name = ''.join([x for x in app_name if x.isalnum()])
     app_name = app_name.lower()
 
-    if (not app_name):
+    if not app_name:
         # hardcode it
         app_name = "app_for_phantom"
 
@@ -520,12 +520,12 @@ class Office365Connector(BaseConnector):
 
         ret_val, resp_json = self._make_rest_call(action_result, rest_endpoint, False)
 
-        if (phantom.is_fail(ret_val)):
+        if phantom.is_fail(ret_val):
             return (ret_val, None)
 
         asset_name = resp_json.get('name')
 
-        if (not asset_name):
+        if not asset_name:
             return (action_result.set_status(phantom.APP_ERROR, "Asset Name for ID: {0} not found".format(asset_id), None))
 
         return (phantom.APP_SUCCESS, asset_name)
@@ -534,12 +534,12 @@ class Office365Connector(BaseConnector):
 
         ret_val, resp_json = self._make_rest_call(action_result, PHANTOM_SYS_INFO_URL.format(url=self.get_phantom_base_url()), False)
 
-        if (phantom.is_fail(ret_val)):
+        if phantom.is_fail(ret_val):
             return (ret_val, None)
 
         phantom_base_url = resp_json.get('base_url').rstrip("/")
 
-        if (not phantom_base_url):
+        if not phantom_base_url:
             return (action_result.set_status(phantom.APP_ERROR,
                 "Phantom Base URL not found in System Settings. Please specify this value in System Settings"), None)
 
@@ -547,19 +547,19 @@ class Office365Connector(BaseConnector):
 
     def _get_url_to_app_rest(self, action_result=None):
 
-        if (not action_result):
+        if not action_result:
             action_result = ActionResult()
 
         # get the phantom ip to redirect to
         ret_val, phantom_base_url = self._get_phantom_base_url(action_result)
 
-        if (phantom.is_fail(ret_val)):
+        if phantom.is_fail(ret_val):
             return (action_result.get_status(), None)
 
         # get the asset name
         ret_val, asset_name = self._get_asset_name(action_result)
 
-        if (phantom.is_fail(ret_val)):
+        if phantom.is_fail(ret_val):
             return (action_result.get_status(), None)
 
         self.save_progress('Using Phantom base URL as: {0}'.format(phantom_base_url))
@@ -581,7 +581,7 @@ class Office365Connector(BaseConnector):
         else:
             url = "{0}{1}".format(MSGRAPH_API_URL, endpoint)
 
-        if (headers is None):
+        if headers is None:
             headers = {}
 
         headers.update({
@@ -746,7 +746,7 @@ class Office365Connector(BaseConnector):
             # box will ask the user to connect to
             ret_val, app_rest_url = self._get_url_to_app_rest(action_result)
             app_state = {}
-            if (phantom.is_fail(ret_val)):
+            if phantom.is_fail(ret_val):
                 self.save_progress("Unable to get the URL to the app's REST Endpoint. Error: {0}".format(
                     action_result.get_message()))
                 return self.set_status(phantom.APP_ERROR)
@@ -760,7 +760,7 @@ class Office365Connector(BaseConnector):
             self.save_progress("Using OAuth Redirect URL as:")
             self.save_progress(redirect_uri)
 
-            if (phantom.is_fail(ret_val)):
+            if phantom.is_fail(ret_val):
                 self.save_progress("Unable to get the URL to the app's REST Endpoint. Error: {0}".format(
                     action_result.get_message()))
                 return self.set_status(phantom.APP_ERROR)
@@ -812,14 +812,14 @@ class Office365Connector(BaseConnector):
 
                 self.send_progress('{0}'.format('.' * (i % 10)))
 
-                if (os.path.isfile(auth_status_file_path)):
+                if os.path.isfile(auth_status_file_path):
                     completed = True
                     os.unlink(auth_status_file_path)
                     break
 
                 time.sleep(TC_STATUS_SLEEP)
 
-            if (not completed):
+            if not completed:
                 self.save_progress("Authentication process does not seem to be completed. Timing out")
                 return self.set_status(phantom.APP_ERROR)
 
@@ -847,7 +847,7 @@ class Office365Connector(BaseConnector):
         self.save_progress("Getting the token")
         ret_val = self._get_token(action_result)
 
-        if (phantom.is_fail(ret_val)):
+        if phantom.is_fail(ret_val):
             return action_result.get_status()
 
         params = {'$top': '1'}
@@ -861,14 +861,14 @@ class Office365Connector(BaseConnector):
             self.save_progress("Getting info about a single user to verify token")
             ret_val, response = self._make_rest_call_helper(action_result, "/me", params=params)
 
-        if (phantom.is_fail(ret_val)):
+        if phantom.is_fail(ret_val):
             self.save_progress(msg_failed)
             self.save_progress("Test Connectivity Failed")
             return self.set_status(phantom.APP_ERROR)
 
         value = response.get('value')
 
-        if (value):
+        if value:
             self.save_progress("Got user info")
 
         self.save_progress("Test Connectivity Passed")
@@ -902,7 +902,7 @@ class Office365Connector(BaseConnector):
                 return action_result.set_status(phantom.APP_ERROR, error)
 
         ret_val, response = self._make_rest_call_helper(action_result, endpoint, data=json.dumps(body), method='post')
-        if (phantom.is_fail(ret_val)):
+        if phantom.is_fail(ret_val):
             return action_result.get_status()
 
         action_result.add_data(response)
@@ -937,7 +937,7 @@ class Office365Connector(BaseConnector):
                 return action_result.set_status(phantom.APP_ERROR, error)
 
         ret_val, response = self._make_rest_call_helper(action_result, endpoint, data=json.dumps(body), method='post')
-        if (phantom.is_fail(ret_val)):
+        if phantom.is_fail(ret_val):
             return action_result.get_status()
 
         action_result.add_data(response)
@@ -956,7 +956,7 @@ class Office365Connector(BaseConnector):
         endpoint += '/messages/{0}'.format(message_id)
 
         ret_val, _ = self._make_rest_call_helper(action_result, endpoint, method='delete')
-        if (phantom.is_fail(ret_val)):
+        if phantom.is_fail(ret_val):
             return action_result.get_status()
 
         return action_result.set_status(phantom.APP_SUCCESS, "Successfully deleted email")
@@ -970,7 +970,7 @@ class Office365Connector(BaseConnector):
         endpoint = '/users/{0}/mailboxSettings/automaticRepliesSetting'.format(user_id)
 
         ret_val, response = self._make_rest_call_helper(action_result, endpoint, method='get')
-        if (phantom.is_fail(ret_val)):
+        if phantom.is_fail(ret_val):
             return action_result.get_status()
 
         action_result.add_data(response)
@@ -991,7 +991,7 @@ class Office365Connector(BaseConnector):
             return action_result.set_status(phantom.APP_ERROR, "Please check your input parameters")
         limit = param.get('limit')
 
-        if(user_id is None and group_id is None):
+        if user_id is None and group_id is None:
             return action_result.set_status(phantom.APP_ERROR, 'Either a user_id or group_id must be supplied to the "list_events" action')
 
         if user_id and group_id and user_id != "" and group_id != "":
@@ -1019,7 +1019,7 @@ class Office365Connector(BaseConnector):
 
         ret_val, events = self._paginator(action_result, endpoint, limit)
 
-        if (phantom.is_fail(ret_val)):
+        if phantom.is_fail(ret_val):
             msg = action_result.get_message()
             if '$top' in msg or '$top/top' in msg:
                 msg += "The '$top' parameter is already used internally to handle pagination logic. "
@@ -1069,7 +1069,7 @@ class Office365Connector(BaseConnector):
 
         ret_val, groups = self._paginator(action_result, endpoint, limit, query=query)
 
-        if (phantom.is_fail(ret_val)):
+        if phantom.is_fail(ret_val):
             return action_result.get_status()
 
         if not groups:
@@ -1105,7 +1105,7 @@ class Office365Connector(BaseConnector):
 
         ret_val, users = self._paginator(action_result, endpoint, limit, query=query)
 
-        if (phantom.is_fail(ret_val)):
+        if phantom.is_fail(ret_val):
             return action_result.get_status()
 
         if not users:
@@ -1132,7 +1132,7 @@ class Office365Connector(BaseConnector):
             # fetching root level folders
             ret_val, root_folders = self._fetch_root_folders(action_result, user_id)
 
-            if (phantom.is_fail(ret_val)):
+            if phantom.is_fail(ret_val):
                 return action_result.get_status()
 
             # adding root folders to main list of folders
@@ -1146,12 +1146,12 @@ class Office365Connector(BaseConnector):
                 else:
                     ret_val = self._list_child_folders(action_result, list_folder, user_id=user_id, parent_folder=root_folder)
 
-                    if (phantom.is_fail(ret_val)):
+                    if phantom.is_fail(ret_val):
                         return action_result.get_status()
         else:
             ret_val = self._list_child_folders(action_result, list_folder, user_id=user_id, folder_id=folder_id)
 
-            if (phantom.is_fail(ret_val)):
+            if phantom.is_fail(ret_val):
                 return action_result.get_status()
 
         for folder in list_folder:
@@ -1168,7 +1168,7 @@ class Office365Connector(BaseConnector):
 
         ret_val, folders = self._paginator(action_result, endpoint)
 
-        if (phantom.is_fail(ret_val)):
+        if phantom.is_fail(ret_val):
             return action_result.get_status(), None
 
         if not folders:
@@ -1184,7 +1184,7 @@ class Office365Connector(BaseConnector):
         else:
             ret_val, child_folders = self._fetch_child_folders(action_result, user_id, folder_id)
 
-        if (phantom.is_fail(ret_val)):
+        if phantom.is_fail(ret_val):
             return action_result.get_status()
 
         # checking for child folder if have, add it in list of folders
@@ -1196,7 +1196,7 @@ class Office365Connector(BaseConnector):
             else:
                 ret_val = self._list_child_folders(action_result, list_folder, user_id=user_id, parent_folder=child_folder)
 
-                if (phantom.is_fail(ret_val)):
+                if phantom.is_fail(ret_val):
                     return action_result.get_status()
 
                 list_folder.append(child_folder)
@@ -1209,7 +1209,7 @@ class Office365Connector(BaseConnector):
 
         ret_val, folders = self._paginator(action_result, endpoint)
 
-        if (phantom.is_fail(ret_val)):
+        if phantom.is_fail(ret_val):
             return action_result.get_status(), None
 
         return phantom.APP_SUCCESS, folders
@@ -1260,7 +1260,7 @@ class Office365Connector(BaseConnector):
 
             endpoint += '/attachments?$expand=microsoft.graph.itemattachment/item'
             ret_val, attach_resp = self._make_rest_call_helper(action_result, endpoint)
-            if (phantom.is_fail(ret_val)):
+            if phantom.is_fail(ret_val):
                 return action_result.get_status()
 
             for attachment in attach_resp.get('value', []):
@@ -1348,7 +1348,7 @@ class Office365Connector(BaseConnector):
 
         endpoint = "/users/{0}".format(config['email_address'])
 
-        if ('folder' in config):
+        if 'folder' in config:
             endpoint += '/mailFolders/{0}'.format(config['folder'])
 
         endpoint += '/messages'
@@ -1358,7 +1358,7 @@ class Office365Connector(BaseConnector):
             params['$filter'] = "lastModifiedDateTime ge {0}".format(start_time)
 
         ret_val, response = self._make_rest_call_helper(action_result, endpoint, params=params)
-        if (phantom.is_fail(ret_val)):
+        if phantom.is_fail(ret_val):
             return action_result.get_status()
 
         emails = response.get('value')
@@ -1385,7 +1385,7 @@ class Office365Connector(BaseConnector):
 
                 attach_endpoint = endpoint + '/{0}/attachments'.format(email['id'])
                 ret_val, attach_resp = self._make_rest_call_helper(action_result, attach_endpoint)
-                if (phantom.is_fail(ret_val)):
+                if phantom.is_fail(ret_val):
                     return action_result.get_status()
 
                 for attachment in attach_resp.get('value', []):
@@ -1394,7 +1394,7 @@ class Office365Connector(BaseConnector):
 
                         sub_email_endpoint = attach_endpoint + '/{0}?$expand=microsoft.graph.itemattachment/item'.format(attachment['id'])
                         ret_val, sub_email_resp = self._make_rest_call_helper(action_result, sub_email_endpoint)
-                        if (phantom.is_fail(ret_val)):
+                        if phantom.is_fail(ret_val):
                             return action_result.get_status()
 
                         sub_email = sub_email_resp['item']
@@ -1451,13 +1451,13 @@ class Office365Connector(BaseConnector):
         except:
             return action_result.set_status(phantom.APP_ERROR, "Unable to parse the range. Please specify the range as min_offset-max_offset")
 
-        if (mini < 0) or (maxi < 0):
+        if mini < 0 or maxi < 0:
             return action_result.set_status(phantom.APP_ERROR, "Invalid min or max offset value specified in range", )
 
-        if (mini > maxi):
+        if mini > maxi:
             return action_result.set_status(phantom.APP_ERROR, "Invalid range value, min_offset greater than max_offset")
 
-        if (maxi > MAX_END_OFFSET_VAL):
+        if maxi > MAX_END_OFFSET_VAL:
             return action_result.set_status(phantom.APP_ERROR, "Invalid range value. The max_offset value cannot be greater than {0}".format(MAX_END_OFFSET_VAL))
 
         return (phantom.APP_SUCCESS)
@@ -1466,7 +1466,7 @@ class Office365Connector(BaseConnector):
 
         action_result = self.add_action_result(ActionResult(dict(param)))
         ret_val = self._get_token(action_result)
-        if (phantom.is_fail(ret_val)):
+        if phantom.is_fail(ret_val):
             return action_result.get_status()
 
         self._state['admin_consent'] = True
@@ -1482,7 +1482,7 @@ class Office365Connector(BaseConnector):
 
         if limit is not None:
             try:
-                if (not float(limit).is_integer()) or limit == 0:
+                if not float(limit).is_integer() or limit == 0:
                     return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_LIMIT)
                 param['limit'] = limit = int(limit)
                 if limit < 0:
@@ -1493,9 +1493,58 @@ class Office365Connector(BaseConnector):
         # user
         email_addr = _handle_py_ver_compat_for_input_str(self._python_version, param['email_address'], self)
         endpoint = "/users/{0}".format(email_addr)
+        query = ""
+        params = dict()
+
+        if 'internet_message_id' in param:
+            params = {
+                '$filter': "internetMessageId eq '{0}'".format(_handle_py_ver_compat_for_input_str(self._python_version, param['internet_message_id'], self))
+            }
+
+        elif 'query' in param:
+            query = "?{0}".format(_handle_py_ver_compat_for_input_str(self._python_version, param['query'], self))
+
+        else:
+            # search params
+            search_query = ''
+            if 'subject' in param:
+                search_query += "subject:{0} ".format(_handle_py_ver_compat_for_input_str(self._python_version, param['subject'], self))
+
+            if 'body' in param:
+                search_query += "body:{0} ".format(_handle_py_ver_compat_for_input_str(self._python_version, param['body'], self))
+
+            if 'sender' in param:
+                search_query += "from:{0} ".format(_handle_py_ver_compat_for_input_str(self._python_version, param['sender'], self))
+
+            if search_query:
+                params['$search'] = '"{0}"'.format(search_query[:-1])
+
+        folder_ids = []
+        # searches through well known folders
+        if param.get('search_well_known_folders', False):
+
+            endpoint += "/mailFolders"
+            folder_params = {
+                '$filter': "{}".format(MSGOFFICE365_WELL_KNOWN_FOLDERS_FILTER)
+            }
+            ret_val, response = self._paginator(action_result, endpoint, params=folder_params)
+
+            if phantom.is_fail(ret_val):
+                return action_result.set_status(phantom.APP_ERROR)
+
+            if not response:
+                return action_result.set_status(phantom.APP_SUCCESS, "No well known folders found")
+
+            folders = response
+
+            for folder in folders:
+                folder_ids.append(folder.get('id'))
+
+            endpoint += "/{folder_id}"
 
         # folder
-        if ('folder' in param):
+        elif 'folder' in param:
+
             folder = _handle_py_ver_compat_for_input_str(self._python_version, param['folder'], self)
 
             if param.get('get_folder_id', False):
@@ -1508,44 +1557,28 @@ class Office365Connector(BaseConnector):
                 else:
                     self.save_progress(error)
                     return action_result.set_status(phantom.APP_ERROR, error)
-            endpoint += '/mailFolders/{0}'.format(folder)
+            folder_ids.append(folder)
+            endpoint += '/mailFolders/{folder_id}'
 
         # that should be enough to create the endpoint
         endpoint += '/messages'
-        params = dict()
 
-        if ('internet_message_id' in param):
-            params = {
-                '$filter': "internetMessageId eq '{0}'".format(_handle_py_ver_compat_for_input_str(self._python_version, param['internet_message_id'], self))
-            }
+        if folder_ids:
+            messages = []
+            ret_val = False
+            for folder_id in folder_ids:
+                folder_ret_val, folder_messages = self._paginator(action_result, endpoint.format(folder_id=folder_id) + query, limit, params=params)
 
-        elif ('query' in param):
-            endpoint += "?{0}".format(_handle_py_ver_compat_for_input_str(self._python_version, param['query'], self))
+                if phantom.is_fail(folder_ret_val):
+                    continue
+
+                ret_val = True
+                messages.extend(folder_messages)
 
         else:
-            # search params
-            search_query = ''
-            if ('subject' in param):
-                if (search_query):
-                    search_query += ' '
-                search_query += "subject:{0}".format(_handle_py_ver_compat_for_input_str(self._python_version, param['subject'], self))
+            ret_val, messages = self._paginator(action_result, endpoint, limit, params=params)
 
-            if ('body' in param):
-                if (search_query):
-                    search_query += ' '
-                search_query += "body:{0}".format(_handle_py_ver_compat_for_input_str(self._python_version, param['body'], self))
-
-            if ('sender' in param):
-                if (search_query):
-                    search_query += ' '
-                search_query += "from:{0}".format(_handle_py_ver_compat_for_input_str(self._python_version, param['sender'], self))
-
-            if search_query:
-                params['$search'] = '"{0}"'.format(search_query)
-
-        ret_val, messages = self._paginator(action_result, endpoint, limit, params=params)
-
-        if (phantom.is_fail(ret_val)):
+        if phantom.is_fail(ret_val):
             msg = action_result.get_message()
             if '$top' in msg or '$top/top' in msg:
                 msg += "The '$top' parameter is already used internally to handle pagination logic. "
@@ -1556,9 +1589,7 @@ class Office365Connector(BaseConnector):
         if not messages:
             return action_result.set_status(phantom.APP_SUCCESS, "No data found")
 
-        for message in messages:
-            action_result.add_data(message)
-
+        action_result.update_data(messages)
         action_result.update_summary({'emails_matched': action_result.get_data_size()})
 
         return action_result.set_status(phantom.APP_SUCCESS)
@@ -1608,7 +1639,7 @@ class Office365Connector(BaseConnector):
 
         ret_val, response = self._make_rest_call_helper(action_result, endpoint, params=params)
 
-        if (phantom.is_fail(ret_val)):
+        if phantom.is_fail(ret_val):
             raise ReturnException(action_result.get_message())
 
         value = response.get('value', [])
@@ -1626,7 +1657,7 @@ class Office365Connector(BaseConnector):
 
         ret_val, response = self._make_rest_call_helper(action_result, endpoint, params=params)
 
-        if (phantom.is_fail(ret_val)):
+        if phantom.is_fail(ret_val):
             raise ReturnException()
 
         value = response.get('value', [])
@@ -1642,7 +1673,7 @@ class Office365Connector(BaseConnector):
         endpoint = "/users/{}/mailFolders".format(email)
 
         ret_val, response = self._make_rest_call_helper(action_result, endpoint, data=data, method="post")
-        if (phantom.is_fail(ret_val)):
+        if phantom.is_fail(ret_val):
             raise ReturnException()
 
         if response.get('id', False):
@@ -1661,7 +1692,7 @@ class Office365Connector(BaseConnector):
         endpoint = "/users/{}/mailFolders/{}/childFolders".format(email, parent_id)
 
         ret_val, response = self._make_rest_call_helper(action_result, endpoint, data=data, method="post")
-        if (phantom.is_fail(ret_val)):
+        if phantom.is_fail(ret_val):
             raise ReturnException()
 
         if response.get('id', False):
@@ -1829,7 +1860,7 @@ class Office365Connector(BaseConnector):
             else:
                 ret_val, response = self._make_rest_call_helper(action_result, endpoint, params=params)
 
-            if (phantom.is_fail(ret_val)):
+            if phantom.is_fail(ret_val):
                 return action_result.get_status(), None
 
             if response.get("value"):
@@ -2061,7 +2092,7 @@ if __name__ == '__main__':
     args = argparser.parse_args()
     session_id = None
 
-    if (args.username and args.password):
+    if args.username and args.password:
         login_url = BaseConnector._get_phantom_base_url() + "login"
         try:
             print("Accessing the Login page")
@@ -2078,7 +2109,7 @@ if __name__ == '__main__':
             print("Unable to get session id from the platform. Error: {0}".format(str(e)))
             exit(1)
 
-    if (len(sys.argv) < 2):
+    if len(sys.argv) < 2:
         print("No test json specified as input")
         exit(0)
 
@@ -2090,7 +2121,7 @@ if __name__ == '__main__':
         connector = Office365Connector()
         connector.print_progress_message = True
 
-        if (session_id is not None):
+        if session_id is not None:
             in_json['user_session_token'] = session_id
 
         ret_val = connector._handle_action(json.dumps(in_json), None)
