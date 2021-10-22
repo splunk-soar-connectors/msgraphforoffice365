@@ -17,7 +17,7 @@ from office365_consts import *
 from bs4 import BeautifulSoup
 from bs4 import UnicodeDammit
 
-import process_email
+from process_email import ProcessEmail
 import requests
 import base64
 import uuid
@@ -642,7 +642,7 @@ class Office365Connector(BaseConnector):
             attachment['vaultId'] = vault_ret[phantom.APP_JSON_HASH]
             return phantom.APP_SUCCESS
 
-        artifact_json['name'] = 'attachment - {0}'.format(attachment['name'])
+        artifact_json['name'] = 'Vault Artifact'
         artifact_json['label'] = 'attachment'
         artifact_json['container_id'] = container_id
         artifact_json['source_data_identifier'] = attachment['id']
@@ -666,7 +666,7 @@ class Office365Connector(BaseConnector):
         email_artifact = {}
         artifacts.append(email_artifact)
         email_artifact['label'] = 'email'
-        email_artifact['name'] = 'Email Info'
+        email_artifact['name'] = 'Email Artifact'
         email_artifact['container_id'] = container_id
         email_artifact['cef_types'] = {'id': ['email id']}
         email_artifact['source_data_identifier'] = email['id']
@@ -681,53 +681,53 @@ class Office365Connector(BaseConnector):
 
         for k, v in email_items:
             if v is not None:
-                cef[k] = v
+                # self.save_progress("Key: {}\r\nValue: {}".format(k, v))
+                if k == 'from':
+                    from_obj = v.get('emailAddress', {})
+                    cef[k] = from_obj
+                    cef['fromEmail'] = from_obj.get('address', '')
+                elif k == 'toRecipients':
+                    cef[k] = v
+                    # add first email to To
+                    recipients = v
+                    if len(recipients):
+                        cef['toEmail'] = recipients[0].get('emailAddress', {}).get('address', '')
+                else:
+                    cef[k] = v
 
         body = email['body']['content']
 
-        ips = set()
-        process_email._get_ips(body, ips)
+        ips = []
+        self._process_email._get_ips(body, ips)
 
         for ip in ips:
             ip_artifact = {}
             artifacts.append(ip_artifact)
-            ip_artifact['name'] = ip
-            ip_artifact['label'] = 'ip'
-            ip_artifact['cef'] = {'deviceAddress': ip}
+            ip_artifact['name'] = 'IP Artifact'
+            ip_artifact['label'] = 'artifact'
+            ip_artifact['cef'] = ip
             ip_artifact['container_id'] = container_id
             ip_artifact['source_data_identifier'] = email['id']
 
-        urls = set()
-        domains = set()
-        process_email._extract_urls_domains(body, urls, domains)
+        urls = []
+        domains = []
+        self._process_email._extract_urls_domains(body, urls, domains)
 
         for url in urls:
             url_artifact = {}
             artifacts.append(url_artifact)
-            url_artifact['name'] = url
-            url_artifact['label'] = 'url'
-            url_artifact['cef'] = {'deviceAddress': url}
+            url_artifact['name'] = 'URL Artifact'
+            url_artifact['label'] = 'artifact'
+            url_artifact['cef'] = url
             url_artifact['container_id'] = container_id
             url_artifact['source_data_identifier'] = email['id']
 
         for domain in domains:
             domain_artifact = {}
             artifacts.append(domain_artifact)
-            domain_artifact['name'] = domain
-            domain_artifact['label'] = 'domain'
-            domain_artifact['cef'] = {'deviceAddress': domain}
-            domain_artifact['container_id'] = container_id
-            domain_artifact['source_data_identifier'] = email['id']
-
-        domains = set()
-        process_email._extract_email_domains(body, domains)
-
-        for domain in domains:
-            domain_artifact = {}
-            artifacts.append(domain_artifact)
-            domain_artifact['name'] = domain
-            domain_artifact['label'] = 'domain'
-            domain_artifact['cef'] = {'deviceAddress': domain}
+            domain_artifact['name'] = 'Domain Artifact'
+            domain_artifact['label'] = 'artifact'
+            domain_artifact['cef'] = domain
             domain_artifact['container_id'] = container_id
             domain_artifact['source_data_identifier'] = email['id']
 
@@ -1346,10 +1346,18 @@ class Office365Connector(BaseConnector):
             start_time = self._state['last_time']
             self._state['last_time'] = datetime.utcnow().strftime(O365_TIME_FORMAT)
 
-        endpoint = "/users/{0}".format(config['email_address'])
+        if not config.get('email_address'):
+            return action_result.set_status(phantom.APP_ERROR, "Email Adress to ingest must be supplied in asset!")
+        elif not config.get('folder'):
+            return action_result.set_status(phantom.APP_ERROR, "Folder to ingest from must be supplied in asset!")
+
+        endpoint = "/users/{0}".format(config.get('email_address'))
 
         if 'folder' in config:
-            endpoint += '/mailFolders/{0}'.format(config['folder'])
+            folder = config.get('folder', '')
+            if '\\' in folder:
+                folder = folder.replace('\\', '/')
+            endpoint += '/mailFolders/{0}'.format(folder)
 
         endpoint += '/messages'
 
@@ -1364,7 +1372,7 @@ class Office365Connector(BaseConnector):
         emails = response.get('value')
 
         for email in emails:
-
+            self.save_progress('Processing email with ID ending in: {}'.format(email['id'][-10:]))
             container = {}
 
             container['name'] = email['subject'] if email['subject'] else email['id']
@@ -1381,7 +1389,7 @@ class Office365Connector(BaseConnector):
             if not container_id:
                 return phantom.APP_ERROR
 
-            if email['hasAttachments']:
+            if email['hasAttachments'] and config.get('extract_attachments', False):
 
                 attach_endpoint = endpoint + '/{0}/attachments'.format(email['id'])
                 ret_val, attach_resp = self._make_rest_call_helper(action_result, attach_endpoint)
@@ -1420,13 +1428,7 @@ class Office365Connector(BaseConnector):
                         ret_val, message, sub_container_id = self.save_artifacts(sub_artifacts)
 
                     elif attachment['name'].endswith('.eml'):
-                        process_config = {
-                                "extract_attachments": True,
-                                "extract_domains": True,
-                                "extract_hashes": True,
-                                "extract_ips": True,
-                                "extract_urls": True}
-                        ret_val, message = process_email.process_email(self, base64.b64decode(attachment['contentBytes']), attachment['id'], process_config, None)
+                        ret_val, message = self._process_email.process_email(self, base64.b64decode(attachment['contentBytes']), attachment['id'], None)
 
                     else:
                         attach_artifact = {}
@@ -2065,6 +2067,9 @@ class Office365Connector(BaseConnector):
 
             if phantom.is_fail(ret_val):
                 return self.set_status(phantom.APP_ERROR, "{0}. {1}".format(MSGOFFICE365_RUN_CONNECTIVITY_MSG, action_result.get_message()))
+
+        # Create ProcessEmail Object for on_poll
+        self._process_email = ProcessEmail(self, config)
 
         return phantom.APP_SUCCESS
 
