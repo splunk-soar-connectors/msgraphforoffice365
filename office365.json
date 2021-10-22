@@ -10,8 +10,8 @@
     "product_version_regex": ".*",
     "publisher": "Splunk",
     "license": "Copyright (c) 2017-2021 Splunk Inc.",
-    "app_version": "2.4.0",
-    "utctime_updated": "2021-10-05T12:01:07.000000Z",
+    "app_version": "2.4.1",
+    "utctime_updated": "2021-10-22T00:30:46.000000Z",
     "package_name": "phantom_msgraphoffice365",
     "main_module": "office365_connector.py",
     "min_phantom_version": "4.10.0.40961",
@@ -70,7 +70,7 @@
             "description": "User Email Mailbox (On Poll)",
             "data_type": "string",
             "order": 8
-        },        
+        },
         "folder": {
             "description": "Mailbox folder to ingest (On Poll)",
             "data_type": "string",
