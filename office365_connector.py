@@ -1339,10 +1339,10 @@ class Office365Connector(BaseConnector):
             max_emails = param[phantom.APP_JSON_CONTAINER_COUNT]
         elif self._state.get('first_run', True):
             self._state['first_run'] = False
-            max_emails = config['first_run_max_emails']
+            max_emails = config.get('first_run_max_emails', 1000)
             self._state['last_time'] = datetime.utcnow().strftime(O365_TIME_FORMAT)
         else:
-            max_emails = config['max_emails']
+            max_emails = config.get('max_containers', 100)
             start_time = self._state['last_time']
             self._state['last_time'] = datetime.utcnow().strftime(O365_TIME_FORMAT)
 
