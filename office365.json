@@ -10,8 +10,8 @@
     "product_version_regex": ".*",
     "publisher": "Splunk",
     "license": "Copyright (c) 2017-2021 Splunk Inc.",
-    "app_version": "2.3.6",
-    "utctime_updated": "2021-10-19T18:03:27.000000Z",
+    "app_version": "2.4.3",
+    "utctime_updated": "2021-11-12T19:55:06.000000Z",
     "package_name": "phantom_msgraphoffice365",
     "main_module": "office365_connector.py",
     "min_phantom_version": "4.10.0.40961",
@@ -61,6 +61,62 @@
             "data_type": "string",
             "default": "https://graph.microsoft.com/Calendars.Read https://graph.microsoft.com/User.Read",
             "order": 6
+        },
+        "ph_2": {
+            "data_type": "ph",
+            "order": 7
+        },
+        "email_address": {
+            "description": "User Email Mailbox (On Poll)",
+            "data_type": "string",
+            "order": 8
+        },
+        "folder": {
+            "description": "Mailbox folder to ingest (On Poll)",
+            "data_type": "string",
+            "order": 9
+        },
+        "first_run_max_emails": {
+            "description": "Maximum Containers for scheduled polling first time",
+            "data_type": "numeric",
+            "default": 1000,
+            "order": 10
+        },
+        "max_containers": {
+            "description": "Maximum Containers for scheduled polling",
+            "data_type": "numeric",
+            "default": 100,
+            "order": 11
+        },
+        "extract_attachments": {
+            "description": "Extract Attachments",
+            "data_type": "boolean",
+            "default": false,
+            "order": 12
+        },
+        "extract_urls": {
+            "description": "Extract URLs",
+            "data_type": "boolean",
+            "default": false,
+            "order": 13
+        },
+        "extract_ips": {
+            "description": "Extract IPs",
+            "data_type": "boolean",
+            "default": false,
+            "order": 14
+        },
+        "extract_domains": {
+            "description": "Extract Domain Names",
+            "data_type": "boolean",
+            "default": false,
+            "order": 15
+        },
+        "extract_hashes": {
+            "description": "Extract Hashes",
+            "data_type": "boolean",
+            "default": false,
+            "order": 16
         }
     },
     "actions": [
@@ -4624,6 +4680,41 @@
                 "type": "table",
                 "height": 5
             },
+            "versions": "EQ(*)"
+        },
+        {
+            "action": "on poll",
+            "description": "Ingest emails from Office 365 using Graph API",
+            "type": "ingest",
+            "identifier": "on_poll",
+            "read_only": true,
+            "parameters": {
+                "start_time": {
+                    "data_type": "numeric",
+                    "description": "Parameter Ignored in this app"
+                },
+                "end_time": {
+                    "data_type": "numeric",
+                    "description": "Parameter Ignored in this app"
+                },
+                "container_id": {
+                    "data_type": "string",
+                    "description": "Parameter Ignored in this app"
+                },
+                "container_count": {
+                    "data_type": "numeric",
+                    "description": "Maximum number of emails to ingest",
+                    "required": true,
+                    "value": 100
+                },
+                "artifact_count": {
+                    "data_type": "numeric",
+                    "description": "Maximum number of artifact to ingest",
+                    "required": true,
+                    "value": 1000
+                }
+            },
+            "output": [],
             "versions": "EQ(*)"
         }
     ]
