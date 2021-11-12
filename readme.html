@@ -50,7 +50,19 @@ After setting up the asset and user, click the <b>TEST CONNECTIVITY</b> button. 
 <br><br>
 The app should now be ready to be used.
 <br />
-
+<h3>On-Poll</h3>
+    <b>Configuration:</b><br>
+    <ul>
+      <li>email_address - Ingest from the provided email address. </li>
+      <li>folder - To fetch the emails from the given folder name (must be provided if running ingestion) </li>
+      <li>first_run_max_emails - Maximum containers to poll for the first scheduled polling (default - 1000).</li>
+      <li>max_containers - Maximum containers to poll after the first scheduled poll completes (default - 100).</li>
+      <li>extract_attachments - Extract all the attachments included in emails.</li>
+      <li>extract_urls - Extracts the URLs present in the emails.</li>
+      <li>extract_ips - Extracts the IP addresses present in the emails.</li>
+      <li>extract_domains - Extract the domain names present in the emails.</li>
+      <li>extract_hashes - Extract the hashes present in the emails (MD5).</li>
+    </ul>
 <h2>State file permissions</h2>
   <p>
     Please check the permissions for the state file as mentioned below.
