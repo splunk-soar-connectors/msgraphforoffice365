@@ -9,7 +9,7 @@
     "product_name": "Office 365 (MS Graph)",
     "product_version_regex": ".*",
     "publisher": "Splunk",
-    "license": "Copyright (c) 2017-2021 Splunk Inc.",
+    "license": "Copyright (c) 2017-2022 Splunk Inc.",
     "app_version": "2.4.7",
     "utctime_updated": "2022-01-07T22:28:37.000000Z",
     "package_name": "phantom_msgraphoffice365",
