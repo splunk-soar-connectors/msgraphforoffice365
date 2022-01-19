@@ -1,32 +1,40 @@
 # File: office365_connector.py
-# Copyright (c) 2017-2021 Splunk Inc.
 #
-# SPLUNK CONFIDENTIAL - Use or disclosure of this material in whole or in part
-# without a valid written license from Splunk Inc. is PROHIBITED.
-
-
+# Copyright (c) 2017-2022 Splunk Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software distributed under
+# the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+# either express or implied. See the License for the specific language governing permissions
+# and limitations under the License.
+#
+#
 # Phantom App imports
+import base64
+import grp
+import json
+import os
+import pwd
+import sys
+import time
+import uuid
+from datetime import datetime, timedelta
+
 import phantom.app as phantom
-from phantom.base_connector import BaseConnector
+import requests
+from bs4 import BeautifulSoup, UnicodeDammit
+from django.http import HttpResponse
 from phantom.action_result import ActionResult
+from phantom.base_connector import BaseConnector
 from phantom.vault import Vault
 
-from datetime import datetime, timedelta
-from django.http import HttpResponse
 from office365_consts import *
-from bs4 import BeautifulSoup
-from bs4 import UnicodeDammit
-
 from process_email import ProcessEmail
-import requests
-import base64
-import uuid
-import json
-import time
-import sys
-import pwd
-import grp
-import os
 
 TC_FILE = "oauth_task.out"
 SERVER_TOKEN_URL = "https://login.microsoftonline.com/{0}/oauth2/v2.0/token"
@@ -206,7 +214,8 @@ def _handle_oauth_result(request, path_parts):
     code = (request.GET.get('code'))
 
     if not admin_consent and not(code):
-        return HttpResponse("ERROR: admin_consent or authorization code not found in URL\n{0}".format(json.dumps(request.GET)), content_type="text/plain", status=400)
+        return HttpResponse("ERROR: admin_consent or authorization code not found in URL\n{0}".format(
+            json.dumps(request.GET)), content_type="text/plain", status=400)
 
     # Load the data
     state = _load_app_state(asset_id)
@@ -508,7 +517,8 @@ class Office365Connector(BaseConnector):
                             params=params)
         except Exception as e:
             error_code, error_msg = _get_error_message_from_exception(self._python_version, e, self)
-            return RetVal(action_result.set_status(phantom.APP_ERROR, "Error connecting to server. Error Code: {0}. Error Message: {1}".format(error_code, error_msg)), resp_json)
+            return RetVal(action_result.set_status(phantom.APP_ERROR, "Error connecting to server. Error Code: {0}. Error Message: {1}".format(
+                error_code, error_msg)), resp_json)
 
         return self._process_response(r, action_result)
 
@@ -594,7 +604,8 @@ class Office365Connector(BaseConnector):
         # If token is expired, generate a new token
         msg = action_result.get_message()
 
-        if msg and 'token is invalid' in msg or 'Access token has expired' in msg or 'ExpiredAuthenticationToken' in msg or 'AuthenticationFailed' in msg:
+        if msg and 'token is invalid' in msg or ('Access token has expired' in
+                msg) or ('ExpiredAuthenticationToken' in msg) or ('AuthenticationFailed' in msg):
             ret_val = self._get_token(action_result)
 
             headers.update({ 'Authorization': 'Bearer {0}'.format(self._access_token)})
@@ -995,7 +1006,8 @@ class Office365Connector(BaseConnector):
             return action_result.set_status(phantom.APP_ERROR, 'Either a user_id or group_id must be supplied to the "list_events" action')
 
         if user_id and group_id and user_id != "" and group_id != "":
-            return action_result.set_status(phantom.APP_ERROR, 'Either a user_id or group_id can be supplied to the "list_events" action - not both')
+            return action_result.set_status(phantom.APP_ERROR,
+                'Either a user_id or group_id can be supplied to the "list_events" action - not both')
 
         if limit is not None:
             try:
@@ -1045,7 +1057,8 @@ class Office365Connector(BaseConnector):
         num_events = len(events)
         action_result.update_summary({'events_matched': action_result.get_data_size()})
 
-        return action_result.set_status(phantom.APP_SUCCESS, 'Successfully retrieved {} event{}'.format(num_events, '' if num_events == 1 else 's'))
+        return action_result.set_status(phantom.APP_SUCCESS, 'Successfully retrieved {} event{}'.format(
+            num_events, '' if num_events == 1 else 's'))
 
     def _handle_list_groups(self, param):
 
@@ -1081,7 +1094,8 @@ class Office365Connector(BaseConnector):
         num_groups = len(groups)
         action_result.update_summary({'total_groups_returned': num_groups})
 
-        return action_result.set_status(phantom.APP_SUCCESS, 'Successfully retrieved {} group{}'.format(num_groups, '' if num_groups == 1 else 's'))
+        return action_result.set_status(phantom.APP_SUCCESS, 'Successfully retrieved {} group{}'.format(
+            num_groups, '' if num_groups == 1 else 's'))
 
     def _handle_list_users(self, param):
 
@@ -1160,7 +1174,8 @@ class Office365Connector(BaseConnector):
         num_folders = len(list_folder)
         action_result.update_summary({'total_folders_returned': num_folders})
 
-        return action_result.set_status(phantom.APP_SUCCESS, 'Successfully retrieved {} mail folder{}'.format(num_folders, '' if num_folders == 1 else 's'))
+        return action_result.set_status(phantom.APP_SUCCESS, 'Successfully retrieved {} mail folder{}'.format(
+            num_folders, '' if num_folders == 1 else 's'))
 
     def _fetch_root_folders(self, action_result, user_id):
 
@@ -1253,7 +1268,8 @@ class Office365Connector(BaseConnector):
 
             if phantom.is_fail(ret_val):
                 return action_result.get_status()
-            # For Drafts there might not be any internetMessageHeaders, so we have to use get() fetching insted of direct fetching from dictionary
+            # For Drafts there might not be any internetMessageHeaders,
+            # so we have to use get() fetching insted of direct fetching from dictionary
             response['internetMessageHeaders'] = header_response.get('internetMessageHeaders')
 
         if param['download_attachments'] and response.get('hasAttachments'):
@@ -1428,7 +1444,8 @@ class Office365Connector(BaseConnector):
                         ret_val, message, sub_container_id = self.save_artifacts(sub_artifacts)
 
                     elif attachment['name'].endswith('.eml'):
-                        ret_val, message = self._process_email.process_email(self, base64.b64decode(attachment['contentBytes']), attachment['id'], None)
+                        ret_val, message = self._process_email.process_email(self, base64.b64decode(attachment['contentBytes']),
+                            attachment['id'], None)
 
                     else:
                         attach_artifact = {}
@@ -1442,7 +1459,8 @@ class Office365Connector(BaseConnector):
                 return action_result.set_status(phantom.APP_ERROR, message)
 
         if not self.is_poll_now() and len(emails) == int(max_emails):
-            self._state['last_time'] = (datetime.strptime(emails[-1]['lastModifiedDateTime'], O365_TIME_FORMAT) + timedelta(seconds=1)).strftime(O365_TIME_FORMAT)
+            self._state['last_time'] = (datetime.strptime(emails[-1]['lastModifiedDateTime'], O365_TIME_FORMAT) + timedelta(
+                seconds=1)).strftime(O365_TIME_FORMAT)
 
         return action_result.set_status(phantom.APP_SUCCESS)
 
@@ -1460,7 +1478,8 @@ class Office365Connector(BaseConnector):
             return action_result.set_status(phantom.APP_ERROR, "Invalid range value, min_offset greater than max_offset")
 
         if maxi > MAX_END_OFFSET_VAL:
-            return action_result.set_status(phantom.APP_ERROR, "Invalid range value. The max_offset value cannot be greater than {0}".format(MAX_END_OFFSET_VAL))
+            return action_result.set_status(phantom.APP_ERROR, "Invalid range value. The max_offset value cannot be greater than {0}".format(
+                MAX_END_OFFSET_VAL))
 
         return (phantom.APP_SUCCESS)
 
@@ -1500,7 +1519,8 @@ class Office365Connector(BaseConnector):
 
         if 'internet_message_id' in param:
             params = {
-                '$filter': "internetMessageId eq '{0}'".format(_handle_py_ver_compat_for_input_str(self._python_version, param['internet_message_id'], self))
+                '$filter': "internetMessageId eq '{0}'".format(_handle_py_ver_compat_for_input_str(
+                    self._python_version, param['internet_message_id'], self))
             }
 
         elif 'query' in param:
@@ -1569,7 +1589,8 @@ class Office365Connector(BaseConnector):
             messages = []
             ret_val = False
             for folder_id in folder_ids:
-                folder_ret_val, folder_messages = self._paginator(action_result, endpoint.format(folder_id=folder_id) + query, limit, params=params)
+                folder_ret_val, folder_messages = self._paginator(action_result, endpoint.format(
+                    folder_id=folder_id) + query, limit, params=params)
 
                 if phantom.is_fail(folder_ret_val):
                     continue
@@ -2000,7 +2021,8 @@ class Office365Connector(BaseConnector):
         #
         # If the corresponding state file doesn't have correct owner, owner group or permissions,
         # the newely generated token is not being saved to state file and automatic workflow for token has been stopped.
-        # So we have to check that token from response and token which are saved to state file after successful generation of new token are same or not.
+        # So we have to check that token from response and token which are saved to state file
+        # after successful generation of new token are same or not.
 
         if self._admin_access:
             if self._access_token != self._state.get('admin_auth', {}).get('access_token'):
@@ -2086,6 +2108,7 @@ if __name__ == '__main__':
     # import sys
     # import pudb
     import argparse
+
     # pudb.set_trace()
 
     argparser = argparse.ArgumentParser()

@@ -9,9 +9,9 @@
     "product_name": "Office 365 (MS Graph)",
     "product_version_regex": ".*",
     "publisher": "Splunk",
-    "license": "Copyright (c) 2017-2021 Splunk Inc.",
-    "app_version": "2.4.4",
-    "utctime_updated": "2021-11-12T21:54:36.000000Z",
+    "license": "Copyright (c) 2017-2022 Splunk Inc.",
+    "app_version": "2.4.8",
+    "utctime_updated": "2022-01-14T00:18:47.000000Z",
     "package_name": "phantom_msgraphoffice365",
     "main_module": "office365_connector.py",
     "min_phantom_version": "4.10.0.40961",
@@ -20,6 +20,7 @@
     ],
     "app_wizard_version": "1.0.0",
     "python_version": "3",
+    "fips_compliant": true,
     "rest_handler": "office365_connector.handle_request",
     "configuration": {
         "tenant": {
@@ -4717,5 +4718,61 @@
             "output": [],
             "versions": "EQ(*)"
         }
-    ]
+    ],
+    "pip_dependencies": {
+        "wheel": [
+            {
+                "module": "Django",
+                "input_file": "wheels/Django-3.2.5-py3-none-any.whl"
+            },
+            {
+                "module": "asgiref",
+                "input_file": "wheels/asgiref-3.4.1-py3-none-any.whl"
+            },
+            {
+                "module": "beautifulsoup4",
+                "input_file": "wheels/beautifulsoup4-4.9.1-py3-none-any.whl"
+            },
+            {
+                "module": "certifi",
+                "input_file": "wheels/certifi-2021.10.8-py2.py3-none-any.whl"
+            },
+            {
+                "module": "chardet",
+                "input_file": "wheels/chardet-3.0.4-py2.py3-none-any.whl"
+            },
+            {
+                "module": "idna",
+                "input_file": "wheels/idna-2.10-py2.py3-none-any.whl"
+            },
+            {
+                "module": "python_magic",
+                "input_file": "wheels/python_magic-0.4.18-py2.py3-none-any.whl"
+            },
+            {
+                "module": "pytz",
+                "input_file": "wheels/pytz-2021.3-py2.py3-none-any.whl"
+            },
+            {
+                "module": "requests",
+                "input_file": "wheels/requests-2.25.0-py2.py3-none-any.whl"
+            },
+            {
+                "module": "soupsieve",
+                "input_file": "wheels/soupsieve-2.3.1-py3-none-any.whl"
+            },
+            {
+                "module": "sqlparse",
+                "input_file": "wheels/sqlparse-0.4.2-py3-none-any.whl"
+            },
+            {
+                "module": "typing_extensions",
+                "input_file": "wheels/typing_extensions-4.0.1-py3-none-any.whl"
+            },
+            {
+                "module": "urllib3",
+                "input_file": "wheels/urllib3-1.26.8-py2.py3-none-any.whl"
+            }
+        ]
+    }
 }
