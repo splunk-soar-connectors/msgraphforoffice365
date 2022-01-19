@@ -2,7 +2,7 @@
 # MS Graph for Office 365
 
 Publisher: Splunk  
-Connector Version: 2\.4\.6  
+Connector Version: 2\.4\.8  
 Product Vendor: Microsoft  
 Product Name: Office 365 \(MS Graph\)  
 Product Version Supported (regex): "\.\*"  
@@ -10,7 +10,7 @@ Minimum Product Version: 4\.10\.0\.40961
 
 This app connects to Office 365 using the MS Graph API to support investigate and generic actions related to the email messages and calendar events
 
-[comment]: # " File: readme.md"
+[comment]: # " File: README.md"
 [comment]: # "  Copyright (c) 2017-2022 Splunk Inc."
 [comment]: # ""
 [comment]: # "Licensed under the Apache License, Version 2.0 (the 'License');"
