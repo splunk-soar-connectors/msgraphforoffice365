@@ -1241,7 +1241,7 @@ class ProcessEmail(object):
             self._base_connector.debug_print('Handled exception in _create_dict_hash', e)
             return None
 
-        fips_enabled = self._get_fips_enabled()
+        fips_enabled = self._base_connector._get_fips_enabled()
         if not fips_enabled:
             return hashlib.md5(input_dict_str).hexdigest()
 
