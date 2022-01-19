@@ -1241,7 +1241,11 @@ class ProcessEmail(object):
             self._base_connector.debug_print('Handled exception in _create_dict_hash', e)
             return None
 
-        return hashlib.md5(input_dict_str).hexdigest()
+        fips_enabled = self._base_connector._get_fips_enabled()
+        if not fips_enabled:
+            return hashlib.md5(input_dict_str).hexdigest()
+
+        return hashlib.sha256(input_dict_str).hexdigest()
 
     def _del_tmp_dirs(self):
         """Remove any tmp_dirs that were created."""
