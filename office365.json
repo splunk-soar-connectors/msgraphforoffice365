@@ -118,6 +118,18 @@
             "data_type": "boolean",
             "default": false,
             "order": 16
+        },
+        "ingest_manner": {
+            "data_type": "string",
+            "description": "How to Ingest",
+            "verbose": "During ingestion, should the app get the latest emails or the oldest.",
+            "required": true,
+            "order": 17,
+            "value_list": [
+                "oldest first",
+                "latest first"
+            ],
+            "default": "oldest first"
         }
     },
     "actions": [

@@ -1376,8 +1376,9 @@ class Office365Connector(BaseConnector):
             endpoint += '/mailFolders/{0}'.format(folder)
 
         endpoint += '/messages'
+        order = 'asc' if config['ingest_manner'] == 'oldest first' else 'desc'
 
-        params = {'$top': str(max_emails)}
+        params = {'$top': str(max_emails), '$orderBy': 'receivedDateTime {}'.format(order)}
         if start_time:
             params['$filter'] = "lastModifiedDateTime ge {0}".format(start_time)
 
