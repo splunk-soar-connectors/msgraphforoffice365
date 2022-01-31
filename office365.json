@@ -14,7 +14,7 @@
     "utctime_updated": "2022-01-19T19:06:27.000000Z",
     "package_name": "phantom_msgraphoffice365",
     "main_module": "office365_connector.py",
-    "min_phantom_version": "5.0.0",
+    "min_phantom_version": "5.1.0",
     "latest_tested_versions": [
         "Cloud 2021-09-28"
     ],
