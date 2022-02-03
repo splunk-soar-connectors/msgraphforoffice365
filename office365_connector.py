@@ -344,7 +344,7 @@ class Office365Connector(BaseConnector):
         self._scope = None
         self._access_token = None
         self._refresh_token = None
-        self._REPLACE_CONST = "C53CEA8298BD401BA695F247633D0542"
+        self._REPLACE_CONST = "C53CEA8298BD401BA695F247633D0542"  # pragma: allowlist secret
 
     def _process_empty_reponse(self, response, action_result):
 
