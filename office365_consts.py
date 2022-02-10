@@ -36,3 +36,5 @@ MSGOFFICE365_INVALID_PERMISSION_ERR = "Error occurred while saving the newly gen
 MSGOFFICE365_INVALID_PERMISSION_ERR += " Please check the owner, owner group, and the permissions of the state file. The Phantom "
 MSGOFFICE365_INVALID_PERMISSION_ERR += "user should have the correct access rights and ownership for the corresponding state file "\
     "(refer to readme file for more information)."
+
+MSGOFFICE365_DEFAULT_REQUEST_TIMEOUT = 30  # in seconds
