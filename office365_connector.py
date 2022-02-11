@@ -919,9 +919,9 @@ class Office365Connector(BaseConnector):
         self.save_progress('In action handler for: {0}'.format(self.get_action_identifier()))
         action_result = self.add_action_result(ActionResult(dict(param)))
 
-        user_id = param['user_id'] if param.get('user_id') else None
-        group_id = param['group_id'] if param.get('group_id') else None
-        query = param['filter'] if param.get('filter') else None
+        user_id = param.get('user_id') if param.get('user_id') else None
+        group_id = param.get('group_id') if param.get('group_id') else None
+        query = param.get('filter') if param.get('filter') else None
         limit = param.get('limit')
 
         if user_id is None and group_id is None:
@@ -988,7 +988,7 @@ class Office365Connector(BaseConnector):
         action_result = self.add_action_result(ActionResult(dict(param)))
 
         limit = param.get('limit')
-        query = param['filter'] if param.get('filter') else None
+        query = param.get('filter') if param.get('filter') else None
 
         if limit is not None:
             try:
@@ -1025,7 +1025,7 @@ class Office365Connector(BaseConnector):
         action_result = self.add_action_result(ActionResult(dict(param)))
 
         limit = param.get('limit')
-        query = param['filter'] if param.get('filter') else None
+        query = param.get('filter') if param.get('filter') else None
 
         if limit is not None:
             try:
@@ -1979,7 +1979,7 @@ class Office365Connector(BaseConnector):
         self._client_secret = config['client_secret']
         self._admin_access = config.get('admin_access')
         self._admin_consent = config.get('admin_consent')
-        self._scope = config['scope'] if config.get('scope') else None
+        self._scope = config.get('scope') if config.get('scope') else None
 
         if not self._admin_access:
             if not self._scope:
