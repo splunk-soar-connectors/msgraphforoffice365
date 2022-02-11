@@ -83,7 +83,7 @@ def _load_app_state(asset_id, app_connector=None):
             # Fetching the Python major version
             try:
                 python_version = int(sys.version_info[0])
-            except:
+            except Exception:
                 app_connector.debug_print("Error occurred while getting the Phantom server's Python major version.")
                 return state
 
@@ -130,7 +130,7 @@ def _save_app_state(state, asset_id, app_connector):
         # Fetching the Python major version
         try:
             python_version = int(sys.version_info[0])
-        except:
+        except Exception:
             if app_connector:
                 app_connector.debug_print("Error occurred while getting the Phantom server's Python major version.")
             return phantom.APP_ERROR
@@ -153,7 +153,7 @@ def _handle_py_ver_compat_for_input_str(python_version, input_str, app_connector
     try:
         if input_str and python_version < 3:
             input_str = UnicodeDammit(input_str).unicode_markup.encode('utf-8')
-    except:
+    except Exception:
         if app_connector:
             app_connector.debug_print("Error occurred while handling python 2to3 compatibility for the input string")
 
@@ -177,7 +177,7 @@ def _get_error_message_from_exception(python_version, e, app_connector=None):
         else:
             error_code = "Error code unavailable"
             error_msg = "Unknown error occurred. Please check the asset configuration and|or action parameters."
-    except:
+    except Exception:
         error_code = "Error code unavailable"
         error_msg = "Unknown error occurred. Please check the asset configuration and|or action parameters."
 
@@ -185,7 +185,7 @@ def _get_error_message_from_exception(python_version, e, app_connector=None):
         error_msg = _handle_py_ver_compat_for_input_str(python_version, error_msg, app_connector)
     except TypeError:
         error_msg = "Error occurred while handling python 2to3 compatibility for the input string"
-    except:
+    except Exception:
         error_msg = "Unknown error occurred. Please check the asset configuration and|or action parameters."
 
     return error_code, error_msg
@@ -299,7 +299,7 @@ def handle_request(request, path_parts):
                 gid = grp.getgrnam("phantom").gr_gid
                 os.chown(auth_status_file_path, uid, gid)
                 os.chmod(auth_status_file_path, "0664")
-            except:
+            except Exception:
                 pass
 
         return ret_val
@@ -367,14 +367,14 @@ class Office365Connector(BaseConnector):
             split_lines = error_text.split('\n')
             split_lines = [x.strip() for x in split_lines if x.strip()]
             error_text = '\n'.join(split_lines)
-        except:
+        except Exception:
             error_text = "Cannot parse error details"
 
         try:
             error_text = _handle_py_ver_compat_for_input_str(self._python_version, error_text, self)
         except TypeError:
             error_text = "Error occurred while handling python 2to3 compatibility for the error string"
-        except:
+        except Exception:
             error_text = "Unknown error occurred. Please check the asset configuration and|or action parameters."
 
         message = "Status Code: {0}. Data from server:\n{1}\n".format(status_code,
@@ -420,14 +420,14 @@ class Office365Connector(BaseConnector):
                     error_text = '\n'.join(split_lines)
                     if len(error_text) > 500:
                         error_text = 'Error while connecting to a server (Please check input parameters or asset configuration parameters)'
-                except:
+                except Exception:
                     error_text = "Cannot parse error details"
 
             try:
                 error_text = _handle_py_ver_compat_for_input_str(self._python_version, error_text, self)
             except TypeError:
                 error_text = "Error occurred while handling python 2to3 compatibility for the error message"
-            except:
+            except Exception:
                 error_text = "Unknown error occurred while parsing the error message"
 
             if error_code:
@@ -438,21 +438,21 @@ class Office365Connector(BaseConnector):
                     error_desc = _handle_py_ver_compat_for_input_str(self._python_version, error_desc, self)
                 except TypeError:
                     error_desc = "Error occurred while handling python 2to3 compatibility for the error_description"
-                except:
+                except Exception:
                     error_desc = "Unknown error occurred while parsing the error_description"
 
                 error_text = "{}. {}".format(error_desc, error_text)
 
             if not error_text:
                 error_text = r.text.replace('{', '{{').replace('}', '}}')
-        except:
+        except Exception:
             error_text = r.text.replace('{', '{{').replace('}', '}}')
 
         try:
             error_text = _handle_py_ver_compat_for_input_str(self._python_version, error_text, self)
         except TypeError:
             error_text = "Error occurred while handling python 2to3 compatibility for the error string"
-        except:
+        except Exception:
             error_text = "Unknown error occurred. Please check the asset configuration and|or action parameters."
 
         # You should process the error returned in the json
@@ -687,7 +687,7 @@ class Office365Connector(BaseConnector):
 
         try:
             email_items = email.iteritems()
-        except:
+        except Exception:
             email_items = email.items()
 
         for k, v in email_items:
@@ -998,7 +998,7 @@ class Office365Connector(BaseConnector):
             user_id = _handle_py_ver_compat_for_input_str(self._python_version, param.get('user_id'), self) if param.get('user_id') else None
             group_id = _handle_py_ver_compat_for_input_str(self._python_version, param.get('group_id'), self) if param.get('group_id') else None
             query = _handle_py_ver_compat_for_input_str(self._python_version, param.get('filter'), self) if param.get('filter') else None
-        except:
+        except Exception:
             return action_result.set_status(phantom.APP_ERROR, "Please check your input parameters")
         limit = param.get('limit')
 
@@ -1016,7 +1016,7 @@ class Office365Connector(BaseConnector):
                 param['limit'] = limit = int(limit)
                 if limit < 0:
                     return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_LIMIT)
-            except:
+            except Exception:
                 return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_LIMIT)
 
         endpoint = ''
@@ -1075,7 +1075,7 @@ class Office365Connector(BaseConnector):
                 param['limit'] = limit = int(limit)
                 if limit < 0:
                     return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_LIMIT)
-            except:
+            except Exception:
                 return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_LIMIT)
 
         endpoint = '/groups'
@@ -1112,7 +1112,7 @@ class Office365Connector(BaseConnector):
                 param['limit'] = limit = int(limit)
                 if limit < 0:
                     return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_LIMIT)
-            except:
+            except Exception:
                 return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_LIMIT)
 
         endpoint = '/users'
@@ -1469,7 +1469,7 @@ class Office365Connector(BaseConnector):
 
         try:
             mini, maxi = (int(x) for x in email_range.split('-'))
-        except:
+        except Exception:
             return action_result.set_status(phantom.APP_ERROR, "Unable to parse the range. Please specify the range as min_offset-max_offset")
 
         if mini < 0 or maxi < 0:
@@ -1509,7 +1509,7 @@ class Office365Connector(BaseConnector):
                 param['limit'] = limit = int(limit)
                 if limit < 0:
                     return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_LIMIT)
-            except:
+            except Exception:
                 return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_LIMIT)
 
         # user
@@ -2044,7 +2044,7 @@ class Office365Connector(BaseConnector):
         # Fetching the Python major version
         try:
             self._python_version = int(sys.version_info[0])
-        except:
+        except Exception:
             return self.set_status(phantom.APP_ERROR, "Error occurred while getting the Phantom server's Python major version.")
 
         # Load the state in initialize
