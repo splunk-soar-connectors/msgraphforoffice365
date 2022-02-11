@@ -38,3 +38,6 @@ MSGOFFICE365_INVALID_PERMISSION_ERR += "user should have the correct access righ
     "(refer to readme file for more information)."
 
 MSGOFFICE365_DEFAULT_REQUEST_TIMEOUT = 30  # in seconds
+
+# Constants relating to '_get_error_message_from_exception'
+ERR_MSG_UNAVAILABLE = "Error message unavailable. Please check the asset configuration and|or action parameters"

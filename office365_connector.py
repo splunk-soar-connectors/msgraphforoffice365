@@ -27,7 +27,7 @@ from datetime import datetime, timedelta
 
 import phantom.app as phantom
 import requests
-from bs4 import BeautifulSoup, UnicodeDammit
+from bs4 import BeautifulSoup
 from django.http import HttpResponse
 from phantom.action_result import ActionResult
 from phantom.base_connector import BaseConnector
@@ -80,15 +80,8 @@ def _load_app_state(asset_id, app_connector=None):
             state = json.loads(state_file_data)
     except Exception as e:
         if app_connector:
-            # Fetching the Python major version
-            try:
-                python_version = int(sys.version_info[0])
-            except Exception:
-                app_connector.debug_print("Error occurred while getting the Phantom server's Python major version.")
-                return state
-
-            error_code, error_msg = _get_error_message_from_exception(python_version, e, app_connector)
-            app_connector.debug_print('In _load_app_state: Error Code: {0}. Error Message: {1}'.format(error_code, error_msg))
+            error_msg = _get_error_message_from_exception(e)
+            app_connector.debug_print('In _load_app_state: {0}'.format(error_msg))
 
     if app_connector:
         app_connector.debug_print('Loaded state: ', state)
@@ -127,68 +120,41 @@ def _save_app_state(state, asset_id, app_connector):
         with open(real_state_file_path, 'w+') as state_file_obj:
             state_file_obj.write(json.dumps(state))
     except Exception as e:
-        # Fetching the Python major version
-        try:
-            python_version = int(sys.version_info[0])
-        except Exception:
-            if app_connector:
-                app_connector.debug_print("Error occurred while getting the Phantom server's Python major version.")
-            return phantom.APP_ERROR
-
-        error_code, error_msg = _get_error_message_from_exception(python_version, e, app_connector)
+        error_msg = _get_error_message_from_exception(e)
         if app_connector:
-            app_connector.debug_print('Unable to save state file: Error Code: {0}. Error Message: {1}'.format(error_code, error_msg))
-        print('Unable to save state file: Error Code: {0}. Error Message: {1}'.format(error_code, error_msg))
+            app_connector.debug_print('Unable to save state file: {0}'.format(error_msg))
+        print('Unable to save state file: {0}'.format(error_msg))
         return phantom.APP_ERROR
 
     return phantom.APP_SUCCESS
 
 
-def _handle_py_ver_compat_for_input_str(python_version, input_str, app_connector=None):
+def _get_error_message_from_exception(e):
     """
-    This method returns the encoded|original string based on the Python version.
-    :param input_str: Input string to be processed
-    :return: input_str (Processed input string based on following logic 'input_str - Python 3; encoded input_str - Python 2')
-    """
-    try:
-        if input_str and python_version < 3:
-            input_str = UnicodeDammit(input_str).unicode_markup.encode('utf-8')
-    except Exception:
-        if app_connector:
-            app_connector.debug_print("Error occurred while handling python 2to3 compatibility for the input string")
-
-    return input_str
-
-
-def _get_error_message_from_exception(python_version, e, app_connector=None):
-    """ This function is used to get appropriate error message from the exception.
+    Get appropriate error message from the exception.
     :param e: Exception object
     :return: error message
     """
-    error_msg = "Unknown error occurred. Please check the asset configuration and|or action parameters."
+
+    error_code = None
+    error_msg = ERR_MSG_UNAVAILABLE
+
     try:
-        if e.args:
+        if hasattr(e, "args"):
             if len(e.args) > 1:
                 error_code = e.args[0]
                 error_msg = e.args[1]
             elif len(e.args) == 1:
-                error_code = "Error code unavailable"
                 error_msg = e.args[0]
-        else:
-            error_code = "Error code unavailable"
-            error_msg = "Unknown error occurred. Please check the asset configuration and|or action parameters."
     except Exception:
-        error_code = "Error code unavailable"
-        error_msg = "Unknown error occurred. Please check the asset configuration and|or action parameters."
+        pass
 
-    try:
-        error_msg = _handle_py_ver_compat_for_input_str(python_version, error_msg, app_connector)
-    except TypeError:
-        error_msg = "Error occurred while handling python 2to3 compatibility for the input string"
-    except Exception:
-        error_msg = "Unknown error occurred. Please check the asset configuration and|or action parameters."
+    if not error_code:
+        error_text = "Error Message: {}".format(error_msg)
+    else:
+        error_text = "Error Code: {}. Error Message: {}".format(error_code, error_msg)
 
-    return error_code, error_msg
+    return error_text
 
 
 def _handle_oauth_result(request, path_parts):
@@ -304,11 +270,6 @@ def handle_request(request, path_parts):
 
         return ret_val
 
-    """
-    if call_type == 'refresh_token':
-        return _handle_oauth_refresh_token(request, path_parts)
-    """
-
     return HttpResponse('error: Invalid endpoint', content_type="text/plain", status=404)
 
 
@@ -346,7 +307,7 @@ class Office365Connector(BaseConnector):
         self._refresh_token = None
         self._REPLACE_CONST = "C53CEA8298BD401BA695F247633D0542"  # pragma: allowlist secret
 
-    def _process_empty_reponse(self, response, action_result):
+    def _process_empty_response(self, response, action_result):
 
         if response.status_code == 200:
             return RetVal(phantom.APP_SUCCESS, {})
@@ -370,13 +331,6 @@ class Office365Connector(BaseConnector):
         except Exception:
             error_text = "Cannot parse error details"
 
-        try:
-            error_text = _handle_py_ver_compat_for_input_str(self._python_version, error_text, self)
-        except TypeError:
-            error_text = "Error occurred while handling python 2to3 compatibility for the error string"
-        except Exception:
-            error_text = "Unknown error occurred. Please check the asset configuration and|or action parameters."
-
         message = "Status Code: {0}. Data from server:\n{1}\n".format(status_code,
                 error_text)
 
@@ -390,9 +344,8 @@ class Office365Connector(BaseConnector):
         try:
             resp_json = r.json()
         except Exception as e:
-            error_code, error_msg = _get_error_message_from_exception(self._python_version, e, self)
-            error_txt = "Error Code: {0}. Error Message: {1}".format(error_code, error_msg)
-            return RetVal(action_result.set_status(phantom.APP_ERROR, "Unable to parse JSON response. {0}".format(error_txt)), None)
+            error_msg = _get_error_message_from_exception(e)
+            return RetVal(action_result.set_status(phantom.APP_ERROR, "Unable to parse JSON response. {0}".format(error_msg)), None)
 
         # Please specify the status codes here
         if 200 <= r.status_code < 399:
@@ -423,37 +376,16 @@ class Office365Connector(BaseConnector):
                 except Exception:
                     error_text = "Cannot parse error details"
 
-            try:
-                error_text = _handle_py_ver_compat_for_input_str(self._python_version, error_text, self)
-            except TypeError:
-                error_text = "Error occurred while handling python 2to3 compatibility for the error message"
-            except Exception:
-                error_text = "Unknown error occurred while parsing the error message"
-
             if error_code:
                 error_text = "{}. {}".format(error_code, error_text)
 
             if error_desc:
-                try:
-                    error_desc = _handle_py_ver_compat_for_input_str(self._python_version, error_desc, self)
-                except TypeError:
-                    error_desc = "Error occurred while handling python 2to3 compatibility for the error_description"
-                except Exception:
-                    error_desc = "Unknown error occurred while parsing the error_description"
-
                 error_text = "{}. {}".format(error_desc, error_text)
 
             if not error_text:
                 error_text = r.text.replace('{', '{{').replace('}', '}}')
         except Exception:
             error_text = r.text.replace('{', '{{').replace('}', '}}')
-
-        try:
-            error_text = _handle_py_ver_compat_for_input_str(self._python_version, error_text, self)
-        except TypeError:
-            error_text = "Error occurred while handling python 2to3 compatibility for the error string"
-        except Exception:
-            error_text = "Unknown error occurred. Please check the asset configuration and|or action parameters."
 
         # You should process the error returned in the json
         message = "Error from server. Status Code: {0} Data from server: {1}".format(
@@ -491,7 +423,7 @@ class Office365Connector(BaseConnector):
 
         # it's not content-type that is to be parsed, handle an empty response
         if not r.text:
-            return self._process_empty_reponse(r, action_result)
+            return self._process_empty_response(r, action_result)
 
         # everything else is actually an error at this point
         message = "Can't process response from server. Status Code: {0} Data from server: {1}".format(
@@ -516,9 +448,8 @@ class Office365Connector(BaseConnector):
                             verify=verify,
                             params=params)
         except Exception as e:
-            error_code, error_msg = _get_error_message_from_exception(self._python_version, e, self)
-            return RetVal(action_result.set_status(phantom.APP_ERROR, "Error connecting to server. Error Code: {0}. Error Message: {1}".format(
-                error_code, error_msg)), resp_json)
+            error_msg = _get_error_message_from_exception(e)
+            return RetVal(action_result.set_status(phantom.APP_ERROR, "Error connecting to server. {0}".format(error_msg)), resp_json)
 
         return self._process_response(r, action_result)
 
@@ -640,9 +571,8 @@ class Office365Connector(BaseConnector):
                 vault_ret = Vault.add_attachment(file_path, container_id, file_name=attachment['name'])
 
         except Exception as e:
-            error_code, error_msg = _get_error_message_from_exception(self._python_version, e, self)
-            error_txt = "Error Code: {0}. Error Message: {1}".format(error_code, error_msg)
-            self.debug_print("Error saving file to vault: {0}".format(error_txt))
+            error_msg = _get_error_message_from_exception(e)
+            self.debug_print("Error saving file to vault: {0}".format(error_msg))
             return phantom.APP_ERROR
 
         if not vault_ret.get('succeeded'):
@@ -685,12 +615,7 @@ class Office365Connector(BaseConnector):
         cef = {}
         email_artifact['cef'] = cef
 
-        try:
-            email_items = email.iteritems()
-        except Exception:
-            email_items = email.items()
-
-        for k, v in email_items:
+        for k, v in email.items():
             if v is not None:
                 # self.save_progress("Key: {}\r\nValue: {}".format(k, v))
                 if k == 'from':
@@ -891,9 +816,9 @@ class Office365Connector(BaseConnector):
         self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
         action_result = self.add_action_result(ActionResult(dict(param)))
 
-        email_addr = _handle_py_ver_compat_for_input_str(self._python_version, param['email_address'], self)
-        folder = _handle_py_ver_compat_for_input_str(self._python_version, param["folder"], self)
-        message_id = _handle_py_ver_compat_for_input_str(self._python_version, param['id'], self)
+        email_addr = param['email_address']
+        folder = param["folder"]
+        message_id = param['id']
         endpoint = '/users/{0}'.format(email_addr)
 
         endpoint += '/messages/{0}/copy'.format(message_id)
@@ -925,9 +850,9 @@ class Office365Connector(BaseConnector):
         self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
         action_result = self.add_action_result(ActionResult(dict(param)))
 
-        email_addr = _handle_py_ver_compat_for_input_str(self._python_version, param['email_address'], self)
-        folder = _handle_py_ver_compat_for_input_str(self._python_version, param["folder"], self)
-        message_id = _handle_py_ver_compat_for_input_str(self._python_version, param['id'], self)
+        email_addr = param['email_address']
+        folder = param["folder"]
+        message_id = param['id']
         endpoint = '/users/{0}'.format(email_addr)
 
         endpoint += '/messages/{0}/move'.format(message_id)
@@ -960,8 +885,8 @@ class Office365Connector(BaseConnector):
         self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
         action_result = self.add_action_result(ActionResult(dict(param)))
 
-        email_addr = _handle_py_ver_compat_for_input_str(self._python_version, param['email_address'], self)
-        message_id = _handle_py_ver_compat_for_input_str(self._python_version, param['id'], self)
+        email_addr = param['email_address']
+        message_id = param['id']
         endpoint = "/users/{0}".format(email_addr)
 
         endpoint += '/messages/{0}'.format(message_id)
@@ -976,7 +901,7 @@ class Office365Connector(BaseConnector):
         self.save_progress('In action handler for: {0}'.format(self.get_action_identifier()))
         action_result = self.add_action_result(ActionResult(dict(param)))
 
-        user_id = _handle_py_ver_compat_for_input_str(self._python_version, param['user_id'], self)
+        user_id = param['user_id']
 
         endpoint = '/users/{0}/mailboxSettings/automaticRepliesSetting'.format(user_id)
 
@@ -994,12 +919,9 @@ class Office365Connector(BaseConnector):
         self.save_progress('In action handler for: {0}'.format(self.get_action_identifier()))
         action_result = self.add_action_result(ActionResult(dict(param)))
 
-        try:
-            user_id = _handle_py_ver_compat_for_input_str(self._python_version, param.get('user_id'), self) if param.get('user_id') else None
-            group_id = _handle_py_ver_compat_for_input_str(self._python_version, param.get('group_id'), self) if param.get('group_id') else None
-            query = _handle_py_ver_compat_for_input_str(self._python_version, param.get('filter'), self) if param.get('filter') else None
-        except Exception:
-            return action_result.set_status(phantom.APP_ERROR, "Please check your input parameters")
+        user_id = param['user_id'] if param.get('user_id') else None
+        group_id = param['group_id'] if param.get('group_id') else None
+        query = param['filter'] if param.get('filter') else None
         limit = param.get('limit')
 
         if user_id is None and group_id is None:
@@ -1066,7 +988,7 @@ class Office365Connector(BaseConnector):
         action_result = self.add_action_result(ActionResult(dict(param)))
 
         limit = param.get('limit')
-        query = _handle_py_ver_compat_for_input_str(self._python_version, param.get('filter'), self) if param.get('filter') else None
+        query = param['filter'] if param.get('filter') else None
 
         if limit is not None:
             try:
@@ -1103,7 +1025,7 @@ class Office365Connector(BaseConnector):
         action_result = self.add_action_result(ActionResult(dict(param)))
 
         limit = param.get('limit')
-        query = _handle_py_ver_compat_for_input_str(self._python_version, param.get('filter'), self) if param.get('filter') else None
+        query = param['filter'] if param.get('filter') else None
 
         if limit is not None:
             try:
@@ -1139,8 +1061,8 @@ class Office365Connector(BaseConnector):
         action_result = self.add_action_result(ActionResult(dict(param)))
 
         list_folder = list()
-        user_id = _handle_py_ver_compat_for_input_str(self._python_version, param['user_id'], self)
-        folder_id = _handle_py_ver_compat_for_input_str(self._python_version, param.get('folder_id'), self)
+        user_id = param['user_id']
+        folder_id = param.get('folder_id')
 
         if not folder_id:
             # fetching root level folders
@@ -1252,8 +1174,8 @@ class Office365Connector(BaseConnector):
         self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
         action_result = self.add_action_result(ActionResult(dict(param)))
 
-        email_addr = _handle_py_ver_compat_for_input_str(self._python_version, param['email_address'], self)
-        message_id = _handle_py_ver_compat_for_input_str(self._python_version, param['id'], self)
+        email_addr = param['email_address']
+        message_id = param['id']
         endpoint = '/users/{0}'.format(email_addr)
 
         endpoint += '/messages/{0}'.format(message_id)
@@ -1310,8 +1232,8 @@ class Office365Connector(BaseConnector):
         self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
         action_result = self.add_action_result(ActionResult(dict(param)))
 
-        email_addr = _handle_py_ver_compat_for_input_str(self._python_version, param['email_address'], self)
-        message_id = _handle_py_ver_compat_for_input_str(self._python_version, param['id'], self)
+        email_addr = param['email_address']
+        message_id = param['id']
         endpoint = '/users/{0}'.format(email_addr)
 
         endpoint += '/messages/{0}'.format(message_id)
@@ -1326,7 +1248,7 @@ class Office365Connector(BaseConnector):
         if param.get('get_sender'):
             select_list.append('sender')
         if 'properties_list' in param:
-            properties_list = _handle_py_ver_compat_for_input_str(self._python_version, param['properties_list'], self)
+            properties_list = param['properties_list']
             select_list += properties_list.strip().split(',')
 
         if select_list:
@@ -1513,31 +1435,30 @@ class Office365Connector(BaseConnector):
                 return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_LIMIT)
 
         # user
-        email_addr = _handle_py_ver_compat_for_input_str(self._python_version, param['email_address'], self)
+        email_addr = param['email_address']
         endpoint = "/users/{0}".format(email_addr)
         query = ""
         params = dict()
 
         if 'internet_message_id' in param:
             params = {
-                '$filter': "internetMessageId eq '{0}'".format(_handle_py_ver_compat_for_input_str(
-                    self._python_version, param['internet_message_id'], self))
+                '$filter': "internetMessageId eq '{0}'".format(param['internet_message_id'])
             }
 
         elif 'query' in param:
-            query = "?{0}".format(_handle_py_ver_compat_for_input_str(self._python_version, param['query'], self))
+            query = "?{0}".format(param['query'])
 
         else:
             # search params
             search_query = ''
             if 'subject' in param:
-                search_query += "subject:{0} ".format(_handle_py_ver_compat_for_input_str(self._python_version, param['subject'], self))
+                search_query += "subject:{0} ".format(param['subject'])
 
             if 'body' in param:
-                search_query += "body:{0} ".format(_handle_py_ver_compat_for_input_str(self._python_version, param['body'], self))
+                search_query += "body:{0} ".format(param['body'])
 
             if 'sender' in param:
-                search_query += "from:{0} ".format(_handle_py_ver_compat_for_input_str(self._python_version, param['sender'], self))
+                search_query += "from:{0} ".format(param['sender'])
 
             if search_query:
                 params['$search'] = '"{0}"'.format(search_query[:-1])
@@ -1568,7 +1489,7 @@ class Office365Connector(BaseConnector):
         # folder
         elif 'folder' in param:
 
-            folder = _handle_py_ver_compat_for_input_str(self._python_version, param['folder'], self)
+            folder = param['folder']
 
             if param.get('get_folder_id', False):
                 try:
@@ -1734,8 +1655,8 @@ class Office365Connector(BaseConnector):
         self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
         action_result = self.add_action_result(ActionResult(dict(param)))
 
-        email = _handle_py_ver_compat_for_input_str(self._python_version, param["email_address"], self)
-        folder = _handle_py_ver_compat_for_input_str(self._python_version, param["folder"], self)
+        email = param["email_address"]
+        folder = param["folder"]
 
         minusp = param.get("all_subdirs", False)
 
@@ -1831,8 +1752,8 @@ class Office365Connector(BaseConnector):
         self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
         action_result = self.add_action_result(ActionResult(dict(param)))
 
-        email = _handle_py_ver_compat_for_input_str(self._python_version, param["email_address"], self)
-        folder = _handle_py_ver_compat_for_input_str(self._python_version, param["folder"], self)
+        email = param["email_address"]
+        folder = param["folder"]
 
         try:
             dir_id, error, ret = self._get_folder_id(action_result, folder, email)
@@ -2041,12 +1962,6 @@ class Office365Connector(BaseConnector):
 
         self._currentdir = None
 
-        # Fetching the Python major version
-        try:
-            self._python_version = int(sys.version_info[0])
-        except Exception:
-            return self.set_status(phantom.APP_ERROR, "Error occurred while getting the Phantom server's Python major version.")
-
         # Load the state in initialize
         config = self.get_config()
 
@@ -2059,12 +1974,12 @@ class Office365Connector(BaseConnector):
             }
             return self.set_status(phantom.APP_ERROR, MSGOFFICE365_STATE_FILE_CORRUPT_ERROR)
 
-        self._tenant = _handle_py_ver_compat_for_input_str(self._python_version, config['tenant'], self)
-        self._client_id = _handle_py_ver_compat_for_input_str(self._python_version, config['client_id'], self)
-        self._client_secret = _handle_py_ver_compat_for_input_str(self._python_version, config['client_secret'], self)
+        self._tenant = config['tenant']
+        self._client_id = config['client_id']
+        self._client_secret = config['client_secret']
         self._admin_access = config.get('admin_access')
         self._admin_consent = config.get('admin_consent')
-        self._scope = _handle_py_ver_compat_for_input_str(self._python_version, config.get('scope'), self) if config.get('scope') else None
+        self._scope = config['scope'] if config.get('scope') else None
 
         if not self._admin_access:
             if not self._scope:
@@ -2119,11 +2034,11 @@ class Office365Connector(BaseConnector):
 
 if __name__ == '__main__':
 
-    # import sys
-    # import pudb
     import argparse
 
-    # pudb.set_trace()
+    import pudb
+
+    pudb.set_trace()
 
     argparser = argparse.ArgumentParser()
 

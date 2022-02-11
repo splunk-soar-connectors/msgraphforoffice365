@@ -35,6 +35,8 @@ import phantom.utils as ph_utils
 from bs4 import BeautifulSoup, UnicodeDammit
 from requests.structures import CaseInsensitiveDict
 
+from .office365_connector import _get_error_message_from_exception
+
 _container_common = {
     "run_automation": False  # Don't run any playbooks, when this artifact is added
 }
@@ -182,28 +184,6 @@ class ProcessEmail(object):
                 "Error occurred while converting to string with specific encoding {}".format(input_str)
             )
         return input_str
-
-    def _get_error_message_from_exception(self, e):
-        """
-            This method is used to get appropriate error message from the exception.
-            :param e: Exception object
-            :return: error message
-        """
-        try:
-            if e.args:
-                if len(e.args) > 1:
-                    error_code = e.args[0]
-                    error_msg = e.args[1]
-                elif len(e.args) == 1:
-                    error_code = "Error code unavailable"
-                    error_msg = e.args[0]
-            else:
-                error_code = "Error code unavailable"
-                error_msg = "Error message unavailable. Please check the asset configuration and|or action parameters."
-        except Exception:
-            error_code = "Error code unavailable"
-            error_msg = "Error message unavailable. Please check the asset configuration and|or action parameters."
-        return error_code, error_msg
 
     def _clean_url(self, url):
 
@@ -444,8 +424,8 @@ class ProcessEmail(object):
             decoded_strings = [decode_header(x)[0] for x in encoded_strings]
             decoded_strings = [{'value': x[0], 'encoding': x[1]} for x in decoded_strings]
         except Exception as e:
-            error_code, error_msg = self._get_error_message_from_exception(e)
-            self._debug_print("Decoding: {0}. Error code: {1}. Error message: {2}".format(encoded_strings, error_code, error_msg))
+            error_msg = _get_error_message_from_exception(e)
+            self._debug_print("Decoding: {0}. {1}".format(encoded_strings, error_msg))
             return def_name
 
         # convert to dict for safe access, if it's an empty list, the dict will be empty
@@ -583,7 +563,7 @@ class ProcessEmail(object):
                 f.write(part_payload)
             files.append({'file_name': file_name, 'file_path': file_path, 'meta_info': attach_meta_info})
         except IOError as ioerr:
-            error_msg = self._get_error_message_from_exception(ioerr)
+            error_msg = _get_error_message_from_exception(ioerr)
             if "File name too long" in error_msg:
                 self.write_with_new_filename(tmp_dir, part_payload, files, file_name, as_byte=False)
             else:
