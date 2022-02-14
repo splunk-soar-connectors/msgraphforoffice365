@@ -29,6 +29,7 @@ import phantom.app as phantom
 import requests
 from bs4 import BeautifulSoup
 from django.http import HttpResponse
+from phantom import vault
 from phantom.action_result import ActionResult
 from phantom.base_connector import BaseConnector
 from phantom.vault import Vault
@@ -554,7 +555,10 @@ class Office365Connector(BaseConnector):
 
             if hasattr(Vault, "create_attachment"):
                 vault_ret = Vault.create_attachment(base64.b64decode(attachment.pop('contentBytes')), container_id, file_name=attachment['name'])
-
+                if not vault_ret.get('succeeded'):
+                    self.debug_print("Error saving file to vault: ", vault_ret.get('message', "Could not save file to vault"))
+                    return phantom.APP_ERROR
+                vault_id = vault_ret[phantom.APP_JSON_HASH]
             else:
                 if hasattr(Vault, 'get_vault_tmp_dir'):
                     temp_dir = Vault.get_vault_tmp_dir()
@@ -568,19 +572,21 @@ class Office365Connector(BaseConnector):
                 with open(file_path, 'w') as f:
                     f.write(base64.b64decode(attachment.pop('contentBytes')))
 
-                vault_ret = Vault.add_attachment(file_path, container_id, file_name=attachment['name'])
-
+                success, message, vault_id = vault.vault_add(
+                    container=container_id,
+                    file_location=file_path,
+                    file_name=attachment['name']
+                )
+                if not success:
+                    self.debug_print("Error adding file to vault: {}".format(message))
+                    return phantom.APP_ERROR
         except Exception as e:
             error_msg = _get_error_message_from_exception(e)
             self.debug_print("Error saving file to vault: {0}".format(error_msg))
             return phantom.APP_ERROR
 
-        if not vault_ret.get('succeeded'):
-            self.debug_print("Error saving file to vault: ", vault_ret.get('message', "Could not save file to vault"))
-            return phantom.APP_ERROR
-
         if artifact_json is None:
-            attachment['vaultId'] = vault_ret[phantom.APP_JSON_HASH]
+            attachment['vaultId'] = vault_id
             return phantom.APP_SUCCESS
 
         artifact_json['name'] = 'Vault Artifact'
@@ -594,7 +600,7 @@ class Office365Connector(BaseConnector):
         artifact_cef['lastModified'] = attachment['lastModifiedDateTime']
         artifact_cef['filename'] = attachment['name']
         artifact_cef['mimeType'] = attachment['contentType']
-        artifact_cef['vault_id'] = vault_ret[phantom.APP_JSON_HASH]
+        artifact_cef['vault_id'] = vault_id
 
         artifact_json['cef'] = artifact_cef
 
@@ -1191,10 +1197,10 @@ class Office365Connector(BaseConnector):
             if phantom.is_fail(ret_val):
                 return action_result.get_status()
             # For Drafts there might not be any internetMessageHeaders,
-            # so we have to use get() fetching insted of direct fetching from dictionary
+            # so we have to use get() fetching instead of directly fetching from dictionary
             response['internetMessageHeaders'] = header_response.get('internetMessageHeaders')
 
-        if param['download_attachments'] and response.get('hasAttachments'):
+        if param.get('download_attachments', False) and response.get('hasAttachments'):
 
             endpoint += '/attachments?$expand=microsoft.graph.itemattachment/item'
             ret_val, attach_resp = self._make_rest_call_helper(action_result, endpoint)
