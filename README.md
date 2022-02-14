@@ -2,7 +2,7 @@
 # MS Graph for Office 365
 
 Publisher: Splunk  
-Connector Version: 2\.4\.13  
+Connector Version: 2\.4\.14  
 Product Vendor: Microsoft  
 Product Name: Office 365 \(MS Graph\)  
 Product Version Supported (regex): "\.\*"  
