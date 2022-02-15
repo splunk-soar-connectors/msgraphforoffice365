@@ -158,6 +158,33 @@ def _get_error_message_from_exception(e):
     return error_text
 
 
+def _validate_integer(action_result, parameter, key, allow_zero=False):
+    """
+    Validate an integer.
+
+    :param action_result: Action result or BaseConnector object
+    :param parameter: input parameter
+    :param key: input parameter message key
+    :allow_zero: whether zero should be considered as valid value or not
+    :return: status phantom.APP_ERROR/phantom.APP_SUCCESS, integer value of the parameter or None in case of failure
+    """
+    if parameter is not None:
+        try:
+            if not float(parameter).is_integer():
+                return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_VALID_INT_MSG.format(param=key)), None
+
+            parameter = int(parameter)
+        except Exception:
+            return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_VALID_INT_MSG.format(param=key)), None
+
+        if parameter < 0:
+            return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_NON_NEG_INT_MSG.format(param=key)), None
+        if not allow_zero and parameter == 0:
+            return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_NON_NEG_NON_ZERO_INT_MSG.format(param=key)), None
+
+    return phantom.APP_SUCCESS, parameter
+
+
 def _handle_oauth_result(request, path_parts):
 
     """
@@ -930,22 +957,17 @@ class Office365Connector(BaseConnector):
         query = param.get('filter') if param.get('filter') else None
         limit = param.get('limit')
 
+        # Integer validation for 'limit' action parameter
+        ret_val, limit = _validate_integer(action_result, limit, "limit")
+        if phantom.is_fail(ret_val):
+            return action_result.get_status()
+
         if user_id is None and group_id is None:
-            return action_result.set_status(phantom.APP_ERROR, 'Either a user_id or group_id must be supplied to the "list_events" action')
+            return action_result.set_status(phantom.APP_ERROR, 'Either a "user_id" or "group_id" must be supplied to the "list_events" action')
 
         if user_id and group_id and user_id != "" and group_id != "":
             return action_result.set_status(phantom.APP_ERROR,
                 'Either a user_id or group_id can be supplied to the "list_events" action - not both')
-
-        if limit is not None:
-            try:
-                if not float(limit).is_integer() or limit == 0:
-                    return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_LIMIT)
-                param['limit'] = limit = int(limit)
-                if limit < 0:
-                    return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_LIMIT)
-            except Exception:
-                return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_LIMIT)
 
         endpoint = ''
 
@@ -963,22 +985,17 @@ class Office365Connector(BaseConnector):
             msg = action_result.get_message()
             if '$top' in msg or '$top/top' in msg:
                 msg += "The '$top' parameter is already used internally to handle pagination logic. "
-                msg += "If you want to restirct results in terms of number of output results, you can use the 'limit' parameter."
+                msg += "If you want to restrict results in terms of number of output results, you can use the 'limit' parameter."
                 return action_result.set_status(phantom.APP_ERROR, msg)
             return action_result.get_status()
 
         if not events:
             # No events found is a valid scenario that there can be 0 events returned
             # even if the API call is a success for the correct given inputs and hence, returning APP_SUCCESS.
-            return action_result.set_status(phantom.APP_SUCCESS, "No data found")
+            return action_result.set_status(phantom.APP_SUCCESS, MSGOFFICE365_NO_DATA_FOUND)
 
         for event in events:
-            categories = []
-            attendees = []
-            for category in event["categories"]:
-                categories.append({"name": category})
-            for attendee in event["attendees"]:
-                attendees.append(attendee["emailAddress"]["name"])
+            attendees = [attendee.get("emailAddress", {}).get("name") for attendee in event.get("attendees", [])]
             event["attendee_list"] = ", ".join(attendees)
             action_result.add_data(event)
 
@@ -994,17 +1011,13 @@ class Office365Connector(BaseConnector):
         action_result = self.add_action_result(ActionResult(dict(param)))
 
         limit = param.get('limit')
-        query = param.get('filter') if param.get('filter') else None
 
-        if limit is not None:
-            try:
-                if not float(limit).is_integer() or limit == 0:
-                    return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_LIMIT)
-                param['limit'] = limit = int(limit)
-                if limit < 0:
-                    return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_LIMIT)
-            except Exception:
-                return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_LIMIT)
+        # Integer validation for 'limit' action parameter
+        ret_val, limit = _validate_integer(action_result, limit, "limit")
+        if phantom.is_fail(ret_val):
+            return action_result.get_status()
+
+        query = param.get('filter') if param.get('filter') else None
 
         endpoint = '/groups'
 
@@ -1014,7 +1027,7 @@ class Office365Connector(BaseConnector):
             return action_result.get_status()
 
         if not groups:
-            return action_result.set_status(phantom.APP_SUCCESS, "No data found")
+            return action_result.set_status(phantom.APP_SUCCESS, MSGOFFICE365_NO_DATA_FOUND)
 
         for group in groups:
             action_result.add_data(group)
@@ -1031,17 +1044,13 @@ class Office365Connector(BaseConnector):
         action_result = self.add_action_result(ActionResult(dict(param)))
 
         limit = param.get('limit')
-        query = param.get('filter') if param.get('filter') else None
 
-        if limit is not None:
-            try:
-                if not float(limit).is_integer() or limit == 0:
-                    return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_LIMIT)
-                param['limit'] = limit = int(limit)
-                if limit < 0:
-                    return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_LIMIT)
-            except Exception:
-                return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_LIMIT)
+        # Integer validation for 'limit' action parameter
+        ret_val, limit = _validate_integer(action_result, limit, "limit")
+        if phantom.is_fail(ret_val):
+            return action_result.get_status()
+
+        query = param.get('filter') if param.get('filter') else None
 
         endpoint = '/users'
 
@@ -1051,7 +1060,7 @@ class Office365Connector(BaseConnector):
             return action_result.get_status()
 
         if not users:
-            return action_result.set_status(phantom.APP_SUCCESS, "No data found")
+            return action_result.set_status(phantom.APP_SUCCESS, MSGOFFICE365_NO_DATA_FOUND)
 
         for user in users:
             action_result.add_data(user)
@@ -1083,7 +1092,7 @@ class Office365Connector(BaseConnector):
             # checking for child folder if have, add it in list of folders
             for root_folder in root_folders:
 
-                if root_folder['childFolderCount'] == 0:
+                if root_folder.get('childFolderCount', 0) == 0:
                     continue
                 else:
                     ret_val = self._list_child_folders(action_result, list_folder, user_id=user_id, parent_folder=root_folder)
@@ -1115,7 +1124,7 @@ class Office365Connector(BaseConnector):
             return action_result.get_status(), None
 
         if not folders:
-            return action_result.set_status(phantom.APP_SUCCESS, "No data found"), None
+            return action_result.set_status(phantom.APP_SUCCESS, MSGOFFICE365_NO_DATA_FOUND), None
 
         return phantom.APP_SUCCESS, folders
 
@@ -1133,9 +1142,8 @@ class Office365Connector(BaseConnector):
         # checking for child folder if have, add it in list of folders
         for child_folder in child_folders:
 
-            if child_folder['childFolderCount'] == 0:
+            if child_folder.get('childFolderCount', 0) == 0:
                 list_folder.append(child_folder)
-                continue
             else:
                 ret_val = self._list_child_folders(action_result, list_folder, user_id=user_id, parent_folder=child_folder)
 
@@ -1255,7 +1263,13 @@ class Office365Connector(BaseConnector):
             select_list.append('sender')
         if 'properties_list' in param:
             properties_list = param['properties_list']
-            select_list += properties_list.strip().split(',')
+            properties_list = [property.strip() for property in properties_list.strip().split(',') if property.strip()]
+            if not properties_list:
+                return action_result.set_status(
+                    phantom.APP_ERROR,
+                    "Please provide a valid value in the '{0}' action parameter".format("properties_list")
+                )
+            select_list += properties_list
 
         if select_list:
             endpoint += '?$select={0}'.format(','.join(select_list))
@@ -1538,7 +1552,7 @@ class Office365Connector(BaseConnector):
             return action_result.get_status()
 
         if not messages:
-            return action_result.set_status(phantom.APP_SUCCESS, "No data found")
+            return action_result.set_status(phantom.APP_SUCCESS, MSGOFFICE365_NO_DATA_FOUND)
 
         action_result.update_data(messages)
         action_result.update_summary({'emails_matched': action_result.get_data_size()})
@@ -1820,7 +1834,7 @@ class Office365Connector(BaseConnector):
             if limit and len(list_items) >= limit:
                 return phantom.APP_SUCCESS, list_items[:limit]
 
-            next_link = response.get('@odata.nextLink', None)
+            next_link = response.get('@odata.nextLink')
             if not next_link:
                 break
 
