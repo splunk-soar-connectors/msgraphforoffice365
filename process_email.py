@@ -35,7 +35,7 @@ import phantom.utils as ph_utils
 from bs4 import BeautifulSoup, UnicodeDammit
 from requests.structures import CaseInsensitiveDict
 
-from .office365_connector import _get_error_message_from_exception
+from office365_consts import ERR_MSG_UNAVAILABLE
 
 _container_common = {
     "run_automation": False  # Don't run any playbooks, when this artifact is added
@@ -115,6 +115,34 @@ email_regexc2 = re.compile(EMAIL_REGEX2, re.IGNORECASE)
 hash_regexc = re.compile(HASH_REGEX)
 ip_regexc = re.compile(IP_REGEX)
 ipv6_regexc = re.compile(IPV6_REGEX)
+
+
+def _get_error_message_from_exception(e):
+    """
+    Get appropriate error message from the exception.
+    :param e: Exception object
+    :return: error message
+    """
+
+    error_code = None
+    error_msg = ERR_MSG_UNAVAILABLE
+
+    try:
+        if hasattr(e, "args"):
+            if len(e.args) > 1:
+                error_code = e.args[0]
+                error_msg = e.args[1]
+            elif len(e.args) == 1:
+                error_msg = e.args[0]
+    except Exception:
+        pass
+
+    if not error_code:
+        error_text = "Error Message: {}".format(error_msg)
+    else:
+        error_text = "Error Code: {}. Error Message: {}".format(error_code, error_msg)
+
+    return error_text
 
 
 class ProcessEmail(object):

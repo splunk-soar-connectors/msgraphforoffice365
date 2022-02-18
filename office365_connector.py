@@ -1343,10 +1343,10 @@ class Office365Connector(BaseConnector):
             if phantom.is_fail(ret_val):
                 return action_result.set_status(phantom.APP_ERROR, message), None
 
-            artifacts = self._create_email_artifacts(container_id, email)
-
             if not container_id:
                 return phantom.APP_ERROR
+
+            artifacts = self._create_email_artifacts(container_id, email)
 
             if email['hasAttachments'] and config.get('extract_attachments', False):
 
@@ -1379,10 +1379,10 @@ class Office365Connector(BaseConnector):
                         if phantom.is_fail(ret_val):
                             return action_result.set_status(phantom.APP_ERROR, message), None
 
-                        sub_artifacts = self._create_email_artifacts(sub_container_id, sub_email)
-
                         if not sub_container_id:
                             return phantom.APP_ERROR
+
+                        sub_artifacts = self._create_email_artifacts(sub_container_id, sub_email)
 
                         ret_val, message, sub_container_id = self.save_artifacts(sub_artifacts)
 
@@ -1402,7 +1402,10 @@ class Office365Connector(BaseConnector):
                 return action_result.set_status(phantom.APP_ERROR, message)
 
         if not self.is_poll_now() and len(emails) == int(max_emails):
-            self._state['last_time'] = (datetime.strptime(emails[-1]['lastModifiedDateTime'], O365_TIME_FORMAT) + timedelta(
+            # If the ingestion manner is set for the latest emails, then the 0th index email is the latest
+            # in the list returned, else the last email is the latest.
+            email_index = 0 if config['ingest_manner'] == "latest first" else -1
+            self._state['last_time'] = (datetime.strptime(emails[email_index]['lastModifiedDateTime'], O365_TIME_FORMAT) + timedelta(
                 seconds=1)).strftime(O365_TIME_FORMAT)
 
         return action_result.set_status(phantom.APP_SUCCESS)
@@ -1443,16 +1446,10 @@ class Office365Connector(BaseConnector):
         action_result = self.add_action_result(ActionResult(dict(param)))
 
         limit = param.get('limit')
-
-        if limit is not None:
-            try:
-                if not float(limit).is_integer() or limit == 0:
-                    return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_LIMIT)
-                param['limit'] = limit = int(limit)
-                if limit < 0:
-                    return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_LIMIT)
-            except Exception:
-                return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_LIMIT)
+        # Integer validation for 'limit' action parameter
+        ret_val, limit = _validate_integer(action_result, limit, "limit")
+        if phantom.is_fail(ret_val):
+            return action_result.get_status()
 
         # user
         email_addr = param['email_address']
