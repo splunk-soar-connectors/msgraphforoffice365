@@ -858,7 +858,7 @@ class Office365Connector(BaseConnector):
 
         body = {'DestinationId': folder}
 
-        if param.get('get_folder_id', False):
+        if param.get('get_folder_id', True):
             try:
                 dir_id, error, _ = self._get_folder_id(action_result, folder, email_addr)
             except ReturnException:
@@ -891,7 +891,7 @@ class Office365Connector(BaseConnector):
         endpoint += '/messages/{0}/move'.format(message_id)
 
         body = {'DestinationId': folder}
-        if param.get('get_folder_id', False):
+        if param.get('get_folder_id', True):
             try:
                 dir_id, error, _ = self._get_folder_id(action_result, folder, email_addr)
 
@@ -1313,22 +1313,31 @@ class Office365Connector(BaseConnector):
 
         if 'folder' in config:
             folder = config.get('folder', '')
-            if '\\' in folder:
-                folder = folder.replace('\\', '/')
+            if config.get('get_folder_id', True):
+                try:
+                    dir_id, error, _ = self._get_folder_id(action_result, folder, config.get('email_address'))
+                except ReturnException:
+                    return action_result.get_status()
+                if dir_id:
+                    folder = dir_id
+                else:
+                    self.save_progress(error)
+                    return action_result.set_status(phantom.APP_ERROR, error)
             endpoint += '/mailFolders/{0}'.format(folder)
 
         endpoint += '/messages'
         order = 'asc' if config['ingest_manner'] == 'oldest first' else 'desc'
 
-        params = {'$top': str(max_emails), '$orderBy': 'receivedDateTime {}'.format(order)}
+        params = {
+            '$orderBy': 'lastModifiedDateTime {}'.format(order)
+        }
+
         if start_time:
             params['$filter'] = "lastModifiedDateTime ge {0}".format(start_time)
 
-        ret_val, response = self._make_rest_call_helper(action_result, endpoint, params=params)
+        ret_val, emails = self._paginator(action_result, endpoint, limit=max_emails, params=params)
         if phantom.is_fail(ret_val):
             return action_result.get_status()
-
-        emails = response.get('value')
 
         for email in emails:
             self.save_progress('Processing email with ID ending in: {}'.format(email['id'][-10:]))
@@ -1508,7 +1517,7 @@ class Office365Connector(BaseConnector):
 
             folder = param['folder']
 
-            if param.get('get_folder_id', False):
+            if param.get('get_folder_id', True):
                 try:
                     dir_id, error, _ = self._get_folder_id(action_result, folder, email_addr)
                 except ReturnException:
@@ -1835,18 +1844,7 @@ class Office365Connector(BaseConnector):
             if not next_link:
                 break
 
-            if params is not None:
-                if '$top' in params:
-                    del(params['$top'])
-
-                if '$search' in params:
-                    del(params['$search'])
-
-                if '$filter' in params:
-                    del(params['$filter'])
-
-            if params == {}:
-                params = None
+            params = None
 
         return phantom.APP_SUCCESS, list_items
 

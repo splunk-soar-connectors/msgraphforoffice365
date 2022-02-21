@@ -73,58 +73,64 @@
             "order": 8
         },
         "folder": {
-            "description": "Mailbox folder to ingest (On Poll)",
+            "description": "Mailbox folder name/folder path or the internal o365 folder ID to ingest (On Poll)",
             "data_type": "string",
             "order": 9
+        },
+        "get_folder_id": {
+            "description": "Retrieve the folder ID for the provided folder name/folder path automatically and replace the folder parameter value (On Poll)",
+            "data_type": "boolean",
+            "default": true,
+            "order": 10
         },
         "first_run_max_emails": {
             "description": "Maximum Containers for scheduled polling first time",
             "data_type": "numeric",
             "default": 1000,
-            "order": 10
+            "order": 11
         },
         "max_containers": {
             "description": "Maximum Containers for scheduled polling",
             "data_type": "numeric",
             "default": 100,
-            "order": 11
+            "order": 12
         },
         "extract_attachments": {
             "description": "Extract Attachments",
             "data_type": "boolean",
             "default": false,
-            "order": 12
+            "order": 13
         },
         "extract_urls": {
             "description": "Extract URLs",
             "data_type": "boolean",
             "default": false,
-            "order": 13
+            "order": 14
         },
         "extract_ips": {
             "description": "Extract IPs",
             "data_type": "boolean",
             "default": false,
-            "order": 14
+            "order": 15
         },
         "extract_domains": {
             "description": "Extract Domain Names",
             "data_type": "boolean",
             "default": false,
-            "order": 15
+            "order": 16
         },
         "extract_hashes": {
             "description": "Extract Hashes",
             "data_type": "boolean",
             "default": false,
-            "order": 16
+            "order": 17
         },
         "ingest_manner": {
             "data_type": "string",
             "description": "How to Ingest",
             "verbose": "During ingestion, should the app get the latest emails or the oldest.",
             "required": true,
-            "order": 17,
+            "order": 18,
             "value_list": [
                 "oldest first",
                 "latest first"
