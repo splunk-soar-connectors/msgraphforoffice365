@@ -948,9 +948,11 @@ class ProcessEmail(object):
 
         try:
             self._parse_results(results, container_id)
-        except Exception:
+        except Exception as e:
+            # delete any temp directories that were created by the email parsing function
             self._del_tmp_dirs()
-            raise
+            self._base_connector.debug_print(_get_error_message_from_exception(e))
+            return phantom.APP_ERROR, "Error occurred while parsing the results"
 
         return (phantom.APP_SUCCESS, "Email Processed")
 

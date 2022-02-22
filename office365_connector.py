@@ -702,6 +702,77 @@ class Office365Connector(BaseConnector):
 
         return artifacts
 
+    def _process_email_data(self, config, action_result, endpoint, email):
+        """
+        Process email data.
+
+        :param config: config dict
+        :param action_result: Action result or BaseConnector object
+        :param endpoint: endpoint for making REST calls
+        :param emails: Emails to process
+        :return: status phantom.APP_ERROR/phantom.APP_SUCCESS with status message
+        """
+
+        self.save_progress('Processing email with ID ending in: {}'.format(email['id'][-10:]))
+        container = {}
+
+        container['name'] = email['subject'] if email['subject'] else email['id']
+        container['description'] = 'Email ingested using MS Graph API'
+        container['source_data_identifier'] = email['id']
+
+        ret_val, message, container_id = self.save_container(container)
+
+        if phantom.is_fail(ret_val) or not container_id:
+            return action_result.set_status(phantom.APP_ERROR, message)
+
+        artifacts = self._create_email_artifacts(container_id, email)
+
+        if email['hasAttachments'] and config.get('extract_attachments', False):
+
+            attach_endpoint = endpoint + '/{0}/attachments'.format(email['id'])
+            ret_val, attach_resp = self._make_rest_call_helper(action_result, attach_endpoint)
+            if phantom.is_fail(ret_val):
+                return action_result.get_status()
+
+            for attachment in attach_resp.get('value', []):
+
+                if attachment.get('@odata.type') == '#microsoft.graph.itemAttachment':
+
+                    sub_email_endpoint = attach_endpoint + '/{0}?$expand=microsoft.graph.itemattachment/item'.format(attachment['id'])
+                    ret_val, sub_email_resp = self._make_rest_call_helper(action_result, sub_email_endpoint)
+                    if phantom.is_fail(ret_val):
+                        return action_result.get_status()
+
+                    sub_email = sub_email_resp['item']
+                    if sub_email.get('@odata.type') != '#microsoft.graph.message':
+                        continue
+
+                    sub_container_id = container_id
+                    sub_artifacts = self._create_email_artifacts(sub_container_id, sub_email)
+
+                    ret_val, message, sub_container_id = self.save_artifacts(sub_artifacts)
+                    if phantom.is_fail(ret_val):
+                        return action_result.set_status(phantom.APP_ERROR, message)
+
+                elif attachment['name'].endswith('.eml'):
+                    ret_val, message = self._process_email.process_email(self, base64.b64decode(attachment['contentBytes']),
+                        attachment['id'], None)
+                    if phantom.is_fail(ret_val):
+                        return action_result.set_status(phantom.APP_ERROR, message)
+
+                else:
+                    attach_artifact = {}
+                    artifacts.append(attach_artifact)
+                    if not self._handle_attachment(attachment, container_id, artifact_json=attach_artifact):
+                        return action_result.set_status(phantom.APP_ERROR, "Could not process attachment. See logs for details.")
+
+        ret_val, message, container_id = self.save_artifacts(artifacts)
+
+        if phantom.is_fail(ret_val):
+            return action_result.set_status(phantom.APP_ERROR, message)
+
+        return phantom.APP_SUCCESS
+
     def _handle_test_connectivity(self, param):
         """ Function that handles the test connectivity action, it is much simpler than other action handlers."""
 
@@ -1339,76 +1410,22 @@ class Office365Connector(BaseConnector):
         if phantom.is_fail(ret_val):
             return action_result.get_status()
 
+        failed_email_ids = 0
+        total_emails = len(emails)
+
         for email in emails:
-            self.save_progress('Processing email with ID ending in: {}'.format(email['id'][-10:]))
-            container = {}
-
-            container['name'] = email['subject'] if email['subject'] else email['id']
-            container['description'] = 'Email ingested using MS Graph API'
-            container['source_data_identifier'] = email['id']
-
-            ret_val, message, container_id = self.save_container(container)
-
-            if phantom.is_fail(ret_val):
-                return action_result.set_status(phantom.APP_ERROR, message), None
-
-            if not container_id:
-                return phantom.APP_ERROR
-
-            artifacts = self._create_email_artifacts(container_id, email)
-
-            if email['hasAttachments'] and config.get('extract_attachments', False):
-
-                attach_endpoint = endpoint + '/{0}/attachments'.format(email['id'])
-                ret_val, attach_resp = self._make_rest_call_helper(action_result, attach_endpoint)
+            try:
+                ret_val = self._process_email_data(config, action_result, endpoint, email)
                 if phantom.is_fail(ret_val):
-                    return action_result.get_status()
+                    failed_email_ids += 1
+                    self.debug_print(f"Error occurred while processing email ID: {email.get('id')}. {action_result.get_message()}")
+            except Exception as e:
+                failed_email_ids += 1
+                error_msg = _get_error_message_from_exception(e)
+                self.debug_print(f"Exception occurred while processing email ID: {email.get('id')}. {error_msg}")
 
-                for attachment in attach_resp.get('value', []):
-
-                    if attachment.get('@odata.type') == '#microsoft.graph.itemAttachment':
-
-                        sub_email_endpoint = attach_endpoint + '/{0}?$expand=microsoft.graph.itemattachment/item'.format(attachment['id'])
-                        ret_val, sub_email_resp = self._make_rest_call_helper(action_result, sub_email_endpoint)
-                        if phantom.is_fail(ret_val):
-                            return action_result.get_status()
-
-                        sub_email = sub_email_resp['item']
-                        if sub_email.get('@odata.type') != '#microsoft.graph.message':
-                            continue
-
-                        container = {}
-
-                        container['name'] = email['subject'] if email['subject'] else email['id']
-                        container['description'] = 'Email ingested using MS Graph API'
-                        container['source_data_identifier'] = email['id']
-
-                        ret_val, message, sub_container_id = self.save_container(container)
-
-                        if phantom.is_fail(ret_val):
-                            return action_result.set_status(phantom.APP_ERROR, message), None
-
-                        if not sub_container_id:
-                            return phantom.APP_ERROR
-
-                        sub_artifacts = self._create_email_artifacts(sub_container_id, sub_email)
-
-                        ret_val, message, sub_container_id = self.save_artifacts(sub_artifacts)
-
-                    elif attachment['name'].endswith('.eml'):
-                        ret_val, message = self._process_email.process_email(self, base64.b64decode(attachment['contentBytes']),
-                            attachment['id'], None)
-
-                    else:
-                        attach_artifact = {}
-                        artifacts.append(attach_artifact)
-                        if not self._handle_attachment(attachment, container_id, artifact_json=attach_artifact):
-                            return action_result.set_status(phantom.APP_ERROR, "Could not process attachment. See logs for details.")
-
-            ret_val, message, container_id = self.save_artifacts(artifacts)
-
-            if phantom.is_fail(ret_val):
-                return action_result.set_status(phantom.APP_ERROR, message)
+        if failed_email_ids == total_emails:
+            return action_result.set_status(phantom.APP_ERROR, "Error occurred while processing all the email IDs")
 
         if not self.is_poll_now() and len(emails) == int(max_emails):
             # If the ingestion manner is set for the latest emails, then the 0th index email is the latest
