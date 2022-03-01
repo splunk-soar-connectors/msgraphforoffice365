@@ -36,6 +36,7 @@ MSGOFFICE365_INVALID_PERMISSION_ERR += " Please check the owner, owner group, an
 MSGOFFICE365_INVALID_PERMISSION_ERR += "user should have the correct access rights and ownership for the corresponding state file "\
     "(refer to readme file for more information)."
 MSGOFFICE365_NO_DATA_FOUND = "No data found"
+MSGOFFICE365_DUPLICATE_CONTAINER_FOUND_MSG = "duplicate container found"
 
 MSGOFFICE365_DEFAULT_REQUEST_TIMEOUT = 30  # in seconds
 

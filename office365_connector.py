@@ -23,7 +23,7 @@ import pwd
 import sys
 import time
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime
 
 import phantom.app as phantom
 import requests
@@ -334,6 +334,7 @@ class Office365Connector(BaseConnector):
         self._access_token = None
         self._refresh_token = None
         self._REPLACE_CONST = "C53CEA8298BD401BA695F247633D0542"  # pragma: allowlist secret
+        self._duplicate_count = 0
 
     def _process_empty_response(self, response, action_result):
 
@@ -724,6 +725,8 @@ class Office365Connector(BaseConnector):
 
         if phantom.is_fail(ret_val) or not container_id:
             return action_result.set_status(phantom.APP_ERROR, message)
+        if MSGOFFICE365_DUPLICATE_CONTAINER_FOUND_MSG in message.lower():
+            self._duplicate_count += 1
 
         artifacts = self._create_email_artifacts(container_id, email)
 
@@ -1356,6 +1359,35 @@ class Office365Connector(BaseConnector):
 
         return action_result.set_status(phantom.APP_SUCCESS, "Successfully fetched email")
 
+    def _manage_data_duplication(self, emails, total_ingested, limit, max_emails):
+        """
+        This function handles the duplicate emails we get during the ingestion process.
+
+        :param emails: Processed emails
+        :param total_ingested: Total ingested emails till now
+        :param limit: Current pagination limit
+        :param max_emails: Max emails to ingest
+        :return: limit: next cycle pagination limit, total_ingested: Total ingested emails till now
+        """
+        total_ingested_current_cycle = limit - self._duplicate_count
+        total_ingested += total_ingested_current_cycle
+
+        remaining_count = max_emails - total_ingested
+        if remaining_count <= 0:
+            return 0, total_ingested
+
+        expected_duplicate_count_in_next_cycle = 0
+        last_modified_time = emails[-1]['lastModifiedDateTime']
+
+        # Calculate the duplicate emails count we can get in the next cycle
+        for email in reversed(emails):
+            if email["lastModifiedDateTime"] != last_modified_time:
+                break
+            expected_duplicate_count_in_next_cycle += 1
+
+        limit = expected_duplicate_count_in_next_cycle + remaining_count
+        return limit, total_ingested
+
     def _handle_on_poll(self, param):
 
         self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
@@ -1406,33 +1438,57 @@ class Office365Connector(BaseConnector):
         if start_time:
             params['$filter'] = "lastModifiedDateTime ge {0}".format(start_time)
 
-        ret_val, emails = self._paginator(action_result, endpoint, limit=max_emails, params=params)
-        if phantom.is_fail(ret_val):
-            return action_result.get_status()
+        cur_limit = max_emails
+        total_ingested = 0
 
-        failed_email_ids = 0
-        total_emails = len(emails)
+        # If the ingestion manner is set for the latest emails, then the 0th index email is the latest
+        # in the list returned, else the last email is the latest. This will be used to store the
+        # last modified time in the state file
+        email_index = 0 if config['ingest_manner'] == "latest first" else -1
 
-        for email in emails:
-            try:
-                ret_val = self._process_email_data(config, action_result, endpoint, email)
-                if phantom.is_fail(ret_val):
+        while True:
+            self._duplicate_count = 0
+            ret_val, emails = self._paginator(action_result, endpoint, limit=cur_limit, params=params)
+            if phantom.is_fail(ret_val):
+                return action_result.get_status()
+
+            if not emails:
+                return action_result.set_status(phantom.APP_SUCCESS, MSGOFFICE365_NO_DATA_FOUND)
+
+            failed_email_ids = 0
+            total_emails = len(emails)
+
+            for email in emails:
+                try:
+                    ret_val = self._process_email_data(config, action_result, endpoint, email)
+                    if phantom.is_fail(ret_val):
+                        failed_email_ids += 1
+                        self.debug_print(f"Error occurred while processing email ID: {email.get('id')}. {action_result.get_message()}")
+                except Exception as e:
                     failed_email_ids += 1
-                    self.debug_print(f"Error occurred while processing email ID: {email.get('id')}. {action_result.get_message()}")
-            except Exception as e:
-                failed_email_ids += 1
-                error_msg = _get_error_message_from_exception(e)
-                self.debug_print(f"Exception occurred while processing email ID: {email.get('id')}. {error_msg}")
+                    error_msg = _get_error_message_from_exception(e)
+                    self.debug_print(f"Exception occurred while processing email ID: {email.get('id')}. {error_msg}")
 
-        if failed_email_ids == total_emails:
-            return action_result.set_status(phantom.APP_ERROR, "Error occurred while processing all the email IDs")
+            if failed_email_ids == total_emails:
+                return action_result.set_status(phantom.APP_ERROR, "Error occurred while processing all the email IDs")
 
-        if not self.is_poll_now() and len(emails) == int(max_emails):
-            # If the ingestion manner is set for the latest emails, then the 0th index email is the latest
-            # in the list returned, else the last email is the latest.
-            email_index = 0 if config['ingest_manner'] == "latest first" else -1
-            self._state['last_time'] = (datetime.strptime(emails[email_index]['lastModifiedDateTime'], O365_TIME_FORMAT) + timedelta(
-                seconds=1)).strftime(O365_TIME_FORMAT)
+            if not self.is_poll_now():
+                last_time = datetime.strptime(emails[email_index]['lastModifiedDateTime'], O365_TIME_FORMAT).strftime(O365_TIME_FORMAT)
+                self._state['last_time'] = last_time
+                self.save_state(self._state)
+
+                # Setting filter for next cycle
+                params['$filter'] = "lastModifiedDateTime ge {0}".format(last_time)
+
+                # Duplication logic should only work for the oldest first order and if we have more data on the server.
+                if total_emails >= cur_limit and email_index == -1:
+                    cur_limit, total_ingested = self._manage_data_duplication(emails, total_ingested, cur_limit, max_emails)
+                    if not cur_limit:
+                        break
+                else:
+                    break
+            else:
+                break
 
         return action_result.set_status(phantom.APP_SUCCESS)
 

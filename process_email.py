@@ -269,11 +269,12 @@ class ProcessEmail(object):
                 uri_dict = {'requestURL': uri, 'parentInternetMessageId': parent_id}
                 urls.append(uri_dict)
 
+        extracted_domains = set()
         if self._config[PROC_EMAIL_JSON_EXTRACT_DOMAINS]:
             for uri in uris:
                 domain = phantom.get_host_from_url(uri)
                 if domain and not self._is_ip(domain):
-                    domains.append({'destinationDnsDomain': domain, 'parentInternetMessageId': parent_id})
+                    extracted_domains.add(domain)
             # work on any mailto urls if present
             if links:
                 mailtos = [x['href'] for x in links if (x['href'].startswith('mailto:'))]
@@ -282,7 +283,10 @@ class ProcessEmail(object):
                     if domain and (not self._is_ip(domain)):
                         if '?' in domain:
                             domain = domain[:domain.find('?')]
-                        domains.append({'destinationDnsDomain': domain, 'parentInternetMessageId': parent_id})
+                        extracted_domains.add(domain)
+
+            for domain in extracted_domains:
+                domains.append({'destinationDnsDomain': domain, 'parentInternetMessageId': parent_id})
 
         return
 
