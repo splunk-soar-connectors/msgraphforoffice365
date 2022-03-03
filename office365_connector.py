@@ -500,6 +500,27 @@ class Office365Connector(BaseConnector):
 
         return (phantom.APP_SUCCESS, asset_name)
 
+    def _update_container(self, action_result, container_id, container):
+
+        rest_endpoint = PHANTOM_CONTAINER_INFO_URL.format(url=self.get_phantom_base_url(), container_id=container_id)
+
+        try:
+            data = json.dumps(container)
+        except Exception as e:
+            error_msg = _get_error_message_from_exception(e)
+            message = (
+                "json.dumps failed while updating the container: {}. "
+                "Possibly a value in the container dictionary is not encoded properly. "
+                "Exception: {}"
+            ).format(container_id, error_msg)
+            return action_result.set_status(phantom.APP_ERROR, message)
+
+        ret_val, _ = self._make_rest_call(action_result, rest_endpoint, False, data=data, method="post")
+        if phantom.is_fail(ret_val):
+            return action_result.get_status()
+
+        return phantom.APP_SUCCESS
+
     def _get_phantom_base_url(self, action_result):
 
         ret_val, resp_json = self._make_rest_call(action_result, PHANTOM_SYS_INFO_URL.format(url=self.get_phantom_base_url()), False)
@@ -718,16 +739,39 @@ class Office365Connector(BaseConnector):
         container = {}
 
         container['name'] = email['subject'] if email['subject'] else email['id']
-        container['description'] = 'Email ingested using MS Graph API'
+        container_description = MSGOFFICE365_CONTAINER_DESCRIPTION.format(last_modified_time=email['lastModifiedDateTime'])
+        container['description'] = container_description
         container['source_data_identifier'] = email['id']
 
         ret_val, message, container_id = self.save_container(container)
 
         if phantom.is_fail(ret_val) or not container_id:
             return action_result.set_status(phantom.APP_ERROR, message)
+
         if MSGOFFICE365_DUPLICATE_CONTAINER_FOUND_MSG in message.lower():
+            self.debug_print("Duplicate container found")
             self._duplicate_count += 1
 
+            # Prevent further processing if the email is not modified
+            ret_val, container_info, status_code = self.get_container_info(container_id=container_id)
+            if phantom.is_fail(ret_val):
+                return action_result.set_status(
+                    phantom.APP_ERROR,
+                    "Status Code: {}. Error occurred while fetching the container info for container ID: {}".format(status_code, container_id)
+                )
+
+            if container_info.get('description', '') == container_description:
+                msg = "Email ID: {} has not been modified. Hence, skipping the artifact ingestion.".format(email['id'])
+                self.debug_print(msg)
+                return action_result.set_status(phantom.APP_SUCCESS, msg)
+            else:
+                # Update the container's description and continue
+                self.debug_print("Updating container's description")
+                ret_val = self._update_container(action_result, container_id, container)
+                if phantom.is_fail(ret_val):
+                    return action_result.get_status()
+
+        self.debug_print("Creating email artifacts")
         artifacts = self._create_email_artifacts(container_id, email)
 
         if email['hasAttachments'] and config.get('extract_attachments', False):
@@ -1032,7 +1076,7 @@ class Office365Connector(BaseConnector):
         limit = param.get('limit')
 
         # Integer validation for 'limit' action parameter
-        ret_val, limit = _validate_integer(action_result, limit, "limit")
+        ret_val, limit = _validate_integer(action_result, limit, "'limit' action")
         if phantom.is_fail(ret_val):
             return action_result.get_status()
 
@@ -1087,7 +1131,7 @@ class Office365Connector(BaseConnector):
         limit = param.get('limit')
 
         # Integer validation for 'limit' action parameter
-        ret_val, limit = _validate_integer(action_result, limit, "limit")
+        ret_val, limit = _validate_integer(action_result, limit, "'limit' action")
         if phantom.is_fail(ret_val):
             return action_result.get_status()
 
@@ -1120,7 +1164,7 @@ class Office365Connector(BaseConnector):
         limit = param.get('limit')
 
         # Integer validation for 'limit' action parameter
-        ret_val, limit = _validate_integer(action_result, limit, "limit")
+        ret_val, limit = _validate_integer(action_result, limit, "'limit' action")
         if phantom.is_fail(ret_val):
             return action_result.get_status()
 
@@ -1399,13 +1443,21 @@ class Office365Connector(BaseConnector):
         if self.is_poll_now():
             max_emails = param[phantom.APP_JSON_CONTAINER_COUNT]
         elif self._state.get('first_run', True):
-            self._state['first_run'] = False
-            max_emails = config.get('first_run_max_emails', 1000)
-            self._state['last_time'] = datetime.utcnow().strftime(O365_TIME_FORMAT)
+            # Integer validation for 'first_run_max_emails' config parameter
+            ret_val, max_emails = _validate_integer(
+                action_result, config.get('first_run_max_emails', 1000), "'Maximum Containers for scheduled polling first time' config"
+            )
+            if phantom.is_fail(ret_val):
+                return action_result.get_status()
         else:
-            max_emails = config.get('max_containers', 100)
+            # Integer validation for 'max_containers' config parameter
+            ret_val, max_emails = _validate_integer(
+                action_result, config.get('max_containers', 100), "'Maximum Containers for scheduled polling' config"
+            )
+            if phantom.is_fail(ret_val):
+                return action_result.get_status()
+
             start_time = self._state['last_time']
-            self._state['last_time'] = datetime.utcnow().strftime(O365_TIME_FORMAT)
 
         if not config.get('email_address'):
             return action_result.set_status(phantom.APP_ERROR, "Email Adress to ingest must be supplied in asset!")
@@ -1490,6 +1542,10 @@ class Office365Connector(BaseConnector):
             else:
                 break
 
+        # Update the 'first_run' value only if the ingestion gets successfully completed
+        if not self.is_poll_now() and self._state.get('first_run', True):
+            self._state['first_run'] = False
+
         return action_result.set_status(phantom.APP_SUCCESS)
 
     def _validate_range(self, email_range, action_result):
@@ -1529,7 +1585,7 @@ class Office365Connector(BaseConnector):
 
         limit = param.get('limit')
         # Integer validation for 'limit' action parameter
-        ret_val, limit = _validate_integer(action_result, limit, "limit")
+        ret_val, limit = _validate_integer(action_result, limit, "'limit' action")
         if phantom.is_fail(ret_val):
             return action_result.get_status()
 
