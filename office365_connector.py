@@ -735,7 +735,6 @@ class Office365Connector(BaseConnector):
         :return: status phantom.APP_ERROR/phantom.APP_SUCCESS with status message
         """
 
-        self.save_progress('Processing email with ID ending in: {}'.format(email['id'][-10:]))
         container = {}
 
         container['name'] = email['subject'] if email['subject'] else email['id']
@@ -813,6 +812,8 @@ class Office365Connector(BaseConnector):
                     if not self._handle_attachment(attachment, container_id, artifact_json=attach_artifact):
                         return action_result.set_status(phantom.APP_ERROR, "Could not process attachment. See logs for details.")
 
+        if self.is_poll_now():
+            self.save_progress("Ingesting all possible artifacts (ignoring maximum artifacts value) for POLL NOW")
         ret_val, message, container_id = self.save_artifacts(artifacts)
 
         if phantom.is_fail(ret_val):
@@ -1510,8 +1511,10 @@ class Office365Connector(BaseConnector):
             failed_email_ids = 0
             total_emails = len(emails)
 
-            for email in emails:
+            self.save_progress(f"Total emails fetched: {total_emails}")
+            for index, email in enumerate(emails):
                 try:
+                    self.send_progress('Processing email # {} with ID ending in: {}'.format(index + 1, email['id'][-10:]))
                     ret_val = self._process_email_data(config, action_result, endpoint, email)
                     if phantom.is_fail(ret_val):
                         failed_email_ids += 1

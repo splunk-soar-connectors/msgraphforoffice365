@@ -27,12 +27,14 @@ from builtins import str
 from collections import OrderedDict
 from copy import deepcopy
 from email.header import decode_header, make_header
+from html import unescape
 
 import magic
 import phantom.app as phantom
 import phantom.rules as phantom_rules
 import phantom.utils as ph_utils
 from bs4 import BeautifulSoup, UnicodeDammit
+from django.core.validators import URLValidator
 from requests.structures import CaseInsensitiveDict
 
 from office365_consts import ERR_MSG_UNAVAILABLE
@@ -237,41 +239,67 @@ class ProcessEmail(object):
         # try to load the email
         try:
             soup = BeautifulSoup(file_data, "html.parser")
+            file_data = unescape(file_data)
         except Exception as e:
-            self._debug_print("Handled exception", e)
+            error_msg = _get_error_message_from_exception(e)
+            self._debug_print("Error occurred while parsing email data. {0}".format(error_msg))
             return
 
         uris = []
-        # get all tags that have hrefs
+        # get all tags that have hrefs and srcs
         links = soup.find_all(href=True)
+        srcs = soup.find_all(src=True)
+
+        uri_text = []
         if links:
-            # it's html, so get all the urls
-            uris = [x['href'] for x in links if (not x['href'].startswith('mailto:'))]
-            # work on the text part of the link, they might be http links different from the href
-            # and were either missed by the uri_regexc while parsing text or there was no text counterpart
-            # in the email
-            uri_text = [self._clean_url(x.get_text()) for x in links]
+            for link in links:
+                # work on the text part of the link, they might be http links different from the href
+                # and were either missed by the uri_regexc while parsing text or there was no text counterpart
+                # in the email
+                uri_text.append(self._clean_url(link.get_text()))
+                # it's html, so get all the urls
+                if not link['href'].startswith('mailto:'):
+                    uris.append(link['href'])
+
+        if srcs:
+            for src in srcs:
+                uri_text.append(self._clean_url(src.get_text()))
+                # it's html, so get all the urls
+                uris.append(src['src'])
+
+        if uri_text:
+            uri_text = [uri for uri in uri_text if uri.startswith('http')]
             if uri_text:
-                uri_text = [x for x in uri_text if x.startswith('http')]
-                if uri_text:
-                    uris.extend(uri_text)
-        else:
-            # Parse it as a text file
-            uris = re.findall(uri_regexc, file_data)
-            if uris:
-                uris = [self._clean_url(x) for x in uris]
+                uris.extend(uri_text)
+
+        # Parse it as a text file
+        uris_from_text = re.findall(uri_regexc, file_data)
+        if uris_from_text:
+            uris_from_text = [self._clean_url(uri) for uri in uris_from_text]
+            uris.extend(uris_from_text)
+
+        # Get unique uris
+        unique_uris = set(uris)
+
+        # Validate the uris
+        validate_uri = URLValidator(schemes=['http', 'https'])
+        validated_uris = list()
+        for uri in unique_uris:
+            try:
+                validate_uri(uri)
+                validated_uris.append(uri)
+            except Exception:
+                pass
 
         if self._config[PROC_EMAIL_JSON_EXTRACT_URLS]:
             # add the uris to the urls
-            unique_uris = set(uris)
-            unique_uris = list(unique_uris)
-            for uri in unique_uris:
+            for uri in validated_uris:
                 uri_dict = {'requestURL': uri, 'parentInternetMessageId': parent_id}
                 urls.append(uri_dict)
 
         extracted_domains = set()
         if self._config[PROC_EMAIL_JSON_EXTRACT_DOMAINS]:
-            for uri in uris:
+            for uri in validated_uris:
                 domain = phantom.get_host_from_url(uri)
                 if domain and not self._is_ip(domain):
                     extracted_domains.add(domain)
