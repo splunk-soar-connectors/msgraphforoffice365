@@ -4728,8 +4728,7 @@
                 },
                 "artifact_count": {
                     "data_type": "numeric",
-                    "description": "Maximum number of artifact to ingest",
-                    "required": true,
+                    "description": "Parameter Ignored in this app",
                     "value": 1000
                 }
             },

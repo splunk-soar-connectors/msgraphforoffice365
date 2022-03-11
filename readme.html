@@ -19,42 +19,76 @@ This app requires registration of a Microsoft Graph Application. To do so, navig
 <br><br>
 On the next page, select <b>New registration</b> and give your app a name.
 <br><br>
-Once the app is created, follow the below three steps:
+Once the app is created, follow the below-mentioned steps:
 <ul>
     <li>Under <b>Certificates & secrets</b> select <b>New client secret</b>. Note down this key somewhere secure, as it cannot be retrieved after closing the window.</li>
-    <li>Under <b>Overview</b> select <b>Add a redirect URI</b>. In the <b>Add Platform</b> window, select <b>Web</b>. The <b>Redirect URLs</b> field will be filled in the later steps.</li>
-    <li>Under <b>API Permissions</b> the following <b>Application Permissions</b> need to be added:
+    <li>Under <b>Authentication</b>, select <b>Add a platform</b>. In the <b>Add a platform</b> window, select <b>Web</b>. The <b>Redirect URLs</b> should be filled right here. We will get <b>Redirect URLs</b> from the Phantom asset we create below in the section titled <b>Phantom Graph Asset</b>.</li>
+    <li>Under <b>API Permissions</b> Click on <b>Add a permission</b>.</li>
+    <li>Under the <b>Microsoft API</b> section, select <b>Microsoft Graph</b>.</li>
+    <li>Provide the following Application permissions to the app:</li>
     <ul>
         <li>Mail.Read (https://graph.microsoft.com/Mail.Read)</li>
         <li>Mail.ReadWrite (https://graph.microsoft.com/Mail.ReadWrite)</li>
         <li>User.Read.All (https://graph.microsoft.com/User.Read.All)</li>
             <ul><li>For non-admin access, use User.Read (Delegated permission) instead (https://graph.microsoft.com/User.Read)</li></ul>
-        <li>Group.Read.All (https://graph.microsoft.com/Group.Read.All)- It is required only if you want to run the <b>list events</b> action for the group's calendar and for the <b>list groups</b> action</li>
-        <li>Calendar.Read (https://graph.microsoft.com/Calendars.Read)- It is required only if you want to run the <b>list events</b> action for the user's calendar</li>
-        <li>MailboxSettings.Read (https://graph.microsoft.com/MailboxSettings.Read)- It is required only if you want to run the <b>oof status</b> action</li>
+        <li>Group.Read.All (https://graph.microsoft.com/Group.Read.All) - It is required only if you want to run the <b>list events</b> action for the group's calendar and for the <b>list groups</b> action.</li>
+        <li>Calendar.Read (https://graph.microsoft.com/Calendars.Read) - It is required only if you want to run the <b>list events</b> action for the user's calendar.</li>
+        <li>MailboxSettings.Read (https://graph.microsoft.com/MailboxSettings.Read) - It is required only if you want to run the <b>oof status</b> action.</li>
     </ul>
 </ul>
 After making these changes, click <b>Add permissions</b>, then select <b>Grant admin consent for Test Phantom</b> at the bottom of the screen.
 <h2>Phantom Graph Asset</h2>
-When creating an asset for the <b>MS Graph for Office 365</b> app, place <b>Application ID</b> of the app created during the app registration on the Azure Portal in the <b>Application ID</b> field and place the client secret generated during the app registration process in the <b>Client Secret</b> field. Then, after filling out the <b>Tenant</b> field, click <b>SAVE</b>. Both the Application/Client ID and the Tenant ID can be found in the <b>Overview</b> tab on your app's Azure page.
+When creating an asset for the <b>MS Graph for Office 365</b> app, place <b>Application ID</b> of the app created during the app registration on the Azure Portal in the <b>Application ID</b> field and place the client secret generated during the app registration process in the <b>Application Secret</b> field. Then, after filling out the <b>Tenant</b> field, click <b>SAVE</b>. Both the Application/Client ID and the Tenant ID can be found in the <b>Overview</b> tab on your app's Azure page.
 <br><br>
-After saving, a new field will appear in the <b>Asset Settings</b> tab. Take the URL found in the <b>POST incoming for MS Graph for Office 365 to this location</b> field and place it in the <b>Redirect URLs</b> field mentioned in a previous step. To this URL, add <b>/result</b>. After doing so the URL should look something like:
+After saving, a new field will appear in the <b>Asset Settings</b> tab. Take the URL found in the <b>POST incoming for MS Graph for Office 365 to this location</b> field and place it in the <b>Redirect URLs</b> field mentioned in the previous step. To this URL, add <b>/result</b>. After doing so the URL should look something like:
 <br><br>
 <pre>
 https://&lt;phantom_host&gt;/rest/handler/msgraphforoffice365_0a0a4087-10e8-4c96-9872-b740ff26d8bb/&lt;asset_name&gt;/result
 </pre>
 <br>
-Once again, click save at the bottom of the screen.
-<br>
+Once again, click SAVE at the bottom of the screen.
+<br><br>
+Additionally, updating the Base URL in the Company Settings is also required. Navigate to <b>Administration > Company Settings > Info</b> to configure the <b>Base URL For Splunk SOAR</b>. Then, select <b>Save Changes</b>.
+<br><br>
+
 <h2>User Permissions</h2>
-To complete the authorization process, this app needs permission to view assets, which is not granted by default. First, under <b>asset settings</b>, check which user has listed under <b>Select a user on behalf of which automated actions can be executed</b>. By default, the user will be <b>automation</b>, but this user can be changed by clicking <b>EDIT</b> at the bottom of the window. To give this user permission to view assets, follow these steps:
+To complete the authorization process, this app needs permission to view assets, which is not granted by default. First, navigate to <b>Asset Settings > Advanced</b>, to check which user is listed under <b>Select a user on behalf of which automated actions can be executed</b>. By default, the user will be <b>automation</b>, but this user can be changed by clicking <b>EDIT</b> at the bottom of the window. To give this user permission to view assets, follow these steps:
 <ul>
-    <li>In the main drop-down menu, select <b>Administration</b>, then select the <b>User Management</b>, and under that tab, select <b>Roles</b>. Finally, click <b>+ ROLE</b>.</li>
-    <li>In the <b>Add Role</b> wizard, give the role a name (e.g <b>Asset Viewer</b>), and provide a description. Subsequently, under <b>Available Users</b>, add the user assigned to the asset viewed earlier. Then click the <b>Permissions</b> tab.</li>
-    <li>On the permission tab, under <b>Available Privileges</b>, give the role the <b>View Assets</b> privilege. Then click <b>SAVE</b>.</li>
+    <li>In the main drop-down menu, select <b>Administration</b>, then select the <b>User Management</b>, and under that tab, select <b>Roles & Permissions</b>. Finally, click <b>+ ROLE</b>.</li>
+    <li>In the <b>Add Role</b> wizard, give the role a name (e.g <b>Asset Viewer</b>), and provide a description. Subsequently, under the <b>Users tab</b>, click <b>ADD USERS</b> to add the user assigned to the asset viewed earlier. Then click the <b>Permissions</b> tab.</li>
+    <li>In the permission tab, under <b>Basic Permissions</b>, give the role the <b>View Assets</b> privilege. Then click <b>SAVE</b>.</li>
 </ul>
+
 <h3>Test connectivity</h3>
-After setting up the asset and user, click the <b>TEST CONNECTIVITY</b> button. A window should pop up and display a URL. Navigate to this URL in a separate browser tab. This new tab will redirect to a Microsoft login page. Log in to a Microsoft account with administrator privileges to the desired mailboxes. After logging in, review the requested permissions listed, then click <b>Accept</b>. Finally, close that tab. The test connectivity window should show success.
+
+<h4>Admin User Workflow</h4>
+<ul>
+  <li>Configure the asset with required details while keeping the <b>Admin Access Required</b> as checked.</li>
+  <li>While configuring the asset for the first time, keep <b>Admin Consent Already Provided</b> as unchecked.</li>
+  <li>The <b>Redirect URLs</b> must be configured before executing test connectivity. To configure <b>Redirect URLs</b>, checkout the section titled <b>Phantom Graph Asset</b> above.</li>
+  <li>After setting up the asset and user, click the <b>TEST CONNECTIVITY</b> button.</li>
+  <li>A window should pop up and display a URL. You will be asked to open the link in a new tab. Open the link in the same browser so that you are logged into Splunk Phantom for the redirect. If you wish to use a different browser, log in to the Splunk Phantom first, and then open the provided link. This new tab will redirect to the Microsoft login page.</li>
+  <li>Log in to the Microsoft account with the admin user.</li>
+  <li>You will be prompted to agree to the permissions requested by the App.</li>
+  <li>Review the requested permissions listed, then click <b>Accept</b>.</li>
+  <li>If all goes well the browser should instruct you to close the tab.</li>
+  <li>Now go back and check the message on the Test Connectivity dialog box, it should say <b>Test Connectivity Passed</b>.</li>
+  <li>For subsequent test connectivity or action runs, you can keep <b>Admin Consent Already Provided</b> config parameter as checked. This will skip the interactive flow and use the client credentials for generating tokens.
+</ul>
+
+<h4>Non-Admin User Workflow</h4>
+<ul>
+  <li>Configure the asset with required details while keeping the <b>Admin Access Required</b> as unchecked. <b>Admin Consent Already Provided</b> config parameter will be ignored in the non-admin workflow.</li>
+  <li>Provide <b>Access Scope</b> parameter in the asset configuration. All the actions will get executed according to the scopes provided in the <b>Access Scope</b> config parameter.</li>
+  <li>The <b>Redirect URLs</b> must be configured before executing test connectivity. To configure <b>Redirect URLs</b>, checkout the section titled <b>Phantom Graph Asset</b> above.</li>
+  <li>After setting up the asset and user, click the <b>TEST CONNECTIVITY</b> button.</li>
+  <li>A window should pop up and display a URL. You will be asked to open the link in a new tab. Open the link in the same browser so that you are logged into Splunk Phantom for the redirect. If you wish to use a different browser, log in to the Splunk Phantom first, and then open the provided link. This new tab will redirect to the Microsoft login page.</li>
+  <li>Log in to the Microsoft account.</li>
+  <li>You will be prompted to agree to the permissions requested by the App.</li>
+  <li>Review the requested permissions listed, then click <b>Accept</b>.</li>
+  <li>If all goes well the browser should instruct you to close the tab.</li>
+  <li>Now go back and check the message on the Test Connectivity dialog box, it should say <b>Test Connectivity Passed</b>.</li>
+</ul>
 <br><br>
 The app should now be ready to be used.
 <br />
@@ -63,6 +97,7 @@ The app should now be ready to be used.
     <ul>
       <li>email_address - Ingest from the provided email address. </li>
       <li>folder - To fetch the emails from the given folder name (must be provided if running ingestion) </li>
+      <li>get_folder_id - Retrieve the folder ID for the provided folder name/folder path automatically and replace the folder parameter value./li>
       <li>first_run_max_emails - Maximum containers to poll for the first scheduled polling (default - 1000).</li>
       <li>max_containers - Maximum containers to poll after the first scheduled poll completes (default - 100).</li>
       <li>extract_attachments - Extract all the attachments included in emails.</li>
@@ -71,6 +106,24 @@ The app should now be ready to be used.
       <li>extract_domains - Extract the domain names present in the emails.</li>
       <li>extract_hashes - Extract the hashes present in the emails (MD5).</li>
     </ul>
+
+<h2>Guidelines to provide folder parameter value</h2>
+<p>This is applicable to 'on poll', 'copy email', 'move email', and 'run query' actions.</p>
+<ul>
+  <li>
+    The <b>get_folder_id</b> parameter should be enabled only when you have specified folder name/folder path in the <b>folder</b> parameter.
+  </li>
+  <li>
+    If you provide folder ID in the <b>folder</b> parameter and set <b>get_folder_id</b> parameter to true, it will throw an error of folder ID not found for given folder name (because the action considers folder parameter value as folder name/folder path).
+  </li>
+  <li>
+    The <b>folder</b> parameter must be either a (case sensitive) well-known name (<a href="https://docs.microsoft.com/en-us/graph/api/resources/mailfolder?view=graph-rest-1.0" target="_blank">https://docs.microsoft.com/en-us/graph/api/resources/mailfolder?view=graph-rest-1.0</a>) or the internal o365 folder ID.
+  </li>
+  <li>
+    The folder parameter supports nested folder paths. To specify the complete folder path using the <b>'/'</b> (forward slash) as the separator.<br>e.g. to specify a folder named <i>phishing</i> which is nested within (is a child of) <i>Inbox</i>, set the value as <b>Inbox/phishing</b>. If a folder name has a literal forward slash('/') in the name escape it with a backslash('\\') to differentiate.
+  </li>
+</ul>
+
 <h2>State file permissions</h2>
   <p>
     Please check the permissions for the state file as mentioned below.

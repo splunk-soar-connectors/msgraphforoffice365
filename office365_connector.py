@@ -830,7 +830,7 @@ class Office365Connector(BaseConnector):
 
             self.save_progress("Getting App REST endpoint URL")
 
-            # Get the URL to the app's REST Endpiont, this is the url that the TC dialog
+            # Get the URL to the app's REST Endpoint, this is the url that the TC dialog
             # box will ask the user to connect to
             ret_val, app_rest_url = self._get_url_to_app_rest(action_result)
             app_state = {}
@@ -2076,7 +2076,7 @@ class Office365Connector(BaseConnector):
             self._state['admin_auth'] = resp_json
         else:
             self._state['non_admin_auth'] = resp_json
-        # Fetching the acces token and refresh token
+        # Fetching the access token and refresh token
         self._access_token = resp_json.get('access_token')
         self._refresh_token = resp_json.get('refresh_token')
 
