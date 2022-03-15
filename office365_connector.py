@@ -587,7 +587,11 @@ class Office365Connector(BaseConnector):
 
         if msg and 'token is invalid' in msg or ('Access token has expired' in
                 msg) or ('ExpiredAuthenticationToken' in msg) or ('AuthenticationFailed' in msg):
+
+            self.debug_print("Token is invalid/expired. Hence, generating a new token.")
             ret_val = self._get_token(action_result)
+            if phantom.is_fail(ret_val):
+                return action_result.get_status(), None
 
             headers.update({ 'Authorization': 'Bearer {0}'.format(self._access_token)})
 
@@ -837,7 +841,7 @@ class Office365Connector(BaseConnector):
             if phantom.is_fail(ret_val):
                 self.save_progress("Unable to get the URL to the app's REST Endpoint. Error: {0}".format(
                     action_result.get_message()))
-                return self.set_status(phantom.APP_ERROR)
+                return action_result.set_status(phantom.APP_ERROR)
 
             # create the url that the oauth server should re-direct to after the auth is completed
             # (success and failure), this is added to the state so that the request handler will access
@@ -851,7 +855,7 @@ class Office365Connector(BaseConnector):
             if phantom.is_fail(ret_val):
                 self.save_progress("Unable to get the URL to the app's REST Endpoint. Error: {0}".format(
                     action_result.get_message()))
-                return self.set_status(phantom.APP_ERROR)
+                return action_result.set_status(phantom.APP_ERROR)
 
             if self._admin_access:
                 # Create the url for fetching administrator consent
@@ -862,7 +866,7 @@ class Office365Connector(BaseConnector):
             else:
                 # Scope is required for non-admin access
                 if not self._scope:
-                    return self.set_status(phantom.APP_ERROR, "Please provide scope for non-admin access in the asset configuration")
+                    return action_result.set_status(phantom.APP_ERROR, "Please provide scope for non-admin access in the asset configuration")
                 # Create the url authorization, this is the one pointing to the oauth server side
                 admin_consent_url = "https://login.microsoftonline.com/{0}/oauth2/v2.0/authorize".format(self._tenant)
                 admin_consent_url += "?client_id={0}".format(self._client_id)
@@ -909,7 +913,7 @@ class Office365Connector(BaseConnector):
 
             if not completed:
                 self.save_progress("Authentication process does not seem to be completed. Timing out")
-                return self.set_status(phantom.APP_ERROR)
+                return action_result.set_status(phantom.APP_ERROR)
 
             self.send_progress("")
 
@@ -919,18 +923,18 @@ class Office365Connector(BaseConnector):
             if not self._state:
                 self.save_progress("Authorization not received or not given")
                 self.save_progress("Test Connectivity Failed")
-                return self.set_status(phantom.APP_ERROR)
+                return action_result.set_status(phantom.APP_ERROR)
             else:
                 if self._admin_access:
                     if not self._state.get('admin_consent'):
                         self.save_progress("Admin Consent not received or not given")
                         self.save_progress("Test Connectivity Failed")
-                        return self.set_status(phantom.APP_ERROR)
+                        return action_result.set_status(phantom.APP_ERROR)
                 else:
                     if not self._state.get('code'):
                         self.save_progress("Authorization code not received or not given")
                         self.save_progress("Test Connectivity Failed")
-                        return self.set_status(phantom.APP_ERROR)
+                        return action_result.set_status(phantom.APP_ERROR)
 
         self.save_progress("Getting the token")
         ret_val = self._get_token(action_result)
@@ -952,7 +956,7 @@ class Office365Connector(BaseConnector):
         if phantom.is_fail(ret_val):
             self.save_progress(msg_failed)
             self.save_progress("Test Connectivity Failed")
-            return self.set_status(phantom.APP_ERROR)
+            return action_result.set_status(phantom.APP_ERROR)
 
         value = response.get('value')
 
@@ -961,7 +965,7 @@ class Office365Connector(BaseConnector):
 
         self.save_progress("Test Connectivity Passed")
 
-        return self.set_status(phantom.APP_SUCCESS)
+        return action_result.set_status(phantom.APP_SUCCESS)
 
     def _handle_copy_email(self, param):
 
@@ -1572,6 +1576,7 @@ class Office365Connector(BaseConnector):
 
     def _handle_generate_token(self, param):
 
+        self.save_progress('In action handler for: {0}'.format(self.get_action_identifier()))
         action_result = self.add_action_result(ActionResult(dict(param)))
         ret_val = self._get_token(action_result)
         if phantom.is_fail(ret_val):
@@ -1685,7 +1690,7 @@ class Office365Connector(BaseConnector):
             msg = action_result.get_message()
             if '$top' in msg or '$top/top' in msg:
                 msg += "The '$top' parameter is already used internally to handle pagination logic. "
-                msg += "If you want to restirct results in terms of number of output results, you can use the 'limit' parameter."
+                msg += "If you want to restrict results in terms of number of output results, you can use the 'limit' parameter."
                 return action_result.set_status(phantom.APP_ERROR, msg)
             return action_result.get_status()
 
@@ -2068,6 +2073,7 @@ class Office365Connector(BaseConnector):
             else:
                 return action_result.set_status(phantom.APP_ERROR, "Unexpected details retrieved from the state file.")
 
+        self.debug_print("Generating token...")
         ret_val, resp_json = self._make_rest_call(action_result, req_url, headers=headers, data=data, method='post')
         if phantom.is_fail(ret_val):
             return action_result.get_status()
@@ -2100,7 +2106,8 @@ class Office365Connector(BaseConnector):
             if self._access_token != self._state.get('non_admin_auth', {}).get('access_token'):
                 return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_PERMISSION_ERR)
 
-        return (phantom.APP_SUCCESS)
+        self.debug_print("Token generated successfully")
+        return action_result.set_status(phantom.APP_SUCCESS)
 
     def initialize(self):
 

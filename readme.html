@@ -42,9 +42,9 @@ When creating an asset for the <b>MS Graph for Office 365</b> app, place <b>Appl
 <br><br>
 After saving, a new field will appear in the <b>Asset Settings</b> tab. Take the URL found in the <b>POST incoming for MS Graph for Office 365 to this location</b> field and place it in the <b>Redirect URLs</b> field mentioned in the previous step. To this URL, add <b>/result</b>. After doing so the URL should look something like:
 <br><br>
-<pre>
+<p>
 https://&lt;phantom_host&gt;/rest/handler/msgraphforoffice365_0a0a4087-10e8-4c96-9872-b740ff26d8bb/&lt;asset_name&gt;/result
-</pre>
+</p>
 <br>
 Once again, click SAVE at the bottom of the screen.
 <br><br>
@@ -97,7 +97,7 @@ The app should now be ready to be used.
     <ul>
       <li>email_address - Ingest from the provided email address. </li>
       <li>folder - To fetch the emails from the given folder name (must be provided if running ingestion) </li>
-      <li>get_folder_id - Retrieve the folder ID for the provided folder name/folder path automatically and replace the folder parameter value./li>
+      <li>get_folder_id - Retrieve the folder ID for the provided folder name/folder path automatically and replace the folder parameter value.</li>
       <li>first_run_max_emails - Maximum containers to poll for the first scheduled polling (default - 1000).</li>
       <li>max_containers - Maximum containers to poll after the first scheduled poll completes (default - 100).</li>
       <li>extract_attachments - Extract all the attachments included in emails.</li>
@@ -147,4 +147,26 @@ The app should now be ready to be used.
     <li>If both the checkboxes <b>Admin Consent Already Provided</b> and <b>Admin Access Required</b> are kept as checked while running the test connectivity for the first time, then the test connectivity will pass but actions will fail. In order to use the <b>Admin Consent Already Provided</b> checkbox, first, you need to run the test connectivity with only <b>Admin Access Required</b> as checked and provide admin consent, and then while running the test connectivity for the second time the <b>Admin Consent Already Provided</b> should be checked if required. The <b>checkbox Admin Consent Already Provided</b> is used when running the test connectivity if admin consent is already provided.</li>
     <li>There is an API limitation that will affect run_query action when providing Unicode values in the subject or in the body as parameters and if the result count exceeds 999, the action will fail.</li>
 </ul>
+</p>
+
+<h2>Port Details</h2>
+<p>
+  The app uses HTTP/ HTTPS protocol for communicating with the Office365 server. Below are the default ports used by the Splunk SOAR Connector.
+  <table>
+      <tr>
+          <th>Service Name</th>
+          <th>Transport Protocol</th>
+          <th>Port</th>
+      </tr>
+      <tr>
+          <td>http</td>
+          <td>tcp</td>
+          <td>80</td>
+      </tr>
+      <tr>
+          <td>https</td>
+          <td>tcp</td>
+          <td>443</td>
+      </tr>
+  </table>
 </p>
