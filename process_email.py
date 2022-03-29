@@ -605,7 +605,7 @@ class ProcessEmail(object):
             try:
                 soup = BeautifulSoup(html_body, "html.parser")
                 # Remove the script, style, footer, title and navigation part from the HTML message
-                for element in soup(["script", "style", "footer" "title", "nav"]):
+                for element in soup(["script", "style", "footer", "title", "nav"]):
                     element.extract()
                 body_text = soup.get_text(separator=' ')
                 split_lines = body_text.split('\n')
