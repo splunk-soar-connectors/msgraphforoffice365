@@ -27,7 +27,7 @@ from datetime import datetime
 
 import phantom.app as phantom
 import requests
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, UnicodeDammit
 from django.http import HttpResponse
 from phantom import vault
 from phantom.action_result import ActionResult
@@ -604,35 +604,43 @@ class Office365Connector(BaseConnector):
 
     def _handle_attachment(self, attachment, container_id, artifact_json=None):
 
+        vault_id = None
+
         try:
-
-            if hasattr(Vault, "create_attachment"):
-                vault_ret = Vault.create_attachment(base64.b64decode(attachment.pop('contentBytes')), container_id, file_name=attachment['name'])
-                if not vault_ret.get('succeeded'):
-                    self.debug_print("Error saving file to vault: ", vault_ret.get('message', "Could not save file to vault"))
-                    return phantom.APP_ERROR
-                vault_id = vault_ret[phantom.APP_JSON_HASH]
-            else:
-                if hasattr(Vault, 'get_vault_tmp_dir'):
-                    temp_dir = Vault.get_vault_tmp_dir()
+            if 'contentBytes' in attachment:  # Check whether the attachment contains the data
+                if hasattr(Vault, "create_attachment"):
+                    vault_ret = Vault.create_attachment(
+                        base64.b64decode(attachment.pop('contentBytes')),
+                        container_id,
+                        file_name=attachment['name']
+                    )
+                    if not vault_ret.get('succeeded'):
+                        self.debug_print("Error saving file to vault: ", vault_ret.get('message', "Could not save file to vault"))
+                        return phantom.APP_ERROR
+                    vault_id = vault_ret[phantom.APP_JSON_HASH]
                 else:
-                    temp_dir = '/opt/phantom/vault/tmp'
+                    if hasattr(Vault, 'get_vault_tmp_dir'):
+                        temp_dir = Vault.get_vault_tmp_dir()
+                    else:
+                        temp_dir = '/opt/phantom/vault/tmp'
 
-                temp_dir = temp_dir + '/{}'.format(uuid.uuid4())
-                os.makedirs(temp_dir)
-                file_path = os.path.join(temp_dir, attachment['name'])
+                    temp_dir = temp_dir + '/{}'.format(uuid.uuid4())
+                    os.makedirs(temp_dir)
+                    file_path = os.path.join(temp_dir, attachment['name'])
 
-                with open(file_path, 'w') as f:
-                    f.write(base64.b64decode(attachment.pop('contentBytes')))
+                    with open(file_path, 'w') as f:
+                        f.write(base64.b64decode(attachment.pop('contentBytes')))
 
-                success, message, vault_id = vault.vault_add(
-                    container=container_id,
-                    file_location=file_path,
-                    file_name=attachment['name']
-                )
-                if not success:
-                    self.debug_print("Error adding file to vault: {}".format(message))
-                    return phantom.APP_ERROR
+                    success, message, vault_id = vault.vault_add(
+                        container=container_id,
+                        file_location=file_path,
+                        file_name=attachment['name']
+                    )
+                    if not success:
+                        self.debug_print("Error adding file to vault: {}".format(message))
+                        return phantom.APP_ERROR
+            else:
+                self.debug_print("No content found in the attachment. Hence, skipping the vault file creation.")
         except Exception as e:
             error_msg = _get_error_message_from_exception(e)
             self.debug_print("Error saving file to vault: {0}".format(error_msg))
@@ -653,7 +661,25 @@ class Office365Connector(BaseConnector):
         artifact_cef['lastModified'] = attachment['lastModifiedDateTime']
         artifact_cef['filename'] = attachment['name']
         artifact_cef['mimeType'] = attachment['contentType']
-        artifact_cef['vault_id'] = vault_id
+        if vault_id:
+            artifact_cef['vault_id'] = vault_id
+
+        artifact_json['cef'] = artifact_cef
+
+        return phantom.APP_SUCCESS
+
+    def _create_reference_attachment_artifact(self, container_id, attachment, artifact_json):
+
+        artifact_json['name'] = 'Reference Attachment Artifact'
+        artifact_json['container_id'] = container_id
+        artifact_json['source_data_identifier'] = attachment['id']
+
+        artifact_cef = {}
+
+        artifact_cef['size'] = attachment.get('size')
+        artifact_cef['lastModified'] = attachment.get('lastModifiedDateTime')
+        artifact_cef['filename'] = attachment.get('name')
+        artifact_cef['mimeType'] = attachment.get('contentType')
 
         artifact_json['cef'] = artifact_cef
 
@@ -668,7 +694,11 @@ class Office365Connector(BaseConnector):
         email_artifact['label'] = 'email'
         email_artifact['name'] = 'Email Artifact'
         email_artifact['container_id'] = container_id
-        email_artifact['cef_types'] = {'id': ['email id']}
+
+        # Set email ID contains
+        self._process_email._set_email_id_contains(email['id'])
+
+        email_artifact['cef_types'] = {'id': self._process_email._email_id_contains}
         email_artifact['source_data_identifier'] = email['id']
 
         cef = {}
@@ -689,6 +719,23 @@ class Office365Connector(BaseConnector):
                         cef['toEmail'] = recipients[0].get('emailAddress', {}).get('address', '')
                 else:
                     cef[k] = v
+
+        if cef.get('body', {}).get('content') and (cef.get('body', {}).get('contentType') == 'html'):
+            html_body = cef['body']['content']
+
+            try:
+                soup = BeautifulSoup(html_body, "html.parser")
+                # Remove the script, style, footer, title and navigation part from the HTML message
+                for element in soup(["script", "style", "footer" "title", "nav"]):
+                    element.extract()
+                body_text = soup.get_text(separator=' ')
+                split_lines = body_text.split('\n')
+                split_lines = [x.strip() for x in split_lines if x.strip()]
+                body_text = '\n'.join(split_lines)
+                if body_text:
+                    cef['bodyText'] = body_text
+            except Exception:
+                self.debug_print("Cannot parse email body text details")
 
         body = email['body']['content']
 
@@ -725,6 +772,18 @@ class Office365Connector(BaseConnector):
             domain_artifact['cef'] = domain
             domain_artifact['container_id'] = container_id
             domain_artifact['source_data_identifier'] = email['id']
+
+        hashes = []
+        self._process_email._extract_hashes(body, hashes)
+
+        for hash in hashes:
+            hash_artifact = {}
+            artifacts.append(hash_artifact)
+            hash_artifact['name'] = 'Hash Artifact'
+            hash_artifact['label'] = 'artifact'
+            hash_artifact['cef'] = hash
+            hash_artifact['container_id'] = container_id
+            hash_artifact['source_data_identifier'] = email['id']
 
         return artifacts
 
@@ -804,11 +863,29 @@ class Office365Connector(BaseConnector):
                     if phantom.is_fail(ret_val):
                         return action_result.set_status(phantom.APP_ERROR, message)
 
+                elif attachment.get('@odata.type') == "#microsoft.graph.referenceAttachment":
+
+                    attach_artifact = {}
+                    artifacts.append(attach_artifact)
+                    self._create_reference_attachment_artifact(container_id, attachment, attach_artifact)
+
                 elif attachment['name'].endswith('.eml'):
-                    ret_val, message = self._process_email.process_email(self, base64.b64decode(attachment['contentBytes']),
-                        attachment['id'], None)
-                    if phantom.is_fail(ret_val):
-                        return action_result.set_status(phantom.APP_ERROR, message)
+                    if 'contentBytes' in attachment:
+                        try:
+                            rfc822_email = base64.b64decode(attachment['contentBytes'])
+                            rfc822_email = UnicodeDammit(rfc822_email).unicode_markup
+                        except Exception as e:
+                            error_msg = _get_error_message_from_exception(e)
+                            self.debug_print("Unable to decode Email Mime Content. {0}".format(error_msg))
+                            return action_result.set_status(phantom.APP_ERROR, "Unable to decode Email Mime Content")
+
+                        # Create ProcessEmail Object for email file attachment
+                        process_email_obj = ProcessEmail(self, config)
+                        ret_val, message = process_email_obj.process_email(rfc822_email, attachment['id'], epoch=None, container_id=container_id)
+                        if phantom.is_fail(ret_val):
+                            return action_result.set_status(phantom.APP_ERROR, message)
+                    else:
+                        self.debug_print("No content found in the .eml file attachment. Hence, skipping the email file processing.")
 
                 else:
                     attach_artifact = {}
@@ -816,8 +893,6 @@ class Office365Connector(BaseConnector):
                     if not self._handle_attachment(attachment, container_id, artifact_json=attach_artifact):
                         return action_result.set_status(phantom.APP_ERROR, "Could not process attachment. See logs for details.")
 
-        if self.is_poll_now():
-            self.save_progress("Ingesting all possible artifacts (ignoring maximum artifacts value) for POLL NOW")
         ret_val, message, container_id = self.save_artifacts(artifacts)
 
         if phantom.is_fail(ret_val):
@@ -1516,6 +1591,9 @@ class Office365Connector(BaseConnector):
             total_emails = len(emails)
 
             self.save_progress(f"Total emails fetched: {total_emails}")
+            if self.is_poll_now():
+                self.save_progress("Ingesting all possible artifacts (ignoring maximum artifacts value) for POLL NOW")
+
             for index, email in enumerate(emails):
                 try:
                     self.send_progress('Processing email # {} with ID ending in: {}'.format(index + 1, email['id'][-10:]))

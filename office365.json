@@ -5299,7 +5299,7 @@
             },
             {
                 "module": "pytz",
-                "input_file": "wheels/shared/pytz-2021.3-py2.py3-none-any.whl"
+                "input_file": "wheels/shared/pytz-2022.1-py2.py3-none-any.whl"
             },
             {
                 "module": "requests",
@@ -5319,7 +5319,7 @@
             },
             {
                 "module": "urllib3",
-                "input_file": "wheels/shared/urllib3-1.26.8-py2.py3-none-any.whl"
+                "input_file": "wheels/shared/urllib3-1.26.9-py2.py3-none-any.whl"
             }
         ]
     },
@@ -5355,7 +5355,7 @@
             },
             {
                 "module": "pytz",
-                "input_file": "wheels/shared/pytz-2021.3-py2.py3-none-any.whl"
+                "input_file": "wheels/shared/pytz-2022.1-py2.py3-none-any.whl"
             },
             {
                 "module": "requests",
@@ -5371,7 +5371,7 @@
             },
             {
                 "module": "urllib3",
-                "input_file": "wheels/shared/urllib3-1.26.8-py2.py3-none-any.whl"
+                "input_file": "wheels/shared/urllib3-1.26.9-py2.py3-none-any.whl"
             }
         ]
     }

@@ -236,10 +236,21 @@ class ProcessEmail(object):
         if not self._config[PROC_EMAIL_JSON_EXTRACT_DOMAINS] and not self._config[PROC_EMAIL_JSON_EXTRACT_URLS]:
             return
 
+        # Get domains from email
+        extracted_domains = set()
+        emails = []
+        emails.extend(re.findall(email_regexc, file_data))
+        emails.extend(re.findall(email_regexc2, file_data))
+
+        for curr_email in emails:
+            domain = curr_email[curr_email.rfind('@') + 1:]
+            if domain and (not ph_utils.is_ip(domain)):
+                extracted_domains.add(domain)
+
         # try to load the email
         try:
-            soup = BeautifulSoup(file_data, "html.parser")
             file_data = unescape(file_data)
+            soup = BeautifulSoup(file_data, "html.parser")
         except Exception as e:
             error_msg = _get_error_message_from_exception(e)
             self._debug_print("Error occurred while parsing email data. {0}".format(error_msg))
@@ -251,32 +262,29 @@ class ProcessEmail(object):
         srcs = soup.find_all(src=True)
 
         uri_text = []
-        if links:
-            for link in links:
-                # work on the text part of the link, they might be http links different from the href
-                # and were either missed by the uri_regexc while parsing text or there was no text counterpart
-                # in the email
-                uri_text.append(self._clean_url(link.get_text()))
-                # it's html, so get all the urls
-                if not link['href'].startswith('mailto:'):
-                    uris.append(link['href'])
 
-        if srcs:
-            for src in srcs:
-                uri_text.append(self._clean_url(src.get_text()))
-                # it's html, so get all the urls
-                uris.append(src['src'])
+        for link in links:
+            # work on the text part of the link, they might be http links different from the href
+            # and were either missed by the uri_regexc while parsing text or there was no text counterpart
+            # in the email
+            uri_text.append(self._clean_url(link.get_text()))
+            # it's html, so get all the urls
+            if not link['href'].startswith('mailto:'):
+                uris.append(link['href'])
 
-        if uri_text:
-            uri_text = [uri for uri in uri_text if uri.startswith('http')]
-            if uri_text:
-                uris.extend(uri_text)
+        for src in srcs:
+            uri_text.append(self._clean_url(src.get_text()))
+            # it's html, so get all the urls
+            uris.append(src['src'])
+
+        uri_text = [uri for uri in uri_text if uri.startswith('http')]
+        uris.extend(uri_text)
 
         # Parse it as a text file
         uris_from_text = re.findall(uri_regexc, file_data)
         if uris_from_text:
             uris_from_text = [self._clean_url(uri) for uri in uris_from_text]
-            uris.extend(uris_from_text)
+        uris.extend(uris_from_text)
 
         # Get unique uris
         unique_uris = set(uris)
@@ -294,10 +302,12 @@ class ProcessEmail(object):
         if self._config[PROC_EMAIL_JSON_EXTRACT_URLS]:
             # add the uris to the urls
             for uri in validated_uris:
-                uri_dict = {'requestURL': uri, 'parentInternetMessageId': parent_id}
+                if parent_id:
+                    uri_dict = {'requestURL': uri, 'parentInternetMessageId': parent_id}
+                else:
+                    uri_dict = {'requestURL': uri}
                 urls.append(uri_dict)
 
-        extracted_domains = set()
         if self._config[PROC_EMAIL_JSON_EXTRACT_DOMAINS]:
             for uri in validated_uris:
                 domain = phantom.get_host_from_url(uri)
@@ -314,11 +324,17 @@ class ProcessEmail(object):
                         extracted_domains.add(domain)
 
             for domain in extracted_domains:
-                domains.append({'destinationDnsDomain': domain, 'parentInternetMessageId': parent_id})
+                if parent_id:
+                    domains.append({'destinationDnsDomain': domain, 'parentInternetMessageId': parent_id})
+                else:
+                    domains.append({'destinationDnsDomain': domain})
 
         return
 
     def _get_ips(self, file_data, ips, parent_id=None):
+
+        if not self._config[PROC_EMAIL_JSON_EXTRACT_IPS]:
+            return None
 
         # First extract what looks like an IP from the file, this is a faster operation
         ips_in_mail = re.findall(ip_regexc, file_data)
@@ -338,7 +354,24 @@ class ProcessEmail(object):
             if ips_in_mail:
                 unique_ips = set(ips_in_mail)
                 for ip in unique_ips:
-                    ips.append({'sourceAddress': ip, 'parentInternetMessageId': parent_id})
+                    if parent_id:
+                        ips.append({'sourceAddress': ip, 'parentInternetMessageId': parent_id})
+                    else:
+                        ips.append({'sourceAddress': ip})
+
+    def _extract_hashes(self, file_data, hashes, parent_id=None):
+
+        if not self._config[PROC_EMAIL_JSON_EXTRACT_HASHES]:
+            return None
+
+        hashs_in_mail = re.findall(hash_regexc, file_data)
+        if hashs_in_mail:
+            unique_hashes = set(hashs_in_mail)
+            for hash in unique_hashes:
+                if parent_id:
+                    hashes.append({'fileHash': hash, 'parentInternetMessageId': parent_id})
+                else:
+                    hashes.append({'fileHash': hash})
 
     def _handle_body(self, body, parsed_mail, body_index, email_id):
 
@@ -366,33 +399,18 @@ class ProcessEmail(object):
             with open(local_file_path, 'rb') as f:  # noqa
                 file_data = f.read()
             self._base_connector.debug_print("Reading file data using binary mode")
+            file_data = self._get_string(file_data, 'utf-8')
 
         if file_data is None or len(file_data) == 0:
             return phantom.APP_ERROR
 
         self._parse_email_headers_as_inline(file_data, parsed_mail, charset, email_id)
 
-        if self._config[PROC_EMAIL_JSON_EXTRACT_DOMAINS]:
-            emails = []
-            emails.extend(re.findall(email_regexc, file_data))
-            emails.extend(re.findall(email_regexc2, file_data))
-
-            for curr_email in emails:
-                domain = curr_email[curr_email.rfind('@') + 1:]
-                if domain and (not ph_utils.is_ip(domain)):
-                    domains.append({'destinationDnsDomain': domain, 'parentInternetMessageId': parent_id})
-
         self._extract_urls_domains(file_data, urls, domains, parent_id)
 
-        if self._config[PROC_EMAIL_JSON_EXTRACT_IPS]:
-            self._get_ips(file_data, ips, parent_id)
+        self._get_ips(file_data, ips, parent_id)
 
-        if self._config[PROC_EMAIL_JSON_EXTRACT_HASHES]:
-            hashs_in_mail = re.findall(hash_regexc, file_data)
-            if hashs_in_mail:
-                unique_hashes = set(hashs_in_mail)
-                for hash in unique_hashes:
-                    hashes.append({'fileHash': hash, 'parentInternetMessageId': parent_id})
+        self._extract_hashes(file_data, hashes, parent_id)
 
         return phantom.APP_SUCCESS
 
@@ -537,7 +555,7 @@ class ProcessEmail(object):
 
         # replace input string with new string because issue find in PAPP-9531
         if new_str and new_str_create_count == len(encoded_strings):
-            self.debug_print("Creating a new string entirely from the encoded_strings and assigning into input_str")
+            self._debug_print("Creating a new string entirely from the encoded_strings and assigning into input_str")
             input_str = new_str
 
         return input_str
@@ -558,6 +576,7 @@ class ProcessEmail(object):
 
     def _handle_if_body(self, content_disp, content_id, content_type, part, bodies, file_path):
 
+        content_charset = part.get_content_charset()
         process_as_body = False
 
         # if content disposition is None then assume that it is
@@ -575,6 +594,27 @@ class ProcessEmail(object):
 
         if not part_payload:
             return (phantom.APP_SUCCESS, False)
+
+        if 'text/html' in content_type and self._parsed_mail[PROC_EMAIL_JSON_EMAIL_HEADERS]:
+            # Get Email Header Artifact
+            email_header_artifact = self._parsed_mail[PROC_EMAIL_JSON_EMAIL_HEADERS][0]
+            artifact_cef = email_header_artifact['cef']
+            html_body = self._get_string(part_payload, charset=content_charset)
+            artifact_cef['bodyHtml'] = html_body
+
+            try:
+                soup = BeautifulSoup(html_body, "html.parser")
+                # Remove the script, style, footer, title and navigation part from the HTML message
+                for element in soup(["script", "style", "footer" "title", "nav"]):
+                    element.extract()
+                body_text = soup.get_text(separator=' ')
+                split_lines = body_text.split('\n')
+                split_lines = [x.strip() for x in split_lines if x.strip()]
+                body_text = '\n'.join(split_lines)
+                if body_text:
+                    artifact_cef["bodyText"] = body_text
+            except Exception:
+                self._debug_print("Cannot parse email body text details")
 
         with open(file_path, 'wb') as f:    # noqa
             f.write(part_payload)
@@ -673,8 +713,7 @@ class ProcessEmail(object):
             file_name = self._decode_uni_string(file_name, file_name)
 
         # Remove any chars that we don't want in the name
-        file_path = "{0}/{1}_{2}_{3}".format(tmp_dir, part_index,
-                file_name.translate(None, ''.join(['<', '>', ' '])), child)
+        file_path = "{0}/{1}_{2}_{3}".format(tmp_dir, part_index, file_name.replace('<', '').replace('>', '').replace(' ', ''), child)
 
         self._debug_print("file_path: {0}".format(file_path))
 
@@ -728,10 +767,21 @@ class ProcessEmail(object):
 
         # Convert the header tuple into a dictionary
         headers = CaseInsensitiveDict()
-        [headers.update({x[0]: str(x[1], charset)}) for x in email_headers]
+        try:
+            [headers.update({x[0]: self._get_string(x[1], charset)}) for x in email_headers]
+        except Exception as e:
+            error_msg = _get_error_message_from_exception(e)
+            err = "Error occurred while converting the header tuple into a dictionary"
+            self._debug_print("{}. {}".format(err, error_msg))
 
         # Handle received seperately
-        received_headers = [str(x[1], charset) for x in email_headers if x[0].lower() == 'received']
+        received_headers = list()
+        try:
+            received_headers = [self._get_string(x[1], charset) for x in email_headers if x[0].lower() == 'received']
+        except Exception as e:
+            error_msg = _get_error_message_from_exception(e)
+            err = "Error occurred while handling the received header tuple separately"
+            self._debug_print("{}. {}".format(err, error_msg))
 
         if received_headers:
             headers['Received'] = received_headers
@@ -740,7 +790,7 @@ class ProcessEmail(object):
         subject = headers.get('Subject')
         if subject:
             if type(subject) == str:
-                headers['decodedSubject'] = self._decode_uni_string(subject.encode('utf8'), subject)
+                headers['decodedSubject'] = self._decode_uni_string(subject, subject)
 
         return headers
 
@@ -869,7 +919,6 @@ class ProcessEmail(object):
                     continue
 
         else:
-            print('else')
             self._parse_email_headers(self._parsed_mail, mail, add_email_id=email_id)
             # parsed_mail[PROC_EMAIL_JSON_EMAIL_HEADERS].append(mail.items())
             file_path = "{0}/part_1.text".format(tmp_dir)
@@ -1060,7 +1109,7 @@ class ProcessEmail(object):
         for i, curr_file in enumerate(files):
             run_automation = True if i == last_file else False
             ret_val, added_to_vault = self._handle_file(
-                curr_file, container_id, vault_artifacts_added, run_automation
+                curr_file, container_id, run_automation
             )
 
             if added_to_vault:
@@ -1167,7 +1216,7 @@ class ProcessEmail(object):
 
         return (phantom.APP_SUCCESS, "Mapped hash values")
 
-    def _handle_file(self, curr_file, container_id):
+    def _handle_file(self, curr_file, container_id, run_automation=False):
 
         file_name = curr_file.get('file_name')
 
@@ -1228,6 +1277,7 @@ class ProcessEmail(object):
         artifact['container_id'] = container_id
         artifact['name'] = 'Vault Artifact'
         artifact['cef'] = cef_artifact
+        artifact['run_automation'] = run_automation
         if contains:
             artifact['cef_types'] = {'vaultId': contains, 'cs6': contains}
         self._set_sdi(artifact)
@@ -1285,9 +1335,9 @@ class ProcessEmail(object):
 
         fips_enabled = self._base_connector._get_fips_enabled()
         if not fips_enabled:
-            return hashlib.md5(input_dict_str).hexdigest()
+            return hashlib.md5(UnicodeDammit(input_dict_str).unicode_markup.encode('utf-8')).hexdigest()
 
-        return hashlib.sha256(input_dict_str).hexdigest()
+        return hashlib.sha256(UnicodeDammit(input_dict_str).unicode_markup.encode('utf-8')).hexdigest()
 
     def _del_tmp_dirs(self):
         """Remove any tmp_dirs that were created."""
