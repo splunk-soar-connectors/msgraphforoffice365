@@ -698,7 +698,7 @@ class Office365Connector(BaseConnector):
         # Set email ID contains
         self._process_email._set_email_id_contains(email['id'])
 
-        email_artifact['cef_types'] = {'id': self._process_email._email_id_contains}
+        email_artifact['cef_types'] = {'messageId': self._process_email._email_id_contains}
         email_artifact['source_data_identifier'] = email['id']
 
         cef = {}
@@ -717,6 +717,8 @@ class Office365Connector(BaseConnector):
                     recipients = v
                     if len(recipients):
                         cef['toEmail'] = recipients[0].get('emailAddress', {}).get('address', '')
+                elif k == 'id':
+                    cef['messageId'] = email['id']
                 else:
                     cef[k] = v
 
