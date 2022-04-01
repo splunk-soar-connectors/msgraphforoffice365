@@ -1425,23 +1425,9 @@ class Office365Connector(BaseConnector):
                         if sub_email.get('@odata.type') != '#microsoft.graph.message':
                             continue
 
-                        container = {}
+                        sub_artifacts = self._create_email_artifacts(container_id, sub_email)
 
-                        container['name'] = email['subject'] if email['subject'] else email['id']
-                        container['description'] = 'Email ingested using MS Graph API'
-                        container['source_data_identifier'] = email['id']
-
-                        ret_val, message, sub_container_id = self.save_container(container)
-
-                        if phantom.is_fail(ret_val):
-                            return action_result.set_status(phantom.APP_ERROR, message), None
-
-                        sub_artifacts = self._create_email_artifacts(sub_container_id, sub_email)
-
-                        if not sub_container_id:
-                            return phantom.APP_ERROR
-
-                        ret_val, message, sub_container_id = self.save_artifacts(sub_artifacts)
+                        artifacts += sub_artifacts
 
                     elif attachment['name'].endswith('.eml'):
                         ret_val, message = self._process_email.process_email(self, base64.b64decode(attachment['contentBytes']),
