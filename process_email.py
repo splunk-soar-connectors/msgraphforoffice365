@@ -162,6 +162,7 @@ class ProcessEmail(object):
         self._parsed_mail = None
         self._guid_to_hash = dict()
         self._tmp_dirs = list()
+        self._trigger_automation = True
 
     def _get_file_contains(self, file_path):
 
@@ -855,6 +856,7 @@ class ProcessEmail(object):
         artifact = {}
         artifact.update(_artifact_common)
         artifact['name'] = 'Email Artifact'
+        artifact['label'] = 'email'
         artifact['severity'] = self._base_connector.get_config().get('container_severity', 'medium')
         artifact['cef'] = cef_artifact
         artifact['cef_types'] = cef_types
@@ -1107,7 +1109,7 @@ class ProcessEmail(object):
 
         last_file = len(files) - 1
         for i, curr_file in enumerate(files):
-            run_automation = True if i == last_file else False
+            run_automation = self._trigger_automation if i == last_file else False
             ret_val, added_to_vault = self._handle_file(
                 curr_file, container_id, run_automation
             )
@@ -1165,8 +1167,8 @@ class ProcessEmail(object):
 
                 # if it is the last artifact of the last container
                 if (j + 1) == len_artifacts:
-                    # mark it such that active playbooks get executed
-                    artifact['run_automation'] = True
+                    # mark it such that active playbooks get executed if trigger automation is set to True
+                    artifact['run_automation'] = self._trigger_automation
 
                 cef_artifact = artifact.get('cef')
                 if 'parentGuid' in cef_artifact:

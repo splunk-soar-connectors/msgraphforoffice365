@@ -685,28 +685,29 @@ class Office365Connector(BaseConnector):
 
         return phantom.APP_SUCCESS
 
-    def _create_email_artifacts(self, container_id, email):
+    def _create_email_artifacts(self, container_id, email, artifact_id=None):
 
         artifacts = []
 
         email_artifact = {}
-        artifacts.append(email_artifact)
         email_artifact['label'] = 'email'
         email_artifact['name'] = 'Email Artifact'
         email_artifact['container_id'] = container_id
 
-        # Set email ID contains
-        self._process_email._set_email_id_contains(email['id'])
+        if email.get('id'):
+            artifact_id = email['id']
 
-        email_artifact['cef_types'] = {'messageId': self._process_email._email_id_contains}
-        email_artifact['source_data_identifier'] = email['id']
+            # Set email ID contains
+            self._process_email._set_email_id_contains(email['id'])
+            email_artifact['cef_types'] = {'messageId': self._process_email._email_id_contains}
+
+        email_artifact['source_data_identifier'] = artifact_id
 
         cef = {}
         email_artifact['cef'] = cef
 
         for k, v in email.items():
             if v is not None:
-                # self.save_progress("Key: {}\r\nValue: {}".format(k, v))
                 if k == 'from':
                     from_obj = v.get('emailAddress', {})
                     cef[k] = from_obj
@@ -718,7 +719,15 @@ class Office365Connector(BaseConnector):
                     if len(recipients):
                         cef['toEmail'] = recipients[0].get('emailAddress', {}).get('address', '')
                 elif k == 'id':
-                    cef['messageId'] = email['id']
+                    cef['messageId'] = v
+                elif k == 'internetMessageHeaders':
+                    cef['internetMessageHeaders'] = {}
+                    if isinstance(v, list):
+                        for header in v:
+                            key_name = header.get('name')
+                            key_value = header.get('value')
+                            if key_name and key_value:
+                                cef['internetMessageHeaders'][key_name] = key_value
                 else:
                     cef[k] = v
 
@@ -751,7 +760,7 @@ class Office365Connector(BaseConnector):
             ip_artifact['label'] = 'artifact'
             ip_artifact['cef'] = ip
             ip_artifact['container_id'] = container_id
-            ip_artifact['source_data_identifier'] = email['id']
+            ip_artifact['source_data_identifier'] = artifact_id
 
         urls = []
         domains = []
@@ -764,7 +773,7 @@ class Office365Connector(BaseConnector):
             url_artifact['label'] = 'artifact'
             url_artifact['cef'] = url
             url_artifact['container_id'] = container_id
-            url_artifact['source_data_identifier'] = email['id']
+            url_artifact['source_data_identifier'] = artifact_id
 
         for domain in domains:
             domain_artifact = {}
@@ -773,7 +782,7 @@ class Office365Connector(BaseConnector):
             domain_artifact['label'] = 'artifact'
             domain_artifact['cef'] = domain
             domain_artifact['container_id'] = container_id
-            domain_artifact['source_data_identifier'] = email['id']
+            domain_artifact['source_data_identifier'] = artifact_id
 
         hashes = []
         self._process_email._extract_hashes(body, hashes)
@@ -785,9 +794,74 @@ class Office365Connector(BaseConnector):
             hash_artifact['label'] = 'artifact'
             hash_artifact['cef'] = hash
             hash_artifact['container_id'] = container_id
-            hash_artifact['source_data_identifier'] = email['id']
+            hash_artifact['source_data_identifier'] = artifact_id
+
+        artifacts.append(email_artifact)
 
         return artifacts
+
+    def _extract_attachments(self, config, attach_endpoint, artifacts, action_result, attachments, container_id, first_time=False):
+
+        for attachment in attachments:
+
+            if attachment.get('@odata.type') == '#microsoft.graph.itemAttachment':
+
+                # We need to expand the item attachment only once
+                if first_time:
+                    sub_email_endpoint = attach_endpoint + '/{0}?$expand=microsoft.graph.itemattachment/item'.format(attachment['id'])
+                    ret_val, sub_email_resp = self._make_rest_call_helper(action_result, sub_email_endpoint)
+                    if phantom.is_fail(ret_val):
+                        return action_result.get_status()
+
+                    sub_email = sub_email_resp.get('item', {})
+                else:
+                    sub_email = attachment.get('item', {})
+
+                if sub_email.get('@odata.type') != '#microsoft.graph.message':
+                    continue
+
+                item_attachments = sub_email.pop('attachments', [])
+                if sub_email:
+                    sub_artifacts = self._create_email_artifacts(container_id, sub_email, attachment['id'])
+                    artifacts += sub_artifacts
+
+                if item_attachments:
+                    ret_val = self._extract_attachments(config, attach_endpoint, artifacts, action_result, item_attachments, container_id)
+                    if phantom.is_fail(ret_val):
+                        return action_result.get_status()
+
+            elif attachment.get('@odata.type') == "#microsoft.graph.referenceAttachment":
+
+                attach_artifact = {}
+                artifacts.append(attach_artifact)
+                self._create_reference_attachment_artifact(container_id, attachment, attach_artifact)
+
+            elif attachment.get('name', '').endswith('.eml'):
+                if 'contentBytes' in attachment:
+                    try:
+                        rfc822_email = base64.b64decode(attachment['contentBytes'])
+                        rfc822_email = UnicodeDammit(rfc822_email).unicode_markup
+                    except Exception as e:
+                        error_msg = _get_error_message_from_exception(e)
+                        self.debug_print("Unable to decode Email Mime Content. {0}".format(error_msg))
+                        return action_result.set_status(phantom.APP_ERROR, "Unable to decode Email Mime Content")
+
+                    # Create ProcessEmail Object for email file attachment
+                    process_email_obj = ProcessEmail(self, config)
+                    process_email_obj._trigger_automation = False
+                    ret_val, message = process_email_obj.process_email(rfc822_email, attachment['id'], epoch=None, container_id=container_id)
+                    if phantom.is_fail(ret_val):
+                        return action_result.set_status(phantom.APP_ERROR, message)
+                else:
+                    self.debug_print("No content found in the .eml file attachment. Hence, skipping the email file processing.")
+
+            else:
+                attach_artifact = {}
+                artifacts.append(attach_artifact)
+                if not self._handle_attachment(attachment, container_id, artifact_json=attach_artifact):
+                    return action_result.set_status(phantom.APP_ERROR, "Could not process attachment. See logs for details.")
+
+        return phantom.APP_SUCCESS
 
     def _process_email_data(self, config, action_result, endpoint, email):
         """
@@ -836,7 +910,8 @@ class Office365Connector(BaseConnector):
                     return action_result.get_status()
 
         self.debug_print("Creating email artifacts")
-        artifacts = self._create_email_artifacts(container_id, email)
+        email_artifacts = self._create_email_artifacts(container_id, email)
+        attachment_artifacts = []
 
         if email['hasAttachments'] and config.get('extract_attachments', False):
 
@@ -845,58 +920,15 @@ class Office365Connector(BaseConnector):
             if phantom.is_fail(ret_val):
                 return action_result.get_status()
 
-            for attachment in attach_resp.get('value', []):
+            ret_val = self._extract_attachments(
+                config, attach_endpoint, attachment_artifacts,
+                action_result, attach_resp.get('value', []), container_id, first_time=True
+            )
+            if phantom.is_fail(ret_val):
+                return action_result.get_status()
 
-                if attachment.get('@odata.type') == '#microsoft.graph.itemAttachment':
-
-                    sub_email_endpoint = attach_endpoint + '/{0}?$expand=microsoft.graph.itemattachment/item'.format(attachment['id'])
-                    ret_val, sub_email_resp = self._make_rest_call_helper(action_result, sub_email_endpoint)
-                    if phantom.is_fail(ret_val):
-                        return action_result.get_status()
-
-                    sub_email = sub_email_resp['item']
-                    if sub_email.get('@odata.type') != '#microsoft.graph.message':
-                        continue
-
-                    sub_container_id = container_id
-                    sub_artifacts = self._create_email_artifacts(sub_container_id, sub_email)
-
-                    ret_val, message, sub_container_id = self.save_artifacts(sub_artifacts)
-                    if phantom.is_fail(ret_val):
-                        return action_result.set_status(phantom.APP_ERROR, message)
-
-                elif attachment.get('@odata.type') == "#microsoft.graph.referenceAttachment":
-
-                    attach_artifact = {}
-                    artifacts.append(attach_artifact)
-                    self._create_reference_attachment_artifact(container_id, attachment, attach_artifact)
-
-                elif attachment['name'].endswith('.eml'):
-                    if 'contentBytes' in attachment:
-                        try:
-                            rfc822_email = base64.b64decode(attachment['contentBytes'])
-                            rfc822_email = UnicodeDammit(rfc822_email).unicode_markup
-                        except Exception as e:
-                            error_msg = _get_error_message_from_exception(e)
-                            self.debug_print("Unable to decode Email Mime Content. {0}".format(error_msg))
-                            return action_result.set_status(phantom.APP_ERROR, "Unable to decode Email Mime Content")
-
-                        # Create ProcessEmail Object for email file attachment
-                        process_email_obj = ProcessEmail(self, config)
-                        ret_val, message = process_email_obj.process_email(rfc822_email, attachment['id'], epoch=None, container_id=container_id)
-                        if phantom.is_fail(ret_val):
-                            return action_result.set_status(phantom.APP_ERROR, message)
-                    else:
-                        self.debug_print("No content found in the .eml file attachment. Hence, skipping the email file processing.")
-
-                else:
-                    attach_artifact = {}
-                    artifacts.append(attach_artifact)
-                    if not self._handle_attachment(attachment, container_id, artifact_json=attach_artifact):
-                        return action_result.set_status(phantom.APP_ERROR, "Could not process attachment. See logs for details.")
-
+        artifacts = attachment_artifacts + email_artifacts
         ret_val, message, container_id = self.save_artifacts(artifacts)
-
         if phantom.is_fail(ret_val):
             return action_result.set_status(phantom.APP_ERROR, message)
 
