@@ -5307,7 +5307,7 @@
             },
             {
                 "module": "soupsieve",
-                "input_file": "wheels/py3/soupsieve-2.3.1-py3-none-any.whl"
+                "input_file": "wheels/py3/soupsieve-2.3.2-py3-none-any.whl"
             },
             {
                 "module": "sqlparse",
@@ -5363,7 +5363,7 @@
             },
             {
                 "module": "soupsieve",
-                "input_file": "wheels/py3/soupsieve-2.3.1-py3-none-any.whl"
+                "input_file": "wheels/py3/soupsieve-2.3.2-py3-none-any.whl"
             },
             {
                 "module": "sqlparse",

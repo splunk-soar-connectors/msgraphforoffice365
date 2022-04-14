@@ -13,6 +13,15 @@ either express or implied. See the License for the specific language governing p
 and limitations under the License.
 -->
 
+<h2>Playbook Backward Compatibility</h2>
+<p>
+  <ul>
+    <li> The 'id' field of email artifact has been renamed to 'messageId'. Hence, it is requested to the end-user to please update their existing
+      playbooks by re-inserting | modifying | deleting the corresponding action blocks to ensure the correct functioning of the playbooks created
+      on the earlier versions of the app.</li>
+  </ul>
+</p>
+
 <p>
 <h2>Authentication</h2>
 This app requires registration of a Microsoft Graph Application. To do so, navigate to the URL <a href="https://portal.azure.com" target="_blank">https://portal.azure.com</a> in a browser and log in with the Microsoft account, then, click <b>App registrations</b>.

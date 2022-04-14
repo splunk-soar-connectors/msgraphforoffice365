@@ -136,7 +136,6 @@ def _get_error_message_from_exception(e):
     :param e: Exception object
     :return: error message
     """
-
     error_code = None
     error_msg = ERR_MSG_UNAVAILABLE
 
@@ -501,7 +500,14 @@ class Office365Connector(BaseConnector):
         return (phantom.APP_SUCCESS, asset_name)
 
     def _update_container(self, action_result, container_id, container):
+        """
+        Update container.
 
+        :param action_result: Action result or BaseConnector object
+        :param container_id: container ID
+        :param container: container's payload to update
+        :return: status phantom.APP_ERROR/phantom.APP_SUCCESS with status message
+        """
         rest_endpoint = PHANTOM_CONTAINER_INFO_URL.format(url=self.get_phantom_base_url(), container_id=container_id)
 
         try:
@@ -669,7 +675,14 @@ class Office365Connector(BaseConnector):
         return phantom.APP_SUCCESS
 
     def _create_reference_attachment_artifact(self, container_id, attachment, artifact_json):
+        """
+        Create reference attachment artifact.
 
+        :param container_id: container ID
+        :param attachment: attachment dict
+        :param artifact_json: artifact dict to add the data
+        :return: phantom.APP_SUCCESS
+        """
         artifact_json['name'] = 'Reference Attachment Artifact'
         artifact_json['container_id'] = container_id
         artifact_json['source_data_identifier'] = attachment['id']
@@ -686,7 +699,14 @@ class Office365Connector(BaseConnector):
         return phantom.APP_SUCCESS
 
     def _create_email_artifacts(self, container_id, email, artifact_id=None):
+        """
+        Create email artifacts.
 
+        :param container_id: container ID
+        :param email: email content
+        :param artifact_id: artifact ID
+        :return: extracted artifacts list
+        """
         artifacts = []
 
         email_artifact = {}
@@ -801,7 +821,18 @@ class Office365Connector(BaseConnector):
         return artifacts
 
     def _extract_attachments(self, config, attach_endpoint, artifacts, action_result, attachments, container_id, first_time=False):
+        """
+        Extract attachments.
 
+        :param config: config dict
+        :param attach_endpoint: attachment endpoint
+        :param artifacts: artifacts list to append the attachment artifacts
+        :param action_result: Action result or BaseConnector object
+        :param attachments: attachments list to process
+        :param container_id: container ID
+        :param first_time: boolean flag to specify if we want to expand the item attachment
+        :return: status phantom.APP_ERROR/phantom.APP_SUCCESS with status message
+        """
         for attachment in attachments:
 
             if attachment.get('@odata.type') == '#microsoft.graph.itemAttachment':
@@ -873,7 +904,6 @@ class Office365Connector(BaseConnector):
         :param emails: Emails to process
         :return: status phantom.APP_ERROR/phantom.APP_SUCCESS with status message
         """
-
         container = {}
 
         container['name'] = email['subject'] if email['subject'] else email['id']
@@ -1496,11 +1526,6 @@ class Office365Connector(BaseConnector):
         if 'properties_list' in param:
             properties_list = param['properties_list']
             properties_list = [property.strip() for property in properties_list.strip().split(',') if property.strip()]
-            if not properties_list:
-                return action_result.set_status(
-                    phantom.APP_ERROR,
-                    "Please provide a valid value in the '{0}' action parameter".format("properties_list")
-                )
             select_list += properties_list
 
         if select_list:
