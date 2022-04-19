@@ -10,11 +10,11 @@
     "product_version_regex": ".*",
     "publisher": "Splunk",
     "license": "Copyright (c) 2017-2022 Splunk Inc.",
-    "app_version": "2.4.14",
+    "app_version": "2.5.0",
     "utctime_updated": "2022-02-04T01:20:46.000000Z",
     "package_name": "phantom_msgraphoffice365",
     "main_module": "office365_connector.py",
-    "min_phantom_version": "5.1.0",
+    "min_phantom_version": "5.2.0",
     "latest_tested_versions": [
         "Cloud 2021-09-28"
     ],
@@ -73,51 +73,76 @@
             "order": 8
         },
         "folder": {
-            "description": "Mailbox folder to ingest (On Poll)",
+            "description": "Mailbox folder name/folder path or the internal o365 folder ID to ingest (On Poll)",
             "data_type": "string",
             "order": 9
+        },
+        "get_folder_id": {
+            "description": "Retrieve the folder ID for the provided folder name/folder path automatically and replace the folder parameter value (On Poll)",
+            "data_type": "boolean",
+            "default": true,
+            "order": 10
+        },
+        "ph_3": {
+            "data_type": "ph",
+            "order": 11
         },
         "first_run_max_emails": {
             "description": "Maximum Containers for scheduled polling first time",
             "data_type": "numeric",
             "default": 1000,
-            "order": 10
+            "order": 12
         },
         "max_containers": {
             "description": "Maximum Containers for scheduled polling",
             "data_type": "numeric",
             "default": 100,
-            "order": 11
+            "order": 13
         },
         "extract_attachments": {
             "description": "Extract Attachments",
             "data_type": "boolean",
             "default": false,
-            "order": 12
+            "order": 14
         },
         "extract_urls": {
             "description": "Extract URLs",
             "data_type": "boolean",
             "default": false,
-            "order": 13
+            "order": 15
         },
         "extract_ips": {
             "description": "Extract IPs",
             "data_type": "boolean",
             "default": false,
-            "order": 14
+            "order": 16
         },
         "extract_domains": {
             "description": "Extract Domain Names",
             "data_type": "boolean",
             "default": false,
-            "order": 15
+            "order": 17
         },
         "extract_hashes": {
             "description": "Extract Hashes",
             "data_type": "boolean",
             "default": false,
-            "order": 16
+            "order": 18
+        },
+        "ph_4": {
+            "data_type": "ph",
+            "order": 19
+        },
+        "ingest_manner": {
+            "data_type": "string",
+            "description": "How to Ingest (during ingestion, should the app get the latest emails or the oldest)",
+            "required": true,
+            "order": 20,
+            "value_list": [
+                "oldest first",
+                "latest first"
+            ],
+            "default": "oldest first"
         }
     },
     "actions": [
@@ -140,6 +165,10 @@
             "parameters": {},
             "output": [
                 {
+                    "data_path": "action_result.data",
+                    "data_type": "string"
+                },
+                {
                     "data_path": "action_result.status",
                     "data_type": "string",
                     "example_values": [
@@ -150,14 +179,6 @@
                     "column_order": 0
                 },
                 {
-                    "data_path": "action_result.data",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.summary",
-                    "data_type": "string"
-                },
-                {
                     "data_path": "action_result.message",
                     "data_type": "string",
                     "example_values": [
@@ -165,6 +186,10 @@
                     ],
                     "column_name": "Message",
                     "column_order": 1
+                },
+                {
+                    "data_path": "action_result.summary",
+                    "data_type": "string"
                 },
                 {
                     "data_path": "summary.total_objects",
@@ -208,14 +233,6 @@
             },
             "output": [
                 {
-                    "data_path": "action_result.status",
-                    "data_type": "string",
-                    "example_values": [
-                        "success",
-                        "failed"
-                    ]
-                },
-                {
                     "data_path": "action_result.parameter.user_id",
                     "data_type": "string",
                     "contains": [
@@ -224,11 +241,67 @@
                         "email"
                     ],
                     "column_name": "User ID/Principle Name",
-                    "column_order": 0
+                    "column_order": 0,
+                    "example_values": [
+                        "eeb3645f-df19-58a1-0e9c-ghi234cb5f6f"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.@odata.context",
+                    "data_type": "string",
+                    "example_values": [
+                        "https://graph.microsoft.com/v1.0/$metadata#users('eeb3645f-df19-47a1-8e8c-fcd234cb5f6f')/mailboxSettings/automaticRepliesSetting"
+                    ],
+                    "contains": [
+                        "url"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.@odata.etag",
                     "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.externalAudience",
+                    "data_type": "string",
+                    "example_values": [
+                        "all"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.externalReplyMessage",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.internalReplyMessage",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.scheduledEndDateTime.dateTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "2022-03-15T12:00:00.0000000"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.scheduledEndDateTime.timeZone",
+                    "data_type": "string",
+                    "example_values": [
+                        "UTC"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.scheduledStartDateTime.dateTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "2022-03-14T12:00:00.0000000"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.scheduledStartDateTime.timeZone",
+                    "data_type": "string",
+                    "example_values": [
+                        "UTC"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.status",
@@ -240,10 +313,11 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.summary.events_matched",
-                    "data_type": "numeric",
+                    "data_path": "action_result.status",
+                    "data_type": "string",
                     "example_values": [
-                        1
+                        "success",
+                        "failed"
                     ]
                 },
                 {
@@ -251,6 +325,13 @@
                     "data_type": "string",
                     "example_values": [
                         "Successfully retrieved out of office status"
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary.events_matched",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
                     ]
                 },
                 {
@@ -286,7 +367,6 @@
                 "user_id": {
                     "description": "User ID/Principal name",
                     "data_type": "string",
-                    "required": false,
                     "primary": true,
                     "contains": [
                         "msgoffice365 user id",
@@ -298,7 +378,6 @@
                 "group_id": {
                     "description": "Group ID",
                     "data_type": "string",
-                    "required": false,
                     "primary": true,
                     "contains": [
                         "msgoffice365 group id"
@@ -308,25 +387,15 @@
                 "filter": {
                     "description": "OData query to filter/search for specific results",
                     "data_type": "string",
-                    "required": false,
                     "order": 2
                 },
                 "limit": {
                     "description": "Maximum number of events to return",
                     "data_type": "numeric",
-                    "required": false,
                     "order": 3
                 }
             },
             "output": [
-                {
-                    "data_path": "action_result.status",
-                    "data_type": "string",
-                    "example_values": [
-                        "success",
-                        "failed"
-                    ]
-                },
                 {
                     "data_path": "action_result.parameter.filter",
                     "data_type": "string",
@@ -340,6 +409,9 @@
                     "data_type": "string",
                     "contains": [
                         "msgoffice365 group id"
+                    ],
+                    "example_values": [
+                        "3d9c58f8-9f38-4016-93ac-b61095f31c48"
                     ]
                 },
                 {
@@ -366,6 +438,14 @@
                     "data_type": "string",
                     "example_values": [
                         "W/\"b1MzKFCcdkuJ24Mc2VsdjwABAdhQhg==\""
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.allowNewTimeProposals",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
                     ]
                 },
                 {
@@ -434,6 +514,26 @@
                     "data_type": "string"
                 },
                 {
+                    "data_path": "action_result.data.*.calendar@odata.associationLink",
+                    "data_type": "string",
+                    "example_values": [
+                        "https://graph.microsoft.com/v1.0/users('ggfe645f-df19-47a1-8e8c-fcd234cb5f6f')/calendars('AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQBGAAADeDDJKaEf4EihMWU6SZgKbAcA07XhOkNngkCkqoNfY_k-jQAAAgEGAAAA07XhOkNngkCkqoNfY_k-jQAAAhTzBBAA')/$ref"
+                    ],
+                    "contains": [
+                        "url"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.calendar@odata.navigationLink",
+                    "data_type": "string",
+                    "example_values": [
+                        "https://graph.microsoft.com/v1.0/users('ffb3645f-df20-47a1-8e9c-fcd234cb5f6f')/calendars('AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQBGAAADeDDJKaEf4EihMWU6SZgKbAcA07XhOkNngkCkqoNfY_k-jQAAAgEGAAAA07XhOkNngkCkqoNfY_k-jQAAAhTzABBB')"
+                    ],
+                    "contains": [
+                        "url"
+                    ]
+                },
+                {
                     "data_path": "action_result.data.*.categories.*.name",
                     "data_type": "string"
                 },
@@ -476,6 +576,14 @@
                     ]
                 },
                 {
+                    "data_path": "action_result.data.*.hideAttendees",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
                     "data_path": "action_result.data.*.iCalUId",
                     "data_type": "string",
                     "example_values": [
@@ -506,6 +614,22 @@
                 },
                 {
                     "data_path": "action_result.data.*.isCancelled",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.isDraft",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.isOnlineMeeting",
                     "data_type": "boolean",
                     "example_values": [
                         true,
@@ -710,6 +834,21 @@
                     ]
                 },
                 {
+                    "data_path": "action_result.data.*.occurrenceId",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.onlineMeeting",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.onlineMeetingProvider",
+                    "data_type": "string",
+                    "example_values": [
+                        "unknown"
+                    ]
+                },
+                {
                     "data_path": "action_result.data.*.onlineMeetingUrl",
                     "data_type": "string",
                     "contains": [
@@ -824,6 +963,13 @@
                     ]
                 },
                 {
+                    "data_path": "action_result.data.*.transactionId",
+                    "data_type": "string",
+                    "example_values": [
+                        "b2e47e5d-8f87-9845-c507-7be56490c432"
+                    ]
+                },
+                {
                     "data_path": "action_result.data.*.type",
                     "data_type": "string",
                     "example_values": [
@@ -845,10 +991,11 @@
                     "data_type": "string"
                 },
                 {
-                    "data_path": "action_result.summary.events_matched",
-                    "data_type": "numeric",
+                    "data_path": "action_result.status",
+                    "data_type": "string",
                     "example_values": [
-                        8
+                        "success",
+                        "failed"
                     ]
                 },
                 {
@@ -856,6 +1003,13 @@
                     "data_type": "string",
                     "example_values": [
                         "Successfully retrieved 8 events"
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary.events_matched",
+                    "data_type": "numeric",
+                    "example_values": [
+                        8
                     ]
                 },
                 {
@@ -892,25 +1046,15 @@
                 "filter": {
                     "description": "Search for specific results",
                     "data_type": "string",
-                    "required": false,
                     "order": 0
                 },
                 "limit": {
                     "description": "Maximum number of users to return",
                     "data_type": "numeric",
-                    "required": false,
                     "order": 1
                 }
             },
             "output": [
-                {
-                    "data_path": "action_result.status",
-                    "data_type": "string",
-                    "example_values": [
-                        "success",
-                        "failed"
-                    ]
-                },
                 {
                     "data_path": "action_result.parameter.filter",
                     "data_type": "string",
@@ -1011,10 +1155,11 @@
                     "column_order": 1
                 },
                 {
-                    "data_path": "action_result.summary.total_users_returned",
-                    "data_type": "numeric",
+                    "data_path": "action_result.status",
+                    "data_type": "string",
                     "example_values": [
-                        11
+                        "success",
+                        "failed"
                     ]
                 },
                 {
@@ -1022,6 +1167,13 @@
                     "data_type": "string",
                     "example_values": [
                         "Successfully retrieved 11 users"
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary.total_users_returned",
+                    "data_type": "numeric",
+                    "example_values": [
+                        11
                     ]
                 },
                 {
@@ -1057,25 +1209,15 @@
                 "filter": {
                     "description": "Search for specific results",
                     "data_type": "string",
-                    "required": false,
                     "order": 0
                 },
                 "limit": {
                     "description": "Maximum number of groups to return",
                     "data_type": "numeric",
-                    "required": false,
                     "order": 1
                 }
             },
             "output": [
-                {
-                    "data_path": "action_result.status",
-                    "data_type": "string",
-                    "example_values": [
-                        "success",
-                        "failed"
-                    ]
-                },
                 {
                     "data_path": "action_result.parameter.filter",
                     "data_type": "string",
@@ -1131,6 +1273,10 @@
                     "column_order": 2
                 },
                 {
+                    "data_path": "action_result.data.*.expirationDateTime",
+                    "data_type": "string"
+                },
+                {
                     "data_path": "action_result.data.*.groupTypes",
                     "data_type": "string",
                     "example_values": [
@@ -1183,7 +1329,27 @@
                     ]
                 },
                 {
+                    "data_path": "action_result.data.*.membershipRule",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.membershipRuleProcessingState",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.onPremisesDomainName",
+                    "data_type": "string"
+                },
+                {
                     "data_path": "action_result.data.*.onPremisesLastSyncDateTime",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.onPremisesNetBiosName",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.onPremisesSamAccountName",
                     "data_type": "string"
                 },
                 {
@@ -1196,6 +1362,10 @@
                 },
                 {
                     "data_path": "action_result.data.*.preferredDataLocation",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.preferredLanguage",
                     "data_type": "string"
                 },
                 {
@@ -1235,6 +1405,17 @@
                     ]
                 },
                 {
+                    "data_path": "action_result.data.*.securityIdentifier",
+                    "data_type": "string",
+                    "example_values": [
+                        "S-1-12-1-294681889-1319597617-672379543-28952022"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.theme",
+                    "data_type": "string"
+                },
+                {
                     "data_path": "action_result.data.*.visibility",
                     "data_type": "string",
                     "example_values": [
@@ -1244,10 +1425,11 @@
                     "column_order": 5
                 },
                 {
-                    "data_path": "action_result.summary.total_groups_returned",
-                    "data_type": "numeric",
+                    "data_path": "action_result.status",
+                    "data_type": "string",
                     "example_values": [
-                        9
+                        "success",
+                        "failed"
                     ]
                 },
                 {
@@ -1255,6 +1437,13 @@
                     "data_type": "string",
                     "example_values": [
                         "Successfully retrieved 9 groups"
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary.total_groups_returned",
+                    "data_type": "numeric",
+                    "example_values": [
+                        9
                     ]
                 },
                 {
@@ -1303,7 +1492,6 @@
                 "folder_id": {
                     "description": "Parent mail folder ID",
                     "data_type": "string",
-                    "required": false,
                     "primary": true,
                     "order": 1,
                     "contains": [
@@ -1312,14 +1500,6 @@
                 }
             },
             "output": [
-                {
-                    "data_path": "action_result.status",
-                    "data_type": "string",
-                    "example_values": [
-                        "success",
-                        "failed"
-                    ]
-                },
                 {
                     "data_path": "action_result.parameter.folder_id",
                     "data_type": "string",
@@ -1373,6 +1553,14 @@
                     ]
                 },
                 {
+                    "data_path": "action_result.data.*.isHidden",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
                     "data_path": "action_result.data.*.parentFolderId",
                     "data_type": "string",
                     "example_values": [
@@ -1382,6 +1570,13 @@
                     "column_order": 2,
                     "contains": [
                         "msgoffice365 folder id"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.sizeInBytes",
+                    "data_type": "numeric",
+                    "example_values": [
+                        7920
                     ]
                 },
                 {
@@ -1403,10 +1598,11 @@
                     "column_order": 4
                 },
                 {
-                    "data_path": "action_result.summary.total_folders_returned",
-                    "data_type": "numeric",
+                    "data_path": "action_result.status",
+                    "data_type": "string",
                     "example_values": [
-                        14
+                        "success",
+                        "failed"
                     ]
                 },
                 {
@@ -1414,6 +1610,13 @@
                     "data_type": "string",
                     "example_values": [
                         "Successfully retrieved 14 mail folders"
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary.total_folders_returned",
+                    "data_type": "numeric",
+                    "example_values": [
+                        14
                     ]
                 },
                 {
@@ -1464,7 +1667,8 @@
                     "contains": [
                         "email"
                     ],
-                    "order": 1
+                    "order": 1,
+                    "primary": true
                 },
                 "folder": {
                     "description": "Destination folder; this must be either a (case-sensitive) well-known name or the internal o365 folder ID",
@@ -1486,14 +1690,6 @@
                 }
             },
             "output": [
-                {
-                    "data_path": "action_result.status",
-                    "data_type": "string",
-                    "example_values": [
-                        "success",
-                        "failed"
-                    ]
-                },
                 {
                     "data_path": "action_result.parameter.email_address",
                     "data_type": "string",
@@ -1636,10 +1832,24 @@
                     ]
                 },
                 {
+                    "data_path": "action_result.data.*.conversationIndex",
+                    "data_type": "string",
+                    "example_values": [
+                        "AQHW+IHb9hH4JnJtjUmniPjyy9YF2Y=="
+                    ]
+                },
+                {
                     "data_path": "action_result.data.*.createdDateTime",
                     "data_type": "string",
                     "example_values": [
                         "2017-10-25T22:29:01Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.flag.flagStatus",
+                    "data_type": "string",
+                    "example_values": [
+                        "notFlagged"
                     ]
                 },
                 {
@@ -1707,7 +1917,11 @@
                 },
                 {
                     "data_path": "action_result.data.*.isDeliveryReceiptRequested",
-                    "data_type": "string"
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.isDraft",
@@ -1823,8 +2037,12 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.summary",
-                    "data_type": "string"
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
                 },
                 {
                     "data_path": "action_result.message",
@@ -1832,6 +2050,10 @@
                     "example_values": [
                         "Successfully copied email"
                     ]
+                },
+                {
+                    "data_path": "action_result.summary",
+                    "data_type": "string"
                 },
                 {
                     "data_path": "summary.total_objects",
@@ -1904,14 +2126,6 @@
                 }
             },
             "output": [
-                {
-                    "data_path": "action_result.status",
-                    "data_type": "string",
-                    "example_values": [
-                        "success",
-                        "failed"
-                    ]
-                },
                 {
                     "data_path": "action_result.parameter.email_address",
                     "data_type": "string",
@@ -2054,10 +2268,24 @@
                     ]
                 },
                 {
+                    "data_path": "action_result.data.*.conversationIndex",
+                    "data_type": "string",
+                    "example_values": [
+                        "AQHW+IHb9hH4JnJtjUmniPjyy9YF1Y=="
+                    ]
+                },
+                {
                     "data_path": "action_result.data.*.createdDateTime",
                     "data_type": "string",
                     "example_values": [
                         "2017-10-25T22:29:01Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.flag.flagStatus",
+                    "data_type": "string",
+                    "example_values": [
+                        "notFlagged"
                     ]
                 },
                 {
@@ -2125,7 +2353,11 @@
                 },
                 {
                     "data_path": "action_result.data.*.isDeliveryReceiptRequested",
-                    "data_type": "string"
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.isDraft",
@@ -2241,8 +2473,12 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.summary",
-                    "data_type": "string"
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
                 },
                 {
                     "data_path": "action_result.message",
@@ -2250,6 +2486,10 @@
                     "example_values": [
                         "Successfully moved email"
                     ]
+                },
+                {
+                    "data_path": "action_result.summary",
+                    "data_type": "string"
                 },
                 {
                     "data_path": "summary.total_objects",
@@ -2304,16 +2544,6 @@
             },
             "output": [
                 {
-                    "data_path": "action_result.status",
-                    "data_type": "string",
-                    "column_name": "Status",
-                    "column_order": 2,
-                    "example_values": [
-                        "success",
-                        "failed"
-                    ]
-                },
-                {
                     "data_path": "action_result.parameter.email_address",
                     "data_type": "string",
                     "contains": [
@@ -2342,8 +2572,14 @@
                     "data_type": "string"
                 },
                 {
-                    "data_path": "action_result.summary",
-                    "data_type": "string"
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "column_name": "Status",
+                    "column_order": 2,
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
                 },
                 {
                     "data_path": "action_result.message",
@@ -2351,6 +2587,10 @@
                     "example_values": [
                         "Successfully deleted email"
                     ]
+                },
+                {
+                    "data_path": "action_result.summary",
+                    "data_type": "string"
                 },
                 {
                     "data_path": "summary.total_objects",
@@ -2415,14 +2655,6 @@
             },
             "output": [
                 {
-                    "data_path": "action_result.status",
-                    "data_type": "string",
-                    "example_values": [
-                        "success",
-                        "failed"
-                    ]
-                },
-                {
                     "data_path": "action_result.parameter.download_attachments",
                     "data_type": "boolean",
                     "example_values": [
@@ -2438,6 +2670,14 @@
                     ],
                     "example_values": [
                         "test@onmicrosoft.com"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.extract_headers",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
                     ]
                 },
                 {
@@ -2469,6 +2709,13 @@
                     ]
                 },
                 {
+                    "data_path": "action_result.data.*.attachments.*.@odata.mediaContentType",
+                    "data_type": "string",
+                    "example_values": [
+                        "application/octet-stream"
+                    ]
+                },
+                {
                     "data_path": "action_result.data.*.attachments.*.@odata.type",
                     "data_type": "string",
                     "example_values": [
@@ -2480,13 +2727,6 @@
                     "data_type": "string",
                     "example_values": [
                         "#microsoft.graph.fileAttachment"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.attachments.*.itemType",
-                    "data_type": "string",
-                    "example_values": [
-                        "#microsoft.graph.message"
                     ]
                 },
                 {
@@ -2523,6 +2763,13 @@
                     "example_values": [
                         true,
                         false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.attachments.*.itemType",
+                    "data_type": "string",
+                    "example_values": [
+                        "#microsoft.graph.message"
                     ]
                 },
                 {
@@ -2635,11 +2882,25 @@
                     ]
                 },
                 {
+                    "data_path": "action_result.data.*.conversationIndex",
+                    "data_type": "string",
+                    "example_values": [
+                        "AQHWRVB0TS7xy6ZOSEeEl0ahrRHNfQ=="
+                    ]
+                },
+                {
                     "data_path": "action_result.data.*.createdDateTime",
                     "data_type": "string",
                     "example_values": [
                         "2017-10-26T01:31:43Z",
                         "2020-06-18T09:11:31Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.flag.flagStatus",
+                    "data_type": "string",
+                    "example_values": [
+                        "notFlagged"
                     ]
                 },
                 {
@@ -2696,6 +2957,422 @@
                     ]
                 },
                 {
+                    "data_path": "action_result.data.*.internetMessageHeaders.Accept-Language",
+                    "data_type": "string",
+                    "example_values": [
+                        "en-US"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.Authentication-Results",
+                    "data_type": "string",
+                    "example_values": [
+                        "spf=pass (sender IP is 209.85.210.171) smtp.mailfrom=testdomain.com; .onmicrosoft.com; dkim=pass (signature was verified) header.d=testdomain.com.20150623.gappssmtp.com;.onmicrosoft.com; dmarc=pass action=none header.from=testdomain.com;compauth=pass reason=100"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.Content-Language",
+                    "data_type": "string",
+                    "example_values": [
+                        "en-US"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.Content-Transfer-Encoding",
+                    "data_type": "string",
+                    "example_values": [
+                        "binary"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.Content-Type",
+                    "data_type": "string",
+                    "example_values": [
+                        "multipart/related"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.DKIM-Signature",
+                    "data_type": "string",
+                    "example_values": [
+                        "v=1; a=rsa-sha256; c=relaxed/relaxed;        d=testdomain.com.20150623.gappssmtp.com; s=20150623;        h=message-id:date:mime-version:from:to:subject;        bh=tlTaRbacq4aWozhUPvcWg8i8flbpYQGZNs27nncn83I=;        b=avAAeJ8jF08K4oIBhxTirRmyB+SXHwdU0zdxv7eqs/zWaWWcgmT0007KP560TTgo5u         oD4nb6TvKxpRyWW4QwmkbuMIwHsMvehd2l1gispV3AawyGJjpmN7ErVYfLtIkz2Tap3V         YxmluV+SqeyyxTU8pFAEZ7+2C2lOb1DO5TC7xCMv+dyzevSscJdbeN0dFkG+C93zCqkg         w2fxubx2HDD7b/U6m2wXllYhH608wKJ/qYzyvQyqxYqNiQOtPRg2gw4sZ2UgN3+UQyVq         8ubO39ZuqakJpzEzYMw10d6E7SQhvHDJH7mFwhBlzhvOpb2gLJDN8n8dJaZo05BozQqq         MsvA=="
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.Date",
+                    "data_type": "string",
+                    "example_values": [
+                        "Thu, 18 Jun 2020 02:11:26 -0700"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.From",
+                    "data_type": "string",
+                    "example_values": [
+                        "\"Test\" <test@abc.def.com>"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.In-Reply-To",
+                    "data_type": "string",
+                    "example_values": [
+                        "<DM6QE11MB40266715C3C22ACE4E45D182D9730@DM6PR11MB4026.namprd11.prod.outlook.com>"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.MIME-Version",
+                    "data_type": "string",
+                    "example_values": [
+                        "1.0"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.Message-ID",
+                    "data_type": "string",
+                    "example_values": [
+                        "<5eeb2fbe.1c69fb81.22b4b.676a@mx.google.com>"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.Received",
+                    "data_type": "string",
+                    "example_values": [
+                        "from localhost.localdomain (host-240.splunk.com. [204.107.141.240])        by smtp.gmail.com with UTF8SMTPSA id ng12sm1923252pjb.15.2020.06.18.02.11.26        for <test@onmicrosoft.com>        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);        Thu, 18 Jun 2020 02:11:26 -0700 (PDT)"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.Received-SPF",
+                    "data_type": "string",
+                    "example_values": [
+                        "Pass (protection.outlook.com: domain of testdomain.com designates 209.85.210.171 as permitted sender) receiver=protection.outlook.com; client-ip=209.85.210.171; helo=mail-pf1-f171.google.com;"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.References",
+                    "data_type": "string",
+                    "example_values": [
+                        "<DM6PR11MB40266715C3C33BCE4E45D182D9730@DM6PR11MB4026.namprd11.prod.outlook.com>"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.Return-Path",
+                    "data_type": "string",
+                    "example_values": [
+                        "notifications@testdomain.com"
+                    ],
+                    "contains": [
+                        "email"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.Subject",
+                    "data_type": "string",
+                    "example_values": [
+                        "Fw: Email having different attachments"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.Thread-Index",
+                    "data_type": "string",
+                    "example_values": [
+                        "AQDEZLqyXR4k4Sc6skyFCMPITcMsbKpGS7At"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.Thread-Topic",
+                    "data_type": "string",
+                    "example_values": [
+                        "Email having different attachments"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.To",
+                    "data_type": "string",
+                    "example_values": [
+                        "\"Test\" <test@abc.def.com>"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-EOPAttributedMessage",
+                    "data_type": "string",
+                    "example_values": [
+                        "0"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-EOPTenantAttributedMessage",
+                    "data_type": "string",
+                    "example_values": [
+                        "a417c578-c7ee-480d-a225-d48057e74df5:0"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-Forefront-Antispam-Report",
+                    "data_type": "string",
+                    "example_values": [
+                        "CIP:209.85.210.171;CTRY:US;LANG:en;SCL:-1;SRV:;IPV:NLI;SFV:SFE;H:mail-pf1-f171.google.com;PTR:mail-pf1-f171.google.com;CAT:NONE;SFTY:;SFS:;DIR:INB;SFP:;"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-Gm-Message-State",
+                    "data_type": "string",
+                    "example_values": [
+                        "AOAM533ynFERIhSIewEEkj4b8B1rPNOEeie1IxBdrd55treEMtBa1jkL\tcO5ee4Ff6p0FYedfFtVtHKiCglGTpFTOSw=="
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-Google-DKIM-Signature",
+                    "data_type": "string",
+                    "example_values": [
+                        "v=1; a=rsa-sha256; c=relaxed/relaxed;        d=1e100.net; s=20161025;        h=x-gm-message-state:message-id:date:mime-version:from:to:subject;        bh=tlTaRbacq4aWozhUPvcWg8i8flbpYQGZNs27nncn83I=;        b=fPT47NIiheeY6GM0bxUOlsmnOgN4WuiOlalFvZqrAiFiOoYk6zrznvgIcAtiHZ4nxE         naQAa+mZs5svqRjib3YI52OvR5U8MitIYaa0Rt3LyYSUO1s3iKTUs4nHyRnqPt1skNl7         2OUwsZPXo3ShJDw/uxZRu/cuN1iIfeuE02PrbR04p4D8+1XRslqt/Xqm/bOWKUauqZWe         dH1E7meFY01hXxODreO4nWHIhsZgr49TpP/OqRyFcyKHHFFg2sPGXz+QNah6jP4YQUYd         Tty2wzOX3nc/YS7TkVo3ORmbzh9o+UZaqH8wHbQlyTdklYxoMPvJwZTo72rTxZeqiJ9E         J7PQ=="
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-Google-Smtp-Source",
+                    "data_type": "string",
+                    "example_values": [
+                        "ABdhPJxrYC7raBubCCIOmauxmxryzS9KsihTN6XCRgaNp2rDrG71TVxryzYCtelFOZ2Xj1LzcYIiMA=="
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-AntiSpam-MessageData",
+                    "data_type": "string",
+                    "example_values": [
+                        "VSM9HTzub/OH3NCwWNKQqkkzjnhdw5kXsgd9WM0SRgZ0qRdPg5D9/o3LA7lf8ziXc5k0mm9M5mHvFoYePXNXs/MGhGdBGxa/qUQ+FVHA2mDgfPkamJCEZxz//OX/uruTDo+zF4p9D1dQJpnIpx1M75OhuvrHX/BxWWzyAh78DXfF214YHdyFBCYepwl56CS7+fSGQL/r3p+OvWIBnIkISC+HJljSro2k47pPPAkspMhoUkb+zklyENFjez+JcEHYlih2FiNeUO8kb9b7qvlm3zPK98HLspzDh4BojpQ6Ff330iy7nfIK726tCMByxjOdnEQSB9Ua2sbE5gxSeeWL8MB5DHcQSSsXg+sR8w4gXrXLO3meE0lNQKRoAv2b1U0Q+yM0QBqeQWlymZG21bKeuH4gtAFQvfXNjoCtIbBQK1n7ZnL7fI21FJZRcMcKEneus6gLYUqD4PdLEq9FEGbfgiLmVYeUAL2A0Q/gectvL1OVudtHVR5gFMJKt65F1OtS04CPulfLLFSl1F4AzpjjtBSyQcK9R7bOsjoHxQXPMd9fMCzMSIq5f551pO0klKqWY7l11Un2Noj6CA7EtXiD1bTv8JmYQEKR+0HTZagNd+79GeTvKjxTvt9MkyO8k3aqWyNqT331ITnVICtksN1TVMCp8GVeDudNMr2PLSW0alOduR5unuEgTWrqHoaTGOovQx0PVjudNlpZ80ANK9hqaC/ZhLLOtNpJ3fZnjs06PzrPLGhE/IeccY1n8sYDvGm1QA9TN6JaaGPl1Pj6ecy16k0XuF/PKGHTL0M4LCpxSS6T87oFFH1zHkKtmbJp3aAI4bt3ihbQmwFb29JyMgL7ZOy+zrIwXGILh1KQGWQQv1uXXnAuqQy29HeFXs6D2hDHxHlBk5ZQ+vgRtsvRvGnq58vJ3CapjntfL3pOINUj1avLyAZxjasBWMTwaZs9JQ4ZIMekzkIk05lh9XfDSeULk2yKaH8YSCC6ENUHxSWa6pPHJfOdp9kXwOtlp09/VTTAikKy862k9ybN4bRWZB45B9Pv5scna8IX3rthIXUih8c="
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-CrossTenant-AuthAs",
+                    "data_type": "string",
+                    "example_values": [
+                        "Internal"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-CrossTenant-AuthSource",
+                    "data_type": "string",
+                    "example_values": [
+                        "SJ0PR22MB4941.namprd11.prod.outlook.com"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-CrossTenant-FromEntityHeader",
+                    "data_type": "string",
+                    "example_values": [
+                        "Internet"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-CrossTenant-Id",
+                    "data_type": "string",
+                    "example_values": [
+                        "a417c578-c7ee-480d-a225-d48057e74df5"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-CrossTenant-MailboxType",
+                    "data_type": "string",
+                    "example_values": [
+                        "HOSTED"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-CrossTenant-Network-Message-Id",
+                    "data_type": "string",
+                    "example_values": [
+                        "4b1ef179-4fe7-4248-7ec0-08d81367956e"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-CrossTenant-OriginalArrivalTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "18 Jun 2020 09:11:28.2511 (UTC)"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-CrossTenant-UserPrincipalName",
+                    "data_type": "string",
+                    "example_values": [
+                        "bs91VnpEPjrqCnvlIeymwO6ye5P9rggHggVNUPUbV/tC9uuFPVFOYg7e/Cd0MeGmSqT4AlLW0Nn4ZeEqNieSf/D1gp5iLz/YkwjXhYUSJnLRb/csQN4sRMMZsX3LUkKkwVpifaeJzoukLu8qSWn7og=="
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-Organization-AuthAs",
+                    "data_type": "string",
+                    "example_values": [
+                        "Anonymous"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-Organization-AuthMechanism",
+                    "data_type": "string",
+                    "example_values": [
+                        "04"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-Organization-AuthSource",
+                    "data_type": "string",
+                    "example_values": [
+                        "DM6NAM11FT055.eop-nam11.prod.protection.outlook.com"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-Organization-ExpirationInterval",
+                    "data_type": "string",
+                    "example_values": [
+                        "1:00:00:00.0000000"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-Organization-ExpirationIntervalReason",
+                    "data_type": "string",
+                    "example_values": [
+                        "OriginalSubmit"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-Organization-ExpirationStartTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "18 Jun 2020 09:11:28.2531 (UTC)"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-Organization-ExpirationStartTimeReason",
+                    "data_type": "string",
+                    "example_values": [
+                        "OriginalSubmit"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-Organization-MessageDirectionality",
+                    "data_type": "string",
+                    "example_values": [
+                        "Incoming"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-Organization-Network-Message-Id",
+                    "data_type": "string",
+                    "example_values": [
+                        "4b1ef179-4fe7-4248-7ec0-08d81367956e"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-Organization-SCL",
+                    "data_type": "string",
+                    "example_values": [
+                        "-1"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-Processed-By-BccFoldering",
+                    "data_type": "string",
+                    "example_values": [
+                        "15.20.3109.017"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-Transport-CrossTenantHeadersStamped",
+                    "data_type": "string",
+                    "example_values": [
+                        "BN6PR18MB1492"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-Transport-EndToEndLatency",
+                    "data_type": "string",
+                    "example_values": [
+                        "00:00:02.7417647"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Has-Attach",
+                    "data_type": "string",
+                    "example_values": [
+                        "yes"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Office365-Filtering-Correlation-Id",
+                    "data_type": "string",
+                    "example_values": [
+                        "4b1ef179-4fe7-4248-7ec0-08d81367956e"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Oob-TLC-OOBClassifiers",
+                    "data_type": "string",
+                    "example_values": [
+                        "OLM:1728;"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-PublicTrafficType",
+                    "data_type": "string",
+                    "example_values": [
+                        "Email"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-TNEF-Correlator",
+                    "data_type": "string",
+                    "example_values": [
+                        "<SJ0PR11CD49418BDA1BB4215EB8B890AED9B59@SJ0PR11MB4941.namprd11.prod.outlook.com>"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-TrafficTypeDiagnostic",
+                    "data_type": "string",
+                    "example_values": [
+                        "BN6PR18MB1492:"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-Microsoft-Antispam",
+                    "data_type": "string",
+                    "example_values": [
+                        "BCL:0;"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-Microsoft-Antispam-Mailbox-Delivery",
+                    "data_type": "string",
+                    "example_values": [
+                        "wl:1;pcwl:1;ucf:0;jmr:0;auth:0;dest:I;ENG:(750128)(520011016)(520004050)(702028)(944506458)(944626604);"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-Microsoft-Antispam-Message-Info",
+                    "data_type": "string",
+                    "example_values": [
+                        "La+CSxAnpzVJOXq7njrFPhIbsh0khleSwldy+W8NYDRsoyyPruPIiId4Avama7JyfzrxoExzhLk5pDn2lGPAJIpdcguiDSsDQg5T+iBCJgFeaEJXjhstECMi842/JGawB9WsiGw9Q/PpvjO5H/2fNLlQZVZW3AAQVZSsX3az4iOsv1Ggj4aYZRMKHmPAtniWOEtQD7zAEWC0jIZf613lWy3vxHfb/3+pV9X8zqPqazbyGy5Q14PICSNkKnvIw8rmeqJV8eSHhvR51Lchib6OIN4xOpLWxkSkBTt5B95RUPnpgPvgp2yLo0Q+EYRIabLDQ0kMsv+24+RnFmr9vo2gRNuFusw8iEPsVEQyhfgIWtBtsBpyvyykxcfa6lIdzQhixZH3Tlkdh1kb15wFS3Ooz3CjaWbY8jcUot5l1p08Ypsj6r7CpIo3xE6jE0x/EeUkDK3Fu/Ol0pOsJ1N5W4iJLdjqSQM3l/t9QWlcPhD8s6D7D7JM5OUHCeFEPr7sSL+P/5zTgBaeUvwtZrlQSH2GHc+5gPW8rkwlwJLJftVEid0gO2PUOrzItzME5PXYAcdx++sF3XC1YMPLet/jMpX8T7/z7+hxFxNyifgmGJ+DkNOec7yGkkcLBz6iCaHx7OrRGwDHIcdAtV85wCk3NEDDiKyHivQpwp/gY55W+wkLe7aqSHmFzm1rUSslx+DWz8w2EgSjJxOmf0JkoNKbTFl3FObkocR0lUUQUnETuoAXUqvpWGD5B69W9XXUM8c43ozz2oBZseheSAtkLil3tMIr/CMCMILPX/LdoErNtkmiFXCPqaLFSSeyO61oCMl6Ezndtwp22nwMPUg5ofG0kdqFuTW122umhy9C6h5BcREaLhWclSyqDoZPB9RvkRlI2kTRwuwbuFW3iOMzmVwxLIQH9K5JkxdMvC3hvNpjVgz7Q2ZnEF3xSNqeoWVQvkaIe8rQLUc8s+HMRUmSERGdfSuQJAx47g8PDs9s3rS/ThUSzIaljJPbUgXEnFg/G6h3I/yXLj2Nj2OG50snoI5jJmE4+69YmNwasdDZuYpnuQeFgu11HtsLniDthJdjEJyYC1utZNt9hgA+6JlLnm7Dxb43cSIiW8ev+3X+b2kREj2k/m8fSz7YgtoCB8AkuiVXRaH3EUiq8XCExbbWeynKRgwCZ6bzvfSiT3+cg+QQKPHFc/cgot56ta6X80tjhFodpTQNTE6V6C9QFHJ3JCVhsSzVifJAc8crI5hAcPbKFEIjinENcfpF/8reo2Yr1xFElhoX"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-Originating-IP",
+                    "data_type": "string",
+                    "example_values": [
+                        "[5.38.181.162]"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-Received",
+                    "data_type": "string",
+                    "example_values": [
+                        "by 2002:aa7:84d9:: with SMTP id x25mr2807688pfn.300.1592471487394;        Thu, 18 Jun 2020 02:11:27 -0700 (PDT)"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.subject",
+                    "data_type": "string",
+                    "example_values": [
+                        "test html"
+                    ]
+                },
+                {
                     "data_path": "action_result.data.*.internetMessageId",
                     "data_type": "string",
                     "example_values": [
@@ -2708,8 +3385,11 @@
                 },
                 {
                     "data_path": "action_result.data.*.isDeliveryReceiptRequested",
-                    "data_type": "string",
-                    "example_values": []
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.isDraft",
@@ -2832,8 +3512,12 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.summary",
-                    "data_type": "string"
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
                 },
                 {
                     "data_path": "action_result.message",
@@ -2841,6 +3525,10 @@
                     "example_values": [
                         "Successfully fetched email"
                     ]
+                },
+                {
+                    "data_path": "action_result.summary",
+                    "data_type": "string"
                 },
                 {
                     "data_path": "summary.total_objects",
@@ -2854,311 +3542,6 @@
                     "data_type": "numeric",
                     "example_values": [
                         1
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.flag.flagStatus",
-                    "data_type": "string",
-                    "example_values": [
-                        "notFlagged"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.Return-Path",
-                    "data_type": "string",
-                    "example_values": [
-                        "notifications@testdomain.com"
-                    ],
-                    "contains": [
-                        "email"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-Organization-ExpirationInterval",
-                    "data_type": "string",
-                    "example_values": [
-                        "1:00:00:00.0000000"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-Transport-EndToEndLatency",
-                    "data_type": "string",
-                    "example_values": [
-                        "00:00:02.7417647"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.Received-SPF",
-                    "data_type": "string",
-                    "example_values": [
-                        "Pass (protection.outlook.com: domain of testdomain.com designates 209.85.210.171 as permitted sender) receiver=protection.outlook.com; client-ip=209.85.210.171; helo=mail-pf1-f171.google.com;"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.Authentication-Results",
-                    "data_type": "string",
-                    "example_values": [
-                        "spf=pass (sender IP is 209.85.210.171) smtp.mailfrom=testdomain.com; .onmicrosoft.com; dkim=pass (signature was verified) header.d=testdomain.com.20150623.gappssmtp.com;.onmicrosoft.com; dmarc=pass action=none header.from=testdomain.com;compauth=pass reason=100"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.X-Microsoft-Antispam",
-                    "data_type": "string",
-                    "example_values": [
-                        "BCL:0;"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-Processed-By-BccFoldering",
-                    "data_type": "string",
-                    "example_values": [
-                        "15.20.3109.017"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.Message-ID",
-                    "data_type": "string",
-                    "example_values": [
-                        "<5eeb2fbe.1c69fb81.22b4b.676a@mx.google.com>"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.subject",
-                    "data_type": "string",
-                    "example_values": [
-                        "test html"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-Organization-ExpirationStartTime",
-                    "data_type": "string",
-                    "example_values": [
-                        "18 Jun 2020 09:11:28.2531 (UTC)"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Oob-TLC-OOBClassifiers",
-                    "data_type": "string",
-                    "example_values": [
-                        "OLM:1728;"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.X-EOPTenantAttributedMessage",
-                    "data_type": "string",
-                    "example_values": [
-                        "a417c578-c7ee-480d-a225-d48057e74df5:0"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.X-EOPAttributedMessage",
-                    "data_type": "string",
-                    "example_values": [
-                        "0"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-Organization-AuthAs",
-                    "data_type": "string",
-                    "example_values": [
-                        "Anonymous"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.X-Microsoft-Antispam-Mailbox-Delivery",
-                    "data_type": "string",
-                    "example_values": [
-                        "wl:1;pcwl:1;ucf:0;jmr:0;auth:0;dest:I;ENG:(750128)(520011016)(520004050)(702028)(944506458)(944626604);"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.X-Google-DKIM-Signature",
-                    "data_type": "string",
-                    "example_values": [
-                        "v=1; a=rsa-sha256; c=relaxed/relaxed;        d=1e100.net; s=20161025;        h=x-gm-message-state:message-id:date:mime-version:from:to:subject;        bh=tlTaRbacq4aWozhUPvcWg8i8flbpYQGZNs27nncn83I=;        b=fPT47NIiheeY6GM0bxUOlsmnOgN4WuiOlalFvZqrAiFiOoYk6zrznvgIcAtiHZ4nxE         naQAa+mZs5svqRjib3YI52OvR5U8MitIYaa0Rt3LyYSUO1s3iKTUs4nHyRnqPt1skNl7         2OUwsZPXo3ShJDw/uxZRu/cuN1iIfeuE02PrbR04p4D8+1XRslqt/Xqm/bOWKUauqZWe         dH1E7meFY01hXxODreO4nWHIhsZgr49TpP/OqRyFcyKHHFFg2sPGXz+QNah6jP4YQUYd         Tty2wzOX3nc/YS7TkVo3ORmbzh9o+UZaqH8wHbQlyTdklYxoMPvJwZTo72rTxZeqiJ9E         J7PQ=="
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-Organization-ExpirationIntervalReason",
-                    "data_type": "string",
-                    "example_values": [
-                        "OriginalSubmit"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.Date",
-                    "data_type": "string",
-                    "example_values": [
-                        "Thu, 18 Jun 2020 02:11:26 -0700"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-Organization-AuthSource",
-                    "data_type": "string",
-                    "example_values": [
-                        "DM6NAM11FT055.eop-nam11.prod.protection.outlook.com"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.Received",
-                    "data_type": "string",
-                    "example_values": [
-                        "from localhost.localdomain (host-240.splunk.com. [204.107.141.240])        by smtp.gmail.com with UTF8SMTPSA id ng12sm1923252pjb.15.2020.06.18.02.11.26        for <test@onmicrosoft.com>        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);        Thu, 18 Jun 2020 02:11:26 -0700 (PDT)"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-Transport-CrossTenantHeadersStamped",
-                    "data_type": "string",
-                    "example_values": [
-                        "BN6PR18MB1492"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.X-Received",
-                    "data_type": "string",
-                    "example_values": [
-                        "by 2002:aa7:84d9:: with SMTP id x25mr2807688pfn.300.1592471487394;        Thu, 18 Jun 2020 02:11:27 -0700 (PDT)"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.X-Microsoft-Antispam-Message-Info",
-                    "data_type": "string",
-                    "example_values": [
-                        "La+CSxAnpzVJOXq7njrFPhIbsh0khleSwldy+W8NYDRsoyyPruPIiId4Avama7JyfzrxoExzhLk5pDn2lGPAJIpdcguiDSsDQg5T+iBCJgFeaEJXjhstECMi842/JGawB9WsiGw9Q/PpvjO5H/2fNLlQZVZW3AAQVZSsX3az4iOsv1Ggj4aYZRMKHmPAtniWOEtQD7zAEWC0jIZf613lWy3vxHfb/3+pV9X8zqPqazbyGy5Q14PICSNkKnvIw8rmeqJV8eSHhvR51Lchib6OIN4xOpLWxkSkBTt5B95RUPnpgPvgp2yLo0Q+EYRIabLDQ0kMsv+24+RnFmr9vo2gRNuFusw8iEPsVEQyhfgIWtBtsBpyvyykxcfa6lIdzQhixZH3Tlkdh1kb15wFS3Ooz3CjaWbY8jcUot5l1p08Ypsj6r7CpIo3xE6jE0x/EeUkDK3Fu/Ol0pOsJ1N5W4iJLdjqSQM3l/t9QWlcPhD8s6D7D7JM5OUHCeFEPr7sSL+P/5zTgBaeUvwtZrlQSH2GHc+5gPW8rkwlwJLJftVEid0gO2PUOrzItzME5PXYAcdx++sF3XC1YMPLet/jMpX8T7/z7+hxFxNyifgmGJ+DkNOec7yGkkcLBz6iCaHx7OrRGwDHIcdAtV85wCk3NEDDiKyHivQpwp/gY55W+wkLe7aqSHmFzm1rUSslx+DWz8w2EgSjJxOmf0JkoNKbTFl3FObkocR0lUUQUnETuoAXUqvpWGD5B69W9XXUM8c43ozz2oBZseheSAtkLil3tMIr/CMCMILPX/LdoErNtkmiFXCPqaLFSSeyO61oCMl6Ezndtwp22nwMPUg5ofG0kdqFuTW122umhy9C6h5BcREaLhWclSyqDoZPB9RvkRlI2kTRwuwbuFW3iOMzmVwxLIQH9K5JkxdMvC3hvNpjVgz7Q2ZnEF3xSNqeoWVQvkaIe8rQLUc8s+HMRUmSERGdfSuQJAx47g8PDs9s3rS/ThUSzIaljJPbUgXEnFg/G6h3I/yXLj2Nj2OG50snoI5jJmE4+69YmNwasdDZuYpnuQeFgu11HtsLniDthJdjEJyYC1utZNt9hgA+6JlLnm7Dxb43cSIiW8ev+3X+b2kREj2k/m8fSz7YgtoCB8AkuiVXRaH3EUiq8XCExbbWeynKRgwCZ6bzvfSiT3+cg+QQKPHFc/cgot56ta6X80tjhFodpTQNTE6V6C9QFHJ3JCVhsSzVifJAc8crI5hAcPbKFEIjinENcfpF/8reo2Yr1xFElhoX"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-CrossTenant-Id",
-                    "data_type": "string",
-                    "example_values": [
-                        "a417c578-c7ee-480d-a225-d48057e74df5"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Office365-Filtering-Correlation-Id",
-                    "data_type": "string",
-                    "example_values": [
-                        "4b1ef179-4fe7-4248-7ec0-08d81367956e"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-Organization-Network-Message-Id",
-                    "data_type": "string",
-                    "example_values": [
-                        "4b1ef179-4fe7-4248-7ec0-08d81367956e"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-TrafficTypeDiagnostic",
-                    "data_type": "string",
-                    "example_values": [
-                        "BN6PR18MB1492:"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-CrossTenant-FromEntityHeader",
-                    "data_type": "string",
-                    "example_values": [
-                        "Internet"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-CrossTenant-Network-Message-Id",
-                    "data_type": "string",
-                    "example_values": [
-                        "4b1ef179-4fe7-4248-7ec0-08d81367956e"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-PublicTrafficType",
-                    "data_type": "string",
-                    "example_values": [
-                        "Email"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-CrossTenant-OriginalArrivalTime",
-                    "data_type": "string",
-                    "example_values": [
-                        "18 Jun 2020 09:11:28.2511 (UTC)"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.MIME-Version",
-                    "data_type": "string",
-                    "example_values": [
-                        "1.0"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-Organization-SCL",
-                    "data_type": "string",
-                    "example_values": [
-                        "-1"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.X-Gm-Message-State",
-                    "data_type": "string",
-                    "example_values": [
-                        "AOAM533ynFERIhSIewEEkj4b8B1rPNOEeie1IxBdrd55treEMtBa1jkL\tcO5ee4Ff6p0FYedfFtVtHKiCglGTpFTOSw=="
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-Organization-MessageDirectionality",
-                    "data_type": "string",
-                    "example_values": [
-                        "Incoming"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.DKIM-Signature",
-                    "data_type": "string",
-                    "example_values": [
-                        "v=1; a=rsa-sha256; c=relaxed/relaxed;        d=testdomain.com.20150623.gappssmtp.com; s=20150623;        h=message-id:date:mime-version:from:to:subject;        bh=tlTaRbacq4aWozhUPvcWg8i8flbpYQGZNs27nncn83I=;        b=avAAeJ8jF08K4oIBhxTirRmyB+SXHwdU0zdxv7eqs/zWaWWcgmT0007KP560TTgo5u         oD4nb6TvKxpRyWW4QwmkbuMIwHsMvehd2l1gispV3AawyGJjpmN7ErVYfLtIkz2Tap3V         YxmluV+SqeyyxTU8pFAEZ7+2C2lOb1DO5TC7xCMv+dyzevSscJdbeN0dFkG+C93zCqkg         w2fxubx2HDD7b/U6m2wXllYhH608wKJ/qYzyvQyqxYqNiQOtPRg2gw4sZ2UgN3+UQyVq         8ubO39ZuqakJpzEzYMw10d6E7SQhvHDJH7mFwhBlzhvOpb2gLJDN8n8dJaZo05BozQqq         MsvA=="
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.X-Forefront-Antispam-Report",
-                    "data_type": "string",
-                    "example_values": [
-                        "CIP:209.85.210.171;CTRY:US;LANG:en;SCL:-1;SRV:;IPV:NLI;SFV:SFE;H:mail-pf1-f171.google.com;PTR:mail-pf1-f171.google.com;CAT:NONE;SFTY:;SFS:;DIR:INB;SFP:;"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.Content-Type",
-                    "data_type": "string",
-                    "example_values": [
-                        "multipart/related"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.X-Google-Smtp-Source",
-                    "data_type": "string",
-                    "example_values": [
-                        "ABdhPJxrYC7raBubCCIOmauxmxryzS9KsihTN6XCRgaNp2rDrG71TVxryzYCtelFOZ2Xj1LzcYIiMA=="
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-Organization-ExpirationStartTimeReason",
-                    "data_type": "string",
-                    "example_values": [
-                        "OriginalSubmit"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.conversationIndex",
-                    "data_type": "string",
-                    "example_values": [
-                        "AQHWRVB0TS7xy6ZOSEeEl0ahrRHNfQ=="
-                    ]
-                },
-                {
-                    "data_path": "action_result.parameter.extract_headers",
-                    "data_type": "boolean",
-                    "example_values": [
-                        true,
-                        false
                     ]
                 }
             ],
@@ -3227,10 +3610,81 @@
             },
             "output": [
                 {
-                    "data_path": "action_result.status",
+                    "data_path": "action_result.parameter.email_address",
                     "data_type": "string",
                     "example_values": [
-                        "success"
+                        "user@onmicrosoft.com"
+                    ],
+                    "contains": [
+                        "email"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.get_body",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.get_headers",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.get_sender",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.get_unique_body",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.id",
+                    "data_type": "string",
+                    "example_values": [
+                        "AQMkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQBGAAADyW3X5P7Hb0_MMHKonvdoWQcAQSl1b8BFiEmbqZql_JiUtwAAAgEMAAAAQSl1b8BFiEmbqZql_JiUtwADu9Tv8QAAAA=="
+                    ],
+                    "contains": [
+                        "msgoffice365 message id"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.properties_list",
+                    "data_type": "string",
+                    "example_values": [
+                        "subject",
+                        "subject,receivedDateTime"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.@odata.context",
+                    "data_type": "string",
+                    "example_values": [
+                        "https://graph.microsoft.com/v1.0/$metadata#users('user%40.onmicrosoft.com')/messages(internetMessageHeaders,body,uniqueBody,sender,subject)/$entity",
+                        "https://graph.microsoft.com/v1.0/$metadata#users('user%40.onmicrosoft.com')/messages(internetMessageHeaders,body,uniqueBody,sender,subject,receivedDateTime)/$entity"
+                    ],
+                    "contains": [
+                        "url"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.@odata.etag",
+                    "data_type": "string",
+                    "example_values": [
+                        "W/\"CQAAABYAAABBKXVvwEWISZupmqX4mJS3AAO8DBJl\""
                     ]
                 },
                 {
@@ -3248,13 +3702,433 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.data.*.sender.emailAddress.name",
+                    "data_path": "action_result.data.*.id",
+                    "data_type": "string",
+                    "example_values": [
+                        "AQMkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQBGAAADyW3X5P7Hb0_MMHKonvdoWQcAQSl1b8BFiEmbqZql_JiUtwAAAgEMAAAAQSl1b8BFiEmbqZql_JiUtwADu9Tv8QAAAA=="
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.Accept-Language",
+                    "data_type": "string",
+                    "example_values": [
+                        "en-US"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.Authentication-Results",
+                    "data_type": "string",
+                    "example_values": [
+                        "spf=pass (sender IP is 209.85.210.171) smtp.mailfrom=testdomain.com; .onmicrosoft.com; dkim=pass (signature was verified) header.d=testdomain.com.20150623.gappssmtp.com;.onmicrosoft.com; dmarc=pass action=none header.from=testdomain.com;compauth=pass reason=100"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.Content-Language",
+                    "data_type": "string",
+                    "example_values": [
+                        "en-US"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.Content-Transfer-Encoding",
+                    "data_type": "string",
+                    "example_values": [
+                        "binary"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.Content-Type",
+                    "data_type": "string",
+                    "example_values": [
+                        "multipart/related"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.DKIM-Signature",
+                    "data_type": "string",
+                    "example_values": [
+                        "v=1; a=rsa-sha256; c=relaxed/relaxed;        d=testdomain.com.20150623.gappssmtp.com; s=20150623;        h=message-id:date:mime-version:from:to:subject;        bh=tlTaRbacq4aWozhUPvcWg8i8flbpYQGZNs27nncn83I=;        b=avAAeJ8jF08K4oIBhxTirRmyB+SXHwdU0zdxv7eqs/zWaWWcgmT0007KP560TTgo5u         oD4nb6TvKxpRyWW4QwmkbuMIwHsMvehd2l1gispV3AawyGJjpmN7ErVYfLtIkz2Tap3V         YxmluV+SqeyyxTU8pFAEZ7+2C2lOb1DO5TC7xCMv+dyzevSscJdbeN0dFkG+C93zCqkg         w2fxubx2HDD7b/U6m2wXllYhH608wKJ/qYzyvQyqxYqNiQOtPRg2gw4sZ2UgN3+UQyVq         8ubO39ZuqakJpzEzYMw10d6E7SQhvHDJH7mFwhBlzhvOpb2gLJDN8n8dJaZo05BozQqq         MsvA=="
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.Date",
+                    "data_type": "string",
+                    "example_values": [
+                        "Thu, 18 Jun 2020 02:11:26 -0700"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.From",
+                    "data_type": "string",
+                    "example_values": [
+                        "\"Test\" <test@abc.def.com>"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.In-Reply-To",
+                    "data_type": "string",
+                    "example_values": [
+                        "<DM6QX11MB40266715C3C22ACE4E45D182D9730@DM6PR11MB4026.namprd11.prod.outlook.com>"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.MIME-Version",
+                    "data_type": "string",
+                    "example_values": [
+                        "1.0"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.Message-ID",
+                    "data_type": "string",
+                    "example_values": [
+                        "<5eeb2fbe.1c69fb81.22b4b.676a@mx.google.com>"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.Received",
+                    "data_type": "string",
+                    "example_values": [
+                        "from localhost.localdomain (host-240.splunk.com. [204.107.141.240])        by smtp.gmail.com with UTF8SMTPSA id ng12sm1923252pjb.15.2020.06.18.02.11.26        for <user@onmicrosoft.com>        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);        Thu, 18 Jun 2020 02:11:26 -0700 (PDT)"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.Received-SPF",
+                    "data_type": "string",
+                    "example_values": [
+                        "Pass (protection.outlook.com: domain of testdomain.com designates 209.85.210.171 as permitted sender) receiver=protection.outlook.com; client-ip=209.85.210.171; helo=mail-pf1-f171.google.com;"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.References",
+                    "data_type": "string",
+                    "example_values": [
+                        "<DM6PR11MB40266715C3C22ACE4E45D182D9730@DM6PR11MB4034.namprd11.prod.outlook.com>"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.Return-Path",
                     "data_type": "string",
                     "example_values": [
                         "notifications@testdomain.com"
                     ],
                     "contains": [
                         "email"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.Subject",
+                    "data_type": "string",
+                    "example_values": [
+                        "Fw: Email having different attachments"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.Thread-Index",
+                    "data_type": "string",
+                    "example_values": [
+                        "AQHWZLqyXR4k4Sc6skyFCMPITcMsbKpGS7Bm"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.Thread-Topic",
+                    "data_type": "string",
+                    "example_values": [
+                        "Email having different attachments"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.To",
+                    "data_type": "string",
+                    "example_values": [
+                        "\"Test\" <test@abc.def.com>"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-EOPAttributedMessage",
+                    "data_type": "string",
+                    "example_values": [
+                        "0"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-EOPTenantAttributedMessage",
+                    "data_type": "string",
+                    "example_values": [
+                        "a417c578-c7ee-480d-a225-d48057e74df5:0"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-Forefront-Antispam-Report",
+                    "data_type": "string",
+                    "example_values": [
+                        "CIP:209.85.210.171;CTRY:US;LANG:en;SCL:-1;SRV:;IPV:NLI;SFV:SFE;H:mail-pf1-f171.google.com;PTR:mail-pf1-f171.google.com;CAT:NONE;SFTY:;SFS:;DIR:INB;SFP:;"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-Gm-Message-State",
+                    "data_type": "string",
+                    "example_values": [
+                        "AOAM533ynFERIhSIewEEkj4b8B1rPNOEeie1IxBdrd55treEMtBa1jkL\tcO5ee4Ff6p0FYedfFtVtHKiCglGTpFTOSw=="
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-Google-DKIM-Signature",
+                    "data_type": "string",
+                    "example_values": [
+                        "v=1; a=rsa-sha256; c=relaxed/relaxed;        d=1e100.net; s=20161025;        h=x-gm-message-state:message-id:date:mime-version:from:to:subject;        bh=tlTaRbacq4aWozhUPvcWg8i8flbpYQGZNs27nncn83I=;        b=fPT47NIiheeY6GM0bxUOlsmnOgN4WuiOlalFvZqrAiFiOoYk6zrznvgIcAtiHZ4nxE         naQAa+mZs5svqRjib3YI52OvR5U8MitIYaa0Rt3LyYSUO1s3iKTUs4nHyRnqPt1skNl7         2OUwsZPXo3ShJDw/uxZRu/cuN1iIfeuE02PrbR04p4D8+1XRslqt/Xqm/bOWKUauqZWe         dH1E7meFY01hXxODreO4nWHIhsZgr49TpP/OqRyFcyKHHFFg2sPGXz+QNah6jP4YQUYd         Tty2wzOX3nc/YS7TkVo3ORmbzh9o+UZaqH8wHbQlyTdklYxoMPvJwZTo72rTxZeqiJ9E         J7PQ=="
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-Google-Smtp-Source",
+                    "data_type": "string",
+                    "example_values": [
+                        "ABdhPJxrYC7raBubCCIOmauxmxryzS9KsihTN6XCRgaNp2rDrG71TVxryzYCtelFOZ2Xj1LzcYIiMA=="
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-AntiSpam-MessageData",
+                    "data_type": "string",
+                    "example_values": [
+                        "VSM9HTzub/OH3NCwKXEQqkkzjnhdw5kXsgd9WM0SRgZ0qRdPg5D9/o3LA7lf8ziXc5k0mm9M5mHvFoYePXNXs/MGhGdBGxa/qUQ+FVHA2mDgfPkamJCEZxz//OX/uruTDo+zF4p9D1dQJpnIpx1M75OhuvrHX/BxWWzyAh78DXfF214YHdyFBCYepwl56CS7+fSGQL/r3p+OvWIBnIkISC+HJljSro2k47pPPAkspMhoUkb+zklyENFjez+JcEHYlih2FiNeUO8kb9b7qvlm3zPK98HLspzDh4BojpQ6Ff330iy7nfIK726tCMByxjOdnEQSB9Ua2sbE5gxSeeWL8MB5DHcQSSsXg+sR8w4gXrXLO3meE0lNQKRoAv2b1U0Q+yM0QBqeQWlymZG21bKeuH4gtAFQvfXNjoCtIbBQK1n7ZnL7fI21FJZRcMcKEneus6gLYUqD4PdLEq9FEGbfgiLmVYeUAL2A0Q/gectvL1OVudtHVR5gFMJKt65F1OtS04CPulfLLFSl1F4AzpjjtBSyQcK9R7bOsjoHxQXPMd9fMCzMSIq5f551pO0klKqWY7l11Un2Noj6CA7EtXiD1bTv8JmYQEKR+0HTZagNd+79GeTvKjxTvt9MkyO8k3aqWyNqT331ITnVICtksN1TVMCp8GVeDudNMr2PLSW0alOduR5unuEgTWrqHoaTGOovQx0PVjudNlpZ80ANK9hqaC/ZhLLOtNpJ3fZnjs06PzrPLGhE/IeccY1n8sYDvGm1QA9TN6JaaGPl1Pj6ecy16k0XuF/PKGHTL0M4LCpxSS6T87oFFH1zHkKtmbJp3aAI4bt3ihbQmwFb29JyMgL7ZOy+zrIwXGILh1KQGWQQv1uXXnAuqQy29HeFXs6D2hDHxHlBk5ZQ+vgRtsvRvGnq58vJ3CapjntfL3pOINUj1avLyAZxjasBWMTwaZs9JQ4ZIMekzkIk05lh9XfDSeULk2yKaH8YSCC6ENUHxSWa6pPHJfOdp9kXwOtlp09/VTTAikKy862k9ybN4bRWZB45B9Pv5scna8IX3rthIXUih8c="
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-CrossTenant-AuthAs",
+                    "data_type": "string",
+                    "example_values": [
+                        "Internal"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-CrossTenant-AuthSource",
+                    "data_type": "string",
+                    "example_values": [
+                        "SJ0QA11MB4941.namprd11.prod.outlook.com"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-CrossTenant-FromEntityHeader",
+                    "data_type": "string",
+                    "example_values": [
+                        "Internet"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-CrossTenant-Id",
+                    "data_type": "string",
+                    "example_values": [
+                        "a417c578-c7ee-480d-a225-d48057e74df5"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-CrossTenant-MailboxType",
+                    "data_type": "string",
+                    "example_values": [
+                        "HOSTED"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-CrossTenant-Network-Message-Id",
+                    "data_type": "string",
+                    "example_values": [
+                        "4b1ef179-4fe7-4248-7ec0-08d81367956e"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-CrossTenant-OriginalArrivalTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "18 Jun 2020 09:11:28.2511 (UTC)"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-CrossTenant-UserPrincipalName",
+                    "data_type": "string",
+                    "example_values": [
+                        "bs91VnpEPjrqCnvlIeymwO6ye4Q8rggHggVNUPUbV/tC9uuFPVFOYg7e/Cd0MeGmSqT4AlLW0Nn4ZeEqNieSf/D1gp5iLz/YkwjXhYUSJnLRb/csQN4sRMMZsX3LUkKkwVpifaeJzoukLu8qSWn7og=="
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-Organization-AuthAs",
+                    "data_type": "string",
+                    "example_values": [
+                        "Anonymous"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-Organization-AuthMechanism",
+                    "data_type": "string",
+                    "example_values": [
+                        "04"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-Organization-AuthSource",
+                    "data_type": "string",
+                    "example_values": [
+                        "DM6NAM11FT055.eop-nam11.prod.protection.outlook.com"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-Organization-ExpirationInterval",
+                    "data_type": "string",
+                    "example_values": [
+                        "1:00:00:00.0000000"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-Organization-ExpirationIntervalReason",
+                    "data_type": "string",
+                    "example_values": [
+                        "OriginalSubmit"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-Organization-ExpirationStartTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "18 Jun 2020 09:11:28.2531 (UTC)"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-Organization-ExpirationStartTimeReason",
+                    "data_type": "string",
+                    "example_values": [
+                        "OriginalSubmit"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-Organization-MessageDirectionality",
+                    "data_type": "string",
+                    "example_values": [
+                        "Incoming"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-Organization-Network-Message-Id",
+                    "data_type": "string",
+                    "example_values": [
+                        "4b1ef179-4fe7-4248-7ec0-08d81367956e"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-Organization-SCL",
+                    "data_type": "string",
+                    "example_values": [
+                        "-1"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-Processed-By-BccFoldering",
+                    "data_type": "string",
+                    "example_values": [
+                        "15.20.3109.017"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-Transport-CrossTenantHeadersStamped",
+                    "data_type": "string",
+                    "example_values": [
+                        "BN6PR18MB1492"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-Transport-EndToEndLatency",
+                    "data_type": "string",
+                    "example_values": [
+                        "00:00:02.7417647"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Has-Attach",
+                    "data_type": "string",
+                    "example_values": [
+                        "yes"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Office365-Filtering-Correlation-Id",
+                    "data_type": "string",
+                    "example_values": [
+                        "4b1ef179-4fe7-4248-7ec0-08d81367956e"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Oob-TLC-OOBClassifiers",
+                    "data_type": "string",
+                    "example_values": [
+                        "OLM:1728;"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-PublicTrafficType",
+                    "data_type": "string",
+                    "example_values": [
+                        "Email"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-TNEF-Correlator",
+                    "data_type": "string",
+                    "example_values": [
+                        "<SJ0QM11MB49418BDA1BB4215EB8B890AED9B59@SJ0PR11MB4941.namprd11.prod.outlook.com>"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-TrafficTypeDiagnostic",
+                    "data_type": "string",
+                    "example_values": [
+                        "BN6PR18MB1492:"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-Microsoft-Antispam",
+                    "data_type": "string",
+                    "example_values": [
+                        "BCL:0;"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-Microsoft-Antispam-Mailbox-Delivery",
+                    "data_type": "string",
+                    "example_values": [
+                        "wl:1;pcwl:1;ucf:0;jmr:0;auth:0;dest:I;ENG:(750128)(520011016)(520004050)(702028)(944506458)(944626604);"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-Microsoft-Antispam-Message-Info",
+                    "data_type": "string",
+                    "example_values": [
+                        "La+CSxAnpzVJOXq7njrFPhIbsh0khleSwldy+W8NYDRsoyyPruPIiId4Avama7JyfzrxoExzhLk5pDn2lGPAJIpdcguiDSsDQg5T+iBCJgFeaEJXjhstECMi842/JGawB9WsiGw9Q/PpvjO5H/2fNLlQZVZW3AAQVZSsX3az4iOsv1Ggj4aYZRMKHmPAtniWOEtQD7zAEWC0jIZf613lWy3vxHfb/3+pV9X8zqPqazbyGy5Q14PICSNkKnvIw8rmeqJV8eSHhvR51Lchib6OIN4xOpLWxkSkBTt5B95RUPnpgPvgp2yLo0Q+EYRIabLDQ0kMsv+24+RnFmr9vo2gRNuFusw8iEPsVEQyhfgIWtBtsBpyvyykxcfa6lIdzQhixZH3Tlkdh1kb15wFS3Ooz3CjaWbY8jcUot5l1p08Ypsj6r7CpIo3xE6jE0x/EeUkDK3Fu/Ol0pOsJ1N5W4iJLdjqSQM3l/t9QWlcPhD8s6D7D7JM5OUHCeFEPr7sSL+P/5zTgBaeUvwtZrlQSH2GHc+5gPW8rkwlwJLJftVEid0gO2PUOrzItzME5PXYAcdx++sF3XC1YMPLet/jMpX8T7/z7+hxFxNyifgmGJ+DkNOec7yGkkcLBz6iCaHx7OrRGwDHIcdAtV85wCk3NEDDiKyHivQpwp/gY55W+wkLe7aqSHmFzm1rUSslx+DWz8w2EgSjJxOmf0JkoNKbTFl3FObkocR0lUUQUnETuoAXUqvpWGD5B69W9XXUM8c43ozz2oBZseheSAtkLil3tMIr/CMCMILPX/LdoErNtkmiFXCPqaLFSSeyO61oCMl6Ezndtwp22nwMPUg5ofG0kdqFuTW122umhy9C6h5BcREaLhWclSyqDoZPB9RvkRlI2kTRwuwbuFW3iOMzmVwxLIQH9K5JkxdMvC3hvNpjVgz7Q2ZnEF3xSNqeoWVQvkaIe8rQLUc8s+HMRUmSERGdfSuQJAx47g8PDs9s3rS/ThUSzIaljJPbUgXEnFg/G6h3I/yXLj2Nj2OG50snoI5jJmE4+69YmNwasdDZuYpnuQeFgu11HtsLniDthJdjEJyYC1utZNt9hgA+6JlLnm7Dxb43cSIiW8ev+3X+b2kREj2k/m8fSz7YgtoCB8AkuiVXRaH3EUiq8XCExbbWeynKRgwCZ6bzvfSiT3+cg+QQKPHFc/cgot56ta6X80tjhFodpTQNTE6V6C9QFHJ3JCVhsSzVifJAc8crI5hAcPbKFEIjinENcfpF/8reo2Yr1xFElhoX"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-Originating-IP",
+                    "data_type": "string",
+                    "example_values": [
+                        "[2.39.180.162]"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-Received",
+                    "data_type": "string",
+                    "example_values": [
+                        "by 2002:aa7:84d9:: with SMTP id x25mr2807688pfn.300.1592471487394;        Thu, 18 Jun 2020 02:11:27 -0700 (PDT)"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.subject",
+                    "data_type": "string",
+                    "example_values": [
+                        "test html"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.receivedDateTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "2020-06-18T09:11:31Z"
                     ]
                 },
                 {
@@ -3268,14 +4142,20 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.data.*.@odata.context",
+                    "data_path": "action_result.data.*.sender.emailAddress.name",
                     "data_type": "string",
                     "example_values": [
-                        "https://graph.microsoft.com/v1.0/$metadata#users('user%40.onmicrosoft.com')/messages(internetMessageHeaders,body,uniqueBody,sender,subject)/$entity",
-                        "https://graph.microsoft.com/v1.0/$metadata#users('user%40.onmicrosoft.com')/messages(internetMessageHeaders,body,uniqueBody,sender,subject,receivedDateTime)/$entity"
+                        "notifications@testdomain.com"
                     ],
                     "contains": [
-                        "url"
+                        "email"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.subject",
+                    "data_type": "string",
+                    "example_values": [
+                        "test html"
                     ]
                 },
                 {
@@ -3293,24 +4173,11 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.data.*.subject",
+                    "data_path": "action_result.status",
                     "data_type": "string",
                     "example_values": [
-                        "test html"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.id",
-                    "data_type": "string",
-                    "example_values": [
-                        "AQMkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQBGAAADyW3X5P7Hb0_MMHKonvdoWQcAQSl1b8BFiEmbqZql_JiUtwAAAgEMAAAAQSl1b8BFiEmbqZql_JiUtwADu9Tv8QAAAA=="
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.@odata.etag",
-                    "data_type": "string",
-                    "example_values": [
-                        "W/\"CQAAABYAAABBKXVvwEWISZupmqX4mJS3AAO8DBJl\""
+                        "success",
+                        "failed"
                     ]
                 },
                 {
@@ -3318,66 +4185,6 @@
                     "data_type": "string",
                     "example_values": [
                         "Successfully fetched email"
-                    ]
-                },
-                {
-                    "data_path": "action_result.parameter.properties_list",
-                    "data_type": "string",
-                    "example_values": [
-                        "subject",
-                        "subject,receivedDateTime"
-                    ]
-                },
-                {
-                    "data_path": "action_result.parameter.get_unique_body",
-                    "data_type": "boolean",
-                    "example_values": [
-                        true,
-                        false
-                    ]
-                },
-                {
-                    "data_path": "action_result.parameter.get_headers",
-                    "data_type": "boolean",
-                    "example_values": [
-                        true,
-                        false
-                    ]
-                },
-                {
-                    "data_path": "action_result.parameter.get_body",
-                    "data_type": "boolean",
-                    "example_values": [
-                        true,
-                        false
-                    ]
-                },
-                {
-                    "data_path": "action_result.parameter.get_sender",
-                    "data_type": "boolean",
-                    "example_values": [
-                        true,
-                        false
-                    ]
-                },
-                {
-                    "data_path": "action_result.parameter.email_address",
-                    "data_type": "string",
-                    "example_values": [
-                        "user@onmicrosoft.com"
-                    ],
-                    "contains": [
-                        "email"
-                    ]
-                },
-                {
-                    "data_path": "action_result.parameter.id",
-                    "data_type": "string",
-                    "example_values": [
-                        "AQMkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQBGAAADyW3X5P7Hb0_MMHKonvdoWQcAQSl1b8BFiEmbqZql_JiUtwAAAgEMAAAAQSl1b8BFiEmbqZql_JiUtwADu9Tv8QAAAA=="
-                    ],
-                    "contains": [
-                        "msgoffice365 message id"
                     ]
                 },
                 {
@@ -3396,296 +4203,6 @@
                     "data_type": "numeric",
                     "example_values": [
                         1
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.Return-Path",
-                    "data_type": "string",
-                    "example_values": [
-                        "notifications@testdomain.com"
-                    ],
-                    "contains": [
-                        "email"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-Organization-ExpirationInterval",
-                    "data_type": "string",
-                    "example_values": [
-                        "1:00:00:00.0000000"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-Transport-EndToEndLatency",
-                    "data_type": "string",
-                    "example_values": [
-                        "00:00:02.7417647"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.Received-SPF",
-                    "data_type": "string",
-                    "example_values": [
-                        "Pass (protection.outlook.com: domain of testdomain.com designates 209.85.210.171 as permitted sender) receiver=protection.outlook.com; client-ip=209.85.210.171; helo=mail-pf1-f171.google.com;"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.Authentication-Results",
-                    "data_type": "string",
-                    "example_values": [
-                        "spf=pass (sender IP is 209.85.210.171) smtp.mailfrom=testdomain.com; .onmicrosoft.com; dkim=pass (signature was verified) header.d=testdomain.com.20150623.gappssmtp.com;.onmicrosoft.com; dmarc=pass action=none header.from=testdomain.com;compauth=pass reason=100"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.X-Microsoft-Antispam",
-                    "data_type": "string",
-                    "example_values": [
-                        "BCL:0;"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-Processed-By-BccFoldering",
-                    "data_type": "string",
-                    "example_values": [
-                        "15.20.3109.017"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.Message-ID",
-                    "data_type": "string",
-                    "example_values": [
-                        "<5eeb2fbe.1c69fb81.22b4b.676a@mx.google.com>"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.subject",
-                    "data_type": "string",
-                    "example_values": [
-                        "test html"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-Organization-ExpirationStartTime",
-                    "data_type": "string",
-                    "example_values": [
-                        "18 Jun 2020 09:11:28.2531 (UTC)"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Oob-TLC-OOBClassifiers",
-                    "data_type": "string",
-                    "example_values": [
-                        "OLM:1728;"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.X-EOPTenantAttributedMessage",
-                    "data_type": "string",
-                    "example_values": [
-                        "a417c578-c7ee-480d-a225-d48057e74df5:0"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.X-EOPAttributedMessage",
-                    "data_type": "string",
-                    "example_values": [
-                        "0"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-Organization-AuthAs",
-                    "data_type": "string",
-                    "example_values": [
-                        "Anonymous"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.X-Microsoft-Antispam-Mailbox-Delivery",
-                    "data_type": "string",
-                    "example_values": [
-                        "wl:1;pcwl:1;ucf:0;jmr:0;auth:0;dest:I;ENG:(750128)(520011016)(520004050)(702028)(944506458)(944626604);"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.X-Google-DKIM-Signature",
-                    "data_type": "string",
-                    "example_values": [
-                        "v=1; a=rsa-sha256; c=relaxed/relaxed;        d=1e100.net; s=20161025;        h=x-gm-message-state:message-id:date:mime-version:from:to:subject;        bh=tlTaRbacq4aWozhUPvcWg8i8flbpYQGZNs27nncn83I=;        b=fPT47NIiheeY6GM0bxUOlsmnOgN4WuiOlalFvZqrAiFiOoYk6zrznvgIcAtiHZ4nxE         naQAa+mZs5svqRjib3YI52OvR5U8MitIYaa0Rt3LyYSUO1s3iKTUs4nHyRnqPt1skNl7         2OUwsZPXo3ShJDw/uxZRu/cuN1iIfeuE02PrbR04p4D8+1XRslqt/Xqm/bOWKUauqZWe         dH1E7meFY01hXxODreO4nWHIhsZgr49TpP/OqRyFcyKHHFFg2sPGXz+QNah6jP4YQUYd         Tty2wzOX3nc/YS7TkVo3ORmbzh9o+UZaqH8wHbQlyTdklYxoMPvJwZTo72rTxZeqiJ9E         J7PQ=="
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-Organization-ExpirationIntervalReason",
-                    "data_type": "string",
-                    "example_values": [
-                        "OriginalSubmit"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.Date",
-                    "data_type": "string",
-                    "example_values": [
-                        "Thu, 18 Jun 2020 02:11:26 -0700"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-Organization-AuthSource",
-                    "data_type": "string",
-                    "example_values": [
-                        "DM6NAM11FT055.eop-nam11.prod.protection.outlook.com"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.Received",
-                    "data_type": "string",
-                    "example_values": [
-                        "from localhost.localdomain (host-240.splunk.com. [204.107.141.240])        by smtp.gmail.com with UTF8SMTPSA id ng12sm1923252pjb.15.2020.06.18.02.11.26        for <user@onmicrosoft.com>        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);        Thu, 18 Jun 2020 02:11:26 -0700 (PDT)"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-Transport-CrossTenantHeadersStamped",
-                    "data_type": "string",
-                    "example_values": [
-                        "BN6PR18MB1492"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.X-Received",
-                    "data_type": "string",
-                    "example_values": [
-                        "by 2002:aa7:84d9:: with SMTP id x25mr2807688pfn.300.1592471487394;        Thu, 18 Jun 2020 02:11:27 -0700 (PDT)"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.X-Microsoft-Antispam-Message-Info",
-                    "data_type": "string",
-                    "example_values": [
-                        "La+CSxAnpzVJOXq7njrFPhIbsh0khleSwldy+W8NYDRsoyyPruPIiId4Avama7JyfzrxoExzhLk5pDn2lGPAJIpdcguiDSsDQg5T+iBCJgFeaEJXjhstECMi842/JGawB9WsiGw9Q/PpvjO5H/2fNLlQZVZW3AAQVZSsX3az4iOsv1Ggj4aYZRMKHmPAtniWOEtQD7zAEWC0jIZf613lWy3vxHfb/3+pV9X8zqPqazbyGy5Q14PICSNkKnvIw8rmeqJV8eSHhvR51Lchib6OIN4xOpLWxkSkBTt5B95RUPnpgPvgp2yLo0Q+EYRIabLDQ0kMsv+24+RnFmr9vo2gRNuFusw8iEPsVEQyhfgIWtBtsBpyvyykxcfa6lIdzQhixZH3Tlkdh1kb15wFS3Ooz3CjaWbY8jcUot5l1p08Ypsj6r7CpIo3xE6jE0x/EeUkDK3Fu/Ol0pOsJ1N5W4iJLdjqSQM3l/t9QWlcPhD8s6D7D7JM5OUHCeFEPr7sSL+P/5zTgBaeUvwtZrlQSH2GHc+5gPW8rkwlwJLJftVEid0gO2PUOrzItzME5PXYAcdx++sF3XC1YMPLet/jMpX8T7/z7+hxFxNyifgmGJ+DkNOec7yGkkcLBz6iCaHx7OrRGwDHIcdAtV85wCk3NEDDiKyHivQpwp/gY55W+wkLe7aqSHmFzm1rUSslx+DWz8w2EgSjJxOmf0JkoNKbTFl3FObkocR0lUUQUnETuoAXUqvpWGD5B69W9XXUM8c43ozz2oBZseheSAtkLil3tMIr/CMCMILPX/LdoErNtkmiFXCPqaLFSSeyO61oCMl6Ezndtwp22nwMPUg5ofG0kdqFuTW122umhy9C6h5BcREaLhWclSyqDoZPB9RvkRlI2kTRwuwbuFW3iOMzmVwxLIQH9K5JkxdMvC3hvNpjVgz7Q2ZnEF3xSNqeoWVQvkaIe8rQLUc8s+HMRUmSERGdfSuQJAx47g8PDs9s3rS/ThUSzIaljJPbUgXEnFg/G6h3I/yXLj2Nj2OG50snoI5jJmE4+69YmNwasdDZuYpnuQeFgu11HtsLniDthJdjEJyYC1utZNt9hgA+6JlLnm7Dxb43cSIiW8ev+3X+b2kREj2k/m8fSz7YgtoCB8AkuiVXRaH3EUiq8XCExbbWeynKRgwCZ6bzvfSiT3+cg+QQKPHFc/cgot56ta6X80tjhFodpTQNTE6V6C9QFHJ3JCVhsSzVifJAc8crI5hAcPbKFEIjinENcfpF/8reo2Yr1xFElhoX"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-CrossTenant-Id",
-                    "data_type": "string",
-                    "example_values": [
-                        "a417c578-c7ee-480d-a225-d48057e74df5"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Office365-Filtering-Correlation-Id",
-                    "data_type": "string",
-                    "example_values": [
-                        "4b1ef179-4fe7-4248-7ec0-08d81367956e"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-Organization-Network-Message-Id",
-                    "data_type": "string",
-                    "example_values": [
-                        "4b1ef179-4fe7-4248-7ec0-08d81367956e"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-TrafficTypeDiagnostic",
-                    "data_type": "string",
-                    "example_values": [
-                        "BN6PR18MB1492:"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-CrossTenant-FromEntityHeader",
-                    "data_type": "string",
-                    "example_values": [
-                        "Internet"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-CrossTenant-Network-Message-Id",
-                    "data_type": "string",
-                    "example_values": [
-                        "4b1ef179-4fe7-4248-7ec0-08d81367956e"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-PublicTrafficType",
-                    "data_type": "string",
-                    "example_values": [
-                        "Email"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-CrossTenant-OriginalArrivalTime",
-                    "data_type": "string",
-                    "example_values": [
-                        "18 Jun 2020 09:11:28.2511 (UTC)"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.MIME-Version",
-                    "data_type": "string",
-                    "example_values": [
-                        "1.0"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-Organization-SCL",
-                    "data_type": "string",
-                    "example_values": [
-                        "-1"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.X-Gm-Message-State",
-                    "data_type": "string",
-                    "example_values": [
-                        "AOAM533ynFERIhSIewEEkj4b8B1rPNOEeie1IxBdrd55treEMtBa1jkL\tcO5ee4Ff6p0FYedfFtVtHKiCglGTpFTOSw=="
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-Organization-MessageDirectionality",
-                    "data_type": "string",
-                    "example_values": [
-                        "Incoming"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.DKIM-Signature",
-                    "data_type": "string",
-                    "example_values": [
-                        "v=1; a=rsa-sha256; c=relaxed/relaxed;        d=testdomain.com.20150623.gappssmtp.com; s=20150623;        h=message-id:date:mime-version:from:to:subject;        bh=tlTaRbacq4aWozhUPvcWg8i8flbpYQGZNs27nncn83I=;        b=avAAeJ8jF08K4oIBhxTirRmyB+SXHwdU0zdxv7eqs/zWaWWcgmT0007KP560TTgo5u         oD4nb6TvKxpRyWW4QwmkbuMIwHsMvehd2l1gispV3AawyGJjpmN7ErVYfLtIkz2Tap3V         YxmluV+SqeyyxTU8pFAEZ7+2C2lOb1DO5TC7xCMv+dyzevSscJdbeN0dFkG+C93zCqkg         w2fxubx2HDD7b/U6m2wXllYhH608wKJ/qYzyvQyqxYqNiQOtPRg2gw4sZ2UgN3+UQyVq         8ubO39ZuqakJpzEzYMw10d6E7SQhvHDJH7mFwhBlzhvOpb2gLJDN8n8dJaZo05BozQqq         MsvA=="
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.X-Forefront-Antispam-Report",
-                    "data_type": "string",
-                    "example_values": [
-                        "CIP:209.85.210.171;CTRY:US;LANG:en;SCL:-1;SRV:;IPV:NLI;SFV:SFE;H:mail-pf1-f171.google.com;PTR:mail-pf1-f171.google.com;CAT:NONE;SFTY:;SFS:;DIR:INB;SFP:;"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.Content-Type",
-                    "data_type": "string",
-                    "example_values": [
-                        "multipart/related"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.X-Google-Smtp-Source",
-                    "data_type": "string",
-                    "example_values": [
-                        "ABdhPJxrYC7raBubCCIOmauxmxryzS9KsihTN6XCRgaNp2rDrG71TVxryzYCtelFOZ2Xj1LzcYIiMA=="
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-Organization-ExpirationStartTimeReason",
-                    "data_type": "string",
-                    "example_values": [
-                        "OriginalSubmit"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.receivedDateTime",
-                    "data_type": "string",
-                    "example_values": [
-                        "2020-06-18T09:11:31Z"
                     ]
                 }
             ],
@@ -3715,7 +4232,6 @@
                 "folder": {
                     "description": "Destination folder; this must be either a (case-sensitive) well-known name or the internal o365 folder ID",
                     "data_type": "string",
-                    "required": false,
                     "primary": true,
                     "contains": [
                         "msgoffice365 mail folder",
@@ -3739,7 +4255,6 @@
                 "subject": {
                     "description": "Substring to search in subject",
                     "data_type": "string",
-                    "required": false,
                     "primary": true,
                     "contains": [
                         "msgoffice365 subject"
@@ -3749,13 +4264,11 @@
                 "body": {
                     "description": "Substring to search in body",
                     "data_type": "string",
-                    "order": 5,
-                    "required": false
+                    "order": 5
                 },
                 "sender": {
                     "description": "Sender email address to match",
                     "data_type": "string",
-                    "required": false,
                     "primary": true,
                     "contains": [
                         "email"
@@ -3765,19 +4278,16 @@
                 "limit": {
                     "description": "Maximum emails to return",
                     "data_type": "numeric",
-                    "required": false,
                     "order": 7
                 },
                 "query": {
                     "description": "MS Graph query string",
                     "data_type": "string",
-                    "required": false,
                     "order": 8
                 },
                 "internet_message_id": {
                     "description": "Internet message ID",
                     "data_type": "string",
-                    "required": false,
                     "primary": true,
                     "contains": [
                         "msgoffice365 internet message id"
@@ -3786,14 +4296,6 @@
                 }
             },
             "output": [
-                {
-                    "data_path": "action_result.status",
-                    "data_type": "string",
-                    "example_values": [
-                        "success",
-                        "failed"
-                    ]
-                },
                 {
                     "data_path": "action_result.parameter.body",
                     "data_type": "string",
@@ -3857,6 +4359,14 @@
                     ]
                 },
                 {
+                    "data_path": "action_result.parameter.search_well_known_folders",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
                     "data_path": "action_result.parameter.sender",
                     "data_type": "string",
                     "contains": [
@@ -3881,6 +4391,31 @@
                     "data_type": "string",
                     "example_values": [
                         "W/\"CQAAABYAAABBKXVvwEWISZupmqX4mJS3AAFOpxtE\""
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.@odata.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "#microsoft.graph.eventMessageRequests"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.allowNewTimeProposals",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.bccRecipients.*.emailAddress.address",
+                    "data_type": "string",
+                    "example_values": [
+                        "test3.test@gmail.com"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.bccRecipients.*.emailAddress.name",
+                    "data_type": "string",
+                    "example_values": [
+                        "test3.test@gmail.com"
                     ]
                 },
                 {
@@ -3926,6 +4461,20 @@
                     "data_type": "string"
                 },
                 {
+                    "data_path": "action_result.data.*.ccRecipients.*.emailAddress.address",
+                    "data_type": "string",
+                    "example_values": [
+                        "test3.test@gmail.com"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.ccRecipients.*.emailAddress.name",
+                    "data_type": "string",
+                    "example_values": [
+                        "test3.test@gmail.com"
+                    ]
+                },
+                {
                     "data_path": "action_result.data.*.ccRecipients.email",
                     "data_type": "string",
                     "contains": [
@@ -3957,10 +4506,31 @@
                     ]
                 },
                 {
+                    "data_path": "action_result.data.*.conversationIndex",
+                    "data_type": "string",
+                    "example_values": [
+                        "AQHXHRZ01/QE6F/kQkdaSwXyspIYQagZQ=="
+                    ]
+                },
+                {
                     "data_path": "action_result.data.*.createdDateTime",
                     "data_type": "string",
                     "example_values": [
                         "2017-10-30T22:32:42Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.endDateTime.dateTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "2020-08-15T12:30:00.0000000"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.endDateTime.timeZone",
+                    "data_type": "string",
+                    "example_values": [
+                        "UTC"
                     ]
                 },
                 {
@@ -4031,11 +4601,39 @@
                     ]
                 },
                 {
+                    "data_path": "action_result.data.*.isAllDay",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.isDelegated",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
                     "data_path": "action_result.data.*.isDeliveryReceiptRequested",
-                    "data_type": "string"
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.isDraft",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.isOutOfDate",
                     "data_type": "boolean",
                     "example_values": [
                         true,
@@ -4066,6 +4664,20 @@
                     ]
                 },
                 {
+                    "data_path": "action_result.data.*.meetingMessageType",
+                    "data_type": "string",
+                    "example_values": [
+                        "meetingRequest"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.meetingRequestType",
+                    "data_type": "string",
+                    "example_values": [
+                        "informationalUpdate"
+                    ]
+                },
+                {
                     "data_path": "action_result.data.*.parentFolderId",
                     "data_type": "string",
                     "contains": [
@@ -4076,6 +4688,46 @@
                     ]
                 },
                 {
+                    "data_path": "action_result.data.*.previousEndDateTime",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.previousEndDateTime.dateTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "2020-08-15T12:30:00.0000000"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.previousEndDateTime.timeZone",
+                    "data_type": "string",
+                    "example_values": [
+                        "UTC"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.previousLocation",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.previousStartDateTime",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.previousStartDateTime.dateTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "2020-08-15T12:00:00.0000000"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.previousStartDateTime.timeZone",
+                    "data_type": "string",
+                    "example_values": [
+                        "UTC"
+                    ]
+                },
+                {
                     "data_path": "action_result.data.*.receivedDateTime",
                     "data_type": "string",
                     "example_values": [
@@ -4083,8 +4735,34 @@
                     ]
                 },
                 {
+                    "data_path": "action_result.data.*.recurrence",
+                    "data_type": "string"
+                },
+                {
                     "data_path": "action_result.data.*.replyTo",
                     "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.replyTo.*.emailAddress.address",
+                    "data_type": "string",
+                    "example_values": [
+                        "hellohi@okta.com"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.replyTo.*.emailAddress.name",
+                    "data_type": "string",
+                    "example_values": [
+                        "hellohi@okta.com"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.responseRequested",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.sender.emailAddress.address",
@@ -4108,6 +4786,20 @@
                     "data_type": "string",
                     "example_values": [
                         "2017-10-30T22:32:37Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.startDateTime.dateTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "2020-08-15T12:00:00.0000000"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.startDateTime.timeZone",
+                    "data_type": "string",
+                    "example_values": [
+                        "UTC"
                     ]
                 },
                 {
@@ -4138,6 +4830,13 @@
                     ]
                 },
                 {
+                    "data_path": "action_result.data.*.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "singleInstance"
+                    ]
+                },
+                {
                     "data_path": "action_result.data.*.webLink",
                     "data_type": "string",
                     "example_values": [
@@ -4148,10 +4847,11 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.summary.emails_matched",
-                    "data_type": "numeric",
+                    "data_path": "action_result.status",
+                    "data_type": "string",
                     "example_values": [
-                        1
+                        "success",
+                        "failed"
                     ]
                 },
                 {
@@ -4159,6 +4859,13 @@
                     "data_type": "string",
                     "example_values": [
                         "Emails matched: 1"
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary.emails_matched",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
                     ]
                 },
                 {
@@ -4174,199 +4881,6 @@
                     "example_values": [
                         1
                     ]
-                },
-                {
-                    "data_path": "action_result.parameter.search_well_known_folders",
-                    "data_type": "boolean",
-                    "example_values": [
-                        true,
-                        false
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.conversationIndex",
-                    "data_type": "string",
-                    "example_values": [
-                        "AQHXHRZ01/QE6F/kQkdaSwXyspIYQagZQ=="
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.ccRecipients.*.emailAddress.name",
-                    "data_type": "string",
-                    "example_values": [
-                        "test3.test@gmail.com"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.ccRecipients.*.emailAddress.address",
-                    "data_type": "string",
-                    "example_values": [
-                        "test3.test@gmail.com"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.replyTo.*.emailAddress.name",
-                    "data_type": "string",
-                    "example_values": [
-                        "hellohi@okta.com"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.replyTo.*.emailAddress.address",
-                    "data_type": "string",
-                    "example_values": [
-                        "hellohi@okta.com"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.bccRecipients.*.emailAddress.name",
-                    "data_type": "string",
-                    "example_values": [
-                        "test3.test@gmail.com"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.bccRecipients.*.emailAddress.address",
-                    "data_type": "string",
-                    "example_values": [
-                        "test3.test@gmail.com"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.type",
-                    "data_type": "string",
-                    "example_values": [
-                        "singleInstance"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.isAllDay",
-                    "data_type": "boolean",
-                    "example_values": [
-                        true,
-                        false
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.recurrence",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.data.*.@odata.type",
-                    "data_type": "string",
-                    "example_values": [
-                        "#microsoft.graph.eventMessageRequests"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.endDateTime.dateTime",
-                    "data_type": "string",
-                    "example_values": [
-                        "2020-08-15T12:30:00.0000000"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.endDateTime.timeZone",
-                    "data_type": "string",
-                    "example_values": [
-                        "UTC"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.isDelegated",
-                    "data_type": "boolean",
-                    "example_values": [
-                        true,
-                        false
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.isOutOfDate",
-                    "data_type": "boolean",
-                    "example_values": [
-                        true,
-                        false
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.startDateTime.dateTime",
-                    "data_type": "string",
-                    "example_values": [
-                        "2020-08-15T12:00:00.0000000"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.startDateTime.timeZone",
-                    "data_type": "string",
-                    "example_values": [
-                        "UTC"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.previousLocation",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.data.*.responseRequested",
-                    "data_type": "boolean",
-                    "example_values": [
-                        true,
-                        false
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.meetingMessageType",
-                    "data_type": "string",
-                    "example_values": [
-                        "meetingRequest"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.meetingRequestType",
-                    "data_type": "string",
-                    "example_values": [
-                        "informationalUpdate"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.previousEndDateTime.dateTime",
-                    "data_type": "string",
-                    "example_values": [
-                        "2020-08-15T12:30:00.0000000"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.previousEndDateTime.timeZone",
-                    "data_type": "string",
-                    "example_values": [
-                        "UTC"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.allowNewTimeProposals",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.data.*.previousStartDateTime.dateTime",
-                    "data_type": "string",
-                    "example_values": [
-                        "2020-08-15T12:00:00.0000000"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.previousStartDateTime.timeZone",
-                    "data_type": "string",
-                    "example_values": [
-                        "UTC"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.previousEndDateTime",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.data.*.previousStartDateTime",
-                    "data_type": "string"
                 }
             ],
             "render": {
@@ -4410,19 +4924,10 @@
                 "all_subdirs": {
                     "description": "Make any missing directories in the path if they don't exist instead of failing",
                     "data_type": "boolean",
-                    "required": false,
                     "order": 2
                 }
             },
             "output": [
-                {
-                    "data_path": "action_result.status",
-                    "data_type": "string",
-                    "example_values": [
-                        "success",
-                        "failed"
-                    ]
-                },
                 {
                     "data_path": "action_result.parameter.all_subdirs",
                     "data_type": "boolean",
@@ -4450,6 +4955,16 @@
                     ],
                     "example_values": [
                         "Archive"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.@odata.context",
+                    "data_type": "string",
+                    "example_values": [
+                        "https://graph.microsoft.com/v1.0/$metadata#users('abc%def.onmicrosoft.com')/mailFolders/$entity"
+                    ],
+                    "contains": [
+                        "url"
                     ]
                 },
                 {
@@ -4485,6 +5000,14 @@
                     ]
                 },
                 {
+                    "data_path": "action_result.data.*.isHidden",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
                     "data_path": "action_result.data.*.parentFolderId",
                     "data_type": "string",
                     "column_name": "Parent Folder ID",
@@ -4494,6 +5017,13 @@
                     ],
                     "example_values": [
                         "AAMkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQAuAAAAAADJbdfk-sdvT4wwcqie92hZAQBBKXVvwEWISZupmqX4mJS3AACEV3zJAAA="
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.sizeInBytes",
+                    "data_type": "numeric",
+                    "example_values": [
+                        0
                     ]
                 },
                 {
@@ -4511,14 +5041,32 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.summary",
-                    "data_type": "string"
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
                 },
                 {
                     "data_path": "action_result.message",
                     "data_type": "string",
                     "example_values": [
                         "Emails matched: 1"
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary.folder",
+                    "data_type": "string",
+                    "example_values": [
+                        "AQMkAMExNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQAuAAADeDDJKaEf4EihMWU6SZgKbAEA07XhOkNngkCkqoNfY_k-jQAFA6de0wAAAA=="
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary.folders created",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
                     ]
                 },
                 {
@@ -4576,14 +5124,6 @@
             },
             "output": [
                 {
-                    "data_path": "action_result.status",
-                    "data_type": "string",
-                    "example_values": [
-                        "success",
-                        "failed"
-                    ]
-                },
-                {
                     "data_path": "action_result.parameter.email_address",
                     "data_type": "string",
                     "contains": [
@@ -4640,8 +5180,19 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.summary",
-                    "data_type": "string"
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "Folder id: AAMkAGFmNTRhODA4LWIxMjQtNDJjYy05NDM2LWQ5MzY1MGFhMTkzYwAuAAAAAADRlY7ewL4xToKRDciQog5UAQBvUzMoUJx2S4nbgxzZWx2PAAEApxCTAAA="
+                    ]
                 },
                 {
                     "data_path": "action_result.summary.folder_id",
@@ -4651,13 +5202,6 @@
                     ],
                     "contains": [
                         "msgoffice365 folder id"
-                    ]
-                },
-                {
-                    "data_path": "action_result.message",
-                    "data_type": "string",
-                    "example_values": [
-                        "Folder id: AAMkAGFmNTRhODA4LWIxMjQtNDJjYy05NDM2LWQ5MzY1MGFhMTkzYwAuAAAAAADRlY7ewL4xToKRDciQog5UAQBvUzMoUJx2S4nbgxzZWx2PAAEApxCTAAA="
                     ]
                 },
                 {
@@ -4692,27 +5236,31 @@
             "parameters": {
                 "start_time": {
                     "data_type": "numeric",
-                    "description": "Parameter Ignored in this app"
+                    "description": "Parameter Ignored in this app",
+                    "order": 0
                 },
                 "end_time": {
                     "data_type": "numeric",
-                    "description": "Parameter Ignored in this app"
+                    "description": "Parameter Ignored in this app",
+                    "order": 1
                 },
                 "container_id": {
                     "data_type": "string",
-                    "description": "Parameter Ignored in this app"
+                    "description": "Parameter Ignored in this app",
+                    "order": 2
                 },
                 "container_count": {
                     "data_type": "numeric",
                     "description": "Maximum number of emails to ingest",
                     "required": true,
-                    "value": 100
+                    "value": 100,
+                    "order": 3
                 },
                 "artifact_count": {
                     "data_type": "numeric",
-                    "description": "Maximum number of artifact to ingest",
-                    "required": true,
-                    "value": 1000
+                    "description": "Parameter Ignored in this app",
+                    "value": 1000,
+                    "order": 4
                 }
             },
             "output": [],
@@ -4723,7 +5271,7 @@
         "wheel": [
             {
                 "module": "Django",
-                "input_file": "wheels/py3/Django-3.2.12-py3-none-any.whl"
+                "input_file": "wheels/py3/Django-3.2.13-py3-none-any.whl"
             },
             {
                 "module": "asgiref",
@@ -4751,7 +5299,7 @@
             },
             {
                 "module": "pytz",
-                "input_file": "wheels/shared/pytz-2021.3-py2.py3-none-any.whl"
+                "input_file": "wheels/shared/pytz-2022.1-py2.py3-none-any.whl"
             },
             {
                 "module": "requests",
@@ -4759,7 +5307,7 @@
             },
             {
                 "module": "soupsieve",
-                "input_file": "wheels/py3/soupsieve-2.3.1-py3-none-any.whl"
+                "input_file": "wheels/py3/soupsieve-2.3.2-py3-none-any.whl"
             },
             {
                 "module": "sqlparse",
@@ -4767,11 +5315,11 @@
             },
             {
                 "module": "typing_extensions",
-                "input_file": "wheels/py3/typing_extensions-4.0.1-py3-none-any.whl"
+                "input_file": "wheels/py3/typing_extensions-4.1.1-py3-none-any.whl"
             },
             {
                 "module": "urllib3",
-                "input_file": "wheels/shared/urllib3-1.26.8-py2.py3-none-any.whl"
+                "input_file": "wheels/shared/urllib3-1.26.9-py2.py3-none-any.whl"
             }
         ]
     },
@@ -4779,7 +5327,7 @@
         "wheel": [
             {
                 "module": "Django",
-                "input_file": "wheels/py3/Django-3.2.12-py3-none-any.whl"
+                "input_file": "wheels/py3/Django-3.2.13-py3-none-any.whl"
             },
             {
                 "module": "asgiref",
@@ -4807,7 +5355,7 @@
             },
             {
                 "module": "pytz",
-                "input_file": "wheels/shared/pytz-2021.3-py2.py3-none-any.whl"
+                "input_file": "wheels/shared/pytz-2022.1-py2.py3-none-any.whl"
             },
             {
                 "module": "requests",
@@ -4815,7 +5363,7 @@
             },
             {
                 "module": "soupsieve",
-                "input_file": "wheels/py3/soupsieve-2.3.1-py3-none-any.whl"
+                "input_file": "wheels/py3/soupsieve-2.3.2-py3-none-any.whl"
             },
             {
                 "module": "sqlparse",
@@ -4823,7 +5371,7 @@
             },
             {
                 "module": "urllib3",
-                "input_file": "wheels/shared/urllib3-1.26.8-py2.py3-none-any.whl"
+                "input_file": "wheels/shared/urllib3-1.26.9-py2.py3-none-any.whl"
             }
         ]
     }
