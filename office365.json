@@ -9,6 +9,11 @@
     "product_name": "Office 365 (MS Graph)",
     "product_version_regex": ".*",
     "publisher": "Splunk",
+    "contributors": [
+        {
+          "name": "Alan Shaikh"
+        }
+    ],
     "license": "Copyright (c) 2017-2022 Splunk Inc.",
     "app_version": "2.5.0",
     "utctime_updated": "2022-02-04T01:20:46.000000Z",
