@@ -1306,7 +1306,7 @@ class Office365Connector(BaseConnector):
         action_result = self.add_action_result(ActionResult(dict(param)))
 
         limit = param.get('limit')
-        
+
         # Integer validation for 'limit' action parameter
         ret_val, limit = _validate_integer(action_result, limit, "'limit' action")
         if phantom.is_fail(ret_val):
@@ -2200,7 +2200,7 @@ class Office365Connector(BaseConnector):
 
         elif action_id == 'list_group_members':
             ret_val = self._handle_list_group_members(param)
-            
+
         elif action_id == 'list_users':
             ret_val = self._handle_list_users(param)
 
