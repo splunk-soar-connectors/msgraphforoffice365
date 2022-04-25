@@ -1300,6 +1300,43 @@ class Office365Connector(BaseConnector):
         return action_result.set_status(phantom.APP_SUCCESS, 'Successfully retrieved {} group{}'.format(
             num_groups, '' if num_groups == 1 else 's'))
 
+    def _handle_list_group_members(self, param):
+
+        self.save_progress('In action handler for: {0}'.format(self.get_action_identifier()))
+        action_result = self.add_action_result(ActionResult(dict(param)))
+
+        limit = param.get('limit')
+        
+        # Integer validation for 'limit' action parameter
+        ret_val, limit = _validate_integer(action_result, limit, "'limit' action")
+        if phantom.is_fail(ret_val):
+            return action_result.get_status()
+
+        query = param.get('filter') if param.get('filter') else None
+        group_id = param['group_id']
+        transitive_members = param.get('get_transitive_members', False)
+
+        endpoint = '/groups/{0}/members'.format(group_id)
+        if transitive_members:
+            endpoint = '/groups/{0}/transitiveMembers'.format(group_id)
+
+        ret_val, members = self._paginator(action_result, endpoint, limit, query=query)
+
+        if phantom.is_fail(ret_val):
+            return action_result.get_status()
+
+        if not members:
+            return action_result.set_status(phantom.APP_SUCCESS, MSGOFFICE365_NO_DATA_FOUND)
+
+        for member in members:
+            action_result.add_data(member)
+
+        num_members = len(members)
+        action_result.update_summary({'total_members_returned': num_members})
+
+        return action_result.set_status(phantom.APP_SUCCESS, 'Successfully retrieved {} group member{}'.format(
+            num_members, '' if num_members == 1 else 's'))
+
     def _handle_list_users(self, param):
 
         self.save_progress('In action handler for: {0}'.format(self.get_action_identifier()))
@@ -2161,6 +2198,9 @@ class Office365Connector(BaseConnector):
         elif action_id == 'list_groups':
             ret_val = self._handle_list_groups(param)
 
+        elif action_id == 'list_group_members':
+            ret_val = self._handle_list_group_members(param)
+            
         elif action_id == 'list_users':
             ret_val = self._handle_list_users(param)
 

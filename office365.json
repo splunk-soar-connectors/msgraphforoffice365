@@ -1470,6 +1470,188 @@
             "versions": "EQ(*)"
         },
         {
+            "action": "list group members",
+            "identifier": "list_group_members",
+            "description": "List all the members in group",
+            "type": "investigate",
+            "read_only": true,
+            "parameters": {
+                "group_id": {
+                    "description": "Group ID",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": true,
+                    "contains": [
+                        "msgoffice365 group id"
+                    ],
+                    "order": 0
+                },
+                "get_transitive_members": {
+                    "description": "Get a list of the group's members. A group can have users, devices, organizational contacts, and other groups as members. This operation is transitive and returns a flat list of all nested members.",
+                    "data_type": "boolean",
+                    "default": true,
+                    "order": 1
+                },
+                "filter": {
+                    "description": "Search for specific results",
+                    "data_type": "string",
+                    "required": false,
+                    "order": 2
+                },
+                "limit": {
+                    "description": "Maximum number of members to return",
+                    "data_type": "numeric",
+                    "required": false,
+                    "order": 3
+                }
+            },
+            "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.group_id",
+                    "data_type": "string",
+                    "contains": [
+                        "msgoffice365 group id"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.get_transitive_members",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.filter",
+                    "data_type": "string",
+                    "example_values": [
+                        "displayName eq 'Group Name'"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.limit",
+                    "data_type": "numeric",
+                    "example_values": [
+                        20
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.businessPhones",
+                    "data_type": "string",
+                    "example_values": [
+                        "2056120271"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.displayName",
+                    "data_type": "string",
+                    "example_values": [
+                        "Test Admin"
+                    ],
+                    "column_name": "Display Name",
+                    "column_order": 2
+                },
+                {
+                    "data_path": "action_result.data.*.givenName",
+                    "data_type": "string",
+                    "example_values": [
+                        "Test"
+                    ],
+                    "column_name": "Given Name",
+                    "column_order": 3
+                },
+                {
+                    "data_path": "action_result.data.*.id",
+                    "data_type": "string",
+                    "example_values": [
+                        "6132ca31-7a09-434f-a269-abe836d0c01e"
+                    ],
+                    "contains": [
+                        "msgoffice365 user id"
+                    ],
+                    "column_name": "User ID",
+                    "column_order": 0
+                },
+                {
+                    "data_path": "action_result.data.*.jobTitle",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.mail",
+                    "data_type": "string",
+                    "contains": [
+                        "email"
+                    ],
+                    "example_values": [
+                        "test@testdomain.onmicrosoft.com"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.mobilePhone",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.officeLocation",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.preferredLanguage",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.surname",
+                    "data_type": "string",
+                    "example_values": [
+                        "Globaltest"
+                    ],
+                    "column_name": "Surname",
+                    "column_order": 4
+                },
+                {
+                    "data_path": "action_result.data.*.userPrincipalName",
+                    "data_type": "string",
+                    "example_values": [
+                        "test@testdomain.onmicrosoft.com"
+                    ],
+                    "contains": [
+                        "msgoffice365 user principle name",
+                        "email"
+                    ],
+                    "column_name": "User Principle Name",
+                    "column_order": 1
+                },
+                {
+                    "data_path": "action_result.summary.total_members_returned",
+                    "data_type": "numeric",
+                    "example_values": [
+                        9
+                    ]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "Successfully retrieved 9 groups"
+                    ]
+                }
+            ],
+            "render": {
+                "width": 12,
+                "title": "List Group Members",
+                "type": "table",
+                "height": 5
+            },
+            "versions": "EQ(*)"
+        },
+        {
             "action": "list folders",
             "identifier": "list_folders",
             "description": "Retrieve a list of mail folders",
