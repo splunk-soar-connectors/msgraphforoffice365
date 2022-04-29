@@ -1314,7 +1314,7 @@ class Office365Connector(BaseConnector):
 
         query = param.get('filter') if param.get('filter') else None
         group_id = param['group_id']
-        transitive_members = param.get('get_transitive_members', False)
+        transitive_members = param.get('get_transitive_members', True)
 
         endpoint = '/groups/{0}/members'.format(group_id)
         if transitive_members:
@@ -2383,7 +2383,7 @@ if __name__ == '__main__':
     verify = args.verify
 
     if args.username and args.password:
-        login_url = BaseConnector._get_phantom_base_url() + "login"
+        login_url = '{}login'.format(BaseConnector._get_phantom_base_url())
         try:
             print("Accessing the Login page")
             r = requests.get(login_url, verify=verify, timeout=MSGOFFICE365_DEFAULT_REQUEST_TIMEOUT)

@@ -11,17 +11,17 @@
     "publisher": "Splunk",
     "contributors": [
         {
-          "name": "Alan Shaikh"
+            "name": "Alan Shaikh"
         }
     ],
     "license": "Copyright (c) 2017-2022 Splunk Inc.",
-    "app_version": "2.5.0",
+    "app_version": "2.6.0",
     "utctime_updated": "2022-02-04T01:20:46.000000Z",
     "package_name": "phantom_msgraphoffice365",
     "main_module": "office365_connector.py",
     "min_phantom_version": "5.2.0",
     "latest_tested_versions": [
-        "Cloud 2021-09-28"
+        "Cloud 30 April, 2022"
     ],
     "app_wizard_version": "1.0.0",
     "python_version": "3",
@@ -311,7 +311,7 @@
                 {
                     "data_path": "action_result.data.*.status",
                     "data_type": "string",
-                    "column_name": "Out of Office Status",
+                    "column_name": "Out Of Office Status",
                     "column_order": 1,
                     "example_values": [
                         "alwaysEnabled"
@@ -1492,7 +1492,7 @@
                     "order": 0
                 },
                 "get_transitive_members": {
-                    "description": "Get a list of the group's members. A group can have users, devices, organizational contacts, and other groups as members. This operation is transitive and returns a flat list of all nested members.",
+                    "description": "Get a list of the group's members. A group can have users, devices, organizational contacts, and other groups as members. This operation is transitive and returns a flat list of all nested members",
                     "data_type": "boolean",
                     "default": true,
                     "order": 1
@@ -1500,13 +1500,11 @@
                 "filter": {
                     "description": "Search for specific results",
                     "data_type": "string",
-                    "required": false,
                     "order": 2
                 },
                 "limit": {
                     "description": "Maximum number of members to return",
                     "data_type": "numeric",
-                    "required": false,
                     "order": 3
                 }
             },
@@ -1524,6 +1522,9 @@
                     "data_type": "string",
                     "contains": [
                         "msgoffice365 group id"
+                    ],
+                    "example_values": [
+                        "11907d21-7631-4ea7-97b2-1328d1c5b901"
                     ]
                 },
                 {
@@ -1597,6 +1598,13 @@
                     ],
                     "example_values": [
                         "test@testdomain.onmicrosoft.com"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.@odata.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "#microsoft.graph.user"
                     ]
                 },
                 {
@@ -5508,7 +5516,7 @@
             },
             {
                 "module": "soupsieve",
-                "input_file": "wheels/py3/soupsieve-2.3.2-py3-none-any.whl"
+                "input_file": "wheels/py3/soupsieve-2.3.2.post1-py3-none-any.whl"
             },
             {
                 "module": "sqlparse",
@@ -5564,7 +5572,7 @@
             },
             {
                 "module": "soupsieve",
-                "input_file": "wheels/py3/soupsieve-2.3.2-py3-none-any.whl"
+                "input_file": "wheels/py3/soupsieve-2.3.2.post1-py3-none-any.whl"
             },
             {
                 "module": "sqlparse",
