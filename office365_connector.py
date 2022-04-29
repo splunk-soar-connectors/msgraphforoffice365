@@ -474,7 +474,8 @@ class Office365Connector(BaseConnector):
                             data=data,
                             headers=headers,
                             verify=verify,
-                            params=params)
+                            params=params,
+                            timeout=MSGOFFICE365_DEFAULT_REQUEST_TIMEOUT)
         except Exception as e:
             error_msg = _get_error_message_from_exception(e)
             return RetVal(action_result.set_status(phantom.APP_ERROR, "Error connecting to server. {0}".format(error_msg)), resp_json)
