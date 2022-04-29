@@ -2,7 +2,7 @@
 # MS Graph for Office 365
 
 Publisher: Splunk  
-Connector Version: 2\.5\.0  
+Connector Version: 2\.5\.3  
 Product Vendor: Microsoft  
 Product Name: Office 365 \(MS Graph\)  
 Product Version Supported (regex): "\.\*"  
@@ -296,7 +296,7 @@ VARIABLE | REQUIRED | TYPE | DESCRIPTION
 **extract\_domains** |  optional  | boolean | Extract Domain Names
 **extract\_hashes** |  optional  | boolean | Extract Hashes
 **ph\_4** |  optional  | ph | 
-**ingest\_manner** |  required  | string | How to Ingest \(during ingestion, should the app get the latest emails or the oldest\)
+**ingest\_manner** |  optional  | string | How to Ingest \(during ingestion, should the app get the latest emails or the oldest\)
 
 ### Supported Actions  
 [test connectivity](#action-test-connectivity) - Use supplied credentials to generate a token with MS Graph  
