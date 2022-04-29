@@ -10,7 +10,7 @@
     "product_version_regex": ".*",
     "publisher": "Splunk",
     "license": "Copyright (c) 2017-2022 Splunk Inc.",
-    "app_version": "2.5.0",
+    "app_version": "2.5.3",
     "utctime_updated": "2022-02-04T01:20:46.000000Z",
     "package_name": "phantom_msgraphoffice365",
     "main_module": "office365_connector.py",
@@ -136,7 +136,6 @@
         "ingest_manner": {
             "data_type": "string",
             "description": "How to Ingest (during ingestion, should the app get the latest emails or the oldest)",
-            "required": true,
             "order": 20,
             "value_list": [
                 "oldest first",
