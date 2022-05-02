@@ -2376,14 +2376,17 @@ class Office365Connector(BaseConnector):
             if not self._admin_access:
                 if self._state.get('non_admin_auth', {}).get('refresh_token'):
                     self.debug_print("Encrypting the token")
-                    self._state['non_admin_auth']['refresh_token'] = encryption_helper.encrypt(self._state.get('non_admin_auth', {}).get('refresh_token'), self.asset_id)
+                    self._state['non_admin_auth']['refresh_token'] = encryption_helper.encrypt(
+                        self._state.get('non_admin_auth', {}).get('refresh_token'), self.asset_id)
                 if self._state.get('non_admin_auth', {}).get('access_token'):
                     self.debug_print("Encrypting the token")
-                    self._state['non_admin_auth']['access_token'] = encryption_helper.encrypt(self._state.get('non_admin_auth', {}).get('access_token'), self.asset_id)
+                    self._state['non_admin_auth']['access_token'] = encryption_helper.encrypt(
+                        self._state.get('non_admin_auth', {}).get('access_token'), self.asset_id)
             else:
                 if self._state.get('admin_auth', {}).get('access_token'):
                     self.debug_print("Encrypting the token")
-                    self._state['admin_auth']['access_token'] = encryption_helper.encrypt(self._state.get('admin_auth', {}).get('access_token'), self.asset_id)
+                    self._state['admin_auth']['access_token'] = encryption_helper.encrypt(
+                        self._state.get('admin_auth', {}).get('access_token'), self.asset_id)
         except Exception as e:
             self.debug_print("{}: {}".format(ENCRYPTION_ERR, str(e)))
             self.set_status(phantom.APP_ERROR, ENCRYPTION_ERR)

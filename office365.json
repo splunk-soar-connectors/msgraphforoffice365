@@ -5540,7 +5540,7 @@
             },
             {
                 "module": "asgiref",
-                "input_file": "wheels/py3/asgiref-3.5.0-py3-none-any.whl"
+                "input_file": "wheels/py3/asgiref-3.5.1-py3-none-any.whl"
             },
             {
                 "module": "beautifulsoup4",
