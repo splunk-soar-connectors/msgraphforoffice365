@@ -51,3 +51,6 @@ MSGOFFICE365_NON_NEG_NON_ZERO_INT_MSG = (
     "Please provide a valid non-zero positive integer value in the {param} parameter"
 )
 MSGOFFICE365_NON_NEG_INT_MSG = "Please provide a valid non-negative integer value in the {param} parameter"
+ASSET_CORRUPTED_ERR = "ERROR: The state file for this asset is corrupted. " \
+    "Please delete the state file corresponding to the current asset and test the connectivity"
+ENCRYPTION_ERR = "Error occurred while encrypting the state file"

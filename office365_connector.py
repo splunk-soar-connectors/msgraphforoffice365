@@ -25,6 +25,7 @@ import time
 import uuid
 from datetime import datetime
 
+import encryption_helper
 import phantom.app as phantom
 import requests
 from bs4 import BeautifulSoup, UnicodeDammit
@@ -1038,7 +1039,7 @@ class Office365Connector(BaseConnector):
             if self._admin_access:
                 self.save_progress('Waiting for Admin Consent to complete')
             else:
-                self.save_progress('Waiting for Autorization Code to complete')
+                self.save_progress('Waiting for Authorization Code to complete')
 
             for i in range(0, 40):
 
@@ -2277,12 +2278,16 @@ class Office365Connector(BaseConnector):
         # So we have to check that token from response and token which are saved to state file
         # after successful generation of new token are same or not.
 
-        if self._admin_access:
-            if self._access_token != self._state.get('admin_auth', {}).get('access_token'):
-                return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_PERMISSION_ERR)
-        else:
-            if self._access_token != self._state.get('non_admin_auth', {}).get('access_token'):
-                return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_PERMISSION_ERR)
+        try:
+            if self._admin_access:
+                if self._access_token != self._state.get('admin_auth', {}).get('access_token'):
+                    return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_PERMISSION_ERR)
+            else:
+                if self._access_token != self._state.get('non_admin_auth', {}).get('access_token'):
+                    return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_PERMISSION_ERR)
+        except Exception as e:
+            self.debug_print("Error occurred while decrypting the token: {}".format(str(e)))
+            return self.set_status(phantom.APP_ERROR, ASSET_CORRUPTED_ERR)
 
         self.debug_print("Token generated successfully")
         return action_result.set_status(phantom.APP_SUCCESS)
@@ -2313,14 +2318,23 @@ class Office365Connector(BaseConnector):
         self._admin_consent = config.get('admin_consent')
         self._scope = config.get('scope') if config.get('scope') else None
 
+        self.asset_id = self.get_asset_id()
         if not self._admin_access:
             if not self._scope:
                 return self.set_status(phantom.APP_ERROR, "Please provide scope for non-admin access in the asset configuration")
 
-            self._access_token = self._state.get('non_admin_auth', {}).get('access_token')
-            self._refresh_token = self._state.get('non_admin_auth', {}).get('refresh_token')
+            try:
+                self._access_token = encryption_helper.decrypt(self._state.get('non_admin_auth', {}).get('access_token'), self.asset_id)
+                self._refresh_token = encryption_helper.decrypt(self._state.get('non_admin_auth', {}).get('refresh_token'), self.asset_id)
+            except Exception as e:
+                self.debug_print("Error occurred while decrypting the token: {}".format(str(e)))
+                return self.set_status(phantom.APP_ERROR, ASSET_CORRUPTED_ERR)
         else:
-            self._access_token = self._state.get('admin_auth', {}).get('access_token')
+            try:
+                self._access_token = encryption_helper.decrypt(self._state.get('admin_auth', {}).get('access_token'), self.asset_id)
+            except Exception as e:
+                self.debug_print("Error occurred while decrypting the token: {}".format(str(e)))
+                return self.set_status(phantom.APP_ERROR, ASSET_CORRUPTED_ERR)
 
         if action_id == 'test_connectivity':
             # User is trying to complete the authentication flow, so just return True from here so that test connectivity continues
@@ -2358,7 +2372,21 @@ class Office365Connector(BaseConnector):
 
     def finalize(self):
 
-        # Save the state, this data is saved accross actions and app upgrades
+        try:
+            if not self._admin_access:
+                if self._state.get('non_admin_auth', {}).get('refresh_token'):
+                    self.debug_print("Encrypting the token")
+                    self._state['non_admin_auth']['refresh_token'] = encryption_helper.encrypt(self._state.get('non_admin_auth', {}).get('refresh_token'), self.asset_id)
+                if self._state.get('non_admin_auth', {}).get('access_token'):
+                    self.debug_print("Encrypting the token")
+                    self._state['non_admin_auth']['access_token'] = encryption_helper.encrypt(self._state.get('non_admin_auth', {}).get('access_token'), self.asset_id)
+            else:
+                if self._state.get('admin_auth', {}).get('access_token'):
+                    self.debug_print("Encrypting the token")
+                    self._state['admin_auth']['access_token'] = encryption_helper.encrypt(self._state.get('admin_auth', {}).get('access_token'), self.asset_id)
+        except Exception as e:
+            self.debug_print("{}: {}".format(ENCRYPTION_ERR, str(e)))
+            self.set_status(phantom.APP_ERROR, ENCRYPTION_ERR)
         self.save_state(self._state)
         _save_app_state(self._state, self.get_asset_id(), self)
         return phantom.APP_SUCCESS
