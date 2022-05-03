@@ -141,7 +141,6 @@
         "ingest_manner": {
             "data_type": "string",
             "description": "How to Ingest (during ingestion, should the app get the latest emails or the oldest)",
-            "required": true,
             "order": 20,
             "value_list": [
                 "oldest first",
