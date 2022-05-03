@@ -1624,6 +1624,7 @@ class Office365Connector(BaseConnector):
         action_result = self.add_action_result(ActionResult(dict(param)))
 
         config = self.get_config()
+        ingest_manner = config.get('ingest_manner', 'oldest first')
 
         start_time = ''
         if self.is_poll_now():
@@ -1667,7 +1668,7 @@ class Office365Connector(BaseConnector):
             endpoint += '/mailFolders/{0}'.format(folder)
 
         endpoint += '/messages'
-        order = 'asc' if config['ingest_manner'] == 'oldest first' else 'desc'
+        order = 'asc' if ingest_manner == 'oldest first' else 'desc'
 
         params = {
             '$orderBy': 'lastModifiedDateTime {}'.format(order)
@@ -1682,7 +1683,7 @@ class Office365Connector(BaseConnector):
         # If the ingestion manner is set for the latest emails, then the 0th index email is the latest
         # in the list returned, else the last email is the latest. This will be used to store the
         # last modified time in the state file
-        email_index = 0 if config['ingest_manner'] == "latest first" else -1
+        email_index = 0 if ingest_manner == "latest first" else -1
 
         while True:
             self._duplicate_count = 0
@@ -2266,6 +2267,9 @@ class Office365Connector(BaseConnector):
             return action_result.get_status()
         # Save the response on the basis of admin_acess
         if self._admin_access:
+            # if admin consent already provided, save to state
+            if self._admin_consent:
+                self._state['admin_consent'] = True
             self._state['admin_auth'] = resp_json
         else:
             self._state['non_admin_auth'] = resp_json
