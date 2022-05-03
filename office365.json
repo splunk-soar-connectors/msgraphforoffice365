@@ -3511,6 +3511,318 @@
                     ]
                 },
                 {
+                    "data_path": "action_result.data.*.event.id",
+                    "data_type": "string",
+                    "example_values": [
+                        "AAMkAGYwYmE5NmQ0LWVhOGItNGFhMy05OWNlLTE5MzhjMTE5YWYyMQBGAAAAAACkbmmUA5U5RZwZvvg8zew_BwDWyBbuDx-uTKpJ-DXRPByGAAAA1bxhAAAr0tXr3dtaS5qYgFGhi6QjAAQiOoS2AAA="
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.end.dateTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "0001-01-01T00:00:00.0000000"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.end.timeZone",
+                    "data_type": "string",
+                    "example_values": [
+                        "UTC"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.body.content",
+                    "data_type": "string",
+                    "example_values": [
+                        "plain text?\r\n"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.body.contentType",
+                    "data_type": "string",
+                    "example_values": [
+                        "html",
+                        "text"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "singleInstance"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.start.dateTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "0001-01-01T00:00:00.0000000"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.start.timeZone",
+                    "data_type": "string",
+                    "example_values": [
+                        "UTC"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.showAs",
+                    "data_type": "string",
+                    "example_values": [
+                        "tentative"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.iCalUId",
+                    "data_type": "string",
+                    "example_values": [
+                        "040000008200E00074C5B7101A82E0080000000074AC2CF9CF5ED8010000000000000000100000005B5B104FC55A6E44BC5C6A093AB7F07C"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.subject",
+                    "data_type": "string",
+                    "example_values": [
+                        "Just wanted to say hello"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.webLink",
+                    "data_type": "string",
+                    "example_values": [
+                        "https://owa.blackrock.com/owa?itemid=AAMkAGYwYmE5NmQ0LWVhOGItNGFhMy05OWNlLTE5MzhjMTE5YWYyMQBGAAAAAACkbmmUA5U5RZwZvvg8zew%2BBwDWyBbuDx%2FuTKpJ%2FDXRPByGAAAA1bxhAAAr0tXr3dtaS5qYgFGhi6QjAAQiOoS2AAA%3D&exvsurl=1&path=/calendar/item"
+                    ],
+                    "contains": [
+                        "url"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.isAllDay",
+                    "data_type": "numeric",
+                    "example_values": [
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.location.displayName",
+                    "data_type": "string",
+                    "example_values": [
+                        "Test"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.attendees.*.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "required"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.attendees.*.status.time",
+                    "data_type": "string",
+                    "example_values": [
+                        "0001-01-01T00:00:00Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.attendees.*.status.response",
+                    "data_type": "string",
+                    "example_values": [
+                        "none"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.attendees.*.emailAddress.name",
+                    "data_type": "string",
+                    "example_values": [
+                        "Test Name"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.attendees.*.emailAddress.address",
+                    "data_type": "string",
+                    "example_values": [
+                        "test@testdomain.onmicrosoft.com"
+                    ],
+                    "contains": [
+                        "email"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.changeKey",
+                    "data_type": "string",
+                    "example_values": [
+                        "CQAAABYAAABBKXVvwEWISZupmqX4mJS3AAFQwHj9"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.organizer.emailAddress.name",
+                    "data_type": "string",
+                    "example_values": [
+                        "Test Name"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.organizer.emailAddress.address",
+                    "data_type": "string",
+                    "example_values": [
+                        "test@testdomain.onmicrosoft.com"
+                    ],
+                    "contains": [
+                        "email"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.importance",
+                    "data_type": "string",
+                    "example_values": [
+                        "normal"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.recurrence",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.event.@odata.etag",
+                    "data_type": "string",
+                    "example_values": [
+                        "W/\"CQAAABYAAABBKXVvwEWISZupmqX4mJS3AAFLoCsS\""
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.bodyPreview",
+                    "data_type": "string",
+                    "example_values": [
+                        "plain text?"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.isCancelled",
+                    "data_type": "numeric",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.isOrganizer",
+                    "data_type": "numeric",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.sensitivity",
+                    "data_type": "string",
+                    "example_values": [
+                        "normal"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.isReminderOn",
+                    "data_type": "numeric",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.hasAttachments",
+                    "data_type": "numeric",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.responseStatus.time",
+                    "data_type": "string",
+                    "example_values": [
+                        "0001-01-01T00:00:00Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.responseStatus.response",
+                    "data_type": "string",
+                    "example_values": [
+                        "none",
+                        "organizer",
+                        "tentativelyAccepted",
+                        "accepted",
+                        "declined",
+                        "notResponded"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.seriesMasterId",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.event.createdDateTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "0001-01-01T00:00:00Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.onlineMeetingUrl",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.event.responseRequested",
+                    "data_type": "numeric",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.originalEndTimeZone",
+                    "data_type": "string",
+                    "example_values": [
+                        "UTC"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.lastModifiedDateTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "0001-01-01T00:00:00Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.originalStartTimeZone",
+                    "data_type": "string",
+                    "example_values": [
+                        "UTC"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.reminderMinutesBeforeStart",
+                    "data_type": "numeric",
+                    "example_values": [
+                        0
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.@odata.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "#microsoft.graph.eventMessage"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.meetingMessageType",
+                    "data_type": "string",
+                    "example_values": [
+                        "meetingRequest"
+                    ]
+                },
+                {
                     "data_path": "action_result.status",
                     "data_type": "string",
                     "example_values": [

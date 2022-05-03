@@ -1485,6 +1485,15 @@ class Office365Connector(BaseConnector):
 
             response['attachments'] = attach_resp['value']
 
+        if response.get('@odata.type') == "#microsoft.graph.eventMessage":
+
+            endpoint += '/?$expand=Microsoft.Graph.EventMessage/Event'
+            ret_val, event_resp = self._make_rest_call_helper(action_result, endpoint)
+            if phantom.is_fail(ret_val):
+                return action_result.get_status()
+
+            response['event'] = event_resp['event']
+
         if 'internetMessageHeaders' in response:
             response['internetMessageHeaders'] = self._flatten_headers(response['internetMessageHeaders'])
 
