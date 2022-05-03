@@ -158,14 +158,6 @@ def _get_error_message_from_exception(e):
     return error_text
 
 
-def _reset_state_file(self):
-    """
-    This method resets the state file.
-    """
-    self.debug_print("Resetting the state file with the default format")
-    self._state = {"app_version": self.get_app_json().get("app_version")}
-
-
 def _validate_integer(action_result, parameter, key, allow_zero=False):
     """
     Validate an integer.
@@ -2299,6 +2291,13 @@ class Office365Connector(BaseConnector):
         self.debug_print("Token generated successfully")
         return action_result.set_status(phantom.APP_SUCCESS)
 
+    def _reset_state_file(self):
+        """
+        This method resets the state file.
+        """
+        self.debug_print("Resetting the state file with the default format")
+        self._state = {"app_version": self.get_app_json().get("app_version")}
+
     def initialize(self):
 
         action_id = self.get_action_identifier()
@@ -2313,7 +2312,6 @@ class Office365Connector(BaseConnector):
         self._state = self.load_state()
         if not isinstance(self._state, dict):
             self._reset_state_file()
-            return self.set_status(phantom.APP_ERROR, MSGOFFICE365_STATE_FILE_CORRUPT_ERROR)
 
         self._tenant = config['tenant']
         self._client_id = config['client_id']
