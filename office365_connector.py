@@ -2324,8 +2324,10 @@ class Office365Connector(BaseConnector):
                 return self.set_status(phantom.APP_ERROR, "Please provide scope for non-admin access in the asset configuration")
 
             try:
-                self._state['non_admin_auth']['access_token'] = encryption_helper.decrypt(self._state.get('non_admin_auth', {}).get('access_token'), self.asset_id)
-                self._state['non_admin_auth']['refresh_token'] = encryption_helper.decrypt(self._state.get('non_admin_auth', {}).get('refresh_token'), self.asset_id)
+                self._state['non_admin_auth']['access_token'] = encryption_helper.decrypt(
+                    self._state.get('non_admin_auth', {}).get('access_token'), self.asset_id)
+                self._state['non_admin_auth']['refresh_token'] = encryption_helper.decrypt(
+                    self._state.get('non_admin_auth', {}).get('refresh_token'), self.asset_id)
             except Exception as e:
                 self.debug_print("Error occurred while decrypting the token: {}".format(str(e)))
                 self._reset_state_file()
@@ -2333,7 +2335,8 @@ class Office365Connector(BaseConnector):
             self._refresh_token = self._state.get('non_admin_auth', {}).get('refresh_token')
         else:
             try:
-                self._state['admin_auth']['access_token'] = encryption_helper.decrypt(self._state.get('admin_auth', {}).get('access_token'), self.asset_id)
+                self._state['admin_auth']['access_token'] = encryption_helper.decrypt(
+                    self._state.get('admin_auth', {}).get('access_token'), self.asset_id)
             except Exception as e:
                 self.debug_print("Error occurred while decrypting the token: {}".format(str(e)))
                 self._reset_state_file()
