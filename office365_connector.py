@@ -158,6 +158,14 @@ def _get_error_message_from_exception(e):
     return error_text
 
 
+def _reset_state_file(self):
+    """
+    This method resets the state file.
+    """
+    self.debug_print("Resetting the state file with the default format")
+    self._state = {"app_version": self.get_app_json().get("app_version")}
+
+
 def _validate_integer(action_result, parameter, key, allow_zero=False):
     """
     Validate an integer.
@@ -594,7 +602,7 @@ class Office365Connector(BaseConnector):
         msg = action_result.get_message()
 
         if msg and 'token is invalid' in msg or ('Access token has expired' in
-                msg) or ('ExpiredAuthenticationToken' in msg) or ('AuthenticationFailed' in msg):
+                msg) or ('ExpiredAuthenticationToken' in msg) or ('AuthenticationFailed' in msg) or ('InvalidAuthenticationToken' in msg):
 
             self.debug_print("Token is invalid/expired. Hence, generating a new token.")
             ret_val = self._get_token(action_result)
@@ -2278,17 +2286,12 @@ class Office365Connector(BaseConnector):
         # So we have to check that token from response and token which are saved to state file
         # after successful generation of new token are same or not.
 
-        try:
-            if self._admin_access:
-                if self._access_token != self._state.get('admin_auth', {}).get('access_token'):
-                    return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_PERMISSION_ERR)
-            else:
-                if self._access_token != self._state.get('non_admin_auth', {}).get('access_token'):
-                    return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_PERMISSION_ERR)
-        except Exception as e:
-            self.debug_print("Error occurred while decrypting the token: {}".format(str(e)))
-            return self.set_status(phantom.APP_ERROR, ASSET_CORRUPTED_ERR)
-
+        if self._admin_access:
+            if self._access_token != self._state.get('admin_auth', {}).get('access_token'):
+                return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_PERMISSION_ERR)
+        else:
+            if self._access_token != self._state.get('non_admin_auth', {}).get('access_token'):
+                return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_PERMISSION_ERR)
         self.debug_print("Token generated successfully")
         return action_result.set_status(phantom.APP_SUCCESS)
 
@@ -2305,10 +2308,7 @@ class Office365Connector(BaseConnector):
         # Load all the asset configuration in global variables
         self._state = self.load_state()
         if not isinstance(self._state, dict):
-            self.debug_print("Reseting the state file with the default format")
-            self._state = {
-                "app_version": self.get_app_json().get('app_version')
-            }
+            self._reset_state_file()
             return self.set_status(phantom.APP_ERROR, MSGOFFICE365_STATE_FILE_CORRUPT_ERROR)
 
         self._tenant = config['tenant']
@@ -2324,17 +2324,20 @@ class Office365Connector(BaseConnector):
                 return self.set_status(phantom.APP_ERROR, "Please provide scope for non-admin access in the asset configuration")
 
             try:
-                self._access_token = encryption_helper.decrypt(self._state.get('non_admin_auth', {}).get('access_token'), self.asset_id)
-                self._refresh_token = encryption_helper.decrypt(self._state.get('non_admin_auth', {}).get('refresh_token'), self.asset_id)
+                self._state['non_admin_auth']['access_token'] = encryption_helper.decrypt(self._state.get('non_admin_auth', {}).get('access_token'), self.asset_id)
+                self._state['non_admin_auth']['refresh_token'] = encryption_helper.decrypt(self._state.get('non_admin_auth', {}).get('refresh_token'), self.asset_id)
             except Exception as e:
                 self.debug_print("Error occurred while decrypting the token: {}".format(str(e)))
-                return self.set_status(phantom.APP_ERROR, ASSET_CORRUPTED_ERR)
+                self._reset_state_file()
+            self._access_token = self._state.get('non_admin_auth', {}).get('access_token')
+            self._refresh_token = self._state.get('non_admin_auth', {}).get('refresh_token')
         else:
             try:
-                self._access_token = encryption_helper.decrypt(self._state.get('admin_auth', {}).get('access_token'), self.asset_id)
+                self._state['admin_auth']['access_token'] = encryption_helper.decrypt(self._state.get('admin_auth', {}).get('access_token'), self.asset_id)
             except Exception as e:
                 self.debug_print("Error occurred while decrypting the token: {}".format(str(e)))
-                return self.set_status(phantom.APP_ERROR, ASSET_CORRUPTED_ERR)
+                self._reset_state_file()
+            self._access_token = self._state.get('admin_auth', {}).get('access_token')
 
         if action_id == 'test_connectivity':
             # User is trying to complete the authentication flow, so just return True from here so that test connectivity continues
@@ -2389,7 +2392,7 @@ class Office365Connector(BaseConnector):
                         self._state.get('admin_auth', {}).get('access_token'), self.asset_id)
         except Exception as e:
             self.debug_print("{}: {}".format(ENCRYPTION_ERR, str(e)))
-            self.set_status(phantom.APP_ERROR, ENCRYPTION_ERR)
+            self._reset_state_file()
         self.save_state(self._state)
         _save_app_state(self._state, self.get_asset_id(), self)
         return phantom.APP_SUCCESS
