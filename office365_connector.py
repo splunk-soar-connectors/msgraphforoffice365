@@ -2311,6 +2311,7 @@ class Office365Connector(BaseConnector):
         # Load all the asset configuration in global variables
         self._state = self.load_state()
         if not isinstance(self._state, dict):
+            self.debug_print(MSGOFFICE365_STATE_FILE_CORRUPT_ERROR)
             self._reset_state_file()
 
         self._tenant = config['tenant']
