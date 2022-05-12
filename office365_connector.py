@@ -229,7 +229,10 @@ def _handle_oauth_result(request, path_parts):
         return HttpResponse('Admin Consent declined. Please close this window and try again later.', content_type="text/plain", status=400)
 
     # If value of admin_consent is not available, value of code is available
-    state['code'] = code
+    try:
+        state['code'] = encryption_helper.encrypt(code, asset_id)
+    except Exception as e:
+        Office365Connector()._reset_state_file()
     _save_app_state(state, asset_id, None)
 
     return HttpResponse('Code received. Please close this window, the action will continue to get new token.', content_type="text/plain")
@@ -342,7 +345,7 @@ class Office365Connector(BaseConnector):
         if response.status_code == 200:
             return RetVal(phantom.APP_SUCCESS, {})
 
-        return RetVal(action_result.set_status(phantom.APP_ERROR, "Empty response and no information in the header"), None)
+        return RetVal(action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_ERR_EMPTY_RESPONSE.format(code=response.status_code)), None)
 
     def _process_html_response(self, response, action_result):
 
@@ -2247,8 +2250,12 @@ class Office365Connector(BaseConnector):
                 data['grant_type'] = 'refresh_token'
             elif self._state.get('code'):
                 data['redirect_uri'] = self._state.get('redirect_uri')
-                data['code'] = self._state.get('code')
                 data['grant_type'] = 'authorization_code'
+                try:
+                    data['code'] = encryption_helper.decrypt(self._state.get('code'))
+                except Exception as e:
+                    self.debug_print("Error occurred while decrypting the code: {}".format(str(e)))
+                    self._reset_state_file()
             else:
                 return action_result.set_status(phantom.APP_ERROR, "Unexpected details retrieved from the state file.")
 
@@ -2310,7 +2317,7 @@ class Office365Connector(BaseConnector):
         # Load all the asset configuration in global variables
         self._state = self.load_state()
         if not isinstance(self._state, dict):
-            self.debug_print(MSGOFFICE365_STATE_FILE_CORRUPT_ERROR)
+            self.debug_print(MSGOFFICE365_STATE_FILE_CORRUPT_ERR)
             self._reset_state_file()
 
         self._tenant = config['tenant']
@@ -2408,6 +2415,14 @@ class Office365Connector(BaseConnector):
         except Exception as e:
             self.debug_print("{}: {}".format(ENCRYPTION_ERR, str(e)))
             self._reset_state_file()
+        
+        if self._state.get('code'):
+            try:
+                self._state['code'] = encryption_helper.encrypt(self._state['code'])
+            except Exception as e:
+                self.debug_print("{}: {}".format(ENCRYPTION_ERR, str(e)))
+                self._reset_state_file()
+
         self.save_state(self._state)
         _save_app_state(self._state, self._asset_id, self)
         return phantom.APP_SUCCESS
