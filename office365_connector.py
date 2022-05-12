@@ -335,6 +335,7 @@ class Office365Connector(BaseConnector):
         self._refresh_token = None
         self._REPLACE_CONST = "C53CEA8298BD401BA695F247633D0542"  # pragma: allowlist secret
         self._duplicate_count = 0
+        self._asset_id = None
 
     def _process_empty_response(self, response, action_result):
 
@@ -485,9 +486,7 @@ class Office365Connector(BaseConnector):
 
     def _get_asset_name(self, action_result):
 
-        asset_id = self.get_asset_id()
-
-        rest_endpoint = PHANTOM_ASSET_INFO_URL.format(url=self.get_phantom_base_url(), asset_id=asset_id)
+        rest_endpoint = PHANTOM_ASSET_INFO_URL.format(url=self.get_phantom_base_url(), asset_id=self._asset_id)
 
         ret_val, resp_json = self._make_rest_call(action_result, rest_endpoint, False)
 
@@ -497,7 +496,7 @@ class Office365Connector(BaseConnector):
         asset_name = resp_json.get('name')
 
         if not asset_name:
-            return (action_result.set_status(phantom.APP_ERROR, "Asset Name for ID: {0} not found".format(asset_id), None))
+            return (action_result.set_status(phantom.APP_ERROR, "Asset Name for ID: {0} not found".format(self._asset_id), None))
 
         return (phantom.APP_SUCCESS, asset_name)
 
@@ -1003,7 +1002,7 @@ class Office365Connector(BaseConnector):
                 admin_consent_url = "https://login.microsoftonline.com/{0}/adminconsent".format(self._tenant)
                 admin_consent_url += "?client_id={0}".format(self._client_id)
                 admin_consent_url += "&redirect_uri={0}".format(redirect_uri)
-                admin_consent_url += "&state={0}".format(self.get_asset_id())
+                admin_consent_url += "&state={0}".format(self._asset_id)
             else:
                 # Scope is required for non-admin access
                 if not self._scope:
@@ -1012,7 +1011,7 @@ class Office365Connector(BaseConnector):
                 admin_consent_url = "https://login.microsoftonline.com/{0}/oauth2/v2.0/authorize".format(self._tenant)
                 admin_consent_url += "?client_id={0}".format(self._client_id)
                 admin_consent_url += "&redirect_uri={0}".format(redirect_uri)
-                admin_consent_url += "&state={0}".format(self.get_asset_id())
+                admin_consent_url += "&state={0}".format(self._asset_id)
                 admin_consent_url += "&scope={0}".format(self._scope)
                 admin_consent_url += "&response_type=code"
 
@@ -1020,10 +1019,10 @@ class Office365Connector(BaseConnector):
 
             # The URL that the user should open in a different tab.
             # This is pointing to a REST endpoint that points to the app
-            url_to_show = "{0}/start_oauth?asset_id={1}&".format(app_rest_url, self.get_asset_id())
+            url_to_show = "{0}/start_oauth?asset_id={1}&".format(app_rest_url, self._asset_id)
 
             # Save the state, will be used by the request handler
-            _save_app_state(app_state, self.get_asset_id(), self)
+            _save_app_state(app_state, self._asset_id, self)
 
             self.save_progress('Please connect to the following URL from a different tab to continue the connectivity process')
             self.save_progress(url_to_show)
@@ -1034,7 +1033,7 @@ class Office365Connector(BaseConnector):
             completed = False
 
             app_dir = os.path.dirname(os.path.abspath(__file__))
-            auth_status_file_path = "{0}/{1}_{2}".format(app_dir, self.get_asset_id(), TC_FILE)
+            auth_status_file_path = "{0}/{1}_{2}".format(app_dir, self._asset_id, TC_FILE)
 
             if self._admin_access:
                 self.save_progress('Waiting for Admin Consent to complete')
@@ -1059,7 +1058,7 @@ class Office365Connector(BaseConnector):
             self.send_progress("")
 
             # Load the state again, since the http request handlers would have saved the result of the admin consent or authorization
-            self._state = _load_app_state(self.get_asset_id(), self)
+            self._state = _load_app_state(self._asset_id, self)
 
             if not self._state:
                 self.save_progress("Authorization not received or not given")
@@ -2243,8 +2242,8 @@ class Office365Connector(BaseConnector):
             data['scope'] = 'https://graph.microsoft.com/.default'
 
         if not self._admin_access:
-            if self._state.get('non_admin_auth', {}).get('refresh_token'):
-                data['refresh_token'] = self._state.get('non_admin_auth').get('refresh_token')
+            if self._refresh_token:
+                data['refresh_token'] = self._refresh_token
                 data['grant_type'] = 'refresh_token'
             elif self._state.get('code'):
                 data['redirect_uri'] = self._state.get('redirect_uri')
@@ -2271,7 +2270,7 @@ class Office365Connector(BaseConnector):
 
         # Save state
         self.save_state(self._state)
-        _save_app_state(self._state, self.get_asset_id(), self)
+        _save_app_state(self._state, self._asset_id, self)
 
         self._state = self.load_state()
 
@@ -2321,29 +2320,39 @@ class Office365Connector(BaseConnector):
         self._admin_consent = config.get('admin_consent')
         self._scope = config.get('scope') if config.get('scope') else None
 
-        self.asset_id = self.get_asset_id()
+        self._asset_id = self.get_asset_id()
         if not self._admin_access:
             if not self._scope:
                 return self.set_status(phantom.APP_ERROR, "Please provide scope for non-admin access in the asset configuration")
 
-            try:
-                self._state['non_admin_auth']['access_token'] = encryption_helper.decrypt(
-                    self._state.get('non_admin_auth', {}).get('access_token'), self.asset_id)
-                self._state['non_admin_auth']['refresh_token'] = encryption_helper.decrypt(
-                    self._state.get('non_admin_auth', {}).get('refresh_token'), self.asset_id)
-            except Exception as e:
-                self.debug_print("Error occurred while decrypting the token: {}".format(str(e)))
-                self._reset_state_file()
-            self._access_token = self._state.get('non_admin_auth', {}).get('access_token')
-            self._refresh_token = self._state.get('non_admin_auth', {}).get('refresh_token')
+            self._access_token = self._state.get('non_admin_auth', {}).get('access_token', None)
+            self._refresh_token = self._state.get('non_admin_auth', {}).get('refresh_token', None)
+
+            if self._access_token:
+                try:
+                    self._access_token = encryption_helper.decrypt(
+                        self._state.get('non_admin_auth', {}).get('access_token'), self._asset_id)
+                except Exception as e:
+                    self.debug_print("Error occurred while decrypting the token: {}".format(str(e)))
+                    self._reset_state_file()
+
+            if self._refresh_token:
+                try:
+                    self._refresh_token = encryption_helper.decrypt(
+                        self._state.get('non_admin_auth', {}).get('refresh_token'), self._asset_id)
+                except Exception as e:
+                    self.debug_print("Error occurred while decrypting the token: {}".format(str(e)))
+                    self._reset_state_file()
+
         else:
-            try:
-                self._state['admin_auth']['access_token'] = encryption_helper.decrypt(
-                    self._state.get('admin_auth', {}).get('access_token'), self.asset_id)
-            except Exception as e:
-                self.debug_print("Error occurred while decrypting the token: {}".format(str(e)))
-                self._reset_state_file()
-            self._access_token = self._state.get('admin_auth', {}).get('access_token')
+            self._access_token = self._state.get('admin_auth', {}).get('access_token', None)
+            if self._access_token:
+                try:
+                    self._access_token = encryption_helper.decrypt(
+                        self._state.get('admin_auth', {}).get('access_token'), self._asset_id)
+                except Exception as e:
+                    self.debug_print("Error occurred while decrypting the token: {}".format(str(e)))
+                    self._reset_state_file()
 
         if action_id == 'test_connectivity':
             # User is trying to complete the authentication flow, so just return True from here so that test connectivity continues
@@ -2386,21 +2395,21 @@ class Office365Connector(BaseConnector):
                 if self._state.get('non_admin_auth', {}).get('refresh_token'):
                     self.debug_print("Encrypting the token")
                     self._state['non_admin_auth']['refresh_token'] = encryption_helper.encrypt(
-                        self._state.get('non_admin_auth', {}).get('refresh_token'), self.asset_id)
+                        self._state.get('non_admin_auth', {}).get('refresh_token'), self._asset_id)
                 if self._state.get('non_admin_auth', {}).get('access_token'):
                     self.debug_print("Encrypting the token")
                     self._state['non_admin_auth']['access_token'] = encryption_helper.encrypt(
-                        self._state.get('non_admin_auth', {}).get('access_token'), self.asset_id)
+                        self._state.get('non_admin_auth', {}).get('access_token'), self._asset_id)
             else:
                 if self._state.get('admin_auth', {}).get('access_token'):
                     self.debug_print("Encrypting the token")
                     self._state['admin_auth']['access_token'] = encryption_helper.encrypt(
-                        self._state.get('admin_auth', {}).get('access_token'), self.asset_id)
+                        self._state.get('admin_auth', {}).get('access_token'), self._asset_id)
         except Exception as e:
             self.debug_print("{}: {}".format(ENCRYPTION_ERR, str(e)))
             self._reset_state_file()
         self.save_state(self._state)
-        _save_app_state(self._state, self.get_asset_id(), self)
+        _save_app_state(self._state, self._asset_id, self)
         return phantom.APP_SUCCESS
 
 
