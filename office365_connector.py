@@ -259,7 +259,9 @@ def _handle_oauth_start(request, path_parts):
     # Load the state that was created for the asset
     state = _load_app_state(asset_id)
     if not state:
-        return HttpResponse('ERROR: The asset ID is invalid or an error occurred while reading the state file', content_type="text/plain", status=400)
+        return HttpResponse(
+            'ERROR: The asset ID is invalid or an error occurred while reading the state file', content_type="text/plain", status=400
+        )
 
     # get the url to point to the authorize url of OAuth
     admin_consent_url = state.get('admin_consent_url')
