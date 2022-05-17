@@ -155,6 +155,7 @@ The app should now be ready to be used.
     <li>If the parameter <b>Admin Access Required</b> is unchecked, you have to provide a <b>scope</b> parameter in the asset configuration. All the actions will get executed according to the scopes provided in the <b>scope</b> config parameter. The actions will throw an appropriate error if the scope of the corresponding permission is not provided by the end-user.</li>
     <li>If both the checkboxes <b>Admin Consent Already Provided</b> and <b>Admin Access Required</b> are kept as checked while running the test connectivity for the first time, then the test connectivity will pass but actions will fail. In order to use the <b>Admin Consent Already Provided</b> checkbox, first, you need to run the test connectivity with only <b>Admin Access Required</b> as checked and provide admin consent, and then while running the test connectivity for the second time the <b>Admin Consent Already Provided</b> should be checked if required. The <b>checkbox Admin Consent Already Provided</b> is used when running the test connectivity if admin consent is already provided.</li>
     <li>There is an API limitation that will affect run_query action when providing Unicode values in the subject or in the body as parameters and if the result count exceeds 999, the action will fail.</li>
+    <li>The sensitive values are stored encrypted in the state file.</li>
 </ul>
 </p>
 

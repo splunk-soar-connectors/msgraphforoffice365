@@ -26,7 +26,8 @@ MSGOFFICE365_WELL_KNOWN_FOLDERS_FILTER = "displayName eq 'archive' or displayNam
     " displayName eq 'msg folder root' or displayName eq 'outbox' or displayName eq 'recoverable items deletions' or "\
     "displayName eq 'scheduled' or displayName eq 'search folders' or displayName eq 'sent items' or displayName eq 'server failures' or "\
     "displayName eq 'sync issues'"
-MSGOFFICE365_STATE_FILE_CORRUPT_ERR = "Error occurred while loading the state file due to its unexpected format"
+MSGOFFICE365_STATE_FILE_CORRUPT_ERR = "Error occurred while loading the state file. " \
+    "Resetting the state file with the default format. Please test the connectivity."
 MSGOFFICE365_AUTHORIZE_TROUBLESHOOT_MSG = 'If authorization URL fails to communicate with your Phantom instance, check whether you have:  '\
                                 ' 1. Specified the Web Redirect URL of your App -- The Redirect URL should be <POST URL>/result . '\
                                 ' 2. Configured the base URL of your Phantom Instance at Administration -> Company Settings -> Info'
@@ -51,6 +52,5 @@ MSGOFFICE365_NON_NEG_NON_ZERO_INT_MSG = (
     "Please provide a valid non-zero positive integer value in the {param} parameter"
 )
 MSGOFFICE365_NON_NEG_INT_MSG = "Please provide a valid non-negative integer value in the {param} parameter"
-ASSET_CORRUPTED_ERR = "ERROR: The state file for this asset is corrupted. " \
-    "Please delete the state file corresponding to the current asset and test the connectivity"
 ENCRYPTION_ERR = "Error occurred while encrypting the state file"
+DECRYPTION_ERR = "Error occurred while decrypting the state file"
