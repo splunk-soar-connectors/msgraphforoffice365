@@ -21,7 +21,7 @@
     "main_module": "office365_connector.py",
     "min_phantom_version": "5.2.0",
     "latest_tested_versions": [
-        "Cloud 30 April, 2022"
+        "Cloud 6 June, 2022"
     ],
     "app_wizard_version": "1.0.0",
     "python_version": "3",
@@ -5491,7 +5491,7 @@
             },
             {
                 "module": "certifi",
-                "input_file": "wheels/shared/certifi-2021.10.8-py2.py3-none-any.whl"
+                "input_file": "wheels/py3/certifi-2022.5.18.1-py3-none-any.whl"
             },
             {
                 "module": "chardet",
@@ -5539,7 +5539,7 @@
             },
             {
                 "module": "asgiref",
-                "input_file": "wheels/py3/asgiref-3.5.1-py3-none-any.whl"
+                "input_file": "wheels/py3/asgiref-3.5.2-py3-none-any.whl"
             },
             {
                 "module": "beautifulsoup4",
@@ -5547,7 +5547,7 @@
             },
             {
                 "module": "certifi",
-                "input_file": "wheels/shared/certifi-2021.10.8-py2.py3-none-any.whl"
+                "input_file": "wheels/py3/certifi-2022.5.18.1-py3-none-any.whl"
             },
             {
                 "module": "chardet",
