@@ -1472,8 +1472,8 @@ class Office365Connector(BaseConnector):
 
         if param.get('download_attachments', False) and response.get('hasAttachments'):
 
-            endpoint += '/attachments?$expand=microsoft.graph.itemattachment/item'
-            ret_val, attach_resp = self._make_rest_call_helper(action_result, endpoint)
+            attach_endpoint = endpoint + '/attachments?$expand=microsoft.graph.itemattachment/item'
+            ret_val, attach_resp = self._make_rest_call_helper(action_result, attach_endpoint)
             if phantom.is_fail(ret_val):
                 return action_result.get_status()
 
@@ -1487,8 +1487,8 @@ class Office365Connector(BaseConnector):
 
         if response.get('@odata.type') == "#microsoft.graph.eventMessage":
 
-            endpoint += '/?$expand=Microsoft.Graph.EventMessage/Event'
-            ret_val, event_resp = self._make_rest_call_helper(action_result, endpoint)
+            event_endpoint = endpoint + '/?$expand=Microsoft.Graph.EventMessage/Event'
+            ret_val, event_resp = self._make_rest_call_helper(action_result, event_endpoint)
             if phantom.is_fail(ret_val):
                 return action_result.get_status()
 
