@@ -2618,6 +2618,7 @@
             "action": "get email",
             "identifier": "get_email",
             "description": "Get an email from the server",
+            "verbose": "If the 'download attachments' parameter is set to true, action will ingest '#microsoft.graph.itemAttachment' as an EML file.",
             "type": "investigate",
             "read_only": true,
             "parameters": {
@@ -2642,7 +2643,7 @@
                     "order": 1
                 },
                 "download_attachments": {
-                    "description": "Download attachments to vault (ingest only '#microsoft.graph.fileAttachment' type of attachments)",
+                    "description": "Download attachments to vault",
                     "data_type": "boolean",
                     "order": 2
                 },

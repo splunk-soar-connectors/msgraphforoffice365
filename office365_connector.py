@@ -883,6 +883,19 @@ class Office365Connector(BaseConnector):
                     sub_email = attachment.get('item', {})
 
                 if sub_email.get('@odata.type') != '#microsoft.graph.message':
+                    sub_email_endpoint = attach_endpoint + '/{0}/$value'.format(attachment['id'])
+                    ret_val, rfc822_email = self._make_rest_call_helper(action_result, sub_email_endpoint, download=True)
+                    if phantom.is_fail(ret_val):
+                        self.debug_print("Error while downloading the email content, for attachment id: {}".format(attachment['id']))
+                        continue
+
+                    # Create ProcessEmail Object for email item attachment
+                    process_email_obj = ProcessEmail(self, config)
+                    process_email_obj._trigger_automation = False
+                    ret_val, message = process_email_obj.process_email(rfc822_email, attachment['id'], epoch=None, container_id=container_id)
+                    if phantom.is_fail(ret_val):
+                        return action_result.set_status(phantom.APP_ERROR, message)
+
                     continue
 
                 item_attachments = sub_email.pop('attachments', [])
