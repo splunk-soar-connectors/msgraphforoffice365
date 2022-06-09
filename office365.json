@@ -229,7 +229,7 @@
                     "primary": true,
                     "contains": [
                         "msgoffice365 user id",
-                        "msgoffice365 user principle name",
+                        "msgoffice365 user principal name",
                         "email"
                     ],
                     "order": 0
@@ -241,10 +241,10 @@
                     "data_type": "string",
                     "contains": [
                         "msgoffice365 user id",
-                        "msgoffice365 user principle name",
+                        "msgoffice365 user principal name",
                         "email"
                     ],
-                    "column_name": "User ID/Principle Name",
+                    "column_name": "User ID/Principal Name",
                     "column_order": 0,
                     "example_values": [
                         "eeb3645f-df19-58a1-0e9c-ghi234cb5f6f"
@@ -374,7 +374,7 @@
                     "primary": true,
                     "contains": [
                         "msgoffice365 user id",
-                        "msgoffice365 user principle name",
+                        "msgoffice365 user principal name",
                         "email"
                     ],
                     "order": 0
@@ -430,7 +430,7 @@
                     "data_type": "string",
                     "contains": [
                         "msgoffice365 user id",
-                        "msgoffice365 user principle name",
+                        "msgoffice365 user principal name",
                         "email"
                     ],
                     "example_values": [
@@ -1152,10 +1152,10 @@
                         "test@testdomain.onmicrosoft.com"
                     ],
                     "contains": [
-                        "msgoffice365 user principle name",
+                        "msgoffice365 user principal name",
                         "email"
                     ],
-                    "column_name": "User Principle Name",
+                    "column_name": "User Principal Name",
                     "column_order": 1
                 },
                 {
@@ -1634,10 +1634,10 @@
                         "test@testdomain.onmicrosoft.com"
                     ],
                     "contains": [
-                        "msgoffice365 user principle name",
+                        "msgoffice365 user principal name",
                         "email"
                     ],
-                    "column_name": "User Principle Name",
+                    "column_name": "User Principal Name",
                     "column_order": 1
                 },
                 {
@@ -1693,7 +1693,7 @@
                     "order": 0,
                     "contains": [
                         "msgoffice365 user id",
-                        "msgoffice365 user principle name",
+                        "msgoffice365 user principal name",
                         "email"
                     ]
                 },
@@ -1726,7 +1726,7 @@
                     ],
                     "contains": [
                         "msgoffice365 user id",
-                        "msgoffice365 user principle name",
+                        "msgoffice365 user principal name",
                         "email"
                     ]
                 },
