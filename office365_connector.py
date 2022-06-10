@@ -614,32 +614,40 @@ class Office365Connector(BaseConnector):
 
         return phantom.APP_SUCCESS, resp_json
 
+    def _add_attachment_to_vault(self, attachment, container_id, file_data):  # Check whether the API returned any data
+        if hasattr(Vault, 'get_vault_tmp_dir'):
+            fd, tmp_file_path = tempfile.mkstemp(dir=Vault.get_vault_tmp_dir())
+        else:
+            fd, tmp_file_path = tempfile.mkstemp(dir='/opt/phantom/vault/tmp')
+        os.close(fd)
+        file_mode = "wb" if isinstance(file_data, bytes) else "w"
+        with open(tmp_file_path, file_mode) as f:
+            f.write(file_data)
+
+        success, message, vault_id = ph_rules.vault_add(
+            container=container_id,
+            file_location=tmp_file_path,
+            file_name=attachment['name']
+        )
+        if not success:
+            self.debug_print("Error adding file to vault: {}".format(message))
+            return RetVal(phantom.APP_ERROR, None)
+        else:
+            return RetVal(phantom.APP_SUCCESS, vault_id)
+
     def _handle_attachment(self, attachment, container_id, artifact_json=None):
 
         vault_id = None
 
         try:
             if 'contentBytes' in attachment:  # Check whether the attachment contains the data
-                if hasattr(Vault, 'get_vault_tmp_dir'):
-                    fd, tmp_file_path = tempfile.mkstemp(dir=Vault.get_vault_tmp_dir())
-                else:
-                    fd, tmp_file_path = tempfile.mkstemp(dir='/opt/phantom/vault/tmp')
-                os.close(fd)
-
                 file_data = base64.b64decode(attachment.pop('contentBytes'))
-                with open(tmp_file_path, 'wb') as f:
-                    f.write(file_data)
-
-                success, message, vault_id = ph_rules.vault_add(
-                    container=container_id,
-                    file_location=tmp_file_path,
-                    file_name=attachment['name']
-                )
-                if not success:
-                    self.debug_print("Error adding file to vault: {}".format(message))
+                ret_val, vault_id = self._add_attachment_to_vault(attachment, container_id, file_data)
+                if phantom.is_fail(ret_val):
                     return phantom.APP_ERROR
             else:
-                self.debug_print("No content found in the attachment. Hence, skipping the vault file creation.")
+                self.debug_print("No content found for the item attachment. Hence, skipping the vault file creation.")
+
         except Exception as e:
             error_msg = _get_error_message_from_exception(e)
             self.debug_print("Error saving file to vault: {0}".format(error_msg))
@@ -681,25 +689,12 @@ class Office365Connector(BaseConnector):
             attachment['name'] = "{}.eml".format(attachment['name'])
 
             if rfc822_email:  # Check whether the API returned any data
-                if hasattr(Vault, 'get_vault_tmp_dir'):
-                    fd, tmp_file_path = tempfile.mkstemp(dir=Vault.get_vault_tmp_dir())
-                else:
-                    fd, tmp_file_path = tempfile.mkstemp(dir='/opt/phantom/vault/tmp')
-                os.close(fd)
-
-                with open(tmp_file_path, 'w') as f:
-                    f.write(rfc822_email)
-
-                success, message, vault_id = ph_rules.vault_add(
-                    container=container_id,
-                    file_location=tmp_file_path,
-                    file_name=attachment['name']
-                )
-                if not success:
-                    self.debug_print("Error adding EML file to vault: {}".format(message))
+                ret_val, vault_id = self._add_attachment_to_vault(attachment, container_id, rfc822_email)
+                if phantom.is_fail(ret_val):
                     return phantom.APP_ERROR
             else:
                 self.debug_print("No content found for the item attachment. Hence, skipping the vault file creation.")
+
         except Exception as e:
             error_msg = _get_error_message_from_exception(e)
             self.debug_print("Error saving file to vault: {0}".format(error_msg))
@@ -882,21 +877,45 @@ class Office365Connector(BaseConnector):
                 else:
                     sub_email = attachment.get('item', {})
 
+                sub_email_endpoint = attach_endpoint + '/{0}/$value'.format(attachment['id'])
+                attachment['name'] = "{}.eml".format(attachment['name'])
+                ret_val, rfc822_email = self._make_rest_call_helper(action_result, sub_email_endpoint, download=True)
+                if phantom.is_fail(ret_val):
+                    self.debug_print("Error while downloading the email content, for attachment id: {}".format(attachment['id']))
+                elif rfc822_email:
+                    ret_val, vault_id = self._add_attachment_to_vault(attachment, container_id, rfc822_email)
+                    if phantom.is_fail(ret_val):
+                        self.debug_print('Could not process item attachment. See logs for details')
+                    else:
+                        artifact_json = {}
+                        artifact_json['name'] = 'Vault Artifact'
+                        artifact_json['label'] = 'attachment'
+                        artifact_json['container_id'] = container_id
+                        artifact_json['source_data_identifier'] = attachment['id']
+
+                        artifact_cef = {}
+                        artifact_cef['size'] = attachment['size']
+                        artifact_cef['lastModified'] = attachment['lastModifiedDateTime']
+                        artifact_cef['filename'] = attachment['name']
+                        artifact_cef['mimeType'] = attachment['contentType']
+                        if vault_id:
+                            artifact_cef['vault_id'] = vault_id
+                        artifact_json['cef'] = artifact_cef
+                        artifacts.append(artifact_json)
+
+                else:
+                    self.debug_print("No content found in the .eml file attachment. Hence, skipping the email file processing.")
+
                 if sub_email.get('@odata.type') != '#microsoft.graph.message':
-                    sub_email_endpoint = attach_endpoint + '/{0}/$value'.format(attachment['id'])
-                    ret_val, rfc822_email = self._make_rest_call_helper(action_result, sub_email_endpoint, download=True)
-                    if phantom.is_fail(ret_val):
-                        self.debug_print("Error while downloading the email content, for attachment id: {}".format(attachment['id']))
-                        continue
-
                     # Create ProcessEmail Object for email item attachment
-                    process_email_obj = ProcessEmail(self, config)
-                    process_email_obj._trigger_automation = False
-                    ret_val, message = process_email_obj.process_email(rfc822_email, attachment['id'], epoch=None, container_id=container_id)
-                    if phantom.is_fail(ret_val):
-                        return action_result.set_status(phantom.APP_ERROR, message)
+                    if rfc822_email:
+                        process_email_obj = ProcessEmail(self, config)
+                        process_email_obj._trigger_automation = False
+                        ret_val, message = process_email_obj.process_email(rfc822_email, attachment['id'], epoch=None, container_id=container_id)
+                        if phantom.is_fail(ret_val):
+                            return action_result.set_status(phantom.APP_ERROR, message)
 
-                    continue
+                        continue
 
                 item_attachments = sub_email.pop('attachments', [])
                 if sub_email:
