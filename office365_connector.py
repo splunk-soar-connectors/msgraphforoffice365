@@ -646,7 +646,7 @@ class Office365Connector(BaseConnector):
                 if phantom.is_fail(ret_val):
                     return phantom.APP_ERROR
             else:
-                self.debug_print("No content found for the item attachment. Hence, skipping the vault file creation.")
+                self.debug_print("No content found in the attachment. Hence, skipping the vault file creation.")
 
         except Exception as e:
             error_msg = _get_error_message_from_exception(e)
@@ -872,60 +872,60 @@ class Office365Connector(BaseConnector):
                     ret_val, sub_email_resp = self._make_rest_call_helper(action_result, sub_email_endpoint)
                     if phantom.is_fail(ret_val):
                         return action_result.get_status()
-
                     sub_email = sub_email_resp.get('item', {})
                 else:
                     sub_email = attachment.get('item', {})
 
-                sub_email_endpoint = attach_endpoint + '/{0}/$value'.format(attachment['id'])
-                attachment['name'] = "{}.eml".format(attachment['name'])
-                ret_val, rfc822_email = self._make_rest_call_helper(action_result, sub_email_endpoint, download=True)
-                if phantom.is_fail(ret_val):
-                    self.debug_print("Error while downloading the email content, for attachment id: {}".format(attachment['id']))
-                elif rfc822_email:
-                    ret_val, vault_id = self._add_attachment_to_vault(attachment, container_id, rfc822_email)
+                # Use recursive approach to extract the reference attachment
+                item_attachments = sub_email.pop('attachments', [])
+                if item_attachments:
+                    ret_val = self._extract_attachments(config, attach_endpoint, artifacts, action_result, item_attachments, container_id)
                     if phantom.is_fail(ret_val):
-                        self.debug_print('Could not process item attachment. See logs for details')
-                    else:
-                        artifact_json = {}
-                        artifact_json['name'] = 'Vault Artifact'
-                        artifact_json['label'] = 'attachment'
-                        artifact_json['container_id'] = container_id
-                        artifact_json['source_data_identifier'] = attachment['id']
+                        self.debug_print("Error while processing nested attachments, for attachment id: {}".format(attachment['id']))
 
-                        artifact_cef = {}
-                        artifact_cef['size'] = attachment['size']
-                        artifact_cef['lastModified'] = attachment['lastModifiedDateTime']
-                        artifact_cef['filename'] = attachment['name']
-                        artifact_cef['mimeType'] = attachment['contentType']
-                        if vault_id:
-                            artifact_cef['vault_id'] = vault_id
-                        artifact_json['cef'] = artifact_cef
-                        artifacts.append(artifact_json)
+                if first_time:
+                    # Fetch the rfc822 content for the item attachment
+                    sub_email_endpoint = attach_endpoint + '/{0}/$value'.format(attachment['id'])
+                    attachment['name'] = "{}.eml".format(attachment['name'])
+                    ret_val, rfc822_email = self._make_rest_call_helper(action_result, sub_email_endpoint, download=True)
+                    if phantom.is_fail(ret_val):
+                        self.debug_print("Error while downloading the email content, for attachment id: {}".format(attachment['id']))
 
-                else:
-                    self.debug_print("No content found in the .eml file attachment. Hence, skipping the email file processing.")
-
-                if sub_email.get('@odata.type') != '#microsoft.graph.message':
-                    # Create ProcessEmail Object for email item attachment
                     if rfc822_email:
+                        # Create ProcessEmail Object for email item attachment
                         process_email_obj = ProcessEmail(self, config)
                         process_email_obj._trigger_automation = False
                         ret_val, message = process_email_obj.process_email(rfc822_email, attachment['id'], epoch=None, container_id=container_id)
                         if phantom.is_fail(ret_val):
-                            return action_result.set_status(phantom.APP_ERROR, message)
+                            self.debug_print("Error while processing the email content, for attachment id: {}".format(attachment['id']))
 
-                        continue
+                        if config.get('ingest_eml', False):
+                            # Add eml file into the vault if ingest_email is checked
+                            ret_val, vault_id = self._add_attachment_to_vault(attachment, container_id, rfc822_email)
+                            if phantom.is_fail(ret_val):
+                                self.debug_print('Could not process item attachment. See logs for details')
+                            else:
+                                # If success, create vault artifact
+                                artifact_json = {
+                                    'name': 'Vault Artifact',
+                                    'label': 'attachment',
+                                    'container_id': container_id,
+                                    'source_data_identifier': attachment['id']
+                                }
 
-                item_attachments = sub_email.pop('attachments', [])
-                if sub_email:
-                    sub_artifacts = self._create_email_artifacts(container_id, sub_email, attachment['id'])
-                    artifacts += sub_artifacts
+                                artifact_cef = {
+                                    'size': attachment['size'],
+                                    'lastModified': attachment['lastModifiedDateTime'],
+                                    'filename': attachment['name'],
+                                    'mimeType': attachment['contentType']
+                                }
+                                if vault_id:
+                                    artifact_cef['vault_id'] = vault_id
+                                artifact_json['cef'] = artifact_cef
+                                artifacts.append(artifact_json)
 
-                if item_attachments:
-                    ret_val = self._extract_attachments(config, attach_endpoint, artifacts, action_result, item_attachments, container_id)
-                    if phantom.is_fail(ret_val):
-                        return action_result.get_status()
+                    else:
+                        self.debug_print("No content found for the item attachment. Hence, skipping the email file processing.")
 
             elif attachment.get('@odata.type') == "#microsoft.graph.referenceAttachment":
 
@@ -933,7 +933,7 @@ class Office365Connector(BaseConnector):
                 artifacts.append(attach_artifact)
                 self._create_reference_attachment_artifact(container_id, attachment, attach_artifact)
 
-            elif attachment.get('name', '').endswith('.eml'):
+            elif first_time and attachment.get('name', '').endswith('.eml'):
                 if 'contentBytes' in attachment:
                     try:
                         rfc822_email = base64.b64decode(attachment['contentBytes'])
@@ -952,7 +952,7 @@ class Office365Connector(BaseConnector):
                 else:
                     self.debug_print("No content found in the .eml file attachment. Hence, skipping the email file processing.")
 
-            else:
+            elif first_time:
                 attach_artifact = {}
                 artifacts.append(attach_artifact)
                 if not self._handle_attachment(attachment, container_id, artifact_json=attach_artifact):

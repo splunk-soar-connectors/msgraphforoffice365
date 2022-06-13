@@ -129,8 +129,10 @@
             "default": false,
             "order": 18
         },
-        "ph_4": {
-            "data_type": "ph",
+        "ingest_eml": {
+            "description": "Ingest EML file for the itemAttachment",
+            "data_type": "boolean",
+            "default": false,
             "order": 19
         },
         "ingest_manner": {
