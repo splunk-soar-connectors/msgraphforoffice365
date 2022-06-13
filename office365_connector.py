@@ -92,7 +92,7 @@ def _load_app_state(asset_id, app_connector=None):
         state = _decrypt_state(state, asset_id)
     except Exception as e:
         if app_connector:
-            app_connector.debug_print("{}: {}".format(DECRYPTION_ERR, str(e)))
+            app_connector.debug_print("{}: {}".format(MSGOFFICE365_DECRYPTION_ERR, str(e)))
         state = {}
 
     return state
@@ -126,7 +126,7 @@ def _save_app_state(state, asset_id, app_connector):
         state = _encrypt_state(state, asset_id)
     except Exception as e:
         if app_connector:
-            app_connector.debug_print("{}: {}".format(ENCRYPTION_ERR, str(e)))
+            app_connector.debug_print("{}: {}".format(MSGOFFICE365_ENCRYPTION_ERR, str(e)))
         return phantom.APP_ERROR
 
     if app_connector:
@@ -341,12 +341,15 @@ def _decrypt_state(state, salt):
         return state
 
     if "non_admin_auth" in state:
-        token = encryption_helper.decrypt(state["non_admin_auth"], salt)
-        state["non_admin_auth"] = json.loads(token)
+        if state.get("non_admin_auth").get("access_token"):
+           state["non_admin_auth"]["access_token"] = encryption_helper.decrypt(state["non_admin_auth"]["access_token"], salt)
+
+        if state.get("non_admin_auth").get("refresh_token"):
+           state["non_admin_auth"]["refresh_token"] = encryption_helper.decrypt(state["non_admin_auth"]["refresh_token"], salt)
 
     if "admin_auth" in state:
-        token = encryption_helper.decrypt(state["admin_auth"], salt)
-        state["admin_auth"] = json.loads(token)
+       if state.get("admin_auth").get("access_token"):
+           state["admin_auth"]["access_token"] = encryption_helper.decrypt(state["admin_auth"]["access_token"], salt)
 
     if "code" in state:
         state["code"] = encryption_helper.decrypt(state["code"], salt)
@@ -363,10 +366,15 @@ def _encrypt_state(state, salt):
     :return: encrypted state
     """
     if "non_admin_auth" in state:
-        state["non_admin_auth"] = encryption_helper.encrypt(json.dumps(state["non_admin_auth"]), salt)
+        if state.get("non_admin_auth").get("access_token"):
+           state["non_admin_auth"]["access_token"] = encryption_helper.encrypt(state["non_admin_auth"]["access_token"], salt)
+
+        if state.get("non_admin_auth").get("refresh_token"):
+           state["non_admin_auth"]["refresh_token"] = encryption_helper.encrypt(state["non_admin_auth"]["refresh_token"], salt)
 
     if "admin_auth" in state:
-        state["admin_auth"] = encryption_helper.encrypt(json.dumps(state["admin_auth"]), salt)
+       if state.get("admin_auth").get("access_token"):
+           state["admin_auth"]["access_token"] = encryption_helper.encrypt(state["admin_auth"]["access_token"], salt)
 
     if "code" in state:
         state["code"] = encryption_helper.encrypt(state["code"], salt)
@@ -410,7 +418,7 @@ class Office365Connector(BaseConnector):
         try:
             state = _decrypt_state(state, self._asset_id)
         except Exception as e:
-            self.debug_print("{}: {}".format(DECRYPTION_ERR, str(e)))
+            self.debug_print("{}: {}".format(MSGOFFICE365_DECRYPTION_ERR, str(e)))
             state = None
 
         return state
@@ -425,7 +433,7 @@ class Office365Connector(BaseConnector):
         try:
             state = _encrypt_state(state, self._asset_id)
         except Exception as e:
-            self.debug_print("{}: {}".format(ENCRYPTION_ERR, str(e)))
+            self.debug_print("{}: {}".format(MSGOFFICE365_ENCRYPTION_ERR, str(e)))
             return phantom.APP_ERROR
 
         return super().save_state(state)
@@ -531,7 +539,7 @@ class Office365Connector(BaseConnector):
         if 'json' in content_type or 'javascript' in content_type:
             return self._process_json_response(r, action_result)
 
-        # Process an HTML resonse, Do this no matter what the api talks.
+        # Process an HTML response, Do this no matter what the api talks.
         # There is a high chance of a PROXY in between phantom and the rest of
         # world, in case of errors, PROXY's return HTML, this function parses
         # the error and adds it to the action_result.
@@ -1726,7 +1734,7 @@ class Office365Connector(BaseConnector):
             start_time = self._state['last_time']
 
         if not config.get('email_address'):
-            return action_result.set_status(phantom.APP_ERROR, "Email Adress to ingest must be supplied in asset!")
+            return action_result.set_status(phantom.APP_ERROR, "Email Address to ingest must be supplied in asset!")
         elif not config.get('folder'):
             return action_result.set_status(phantom.APP_ERROR, "Folder to ingest from must be supplied in asset!")
 
@@ -1981,7 +1989,7 @@ class Office365Connector(BaseConnector):
         try:
             dir_id = self._get_folder(action_result, path[0], email)
         except ReturnException as e:
-            return None, "Error occured while fetching folder {}. {}".format(path[0], e), None
+            return None, "Error occurred while fetching folder {}. {}".format(path[0], e), None
 
         if not dir_id:
             return None, "Error: folder not found; {}".format(path[0]), ret
@@ -2368,7 +2376,7 @@ class Office365Connector(BaseConnector):
         # Scenario -
         #
         # If the corresponding state file doesn't have correct owner, owner group or permissions,
-        # the newely generated token is not being saved to state file and automatic workflow for token has been stopped.
+        # the newly generated token is not being saved to state file and automatic workflow for token has been stopped.
         # So we have to check that token from response and token which are saved to state file
         # after successful generation of new token are same or not.
 
@@ -2430,8 +2438,12 @@ class Office365Connector(BaseConnector):
         admin_consent = self._state.get('admin_consent')
 
         # if it was not and the current action is not test connectivity then it's an error
-        if self._admin_access and not admin_consent and action_id != 'test_connectivity':
-            return self.set_status(phantom.APP_ERROR, MSGOFFICE365_RUN_CONNECTIVITY_MSG)
+        if self._admin_access:
+            if not admin_consent and action_id != 'test_connectivity':
+                return self.set_status(phantom.APP_ERROR, MSGOFFICE365_RUN_CONNECTIVITY_MSG)
+
+            if not self._access_token:
+                return self.set_status(phantom.APP_ERROR, MSGOFFICE365_UNEXPECTED_ACCESS_TOKEN_ERR)
 
         if not self._admin_access and action_id != 'test_connectivity' and (not self._access_token or not self._refresh_token):
             ret_val = self._get_token(action_result)

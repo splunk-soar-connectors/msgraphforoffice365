@@ -52,5 +52,6 @@ MSGOFFICE365_NON_NEG_NON_ZERO_INT_MSG = (
     "Please provide a valid non-zero positive integer value in the {param} parameter"
 )
 MSGOFFICE365_NON_NEG_INT_MSG = "Please provide a valid non-negative integer value in the {param} parameter"
-ENCRYPTION_ERR = "Error occurred while encrypting the state file"
-DECRYPTION_ERR = "Error occurred while decrypting the state file"
+MSGOFFICE365_ENCRYPTION_ERR = "Error occurred while encrypting the state file"
+MSGOFFICE365_DECRYPTION_ERR = "Error occurred while decrypting the state file"
+MSGOFFICE365_UNEXPECTED_ACCESS_TOKEN_ERR = "Found unexpected value of access token. Please run the test connectivity to generate a new token"
