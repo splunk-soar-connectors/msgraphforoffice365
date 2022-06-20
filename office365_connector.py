@@ -1126,7 +1126,7 @@ class Office365Connector(BaseConnector):
             if self._admin_access:
                 self.save_progress('Waiting for Admin Consent to complete')
             else:
-                self.save_progress('Waiting for Authorization Code to complete')
+                self.save_progress('Waiting for Authorization to complete')
 
             for i in range(0, 40):
 
