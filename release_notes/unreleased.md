@@ -3,3 +3,4 @@
 * Feature enhancement for the 'on poll' action [PAPP-25609]
   * Added new asset configuration parameter to ingest the EML file for item attachments
   * Added support to process all types of 'item attachment' and create the required artifacts
+* Bug fix for the extraction of attachment having long filename

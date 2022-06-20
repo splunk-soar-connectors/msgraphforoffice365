@@ -614,7 +614,7 @@ class Office365Connector(BaseConnector):
 
         return phantom.APP_SUCCESS, resp_json
 
-    def _add_attachment_to_vault(self, attachment, container_id, file_data):  # Check whether the API returned any data
+    def _add_attachment_to_vault(self, attachment, container_id, file_data):
         if hasattr(Vault, 'get_vault_tmp_dir'):
             fd, tmp_file_path = tempfile.mkstemp(dir=Vault.get_vault_tmp_dir())
         else:
@@ -873,6 +873,7 @@ class Office365Connector(BaseConnector):
                     if phantom.is_fail(ret_val):
                         return action_result.get_status()
                     sub_email = sub_email_resp.get('item', {})
+
                 else:
                     sub_email = attachment.get('item', {})
 
@@ -885,7 +886,7 @@ class Office365Connector(BaseConnector):
 
                 if first_time:
                     # Fetch the rfc822 content for the item attachment
-                    sub_email_endpoint = attach_endpoint + '/{0}/$value'.format(attachment['id'])
+                    sub_email_endpoint = '{0}/{1}/$value'.format(attach_endpoint, attachment['id'])
                     attachment['name'] = "{}.eml".format(attachment['name'])
                     ret_val, rfc822_email = self._make_rest_call_helper(action_result, sub_email_endpoint, download=True)
                     if phantom.is_fail(ret_val):
@@ -933,7 +934,7 @@ class Office365Connector(BaseConnector):
                 artifacts.append(attach_artifact)
                 self._create_reference_attachment_artifact(container_id, attachment, attach_artifact)
 
-            elif first_time and attachment.get('name', '').endswith('.eml'):
+            elif attachment.get('name', '').endswith('.eml'):
                 if 'contentBytes' in attachment:
                     try:
                         rfc822_email = base64.b64decode(attachment['contentBytes'])
