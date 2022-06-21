@@ -30,7 +30,7 @@ On the next page, select <b>New registration</b> and give your app a name.
 <br><br>
 Once the app is created, follow the below-mentioned steps:
 <ul>
-    <li>Under <b>Certificates & secrets</b> select <b>New client secret</b>. Note down this key somewhere secure, as it cannot be retrieved after closing the window.</li>
+    <li>Under <b>Certificates & secrets</b> select <b>New client secret</b>. Enter the <b>Description</b> and select the desired duration in <b>Expires</b>. Click on <b>Add</b>. Note down this <b>value</b> somewhere secure, as it cannot be retrieved after closing the window.</li>
     <li>Under <b>Authentication</b>, select <b>Add a platform</b>. In the <b>Add a platform</b> window, select <b>Web</b>. The <b>Redirect URLs</b> should be filled right here. We will get <b>Redirect URLs</b> from the Phantom asset we create below in the section titled <b>Phantom Graph Asset</b>.</li>
     <li>Under <b>API Permissions</b> Click on <b>Add a permission</b>.</li>
     <li>Under the <b>Microsoft API</b> section, select <b>Microsoft Graph</b>.</li>
@@ -40,12 +40,12 @@ Once the app is created, follow the below-mentioned steps:
         <li>Mail.ReadWrite (https://graph.microsoft.com/Mail.ReadWrite)</li>
         <li>User.Read.All (https://graph.microsoft.com/User.Read.All)</li>
             <ul><li>For non-admin access, use User.Read (Delegated permission) instead (https://graph.microsoft.com/User.Read)</li></ul>
-        <li>Group.Read.All (https://graph.microsoft.com/Group.Read.All) - It is required only if you want to run the <b>list events</b> action for the group's calendar and for the <b>list groups</b> action.</li>
+        <li>Group.Read.All (https://graph.microsoft.com/Group.Read.All) - It is required only if you want to run the <b>list events</b> action for the group's calendar and for the <b>list groups</b> and the <b>list group members</b> action.</li>
         <li>Calendar.Read (https://graph.microsoft.com/Calendars.Read) - It is required only if you want to run the <b>list events</b> action for the user's calendar.</li>
         <li>MailboxSettings.Read (https://graph.microsoft.com/MailboxSettings.Read) - It is required only if you want to run the <b>oof status</b> action.</li>
     </ul>
 </ul>
-After making these changes, click <b>Add permissions</b>, then select <b>Grant admin consent for Test Phantom</b> at the bottom of the screen.
+After making these changes, click <b>Add permissions</b>, then select <b>Grant admin consent for &lt;your_organization_name_as_on_azure_portal&gt;</b> at the bottom of the screen.
 <h2>Phantom Graph Asset</h2>
 When creating an asset for the <b>MS Graph for Office 365</b> app, place <b>Application ID</b> of the app created during the app registration on the Azure Portal in the <b>Application ID</b> field and place the client secret generated during the app registration process in the <b>Application Secret</b> field. Then, after filling out the <b>Tenant</b> field, click <b>SAVE</b>. Both the Application/Client ID and the Tenant ID can be found in the <b>Overview</b> tab on your app's Azure page.
 <br><br>
