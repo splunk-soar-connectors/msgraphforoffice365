@@ -200,7 +200,6 @@ def _validate_integer(action_result, parameter, key, allow_zero=False):
 
 
 def _handle_oauth_result(request, path_parts):
-
     """
     <base_url>?admin_consent=True&tenant=a417c578-c7ee-480d-a225-d48057e74df5&state=13
     """
@@ -342,14 +341,14 @@ def _decrypt_state(state, salt):
 
     if "non_admin_auth" in state:
         if state.get("non_admin_auth").get("access_token"):
-           state["non_admin_auth"]["access_token"] = encryption_helper.decrypt(state["non_admin_auth"]["access_token"], salt)
+            state["non_admin_auth"]["access_token"] = encryption_helper.decrypt(state["non_admin_auth"]["access_token"], salt)
 
         if state.get("non_admin_auth").get("refresh_token"):
-           state["non_admin_auth"]["refresh_token"] = encryption_helper.decrypt(state["non_admin_auth"]["refresh_token"], salt)
+            state["non_admin_auth"]["refresh_token"] = encryption_helper.decrypt(state["non_admin_auth"]["refresh_token"], salt)
 
     if "admin_auth" in state:
-       if state.get("admin_auth").get("access_token"):
-           state["admin_auth"]["access_token"] = encryption_helper.decrypt(state["admin_auth"]["access_token"], salt)
+        if state.get("admin_auth").get("access_token"):
+            state["admin_auth"]["access_token"] = encryption_helper.decrypt(state["admin_auth"]["access_token"], salt)
 
     if "code" in state:
         state["code"] = encryption_helper.decrypt(state["code"], salt)
@@ -367,14 +366,14 @@ def _encrypt_state(state, salt):
     """
     if "non_admin_auth" in state:
         if state.get("non_admin_auth").get("access_token"):
-           state["non_admin_auth"]["access_token"] = encryption_helper.encrypt(state["non_admin_auth"]["access_token"], salt)
+            state["non_admin_auth"]["access_token"] = encryption_helper.encrypt(state["non_admin_auth"]["access_token"], salt)
 
         if state.get("non_admin_auth").get("refresh_token"):
-           state["non_admin_auth"]["refresh_token"] = encryption_helper.encrypt(state["non_admin_auth"]["refresh_token"], salt)
+            state["non_admin_auth"]["refresh_token"] = encryption_helper.encrypt(state["non_admin_auth"]["refresh_token"], salt)
 
     if "admin_auth" in state:
-       if state.get("admin_auth").get("access_token"):
-           state["admin_auth"]["access_token"] = encryption_helper.encrypt(state["admin_auth"]["access_token"], salt)
+        if state.get("admin_auth").get("access_token"):
+            state["admin_auth"]["access_token"] = encryption_helper.encrypt(state["admin_auth"]["access_token"], salt)
 
     if "code" in state:
         state["code"] = encryption_helper.encrypt(state["code"], salt)
@@ -463,7 +462,7 @@ class Office365Connector(BaseConnector):
             error_text = "Cannot parse error details"
 
         message = "Status Code: {0}. Data from server:\n{1}\n".format(status_code,
-                error_text)
+                                                                      error_text)
 
         message = message.replace('{', '{{').replace('}', '}}')
 
@@ -520,7 +519,7 @@ class Office365Connector(BaseConnector):
 
         # You should process the error returned in the json
         message = "Error from server. Status Code: {0} Data from server: {1}".format(
-                r.status_code, error_text)
+            r.status_code, error_text)
 
         return RetVal(action_result.set_status(phantom.APP_ERROR, message), None)
 
@@ -558,7 +557,7 @@ class Office365Connector(BaseConnector):
 
         # everything else is actually an error at this point
         message = "Can't process response from server. Status Code: {0} Data from server: {1}".format(
-                r.status_code, r.text.replace('{', '{{').replace('}', '}}'))
+            r.status_code, r.text.replace('{', '{{').replace('}', '}}'))
 
         return RetVal(action_result.set_status(phantom.APP_ERROR, message), None)
 
@@ -573,12 +572,12 @@ class Office365Connector(BaseConnector):
 
         try:
             r = request_func(
-                            url,
-                            data=data,
-                            headers=headers,
-                            verify=verify,
-                            params=params,
-                            timeout=MSGOFFICE365_DEFAULT_REQUEST_TIMEOUT)
+                url,
+                data=data,
+                headers=headers,
+                verify=verify,
+                params=params,
+                timeout=MSGOFFICE365_DEFAULT_REQUEST_TIMEOUT)
         except Exception as e:
             error_msg = _get_error_message_from_exception(e)
             return RetVal(action_result.set_status(phantom.APP_ERROR, "Error connecting to server. {0}".format(error_msg)), resp_json)
@@ -640,7 +639,7 @@ class Office365Connector(BaseConnector):
 
         if not phantom_base_url:
             return (action_result.set_status(phantom.APP_ERROR,
-                "Phantom Base URL not found in System Settings. Please specify this value in System Settings"), None)
+                                         "Phantom Base URL not found in System Settings. Please specify this value in System Settings"), None)
 
         return (phantom.APP_SUCCESS, phantom_base_url)
 
@@ -684,9 +683,9 @@ class Office365Connector(BaseConnector):
             headers = {}
 
         headers.update({
-                'Authorization': 'Bearer {0}'.format(self._access_token),
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'})
+            'Authorization': 'Bearer {0}'.format(self._access_token),
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'})
 
         ret_val, resp_json = self._make_rest_call(action_result, url, verify, headers, params, data, method)
 
@@ -694,14 +693,14 @@ class Office365Connector(BaseConnector):
         msg = action_result.get_message()
 
         if msg and 'token is invalid' in msg or ('Access token has expired' in
-                msg) or ('ExpiredAuthenticationToken' in msg) or ('AuthenticationFailed' in msg):
+                                                 msg) or ('ExpiredAuthenticationToken' in msg) or ('AuthenticationFailed' in msg):
 
             self.debug_print("Token is invalid/expired. Hence, generating a new token.")
             ret_val = self._get_token(action_result)
             if phantom.is_fail(ret_val):
                 return action_result.get_status(), None
 
-            headers.update({ 'Authorization': 'Bearer {0}'.format(self._access_token)})
+            headers.update({'Authorization': 'Bearer {0}'.format(self._access_token)})
 
             ret_val, resp_json = self._make_rest_call(action_result, url, verify, headers, params, data, method)
 
@@ -1326,7 +1325,7 @@ class Office365Connector(BaseConnector):
 
         if user_id and group_id and user_id != "" and group_id != "":
             return action_result.set_status(phantom.APP_ERROR,
-                'Either a user_id or group_id can be supplied to the "list_events" action - not both')
+                                            'Either a user_id or group_id can be supplied to the "list_events" action - not both')
 
         endpoint = ''
 
@@ -2049,7 +2048,7 @@ class Office365Connector(BaseConnector):
 
     def _new_folder(self, action_result, folder, email):
 
-        data = json.dumps({ "displayName": folder })
+        data = json.dumps({"displayName": folder})
         endpoint = "/users/{}/mailFolders".format(email)
 
         ret_val, response = self._make_rest_call_helper(action_result, endpoint, data=data, method="post")
@@ -2068,7 +2067,7 @@ class Office365Connector(BaseConnector):
 
     def _new_child_folder(self, action_result, folder, parent_id, email, pathsofar):
 
-        data = json.dumps({ "displayName": folder })
+        data = json.dumps({"displayName": folder})
         endpoint = "/users/{}/mailFolders/{}/childFolders".format(email, parent_id)
 
         ret_val, response = self._make_rest_call_helper(action_result, endpoint, data=data, method="post")
@@ -2327,10 +2326,10 @@ class Office365Connector(BaseConnector):
         }
 
         data = {
-                    'client_id': self._client_id,
-                    'client_secret': self._client_secret,
-                    'grant_type': 'client_credentials'
-                }
+            'client_id': self._client_id,
+            'client_secret': self._client_secret,
+            'grant_type': 'client_credentials'
+        }
 
         if not self._admin_access:
             data['scope'] = 'offline_access ' + self._scope
