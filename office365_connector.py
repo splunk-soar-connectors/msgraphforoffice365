@@ -1192,6 +1192,30 @@ class Office365Connector(BaseConnector):
 
         return action_result.set_status(phantom.APP_SUCCESS, "Successfully deleted email")
 
+    def _handle_delete_event(self, param):
+
+        self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
+        action_result = self.add_action_result(ActionResult(dict(param)))
+
+        email_addr = param['email_address']
+        message_id = param['id']
+        response = param.get('send_response', True)
+        endpoint = "/users/{0}".format(email_addr)
+
+        endpoint += '/events/{0}'.format(message_id)
+        method = "delete"
+        data = None
+        if not response:
+            method = "post"
+            endpoint += '/decline'
+            data = json.dumps({'sendResponse': False})
+
+        ret_val, _ = self._make_rest_call_helper(action_result, endpoint, method=method, data=data)
+        if phantom.is_fail(ret_val):
+            return action_result.get_status()
+
+        return action_result.set_status(phantom.APP_SUCCESS, "Successfully deleted event")
+
     def _handle_oof_check(self, param):
         self.save_progress('In action handler for: {0}'.format(self.get_action_identifier()))
         action_result = self.add_action_result(ActionResult(dict(param)))
@@ -2152,6 +2176,9 @@ class Office365Connector(BaseConnector):
 
         elif action_id == 'delete_email':
             ret_val = self._handle_delete_email(param)
+
+        elif action_id == 'delete_event':
+            ret_val = self._handle_delete_event(param)
 
         elif action_id == 'get_email':
             ret_val = self._handle_get_email(param)
