@@ -30,7 +30,7 @@ On the next page, select <b>New registration</b> and give your app a name.
 <br><br>
 Once the app is created, follow the below-mentioned steps:
 <ul>
-    <li>Under <b>Certificates & secrets</b> select <b>New client secret</b>. Note down this key somewhere secure, as it cannot be retrieved after closing the window.</li>
+    <li>Under <b>Certificates & secrets</b> select <b>New client secret</b>. Enter the <b>Description</b> and select the desired duration in <b>Expires</b>. Click on <b>Add</b>. Note down this <b>value</b> somewhere secure, as it cannot be retrieved after closing the window.</li>
     <li>Under <b>Authentication</b>, select <b>Add a platform</b>. In the <b>Add a platform</b> window, select <b>Web</b>. The <b>Redirect URLs</b> should be filled right here. We will get <b>Redirect URLs</b> from the Phantom asset we create below in the section titled <b>Phantom Graph Asset</b>.</li>
     <li>Under <b>API Permissions</b> Click on <b>Add a permission</b>.</li>
     <li>Under the <b>Microsoft API</b> section, select <b>Microsoft Graph</b>.</li>
@@ -40,12 +40,12 @@ Once the app is created, follow the below-mentioned steps:
         <li>Mail.ReadWrite (https://graph.microsoft.com/Mail.ReadWrite)</li>
         <li>User.Read.All (https://graph.microsoft.com/User.Read.All)</li>
             <ul><li>For non-admin access, use User.Read (Delegated permission) instead (https://graph.microsoft.com/User.Read)</li></ul>
-        <li>Group.Read.All (https://graph.microsoft.com/Group.Read.All) - It is required only if you want to run the <b>list events</b> action for the group's calendar and for the <b>list groups</b> action.</li>
+        <li>Group.Read.All (https://graph.microsoft.com/Group.Read.All) - It is required only if you want to run the <b>list events</b> action for the group's calendar and for the <b>list groups</b> and the <b>list group members</b> action.</li>
         <li>Calendar.Read (https://graph.microsoft.com/Calendars.Read) - It is required only if you want to run the <b>list events</b> action for the user's calendar.</li>
         <li>MailboxSettings.Read (https://graph.microsoft.com/MailboxSettings.Read) - It is required only if you want to run the <b>oof status</b> action.</li>
     </ul>
 </ul>
-After making these changes, click <b>Add permissions</b>, then select <b>Grant admin consent for Test Phantom</b> at the bottom of the screen.
+After making these changes, click <b>Add permissions</b>, then select <b>Grant admin consent for &lt;your_organization_name_as_on_azure_portal&gt;</b> at the bottom of the screen.
 <h2>Phantom Graph Asset</h2>
 When creating an asset for the <b>MS Graph for Office 365</b> app, place <b>Application ID</b> of the app created during the app registration on the Azure Portal in the <b>Application ID</b> field and place the client secret generated during the app registration process in the <b>Application Secret</b> field. Then, after filling out the <b>Tenant</b> field, click <b>SAVE</b>. Both the Application/Client ID and the Tenant ID can be found in the <b>Overview</b> tab on your app's Azure page.
 <br><br>
@@ -153,8 +153,8 @@ The app should now be ready to be used.
     <li>An optional parameter <b>Admin Access Required</b> has been added to this app. In most cases, this should remain checked, as admin access is required for email use cases. If the desired integration is to integrate with only one user's calendar, you may consider unchecking this box. If unchecked, it allows a non-admin user to provide access to a specific account. This functionality will ONLY work with the <b>list events</b> functionality. If unchecked, the <b>Access scope</b> <em>must</em> be used. The default scope will work for listing calendar events. Additional information on scope can be found <a href="https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-permissions-and-consent#openid-connect-scopes" target="_blank">here.</a></li>
     <li>As per the Microsoft known issues for <b>Group.Read.All</b> permission (<a href="https://docs.microsoft.com/en-us/graph/known-issues#groups" target="_blank">here</a>), if you want to run the <b>list events</b> for fetching group's calendar events, you have to uncheck an optional parameter <b>Admin Access Required</b> and provide <b>Group.Read.All (https://graph.microsoft.com/Group.Read.All)</b> permission into the scope parameter in the asset configuration parameters. If an asset parameter <b>Admin Access Required</b> checked and configured the app with above mentioned all the application permissions (which includes <b>Group.Read.All</b> application permission), it throws an error like <b>Access is denied</b> while running <b>list events</b> action for fetching group's calendar events. Because of the known issue of <b>Group.Read.All</b> application permission, this permission required admin consent (on behalf of the user permission) to fetch the group's calendar events.</li>
     <li>If the parameter <b>Admin Access Required</b> is unchecked, you have to provide a <b>scope</b> parameter in the asset configuration. All the actions will get executed according to the scopes provided in the <b>scope</b> config parameter. The actions will throw an appropriate error if the scope of the corresponding permission is not provided by the end-user.</li>
-    <li>If both the checkboxes <b>Admin Consent Already Provided</b> and <b>Admin Access Required</b> are kept as checked while running the test connectivity for the first time, then the test connectivity will pass but actions will fail. In order to use the <b>Admin Consent Already Provided</b> checkbox, first, you need to run the test connectivity with only <b>Admin Access Required</b> as checked and provide admin consent, and then while running the test connectivity for the second time the <b>Admin Consent Already Provided</b> should be checked if required. The <b>checkbox Admin Consent Already Provided</b> is used when running the test connectivity if admin consent is already provided.</li>
     <li>There is an API limitation that will affect run_query action when providing Unicode values in the subject or in the body as parameters and if the result count exceeds 999, the action will fail.</li>
+    <li>The sensitive values are stored encrypted in the state file.</li>
 </ul>
 </p>
 

@@ -9,14 +9,19 @@
     "product_name": "Office 365 (MS Graph)",
     "product_version_regex": ".*",
     "publisher": "Splunk",
+    "contributors": [
+        {
+            "name": "Alan Shaikh"
+        }
+    ],
     "license": "Copyright (c) 2017-2022 Splunk Inc.",
-    "app_version": "2.5.3",
+    "app_version": "2.6.0",
     "utctime_updated": "2022-02-04T01:20:46.000000Z",
     "package_name": "phantom_msgraphoffice365",
     "main_module": "office365_connector.py",
     "min_phantom_version": "5.2.0",
     "latest_tested_versions": [
-        "Cloud 2021-09-28"
+        "Cloud 20 June, 2022"
     ],
     "app_wizard_version": "1.0.0",
     "python_version": "3",
@@ -224,7 +229,7 @@
                     "primary": true,
                     "contains": [
                         "msgoffice365 user id",
-                        "msgoffice365 user principle name",
+                        "msgoffice365 user principal name",
                         "email"
                     ],
                     "order": 0
@@ -236,10 +241,10 @@
                     "data_type": "string",
                     "contains": [
                         "msgoffice365 user id",
-                        "msgoffice365 user principle name",
+                        "msgoffice365 user principal name",
                         "email"
                     ],
-                    "column_name": "User ID/Principle Name",
+                    "column_name": "User ID/Principal Name",
                     "column_order": 0,
                     "example_values": [
                         "eeb3645f-df19-58a1-0e9c-ghi234cb5f6f"
@@ -305,7 +310,7 @@
                 {
                     "data_path": "action_result.data.*.status",
                     "data_type": "string",
-                    "column_name": "Out of Office Status",
+                    "column_name": "Out Of Office Status",
                     "column_order": 1,
                     "example_values": [
                         "alwaysEnabled"
@@ -369,7 +374,7 @@
                     "primary": true,
                     "contains": [
                         "msgoffice365 user id",
-                        "msgoffice365 user principle name",
+                        "msgoffice365 user principal name",
                         "email"
                     ],
                     "order": 0
@@ -425,7 +430,7 @@
                     "data_type": "string",
                     "contains": [
                         "msgoffice365 user id",
-                        "msgoffice365 user principle name",
+                        "msgoffice365 user principal name",
                         "email"
                     ],
                     "example_values": [
@@ -1147,10 +1152,10 @@
                         "test@testdomain.onmicrosoft.com"
                     ],
                     "contains": [
-                        "msgoffice365 user principle name",
+                        "msgoffice365 user principal name",
                         "email"
                     ],
-                    "column_name": "User Principle Name",
+                    "column_name": "User Principal Name",
                     "column_order": 1
                 },
                 {
@@ -1469,6 +1474,210 @@
             "versions": "EQ(*)"
         },
         {
+            "action": "list group members",
+            "identifier": "list_group_members",
+            "description": "List all the members in group",
+            "type": "investigate",
+            "read_only": true,
+            "parameters": {
+                "group_id": {
+                    "description": "Group ID",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": true,
+                    "contains": [
+                        "msgoffice365 group id"
+                    ],
+                    "order": 0
+                },
+                "get_transitive_members": {
+                    "description": "Get a list of the group's members. A group can have users, devices, organizational contacts, and other groups as members. This operation is transitive and returns a flat list of all nested members",
+                    "data_type": "boolean",
+                    "default": true,
+                    "order": 1
+                },
+                "filter": {
+                    "description": "Search for specific results",
+                    "data_type": "string",
+                    "order": 2
+                },
+                "limit": {
+                    "description": "Maximum number of members to return",
+                    "data_type": "numeric",
+                    "order": 3
+                }
+            },
+            "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.group_id",
+                    "data_type": "string",
+                    "contains": [
+                        "msgoffice365 group id"
+                    ],
+                    "example_values": [
+                        "11907d21-7631-4ea7-97b2-1328d1c5b901"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.get_transitive_members",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.filter",
+                    "data_type": "string",
+                    "example_values": [
+                        "displayName eq 'Group Name'"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.limit",
+                    "data_type": "numeric",
+                    "example_values": [
+                        20
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.businessPhones",
+                    "data_type": "string",
+                    "example_values": [
+                        "2056120271"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.displayName",
+                    "data_type": "string",
+                    "example_values": [
+                        "Test Admin"
+                    ],
+                    "column_name": "Display Name",
+                    "column_order": 2
+                },
+                {
+                    "data_path": "action_result.data.*.givenName",
+                    "data_type": "string",
+                    "example_values": [
+                        "Test"
+                    ],
+                    "column_name": "Given Name",
+                    "column_order": 3
+                },
+                {
+                    "data_path": "action_result.data.*.id",
+                    "data_type": "string",
+                    "example_values": [
+                        "6132ca31-7a09-434f-a269-abe836d0c01e"
+                    ],
+                    "contains": [
+                        "msgoffice365 user id"
+                    ],
+                    "column_name": "User ID",
+                    "column_order": 0
+                },
+                {
+                    "data_path": "action_result.data.*.jobTitle",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.mail",
+                    "data_type": "string",
+                    "contains": [
+                        "email"
+                    ],
+                    "example_values": [
+                        "test@testdomain.onmicrosoft.com"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.@odata.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "#microsoft.graph.user"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.mobilePhone",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.officeLocation",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.preferredLanguage",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.surname",
+                    "data_type": "string",
+                    "example_values": [
+                        "Globaltest"
+                    ],
+                    "column_name": "Surname",
+                    "column_order": 4
+                },
+                {
+                    "data_path": "action_result.data.*.userPrincipalName",
+                    "data_type": "string",
+                    "example_values": [
+                        "test@testdomain.onmicrosoft.com"
+                    ],
+                    "contains": [
+                        "msgoffice365 user principal name",
+                        "email"
+                    ],
+                    "column_name": "User Principal Name",
+                    "column_order": 1
+                },
+                {
+                    "data_path": "action_result.summary.total_members_returned",
+                    "data_type": "numeric",
+                    "example_values": [
+                        9
+                    ]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "Successfully retrieved 9 groups"
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                }
+            ],
+            "render": {
+                "width": 12,
+                "title": "List Group Members",
+                "type": "table",
+                "height": 5
+            },
+            "versions": "EQ(*)"
+        },
+        {
             "action": "list folders",
             "identifier": "list_folders",
             "description": "Retrieve a list of mail folders",
@@ -1484,7 +1693,7 @@
                     "order": 0,
                     "contains": [
                         "msgoffice365 user id",
-                        "msgoffice365 user principle name",
+                        "msgoffice365 user principal name",
                         "email"
                     ]
                 },
@@ -1517,7 +1726,7 @@
                     ],
                     "contains": [
                         "msgoffice365 user id",
-                        "msgoffice365 user principle name",
+                        "msgoffice365 user principal name",
                         "email"
                     ]
                 },
@@ -5282,7 +5491,7 @@
             },
             {
                 "module": "certifi",
-                "input_file": "wheels/shared/certifi-2021.10.8-py2.py3-none-any.whl"
+                "input_file": "wheels/py3/certifi-2022.5.18.1-py3-none-any.whl"
             },
             {
                 "module": "chardet",
@@ -5306,7 +5515,7 @@
             },
             {
                 "module": "soupsieve",
-                "input_file": "wheels/py3/soupsieve-2.3.2-py3-none-any.whl"
+                "input_file": "wheels/py3/soupsieve-2.3.2.post1-py3-none-any.whl"
             },
             {
                 "module": "sqlparse",
@@ -5330,7 +5539,7 @@
             },
             {
                 "module": "asgiref",
-                "input_file": "wheels/py3/asgiref-3.5.0-py3-none-any.whl"
+                "input_file": "wheels/py3/asgiref-3.5.2-py3-none-any.whl"
             },
             {
                 "module": "beautifulsoup4",
@@ -5338,7 +5547,7 @@
             },
             {
                 "module": "certifi",
-                "input_file": "wheels/shared/certifi-2021.10.8-py2.py3-none-any.whl"
+                "input_file": "wheels/py3/certifi-2022.5.18.1-py3-none-any.whl"
             },
             {
                 "module": "chardet",
@@ -5362,7 +5571,7 @@
             },
             {
                 "module": "soupsieve",
-                "input_file": "wheels/py3/soupsieve-2.3.2-py3-none-any.whl"
+                "input_file": "wheels/py3/soupsieve-2.3.2.post1-py3-none-any.whl"
             },
             {
                 "module": "sqlparse",
