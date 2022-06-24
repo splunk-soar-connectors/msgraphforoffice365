@@ -2,7 +2,7 @@
 # MS Graph for Office 365
 
 Publisher: Splunk  
-Connector Version: 2\.5\.3  
+Connector Version: 2\.6\.0  
 Product Vendor: Microsoft  
 Product Name: Office 365 \(MS Graph\)  
 Product Version Supported (regex): "\.\*"  
@@ -41,8 +41,9 @@ On the next page, select **New registration** and give your app a name.
   
 Once the app is created, follow the below-mentioned steps:
 
--   Under **Certificates & secrets** select **New client secret** . Note down this key somewhere
-    secure, as it cannot be retrieved after closing the window.
+-   Under **Certificates & secrets** select **New client secret** . Enter the **Description** and
+    select the desired duration in **Expires** . Click on **Add** . Note down this **value**
+    somewhere secure, as it cannot be retrieved after closing the window.
 
 -   Under **Authentication** , select **Add a platform** . In the **Add a platform** window, select
     **Web** . The **Redirect URLs** should be filled right here. We will get **Redirect URLs** from
@@ -69,7 +70,7 @@ Once the app is created, follow the below-mentioned steps:
 
     -   Group.Read.All (https://graph.microsoft.com/Group.Read.All) - It is required only if you
         want to run the **list events** action for the group's calendar and for the **list groups**
-        action.
+        and the **list group members** action.
 
     -   Calendar.Read (https://graph.microsoft.com/Calendars.Read) - It is required only if you want
         to run the **list events** action for the user's calendar.
@@ -77,8 +78,8 @@ Once the app is created, follow the below-mentioned steps:
     -   MailboxSettings.Read (https://graph.microsoft.com/MailboxSettings.Read) - It is required
         only if you want to run the **oof status** action.
 
-After making these changes, click **Add permissions** , then select **Grant admin consent for Test
-Phantom** at the bottom of the screen.
+After making these changes, click **Add permissions** , then select **Grant admin consent for
+\<your_organization_name_as_on_azure_portal>** at the bottom of the screen.
 
 ## Phantom Graph Asset
 
@@ -247,17 +248,10 @@ Please check the permissions for the state file as mentioned below.
     parameter in the asset configuration. All the actions will get executed according to the scopes
     provided in the **scope** config parameter. The actions will throw an appropriate error if the
     scope of the corresponding permission is not provided by the end-user.
--   If both the checkboxes **Admin Consent Already Provided** and **Admin Access Required** are kept
-    as checked while running the test connectivity for the first time, then the test connectivity
-    will pass but actions will fail. In order to use the **Admin Consent Already Provided**
-    checkbox, first, you need to run the test connectivity with only **Admin Access Required** as
-    checked and provide admin consent, and then while running the test connectivity for the second
-    time the **Admin Consent Already Provided** should be checked if required. The **checkbox Admin
-    Consent Already Provided** is used when running the test connectivity if admin consent is
-    already provided.
 -   There is an API limitation that will affect run_query action
     when providing Unicode values in the subject or in the body as parameters and if the
     result count exceeds 999, the action will fail.
+-   The sensitive values are stored encrypted in the state file.
 
   
 
@@ -305,6 +299,7 @@ VARIABLE | REQUIRED | TYPE | DESCRIPTION
 [list events](#action-list-events) - List events from user or group calendar  
 [list users](#action-list-users) - Retrieve a list of users  
 [list groups](#action-list-groups) - List all the groups in an organization, including but not limited to Office 365 groups  
+[list group members](#action-list-group-members) - List all the members in group  
 [list folders](#action-list-folders) - Retrieve a list of mail folders  
 [copy email](#action-copy-email) - Copy an email to a folder  
 [move email](#action-move-email) - Move an email to a folder  
@@ -356,12 +351,12 @@ Read only: **True**
 #### Action Parameters
 PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 --------- | -------- | ----------- | ---- | --------
-**user\_id** |  required  | User ID/Principal name | string |  `msgoffice365 user id`  `msgoffice365 user principle name`  `email` 
+**user\_id** |  required  | User ID/Principal name | string |  `msgoffice365 user id`  `msgoffice365 user principal name`  `email` 
 
 #### Action Output
 DATA PATH | TYPE | CONTAINS
 --------- | ---- | --------
-action\_result\.parameter\.user\_id | string |  `msgoffice365 user id`  `msgoffice365 user principle name`  `email` 
+action\_result\.parameter\.user\_id | string |  `msgoffice365 user id`  `msgoffice365 user principal name`  `email` 
 action\_result\.data\.\*\.\@odata\.context | string |  `url` 
 action\_result\.data\.\*\.\@odata\.etag | string | 
 action\_result\.data\.\*\.externalAudience | string | 
@@ -387,7 +382,7 @@ Read only: **True**
 #### Action Parameters
 PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 --------- | -------- | ----------- | ---- | --------
-**user\_id** |  optional  | User ID/Principal name | string |  `msgoffice365 user id`  `msgoffice365 user principle name`  `email` 
+**user\_id** |  optional  | User ID/Principal name | string |  `msgoffice365 user id`  `msgoffice365 user principal name`  `email` 
 **group\_id** |  optional  | Group ID | string |  `msgoffice365 group id` 
 **filter** |  optional  | OData query to filter/search for specific results | string | 
 **limit** |  optional  | Maximum number of events to return | numeric | 
@@ -398,7 +393,7 @@ DATA PATH | TYPE | CONTAINS
 action\_result\.parameter\.filter | string | 
 action\_result\.parameter\.group\_id | string |  `msgoffice365 group id` 
 action\_result\.parameter\.limit | numeric | 
-action\_result\.parameter\.user\_id | string |  `msgoffice365 user id`  `msgoffice365 user principle name`  `email` 
+action\_result\.parameter\.user\_id | string |  `msgoffice365 user id`  `msgoffice365 user principal name`  `email` 
 action\_result\.data\.\*\.\@odata\.etag | string | 
 action\_result\.data\.\*\.allowNewTimeProposals | boolean | 
 action\_result\.data\.\*\.attendee\_list | string | 
@@ -509,7 +504,7 @@ action\_result\.data\.\*\.mobilePhone | string |
 action\_result\.data\.\*\.officeLocation | string | 
 action\_result\.data\.\*\.preferredLanguage | string | 
 action\_result\.data\.\*\.surname | string | 
-action\_result\.data\.\*\.userPrincipalName | string |  `msgoffice365 user principle name`  `email` 
+action\_result\.data\.\*\.userPrincipalName | string |  `msgoffice365 user principal name`  `email` 
 action\_result\.status | string | 
 action\_result\.message | string | 
 action\_result\.summary\.total\_users\_returned | numeric | 
@@ -570,6 +565,45 @@ action\_result\.summary\.total\_groups\_returned | numeric |
 summary\.total\_objects | numeric | 
 summary\.total\_objects\_successful | numeric |   
 
+## action: 'list group members'
+List all the members in group
+
+Type: **investigate**  
+Read only: **True**
+
+#### Action Parameters
+PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
+--------- | -------- | ----------- | ---- | --------
+**group\_id** |  required  | Group ID | string |  `msgoffice365 group id` 
+**get\_transitive\_members** |  optional  | Get a list of the group's members\. A group can have users, devices, organizational contacts, and other groups as members\. This operation is transitive and returns a flat list of all nested members | boolean | 
+**filter** |  optional  | Search for specific results | string | 
+**limit** |  optional  | Maximum number of members to return | numeric | 
+
+#### Action Output
+DATA PATH | TYPE | CONTAINS
+--------- | ---- | --------
+action\_result\.status | string | 
+action\_result\.parameter\.group\_id | string |  `msgoffice365 group id` 
+action\_result\.parameter\.get\_transitive\_members | boolean | 
+action\_result\.parameter\.filter | string | 
+action\_result\.parameter\.limit | numeric | 
+action\_result\.data\.\*\.businessPhones | string | 
+action\_result\.data\.\*\.displayName | string | 
+action\_result\.data\.\*\.givenName | string | 
+action\_result\.data\.\*\.id | string |  `msgoffice365 user id` 
+action\_result\.data\.\*\.jobTitle | string | 
+action\_result\.data\.\*\.mail | string |  `email` 
+action\_result\.data\.\*\.\@odata\.type | string | 
+action\_result\.data\.\*\.mobilePhone | string | 
+action\_result\.data\.\*\.officeLocation | string | 
+action\_result\.data\.\*\.preferredLanguage | string | 
+action\_result\.data\.\*\.surname | string | 
+action\_result\.data\.\*\.userPrincipalName | string |  `msgoffice365 user principal name`  `email` 
+action\_result\.summary\.total\_members\_returned | numeric | 
+action\_result\.message | string | 
+summary\.total\_objects | numeric | 
+summary\.total\_objects\_successful | numeric |   
+
 ## action: 'list folders'
 Retrieve a list of mail folders
 
@@ -581,14 +615,14 @@ If you want to list all the child folders \(includes all the sub\-levels\) of th
 #### Action Parameters
 PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 --------- | -------- | ----------- | ---- | --------
-**user\_id** |  required  | User ID/Principal name | string |  `msgoffice365 user id`  `msgoffice365 user principle name`  `email` 
+**user\_id** |  required  | User ID/Principal name | string |  `msgoffice365 user id`  `msgoffice365 user principal name`  `email` 
 **folder\_id** |  optional  | Parent mail folder ID | string |  `msgoffice365 folder id` 
 
 #### Action Output
 DATA PATH | TYPE | CONTAINS
 --------- | ---- | --------
 action\_result\.parameter\.folder\_id | string |  `msgoffice365 folder id` 
-action\_result\.parameter\.user\_id | string |  `msgoffice365 user id`  `msgoffice365 user principle name`  `email` 
+action\_result\.parameter\.user\_id | string |  `msgoffice365 user id`  `msgoffice365 user principal name`  `email` 
 action\_result\.data\.\*\.childFolderCount | numeric | 
 action\_result\.data\.\*\.displayName | string | 
 action\_result\.data\.\*\.id | string |  `msgoffice365 folder id` 
