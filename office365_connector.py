@@ -25,6 +25,7 @@ import time
 import uuid
 from datetime import datetime
 
+import encryption_helper
 import phantom.app as phantom
 import requests
 from bs4 import BeautifulSoup, UnicodeDammit
@@ -87,6 +88,13 @@ def _load_app_state(asset_id, app_connector=None):
     if app_connector:
         app_connector.debug_print('Loaded state: ', state)
 
+    try:
+        state = _decrypt_state(state, asset_id)
+    except Exception as e:
+        if app_connector:
+            app_connector.debug_print("{}: {}".format(MSGOFFICE365_DECRYPTION_ERR, str(e)))
+        state = {}
+
     return state
 
 
@@ -113,6 +121,13 @@ def _save_app_state(state, asset_id, app_connector):
         if app_connector:
             app_connector.debug_print('In _save_app_state: Invalid asset_id')
         return {}
+
+    try:
+        state = _encrypt_state(state, asset_id)
+    except Exception as e:
+        if app_connector:
+            app_connector.debug_print("{}: {}".format(MSGOFFICE365_ENCRYPTION_ERR, str(e)))
+        return phantom.APP_ERROR
 
     if app_connector:
         app_connector.debug_print('Saving state: ', state)
@@ -185,7 +200,6 @@ def _validate_integer(action_result, parameter, key, allow_zero=False):
 
 
 def _handle_oauth_result(request, path_parts):
-
     """
     <base_url>?admin_consent=True&tenant=a417c578-c7ee-480d-a225-d48057e74df5&state=13
     """
@@ -203,10 +217,10 @@ def _handle_oauth_result(request, path_parts):
             message += " Details: {0}".format(error_description)
         return HttpResponse("Server returned {0}".format(message), content_type="text/plain", status=400)
 
-    admin_consent = (request.GET.get('admin_consent'))
-    code = (request.GET.get('code'))
+    admin_consent = request.GET.get('admin_consent')
+    code = request.GET.get('code')
 
-    if not admin_consent and not(code):
+    if not admin_consent and not code:
         return HttpResponse("ERROR: admin_consent or authorization code not found in URL\n{0}".format(
             json.dumps(request.GET)), content_type="text/plain", status=400)
 
@@ -244,7 +258,9 @@ def _handle_oauth_start(request, path_parts):
     # Load the state that was created for the asset
     state = _load_app_state(asset_id)
     if not state:
-        return HttpResponse('ERROR: Invalid asset_id', content_type="text/plain", status=400)
+        return HttpResponse(
+            'ERROR: The asset ID is invalid or an error occurred while reading the state file', content_type="text/plain", status=400
+        )
 
     # get the url to point to the authorize url of OAuth
     admin_consent_url = state.get('admin_consent_url')
@@ -312,6 +328,61 @@ def _get_dir_name_from_app_name(app_name):
     return app_name
 
 
+def _decrypt_state(state, salt):
+    """
+    Decrypts the state.
+
+    :param state: state dictionary
+    :param salt: salt used for decryption
+    :return: decrypted state
+    """
+    if not state.get("is_encrypted"):
+        return state
+
+    if "non_admin_auth" in state:
+        if state.get("non_admin_auth").get("access_token"):
+            state["non_admin_auth"]["access_token"] = encryption_helper.decrypt(state["non_admin_auth"]["access_token"], salt)
+
+        if state.get("non_admin_auth").get("refresh_token"):
+            state["non_admin_auth"]["refresh_token"] = encryption_helper.decrypt(state["non_admin_auth"]["refresh_token"], salt)
+
+    if "admin_auth" in state:
+        if state.get("admin_auth").get("access_token"):
+            state["admin_auth"]["access_token"] = encryption_helper.decrypt(state["admin_auth"]["access_token"], salt)
+
+    if "code" in state:
+        state["code"] = encryption_helper.decrypt(state["code"], salt)
+
+    return state
+
+
+def _encrypt_state(state, salt):
+    """
+    Encrypts the state.
+
+    :param state: state dictionary
+    :param salt: salt used for encryption
+    :return: encrypted state
+    """
+    if "non_admin_auth" in state:
+        if state.get("non_admin_auth").get("access_token"):
+            state["non_admin_auth"]["access_token"] = encryption_helper.encrypt(state["non_admin_auth"]["access_token"], salt)
+
+        if state.get("non_admin_auth").get("refresh_token"):
+            state["non_admin_auth"]["refresh_token"] = encryption_helper.encrypt(state["non_admin_auth"]["refresh_token"], salt)
+
+    if "admin_auth" in state:
+        if state.get("admin_auth").get("access_token"):
+            state["admin_auth"]["access_token"] = encryption_helper.encrypt(state["admin_auth"]["access_token"], salt)
+
+    if "code" in state:
+        state["code"] = encryption_helper.encrypt(state["code"], salt)
+
+    state["is_encrypted"] = True
+
+    return state
+
+
 class Office365Connector(BaseConnector):
 
     def __init__(self):
@@ -334,13 +405,44 @@ class Office365Connector(BaseConnector):
         self._refresh_token = None
         self._REPLACE_CONST = "C53CEA8298BD401BA695F247633D0542"  # pragma: allowlist secret
         self._duplicate_count = 0
+        self._asset_id = None
+
+    def load_state(self):
+        """
+        Load the contents of the state file to the state dictionary and decrypt it.
+
+        :return: loaded state
+        """
+        state = super().load_state()
+        try:
+            state = _decrypt_state(state, self._asset_id)
+        except Exception as e:
+            self.debug_print("{}: {}".format(MSGOFFICE365_DECRYPTION_ERR, str(e)))
+            state = None
+
+        return state
+
+    def save_state(self, state):
+        """
+        Encrypt and save the current state dictionary to the the state file.
+
+        :param state: state dictionary
+        :return: status
+        """
+        try:
+            state = _encrypt_state(state, self._asset_id)
+        except Exception as e:
+            self.debug_print("{}: {}".format(MSGOFFICE365_ENCRYPTION_ERR, str(e)))
+            return phantom.APP_ERROR
+
+        return super().save_state(state)
 
     def _process_empty_response(self, response, action_result):
 
         if response.status_code == 200:
             return RetVal(phantom.APP_SUCCESS, {})
 
-        return RetVal(action_result.set_status(phantom.APP_ERROR, "Empty response and no information in the header"), None)
+        return RetVal(action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_ERR_EMPTY_RESPONSE.format(code=response.status_code)), None)
 
     def _process_html_response(self, response, action_result):
 
@@ -360,7 +462,7 @@ class Office365Connector(BaseConnector):
             error_text = "Cannot parse error details"
 
         message = "Status Code: {0}. Data from server:\n{1}\n".format(status_code,
-                error_text)
+                                                                      error_text)
 
         message = message.replace('{', '{{').replace('}', '}}')
 
@@ -417,7 +519,7 @@ class Office365Connector(BaseConnector):
 
         # You should process the error returned in the json
         message = "Error from server. Status Code: {0} Data from server: {1}".format(
-                r.status_code, error_text)
+            r.status_code, error_text)
 
         return RetVal(action_result.set_status(phantom.APP_ERROR, message), None)
 
@@ -436,7 +538,7 @@ class Office365Connector(BaseConnector):
         if 'json' in content_type or 'javascript' in content_type:
             return self._process_json_response(r, action_result)
 
-        # Process an HTML resonse, Do this no matter what the api talks.
+        # Process an HTML response, Do this no matter what the api talks.
         # There is a high chance of a PROXY in between phantom and the rest of
         # world, in case of errors, PROXY's return HTML, this function parses
         # the error and adds it to the action_result.
@@ -455,7 +557,7 @@ class Office365Connector(BaseConnector):
 
         # everything else is actually an error at this point
         message = "Can't process response from server. Status Code: {0} Data from server: {1}".format(
-                r.status_code, r.text.replace('{', '{{').replace('}', '}}'))
+            r.status_code, r.text.replace('{', '{{').replace('}', '}}'))
 
         return RetVal(action_result.set_status(phantom.APP_ERROR, message), None)
 
@@ -470,11 +572,12 @@ class Office365Connector(BaseConnector):
 
         try:
             r = request_func(
-                            url,
-                            data=data,
-                            headers=headers,
-                            verify=verify,
-                            params=params)
+                url,
+                data=data,
+                headers=headers,
+                verify=verify,
+                params=params,
+                timeout=MSGOFFICE365_DEFAULT_REQUEST_TIMEOUT)
         except Exception as e:
             error_msg = _get_error_message_from_exception(e)
             return RetVal(action_result.set_status(phantom.APP_ERROR, "Error connecting to server. {0}".format(error_msg)), resp_json)
@@ -483,9 +586,7 @@ class Office365Connector(BaseConnector):
 
     def _get_asset_name(self, action_result):
 
-        asset_id = self.get_asset_id()
-
-        rest_endpoint = PHANTOM_ASSET_INFO_URL.format(url=self.get_phantom_base_url(), asset_id=asset_id)
+        rest_endpoint = PHANTOM_ASSET_INFO_URL.format(url=self.get_phantom_base_url(), asset_id=self._asset_id)
 
         ret_val, resp_json = self._make_rest_call(action_result, rest_endpoint, False)
 
@@ -495,7 +596,7 @@ class Office365Connector(BaseConnector):
         asset_name = resp_json.get('name')
 
         if not asset_name:
-            return (action_result.set_status(phantom.APP_ERROR, "Asset Name for ID: {0} not found".format(asset_id), None))
+            return (action_result.set_status(phantom.APP_ERROR, "Asset Name for ID: {0} not found".format(self._asset_id), None))
 
         return (phantom.APP_SUCCESS, asset_name)
 
@@ -538,7 +639,7 @@ class Office365Connector(BaseConnector):
 
         if not phantom_base_url:
             return (action_result.set_status(phantom.APP_ERROR,
-                "Phantom Base URL not found in System Settings. Please specify this value in System Settings"), None)
+                                         "Phantom Base URL not found in System Settings. Please specify this value in System Settings"), None)
 
         return (phantom.APP_SUCCESS, phantom_base_url)
 
@@ -582,9 +683,9 @@ class Office365Connector(BaseConnector):
             headers = {}
 
         headers.update({
-                'Authorization': 'Bearer {0}'.format(self._access_token),
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'})
+            'Authorization': 'Bearer {0}'.format(self._access_token),
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'})
 
         ret_val, resp_json = self._make_rest_call(action_result, url, verify, headers, params, data, method)
 
@@ -592,14 +693,14 @@ class Office365Connector(BaseConnector):
         msg = action_result.get_message()
 
         if msg and 'token is invalid' in msg or ('Access token has expired' in
-                msg) or ('ExpiredAuthenticationToken' in msg) or ('AuthenticationFailed' in msg):
+                                                 msg) or ('ExpiredAuthenticationToken' in msg) or ('AuthenticationFailed' in msg):
 
             self.debug_print("Token is invalid/expired. Hence, generating a new token.")
             ret_val = self._get_token(action_result)
             if phantom.is_fail(ret_val):
                 return action_result.get_status(), None
 
-            headers.update({ 'Authorization': 'Bearer {0}'.format(self._access_token)})
+            headers.update({'Authorization': 'Bearer {0}'.format(self._access_token)})
 
             ret_val, resp_json = self._make_rest_call(action_result, url, verify, headers, params, data, method)
 
@@ -991,17 +1092,12 @@ class Office365Connector(BaseConnector):
             self.save_progress("Using OAuth Redirect URL as:")
             self.save_progress(redirect_uri)
 
-            if phantom.is_fail(ret_val):
-                self.save_progress("Unable to get the URL to the app's REST Endpoint. Error: {0}".format(
-                    action_result.get_message()))
-                return action_result.set_status(phantom.APP_ERROR)
-
             if self._admin_access:
                 # Create the url for fetching administrator consent
                 admin_consent_url = "https://login.microsoftonline.com/{0}/adminconsent".format(self._tenant)
                 admin_consent_url += "?client_id={0}".format(self._client_id)
                 admin_consent_url += "&redirect_uri={0}".format(redirect_uri)
-                admin_consent_url += "&state={0}".format(self.get_asset_id())
+                admin_consent_url += "&state={0}".format(self._asset_id)
             else:
                 # Scope is required for non-admin access
                 if not self._scope:
@@ -1010,7 +1106,7 @@ class Office365Connector(BaseConnector):
                 admin_consent_url = "https://login.microsoftonline.com/{0}/oauth2/v2.0/authorize".format(self._tenant)
                 admin_consent_url += "?client_id={0}".format(self._client_id)
                 admin_consent_url += "&redirect_uri={0}".format(redirect_uri)
-                admin_consent_url += "&state={0}".format(self.get_asset_id())
+                admin_consent_url += "&state={0}".format(self._asset_id)
                 admin_consent_url += "&scope={0}".format(self._scope)
                 admin_consent_url += "&response_type=code"
 
@@ -1018,10 +1114,10 @@ class Office365Connector(BaseConnector):
 
             # The URL that the user should open in a different tab.
             # This is pointing to a REST endpoint that points to the app
-            url_to_show = "{0}/start_oauth?asset_id={1}&".format(app_rest_url, self.get_asset_id())
+            url_to_show = "{0}/start_oauth?asset_id={1}&".format(app_rest_url, self._asset_id)
 
             # Save the state, will be used by the request handler
-            _save_app_state(app_state, self.get_asset_id(), self)
+            _save_app_state(app_state, self._asset_id, self)
 
             self.save_progress('Please connect to the following URL from a different tab to continue the connectivity process')
             self.save_progress(url_to_show)
@@ -1032,12 +1128,12 @@ class Office365Connector(BaseConnector):
             completed = False
 
             app_dir = os.path.dirname(os.path.abspath(__file__))
-            auth_status_file_path = "{0}/{1}_{2}".format(app_dir, self.get_asset_id(), TC_FILE)
+            auth_status_file_path = "{0}/{1}_{2}".format(app_dir, self._asset_id, TC_FILE)
 
             if self._admin_access:
                 self.save_progress('Waiting for Admin Consent to complete')
             else:
-                self.save_progress('Waiting for Autorization Code to complete')
+                self.save_progress('Waiting for Authorization to complete')
 
             for i in range(0, 40):
 
@@ -1057,7 +1153,7 @@ class Office365Connector(BaseConnector):
             self.send_progress("")
 
             # Load the state again, since the http request handlers would have saved the result of the admin consent or authorization
-            self._state = _load_app_state(self.get_asset_id(), self)
+            self._state = _load_app_state(self._asset_id, self)
 
             if not self._state:
                 self.save_progress("Authorization not received or not given")
@@ -1253,7 +1349,7 @@ class Office365Connector(BaseConnector):
 
         if user_id and group_id and user_id != "" and group_id != "":
             return action_result.set_status(phantom.APP_ERROR,
-                'Either a user_id or group_id can be supplied to the "list_events" action - not both')
+                                            'Either a user_id or group_id can be supplied to the "list_events" action - not both')
 
         endpoint = ''
 
@@ -1323,6 +1419,43 @@ class Office365Connector(BaseConnector):
 
         return action_result.set_status(phantom.APP_SUCCESS, 'Successfully retrieved {} group{}'.format(
             num_groups, '' if num_groups == 1 else 's'))
+
+    def _handle_list_group_members(self, param):
+
+        self.save_progress('In action handler for: {0}'.format(self.get_action_identifier()))
+        action_result = self.add_action_result(ActionResult(dict(param)))
+
+        limit = param.get('limit')
+
+        # Integer validation for 'limit' action parameter
+        ret_val, limit = _validate_integer(action_result, limit, "'limit' action")
+        if phantom.is_fail(ret_val):
+            return action_result.get_status()
+
+        query = param.get('filter') if param.get('filter') else None
+        group_id = param['group_id']
+        transitive_members = param.get('get_transitive_members', True)
+
+        endpoint = '/groups/{0}/members'.format(group_id)
+        if transitive_members:
+            endpoint = '/groups/{0}/transitiveMembers'.format(group_id)
+
+        ret_val, members = self._paginator(action_result, endpoint, limit, query=query)
+
+        if phantom.is_fail(ret_val):
+            return action_result.get_status()
+
+        if not members:
+            return action_result.set_status(phantom.APP_SUCCESS, MSGOFFICE365_NO_DATA_FOUND)
+
+        for member in members:
+            action_result.add_data(member)
+
+        num_members = len(members)
+        action_result.update_summary({'total_members_returned': num_members})
+
+        return action_result.set_status(phantom.APP_SUCCESS, 'Successfully retrieved {} group member{}'.format(
+            num_members, '' if num_members == 1 else 's'))
 
     def _handle_list_users(self, param):
 
@@ -1634,7 +1767,7 @@ class Office365Connector(BaseConnector):
             start_time = self._state['last_time']
 
         if not config.get('email_address'):
-            return action_result.set_status(phantom.APP_ERROR, "Email Adress to ingest must be supplied in asset!")
+            return action_result.set_status(phantom.APP_ERROR, "Email Address to ingest must be supplied in asset!")
         elif not config.get('folder'):
             return action_result.set_status(phantom.APP_ERROR, "Folder to ingest from must be supplied in asset!")
 
@@ -1706,7 +1839,7 @@ class Office365Connector(BaseConnector):
             if not self.is_poll_now():
                 last_time = datetime.strptime(emails[email_index]['lastModifiedDateTime'], O365_TIME_FORMAT).strftime(O365_TIME_FORMAT)
                 self._state['last_time'] = last_time
-                self.save_state(self._state)
+                self.save_state(self._state.copy())
 
                 # Setting filter for next cycle
                 params['$filter'] = "lastModifiedDateTime ge {0}".format(last_time)
@@ -1889,7 +2022,7 @@ class Office365Connector(BaseConnector):
         try:
             dir_id = self._get_folder(action_result, path[0], email)
         except ReturnException as e:
-            return None, "Error occured while fetching folder {}. {}".format(path[0], e), None
+            return None, "Error occurred while fetching folder {}. {}".format(path[0], e), None
 
         if not dir_id:
             return None, "Error: folder not found; {}".format(path[0]), ret
@@ -1949,7 +2082,7 @@ class Office365Connector(BaseConnector):
 
     def _new_folder(self, action_result, folder, email):
 
-        data = json.dumps({ "displayName": folder })
+        data = json.dumps({"displayName": folder})
         endpoint = "/users/{}/mailFolders".format(email)
 
         ret_val, response = self._make_rest_call_helper(action_result, endpoint, data=data, method="post")
@@ -1968,7 +2101,7 @@ class Office365Connector(BaseConnector):
 
     def _new_child_folder(self, action_result, folder, parent_id, email, pathsofar):
 
-        data = json.dumps({ "displayName": folder })
+        data = json.dumps({"displayName": folder})
         endpoint = "/users/{}/mailFolders/{}/childFolders".format(email, parent_id)
 
         ret_val, response = self._make_rest_call_helper(action_result, endpoint, data=data, method="post")
@@ -2199,6 +2332,9 @@ class Office365Connector(BaseConnector):
         elif action_id == 'list_groups':
             ret_val = self._handle_list_groups(param)
 
+        elif action_id == 'list_group_members':
+            ret_val = self._handle_list_group_members(param)
+
         elif action_id == 'list_users':
             ret_val = self._handle_list_users(param)
 
@@ -2227,10 +2363,10 @@ class Office365Connector(BaseConnector):
         }
 
         data = {
-                    'client_id': self._client_id,
-                    'client_secret': self._client_secret,
-                    'grant_type': 'client_credentials'
-                }
+            'client_id': self._client_id,
+            'client_secret': self._client_secret,
+            'grant_type': 'client_credentials'
+        }
 
         if not self._admin_access:
             data['scope'] = 'offline_access ' + self._scope
@@ -2238,8 +2374,8 @@ class Office365Connector(BaseConnector):
             data['scope'] = 'https://graph.microsoft.com/.default'
 
         if not self._admin_access:
-            if self._state.get('non_admin_auth', {}).get('refresh_token'):
-                data['refresh_token'] = self._state.get('non_admin_auth').get('refresh_token')
+            if self._refresh_token:
+                data['refresh_token'] = self._refresh_token
                 data['grant_type'] = 'refresh_token'
             elif self._state.get('code'):
                 data['redirect_uri'] = self._state.get('redirect_uri')
@@ -2252,7 +2388,7 @@ class Office365Connector(BaseConnector):
         ret_val, resp_json = self._make_rest_call(action_result, req_url, headers=headers, data=data, method='post')
         if phantom.is_fail(ret_val):
             return action_result.get_status()
-        # Save the response on the basis of admin_acess
+        # Save the response on the basis of admin_access
         if self._admin_access:
             # if admin consent already provided, save to state
             if self._admin_consent:
@@ -2266,14 +2402,17 @@ class Office365Connector(BaseConnector):
 
         # Save state
         self.save_state(self._state)
-        _save_app_state(self._state, self.get_asset_id(), self)
-
         self._state = self.load_state()
+
+        if not isinstance(self._state, dict):
+            self.debug_print(MSGOFFICE365_STATE_FILE_CORRUPT_ERR)
+            self._reset_state_file()
+            return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_STATE_FILE_CORRUPT_ERR)
 
         # Scenario -
         #
         # If the corresponding state file doesn't have correct owner, owner group or permissions,
-        # the newely generated token is not being saved to state file and automatic workflow for token has been stopped.
+        # the newly generated token is not being saved to state file and automatic workflow for token has been stopped.
         # So we have to check that token from response and token which are saved to state file
         # after successful generation of new token are same or not.
 
@@ -2283,9 +2422,15 @@ class Office365Connector(BaseConnector):
         else:
             if self._access_token != self._state.get('non_admin_auth', {}).get('access_token'):
                 return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_PERMISSION_ERR)
-
         self.debug_print("Token generated successfully")
         return action_result.set_status(phantom.APP_SUCCESS)
+
+    def _reset_state_file(self):
+        """
+        This method resets the state file.
+        """
+        self.debug_print("Resetting the state file with the default format")
+        self._state = {"app_version": self.get_app_json().get("app_version")}
 
     def initialize(self):
 
@@ -2296,15 +2441,14 @@ class Office365Connector(BaseConnector):
 
         # Load the state in initialize
         config = self.get_config()
+        self._asset_id = self.get_asset_id()
 
         # Load all the asset configuration in global variables
         self._state = self.load_state()
         if not isinstance(self._state, dict):
-            self.debug_print("Reseting the state file with the default format")
-            self._state = {
-                "app_version": self.get_app_json().get('app_version')
-            }
-            return self.set_status(phantom.APP_ERROR, MSGOFFICE365_STATE_FILE_CORRUPT_ERROR)
+            self.debug_print(MSGOFFICE365_STATE_FILE_CORRUPT_ERR)
+            self._reset_state_file()
+            return self.set_status(phantom.APP_ERROR, MSGOFFICE365_STATE_FILE_CORRUPT_ERR)
 
         self._tenant = config['tenant']
         self._client_id = config['client_id']
@@ -2317,10 +2461,11 @@ class Office365Connector(BaseConnector):
             if not self._scope:
                 return self.set_status(phantom.APP_ERROR, "Please provide scope for non-admin access in the asset configuration")
 
-            self._access_token = self._state.get('non_admin_auth', {}).get('access_token')
-            self._refresh_token = self._state.get('non_admin_auth', {}).get('refresh_token')
+            self._access_token = self._state.get('non_admin_auth', {}).get('access_token', None)
+            self._refresh_token = self._state.get('non_admin_auth', {}).get('refresh_token', None)
+
         else:
-            self._access_token = self._state.get('admin_auth', {}).get('access_token')
+            self._access_token = self._state.get('admin_auth', {}).get('access_token', None)
 
         if action_id == 'test_connectivity':
             # User is trying to complete the authentication flow, so just return True from here so that test connectivity continues
@@ -2329,8 +2474,12 @@ class Office365Connector(BaseConnector):
         admin_consent = self._state.get('admin_consent')
 
         # if it was not and the current action is not test connectivity then it's an error
-        if self._admin_access and not admin_consent and action_id != 'test_connectivity':
-            return self.set_status(phantom.APP_ERROR, MSGOFFICE365_RUN_CONNECTIVITY_MSG)
+        if self._admin_access:
+            if not admin_consent and action_id != 'test_connectivity':
+                return self.set_status(phantom.APP_ERROR, MSGOFFICE365_RUN_CONNECTIVITY_MSG)
+
+            if not self._access_token:
+                return self.set_status(phantom.APP_ERROR, MSGOFFICE365_UNEXPECTED_ACCESS_TOKEN_ERR)
 
         if not self._admin_access and action_id != 'test_connectivity' and (not self._access_token or not self._refresh_token):
             ret_val = self._get_token(action_result)
@@ -2357,10 +2506,7 @@ class Office365Connector(BaseConnector):
         return fips_enabled
 
     def finalize(self):
-
-        # Save the state, this data is saved accross actions and app upgrades
         self.save_state(self._state)
-        _save_app_state(self._state, self.get_asset_id(), self)
         return phantom.APP_SUCCESS
 
 
@@ -2384,7 +2530,7 @@ if __name__ == '__main__':
     verify = args.verify
 
     if args.username and args.password:
-        login_url = BaseConnector._get_phantom_base_url() + "login"
+        login_url = '{}login'.format(BaseConnector._get_phantom_base_url())
         try:
             print("Accessing the Login page")
             r = requests.get(login_url, verify=verify, timeout=MSGOFFICE365_DEFAULT_REQUEST_TIMEOUT)
