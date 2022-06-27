@@ -68,7 +68,7 @@
             "order": 7
         },
         "email_address": {
-            "description": "User Email Mailbox (On Poll)",
+            "description": "Email Address (On Poll)",
             "data_type": "string",
             "order": 8
         },
@@ -2642,9 +2642,9 @@
                     "order": 1
                 },
                 "send_response": {
-                    "description": "Send decline response to organiser",
+                    "description": "Send decline response to the organizer",
                     "data_type": "boolean",
-                    "required": true,
+                    "default": true,
                     "order": 2
                 }
             },
@@ -2670,7 +2670,7 @@
                     "column_name": "Event ID",
                     "column_order": 0,
                     "example_values": [
-                        "AAMkAGFmNTRhODA4LWIxMjQtNDJjYy05NDM2LWQ5MzY1MGFhMTkzYwBGAAAAAADRlY7ewL4xToKRDciQog5UBwBvUzMoUJx2S4nbgxzZWx2PAAAAAAEMAABvUzMoUJx2S4nbgxzZWx2PAAEIbt7NAAA="
+                        "TestAGFmNTRhODA4LWIxMjQtNDJjYy05NDM2LWQ5MzY1MGFhMTkzYwBGAAAAAADRlY7ewL4xToKRDciQog5UBwBvUzMoUJx2S4nbgxzZWx2PAAAAAAEMAABvUzMoUJx2S4nbgxzZWx2PAAEIbt7NAAA="
                     ]
                 },
                 {
@@ -2699,7 +2699,7 @@
                     "data_path": "action_result.message",
                     "data_type": "string",
                     "example_values": [
-                        "Successfully event email"
+                        "Successfully deleted email"
                     ]
                 },
                 {
@@ -3630,6 +3630,9 @@
                     "data_type": "string",
                     "example_values": [
                         "AAMkAGYwYmE5NmQ0LWVhOGItNGFhMy05OWNlLTE5MzhjMTE5YWYyMQBGAAAAAACkbmmUA5U5RZwZvvg8zew_BwDWyBbuDx-uTKpJ-DXRPByGAAAA1bxhAAAr0tXr3dtaS5qYgFGhi6QjAAQiOoS2AAA="
+                    ],
+                    "contains": [
+                        "msgoffice365 event id"
                     ]
                 },
                 {
@@ -5709,7 +5712,7 @@
             },
             {
                 "module": "certifi",
-                "input_file": "wheels/shared/certifi-2021.10.8-py2.py3-none-any.whl"
+                "input_file": "wheels/py3/certifi-2022.6.15-py3-none-any.whl"
             },
             {
                 "module": "chardet",
@@ -5733,7 +5736,7 @@
             },
             {
                 "module": "soupsieve",
-                "input_file": "wheels/py3/soupsieve-2.3.2-py3-none-any.whl"
+                "input_file": "wheels/py3/soupsieve-2.3.2.post1-py3-none-any.whl"
             },
             {
                 "module": "sqlparse",
@@ -5757,7 +5760,7 @@
             },
             {
                 "module": "asgiref",
-                "input_file": "wheels/py3/asgiref-3.5.0-py3-none-any.whl"
+                "input_file": "wheels/py3/asgiref-3.5.2-py3-none-any.whl"
             },
             {
                 "module": "beautifulsoup4",
@@ -5765,7 +5768,7 @@
             },
             {
                 "module": "certifi",
-                "input_file": "wheels/shared/certifi-2021.10.8-py2.py3-none-any.whl"
+                "input_file": "wheels/py3/certifi-2022.6.15-py3-none-any.whl"
             },
             {
                 "module": "chardet",
@@ -5789,7 +5792,7 @@
             },
             {
                 "module": "soupsieve",
-                "input_file": "wheels/py3/soupsieve-2.3.2-py3-none-any.whl"
+                "input_file": "wheels/py3/soupsieve-2.3.2.post1-py3-none-any.whl"
             },
             {
                 "module": "sqlparse",

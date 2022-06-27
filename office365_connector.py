@@ -1199,16 +1199,16 @@ class Office365Connector(BaseConnector):
 
         email_addr = param['email_address']
         message_id = param['id']
-        response = param.get('send_response', True)
+        send_response = param.get('send_response')
         endpoint = "/users/{0}".format(email_addr)
 
         endpoint += '/events/{0}'.format(message_id)
         method = "delete"
         data = None
-        if not response:
+        if send_response:
             method = "post"
             endpoint += '/decline'
-            data = json.dumps({'sendResponse': False})
+            data = json.dumps({'sendResponse': True})
 
         ret_val, _ = self._make_rest_call_helper(action_result, endpoint, method=method, data=data)
         if phantom.is_fail(ret_val):
@@ -1509,7 +1509,8 @@ class Office365Connector(BaseConnector):
 
             response['attachments'] = attach_resp['value']
 
-        if response.get('@odata.type') == "#microsoft.graph.eventMessage":
+        if response.get('@odata.type') in ["#microsoft.graph.eventMessage", "#microsoft.graph.eventMessageRequest",
+                "#microsoft.graph.eventMessageResponse"]:
 
             event_endpoint = endpoint + '/?$expand=Microsoft.Graph.EventMessage/Event'
             ret_val, event_resp = self._make_rest_call_helper(action_result, event_endpoint)

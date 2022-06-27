@@ -134,6 +134,7 @@ and limitations under the License.
                         <th class="widget-th">To</th>
                         <th class="widget-th">Has Attachments?</th>
                         <th class="widget-th">Internet Message ID</th>
+                        <th class="widget-th">Event ID</th>
                     </thead>
                     {% for data in result.data %}
                         <tr>
@@ -199,6 +200,18 @@ and limitations under the License.
                                 <span class="fa fa-caret-down" style="font-size: smaller;"></span>
                                 </a>
                             </td>
+                            {% if data.event.id %}
+                                <td>
+                                    <a href="javascript:;" onclick="context_menu(this, [{'contains': ['msgoffice365 event id'],
+                                        'value': '{{ data.event.id }}' }], 0, {{ container.id }}, null, false);">
+                                    {{ data.event.id }}
+                                    &nbsp;
+                                    <span class="fa fa-caret-down" style="font-size: smaller;"></span>
+                                    </a>
+                                </td>
+                            {% else %}
+                                <td>None</td>
+                            {% endif %}
                         </tr>
                     {% endfor %}
                 </table>
