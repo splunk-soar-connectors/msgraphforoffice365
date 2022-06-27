@@ -116,7 +116,7 @@ The app should now be ready to be used.
       <li>extract_hashes - Extract the hashes present in the emails (MD5).</li>
       <li>ingest_eml - Fetch the EML file content for the 'item attachment' and ingest it into the vault. This will only ingest the first level 'item attachment' as an EML file. The nested item attachments will not be ingested into the vault. If the extract_attachments flag is set to false, then the application will also skip the EML file ingestion regardless of this flag value.</li>
     </ul>
-
+    <p>If extract_attachments is set to true, only fileAttachment will be ingested. If both ingest_eml and extract_attachments are set to true, then both fileAttachment and itemAttachment will be ingested.</p>
 <h2>Guidelines to provide folder parameter value</h2>
 <p>This is applicable to 'on poll', 'copy email', 'move email', and 'run query' actions.</p>
 <ul>

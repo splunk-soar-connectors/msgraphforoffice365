@@ -2829,7 +2829,7 @@
             "action": "get email",
             "identifier": "get_email",
             "description": "Get an email from the server",
-            "verbose": "If the 'download attachments' parameter is set to true, action will ingest '#microsoft.graph.itemAttachment' as an EML file.",
+            "verbose": "If the 'download attachments' parameter is set to true, the action will ingest the '#microsoft.graph.itemAttachment' and '#microsoft.graph.fileAttachment' type of attachments.",
             "type": "investigate",
             "read_only": true,
             "parameters": {
