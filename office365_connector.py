@@ -21,6 +21,7 @@ import pwd
 import sys
 import tempfile
 import time
+from copy import deepcopy
 from datetime import datetime
 
 import encryption_helper
@@ -1875,7 +1876,7 @@ class Office365Connector(BaseConnector):
             if not self.is_poll_now():
                 last_time = datetime.strptime(emails[email_index]['lastModifiedDateTime'], O365_TIME_FORMAT).strftime(O365_TIME_FORMAT)
                 self._state['last_time'] = last_time
-                self.save_state(self._state.copy())
+                self.save_state(deepcopy(self._state))
 
                 # Setting filter for next cycle
                 params['$filter'] = "lastModifiedDateTime ge {0}".format(last_time)
