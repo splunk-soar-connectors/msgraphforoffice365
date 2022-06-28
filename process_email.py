@@ -17,11 +17,9 @@ import hashlib
 import json
 import mimetypes
 import os
-import random
 import re
 import shutil
 import socket
-import string
 import tempfile
 from builtins import str
 from collections import OrderedDict
@@ -35,6 +33,7 @@ import phantom.rules as phantom_rules
 import phantom.utils as ph_utils
 from bs4 import BeautifulSoup, UnicodeDammit
 from django.core.validators import URLValidator
+from phantom.vault import Vault
 from requests.structures import CaseInsensitiveDict
 
 from office365_consts import ERR_MSG_UNAVAILABLE
@@ -666,23 +665,24 @@ class ProcessEmail(object):
         except IOError as ioerr:
             error_msg = _get_error_message_from_exception(ioerr)
             if "File name too long" in error_msg:
-                self.write_with_new_filename(tmp_dir, part_payload, files, file_name, as_byte=False)
+                self.write_with_new_filename(part_payload, files, file_name, as_byte=False)
             else:
                 self._debug_print('Failed to write file: {}'.format(ioerr))
 
-    def write_with_new_filename(self, tmp_dir, data, dict_to_fill, file_name, as_byte=False):
+    def write_with_new_filename(self, data, dict_to_fill, file_name, as_byte=False):
         try:
-            _, file_extension = os.path.splitext(file_name)
-            random_suffix = '_' + ''.join(random.SystemRandom().choice(string.ascii_lowercase) for _ in range(16))
-            new_file_name = "ph_long_file_name_{0}{1}".format(random_suffix, file_extension)
-            full_path = os.path.join(tmp_dir, new_file_name)
+            if hasattr(Vault, 'get_vault_tmp_dir'):
+                fd, full_path = tempfile.mkstemp(dir=Vault.get_vault_tmp_dir())
+            else:
+                fd, full_path = tempfile.mkstemp(dir='/opt/phantom/vault/tmp')
+            os.close(fd)
 
             with open(full_path, 'wb') as f:    # noqa
                 if as_byte:
                     f.write(data.as_bytes())
                 else:
                     f.write(data)
-            dict_to_fill.append({'file_name': new_file_name, 'file_path': full_path})
+            dict_to_fill.append({'file_name': file_name, 'file_path': full_path})
         except Exception as e:
             self._base_connector.debug_print('Exception while writing file: {}'.format(e))
 
