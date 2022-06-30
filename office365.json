@@ -9,14 +9,19 @@
     "product_name": "Office 365 (MS Graph)",
     "product_version_regex": ".*",
     "publisher": "Splunk",
+    "contributors": [
+        {
+            "name": "Alan Shaikh"
+        }
+    ],
     "license": "Copyright (c) 2017-2022 Splunk Inc.",
-    "app_version": "2.5.3",
+    "app_version": "2.6.0",
     "utctime_updated": "2022-02-04T01:20:46.000000Z",
     "package_name": "phantom_msgraphoffice365",
     "main_module": "office365_connector.py",
     "min_phantom_version": "5.2.0",
     "latest_tested_versions": [
-        "Cloud 2021-09-28"
+        "Cloud 24 June, 2022"
     ],
     "app_wizard_version": "1.0.0",
     "python_version": "3",
@@ -129,8 +134,10 @@
             "default": false,
             "order": 18
         },
-        "ph_4": {
-            "data_type": "ph",
+        "ingest_eml": {
+            "description": "Ingest EML file for the itemAttachment",
+            "data_type": "boolean",
+            "default": false,
             "order": 19
         },
         "ingest_manner": {
@@ -164,10 +171,6 @@
             "parameters": {},
             "output": [
                 {
-                    "data_path": "action_result.data",
-                    "data_type": "string"
-                },
-                {
                     "data_path": "action_result.status",
                     "data_type": "string",
                     "example_values": [
@@ -178,6 +181,14 @@
                     "column_order": 0
                 },
                 {
+                    "data_path": "action_result.data",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.summary",
+                    "data_type": "string"
+                },
+                {
                     "data_path": "action_result.message",
                     "data_type": "string",
                     "example_values": [
@@ -185,10 +196,6 @@
                     ],
                     "column_name": "Message",
                     "column_order": 1
-                },
-                {
-                    "data_path": "action_result.summary",
-                    "data_type": "string"
                 },
                 {
                     "data_path": "summary.total_objects",
@@ -224,7 +231,7 @@
                     "primary": true,
                     "contains": [
                         "msgoffice365 user id",
-                        "msgoffice365 user principle name",
+                        "msgoffice365 user principal name",
                         "email"
                     ],
                     "order": 0
@@ -232,14 +239,22 @@
             },
             "output": [
                 {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
+                {
                     "data_path": "action_result.parameter.user_id",
                     "data_type": "string",
                     "contains": [
                         "msgoffice365 user id",
-                        "msgoffice365 user principle name",
+                        "msgoffice365 user principal name",
                         "email"
                     ],
-                    "column_name": "User ID/Principle Name",
+                    "column_name": "User ID/Principal Name",
                     "column_order": 0,
                     "example_values": [
                         "eeb3645f-df19-58a1-0e9c-ghi234cb5f6f"
@@ -305,25 +320,10 @@
                 {
                     "data_path": "action_result.data.*.status",
                     "data_type": "string",
-                    "column_name": "Out of Office Status",
+                    "column_name": "Out Of Office Status",
                     "column_order": 1,
                     "example_values": [
                         "alwaysEnabled"
-                    ]
-                },
-                {
-                    "data_path": "action_result.status",
-                    "data_type": "string",
-                    "example_values": [
-                        "success",
-                        "failed"
-                    ]
-                },
-                {
-                    "data_path": "action_result.message",
-                    "data_type": "string",
-                    "example_values": [
-                        "Successfully retrieved out of office status"
                     ]
                 },
                 {
@@ -331,6 +331,13 @@
                     "data_type": "numeric",
                     "example_values": [
                         1
+                    ]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "Successfully retrieved out of office status"
                     ]
                 },
                 {
@@ -369,7 +376,7 @@
                     "primary": true,
                     "contains": [
                         "msgoffice365 user id",
-                        "msgoffice365 user principle name",
+                        "msgoffice365 user principal name",
                         "email"
                     ],
                     "order": 0
@@ -395,6 +402,14 @@
                 }
             },
             "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
                 {
                     "data_path": "action_result.parameter.filter",
                     "data_type": "string",
@@ -425,7 +440,7 @@
                     "data_type": "string",
                     "contains": [
                         "msgoffice365 user id",
-                        "msgoffice365 user principle name",
+                        "msgoffice365 user principal name",
                         "email"
                     ],
                     "example_values": [
@@ -990,11 +1005,10 @@
                     "data_type": "string"
                 },
                 {
-                    "data_path": "action_result.status",
-                    "data_type": "string",
+                    "data_path": "action_result.summary.events_matched",
+                    "data_type": "numeric",
                     "example_values": [
-                        "success",
-                        "failed"
+                        8
                     ]
                 },
                 {
@@ -1002,13 +1016,6 @@
                     "data_type": "string",
                     "example_values": [
                         "Successfully retrieved 8 events"
-                    ]
-                },
-                {
-                    "data_path": "action_result.summary.events_matched",
-                    "data_type": "numeric",
-                    "example_values": [
-                        8
                     ]
                 },
                 {
@@ -1054,6 +1061,14 @@
                 }
             },
             "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
                 {
                     "data_path": "action_result.parameter.filter",
                     "data_type": "string",
@@ -1147,18 +1162,17 @@
                         "test@testdomain.onmicrosoft.com"
                     ],
                     "contains": [
-                        "msgoffice365 user principle name",
+                        "msgoffice365 user principal name",
                         "email"
                     ],
-                    "column_name": "User Principle Name",
+                    "column_name": "User Principal Name",
                     "column_order": 1
                 },
                 {
-                    "data_path": "action_result.status",
-                    "data_type": "string",
+                    "data_path": "action_result.summary.total_users_returned",
+                    "data_type": "numeric",
                     "example_values": [
-                        "success",
-                        "failed"
+                        11
                     ]
                 },
                 {
@@ -1166,13 +1180,6 @@
                     "data_type": "string",
                     "example_values": [
                         "Successfully retrieved 11 users"
-                    ]
-                },
-                {
-                    "data_path": "action_result.summary.total_users_returned",
-                    "data_type": "numeric",
-                    "example_values": [
-                        11
                     ]
                 },
                 {
@@ -1217,6 +1224,14 @@
                 }
             },
             "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
                 {
                     "data_path": "action_result.parameter.filter",
                     "data_type": "string",
@@ -1424,11 +1439,10 @@
                     "column_order": 5
                 },
                 {
-                    "data_path": "action_result.status",
-                    "data_type": "string",
+                    "data_path": "action_result.summary.total_groups_returned",
+                    "data_type": "numeric",
                     "example_values": [
-                        "success",
-                        "failed"
+                        9
                     ]
                 },
                 {
@@ -1436,13 +1450,6 @@
                     "data_type": "string",
                     "example_values": [
                         "Successfully retrieved 9 groups"
-                    ]
-                },
-                {
-                    "data_path": "action_result.summary.total_groups_returned",
-                    "data_type": "numeric",
-                    "example_values": [
-                        9
                     ]
                 },
                 {
@@ -1469,6 +1476,210 @@
             "versions": "EQ(*)"
         },
         {
+            "action": "list group members",
+            "identifier": "list_group_members",
+            "description": "List all the members in group",
+            "type": "investigate",
+            "read_only": true,
+            "parameters": {
+                "group_id": {
+                    "description": "Group ID",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": true,
+                    "contains": [
+                        "msgoffice365 group id"
+                    ],
+                    "order": 0
+                },
+                "get_transitive_members": {
+                    "description": "Get a list of the group's members. A group can have users, devices, organizational contacts, and other groups as members. This operation is transitive and returns a flat list of all nested members",
+                    "data_type": "boolean",
+                    "default": true,
+                    "order": 1
+                },
+                "filter": {
+                    "description": "Search for specific results",
+                    "data_type": "string",
+                    "order": 2
+                },
+                "limit": {
+                    "description": "Maximum number of members to return",
+                    "data_type": "numeric",
+                    "order": 3
+                }
+            },
+            "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.group_id",
+                    "data_type": "string",
+                    "contains": [
+                        "msgoffice365 group id"
+                    ],
+                    "example_values": [
+                        "11907d21-7631-4ea7-97b2-1328d1c5b901"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.get_transitive_members",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.filter",
+                    "data_type": "string",
+                    "example_values": [
+                        "displayName eq 'Group Name'"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.limit",
+                    "data_type": "numeric",
+                    "example_values": [
+                        20
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.businessPhones",
+                    "data_type": "string",
+                    "example_values": [
+                        "2056120271"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.displayName",
+                    "data_type": "string",
+                    "example_values": [
+                        "Test Admin"
+                    ],
+                    "column_name": "Display Name",
+                    "column_order": 2
+                },
+                {
+                    "data_path": "action_result.data.*.givenName",
+                    "data_type": "string",
+                    "example_values": [
+                        "Test"
+                    ],
+                    "column_name": "Given Name",
+                    "column_order": 3
+                },
+                {
+                    "data_path": "action_result.data.*.id",
+                    "data_type": "string",
+                    "example_values": [
+                        "6132ca31-7a09-434f-a269-abe836d0c01e"
+                    ],
+                    "contains": [
+                        "msgoffice365 user id"
+                    ],
+                    "column_name": "User ID",
+                    "column_order": 0
+                },
+                {
+                    "data_path": "action_result.data.*.jobTitle",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.mail",
+                    "data_type": "string",
+                    "contains": [
+                        "email"
+                    ],
+                    "example_values": [
+                        "test@testdomain.onmicrosoft.com"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.@odata.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "#microsoft.graph.user"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.mobilePhone",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.officeLocation",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.preferredLanguage",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.surname",
+                    "data_type": "string",
+                    "example_values": [
+                        "Globaltest"
+                    ],
+                    "column_name": "Surname",
+                    "column_order": 4
+                },
+                {
+                    "data_path": "action_result.data.*.userPrincipalName",
+                    "data_type": "string",
+                    "example_values": [
+                        "test@testdomain.onmicrosoft.com"
+                    ],
+                    "contains": [
+                        "msgoffice365 user principal name",
+                        "email"
+                    ],
+                    "column_name": "User Principal Name",
+                    "column_order": 1
+                },
+                {
+                    "data_path": "action_result.summary.total_members_returned",
+                    "data_type": "numeric",
+                    "example_values": [
+                        9
+                    ]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "Successfully retrieved 9 groups"
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                }
+            ],
+            "render": {
+                "width": 12,
+                "title": "List Group Members",
+                "type": "table",
+                "height": 5
+            },
+            "versions": "EQ(*)"
+        },
+        {
             "action": "list folders",
             "identifier": "list_folders",
             "description": "Retrieve a list of mail folders",
@@ -1484,7 +1695,7 @@
                     "order": 0,
                     "contains": [
                         "msgoffice365 user id",
-                        "msgoffice365 user principle name",
+                        "msgoffice365 user principal name",
                         "email"
                     ]
                 },
@@ -1499,6 +1710,14 @@
                 }
             },
             "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
                 {
                     "data_path": "action_result.parameter.folder_id",
                     "data_type": "string",
@@ -1517,7 +1736,7 @@
                     ],
                     "contains": [
                         "msgoffice365 user id",
-                        "msgoffice365 user principle name",
+                        "msgoffice365 user principal name",
                         "email"
                     ]
                 },
@@ -1597,11 +1816,10 @@
                     "column_order": 4
                 },
                 {
-                    "data_path": "action_result.status",
-                    "data_type": "string",
+                    "data_path": "action_result.summary.total_folders_returned",
+                    "data_type": "numeric",
                     "example_values": [
-                        "success",
-                        "failed"
+                        14
                     ]
                 },
                 {
@@ -1609,13 +1827,6 @@
                     "data_type": "string",
                     "example_values": [
                         "Successfully retrieved 14 mail folders"
-                    ]
-                },
-                {
-                    "data_path": "action_result.summary.total_folders_returned",
-                    "data_type": "numeric",
-                    "example_values": [
-                        14
                     ]
                 },
                 {
@@ -1689,6 +1900,14 @@
                 }
             },
             "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
                 {
                     "data_path": "action_result.parameter.email_address",
                     "data_type": "string",
@@ -2036,12 +2255,8 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.status",
-                    "data_type": "string",
-                    "example_values": [
-                        "success",
-                        "failed"
-                    ]
+                    "data_path": "action_result.summary",
+                    "data_type": "string"
                 },
                 {
                     "data_path": "action_result.message",
@@ -2049,10 +2264,6 @@
                     "example_values": [
                         "Successfully copied email"
                     ]
-                },
-                {
-                    "data_path": "action_result.summary",
-                    "data_type": "string"
                 },
                 {
                     "data_path": "summary.total_objects",
@@ -2125,6 +2336,14 @@
                 }
             },
             "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
                 {
                     "data_path": "action_result.parameter.email_address",
                     "data_type": "string",
@@ -2472,12 +2691,8 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.status",
-                    "data_type": "string",
-                    "example_values": [
-                        "success",
-                        "failed"
-                    ]
+                    "data_path": "action_result.summary",
+                    "data_type": "string"
                 },
                 {
                     "data_path": "action_result.message",
@@ -2485,10 +2700,6 @@
                     "example_values": [
                         "Successfully moved email"
                     ]
-                },
-                {
-                    "data_path": "action_result.summary",
-                    "data_type": "string"
                 },
                 {
                     "data_path": "summary.total_objects",
@@ -2543,6 +2754,16 @@
             },
             "output": [
                 {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "column_name": "Status",
+                    "column_order": 2,
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
+                {
                     "data_path": "action_result.parameter.email_address",
                     "data_type": "string",
                     "contains": [
@@ -2571,14 +2792,8 @@
                     "data_type": "string"
                 },
                 {
-                    "data_path": "action_result.status",
-                    "data_type": "string",
-                    "column_name": "Status",
-                    "column_order": 2,
-                    "example_values": [
-                        "success",
-                        "failed"
-                    ]
+                    "data_path": "action_result.summary",
+                    "data_type": "string"
                 },
                 {
                     "data_path": "action_result.message",
@@ -2586,10 +2801,6 @@
                     "example_values": [
                         "Successfully deleted email"
                     ]
-                },
-                {
-                    "data_path": "action_result.summary",
-                    "data_type": "string"
                 },
                 {
                     "data_path": "summary.total_objects",
@@ -2618,6 +2829,7 @@
             "action": "get email",
             "identifier": "get_email",
             "description": "Get an email from the server",
+            "verbose": "If the 'download attachments' parameter is set to true, the action will ingest the '#microsoft.graph.itemAttachment' and '#microsoft.graph.fileAttachment' type of attachments.",
             "type": "investigate",
             "read_only": true,
             "parameters": {
@@ -2642,7 +2854,7 @@
                     "order": 1
                 },
                 "download_attachments": {
-                    "description": "Download attachments to vault (ingest only '#microsoft.graph.fileAttachment' type of attachments)",
+                    "description": "Download attachments to vault",
                     "data_type": "boolean",
                     "order": 2
                 },
@@ -2653,6 +2865,14 @@
                 }
             },
             "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
                 {
                     "data_path": "action_result.parameter.download_attachments",
                     "data_type": "boolean",
@@ -3511,12 +3731,8 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.status",
-                    "data_type": "string",
-                    "example_values": [
-                        "success",
-                        "failed"
-                    ]
+                    "data_path": "action_result.summary",
+                    "data_type": "string"
                 },
                 {
                     "data_path": "action_result.message",
@@ -3524,10 +3740,6 @@
                     "example_values": [
                         "Successfully fetched email"
                     ]
-                },
-                {
-                    "data_path": "action_result.summary",
-                    "data_type": "string"
                 },
                 {
                     "data_path": "summary.total_objects",
@@ -3608,6 +3820,14 @@
                 }
             },
             "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
                 {
                     "data_path": "action_result.parameter.email_address",
                     "data_type": "string",
@@ -4172,12 +4392,8 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.status",
-                    "data_type": "string",
-                    "example_values": [
-                        "success",
-                        "failed"
-                    ]
+                    "data_path": "action_result.summary",
+                    "data_type": "string"
                 },
                 {
                     "data_path": "action_result.message",
@@ -4185,10 +4401,6 @@
                     "example_values": [
                         "Successfully fetched email"
                     ]
-                },
-                {
-                    "data_path": "action_result.summary",
-                    "data_type": "string"
                 },
                 {
                     "data_path": "summary.total_objects",
@@ -4295,6 +4507,14 @@
                 }
             },
             "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
                 {
                     "data_path": "action_result.parameter.body",
                     "data_type": "string",
@@ -4846,11 +5066,10 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.status",
-                    "data_type": "string",
+                    "data_path": "action_result.summary.emails_matched",
+                    "data_type": "numeric",
                     "example_values": [
-                        "success",
-                        "failed"
+                        1
                     ]
                 },
                 {
@@ -4858,13 +5077,6 @@
                     "data_type": "string",
                     "example_values": [
                         "Emails matched: 1"
-                    ]
-                },
-                {
-                    "data_path": "action_result.summary.emails_matched",
-                    "data_type": "numeric",
-                    "example_values": [
-                        1
                     ]
                 },
                 {
@@ -4927,6 +5139,14 @@
                 }
             },
             "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
                 {
                     "data_path": "action_result.parameter.all_subdirs",
                     "data_type": "boolean",
@@ -5040,21 +5260,6 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.status",
-                    "data_type": "string",
-                    "example_values": [
-                        "success",
-                        "failed"
-                    ]
-                },
-                {
-                    "data_path": "action_result.message",
-                    "data_type": "string",
-                    "example_values": [
-                        "Emails matched: 1"
-                    ]
-                },
-                {
                     "data_path": "action_result.summary.folder",
                     "data_type": "string",
                     "example_values": [
@@ -5066,6 +5271,13 @@
                     "data_type": "numeric",
                     "example_values": [
                         1
+                    ]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "Emails matched: 1"
                     ]
                 },
                 {
@@ -5123,6 +5335,14 @@
             },
             "output": [
                 {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
+                {
                     "data_path": "action_result.parameter.email_address",
                     "data_type": "string",
                     "contains": [
@@ -5179,21 +5399,6 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.status",
-                    "data_type": "string",
-                    "example_values": [
-                        "success",
-                        "failed"
-                    ]
-                },
-                {
-                    "data_path": "action_result.message",
-                    "data_type": "string",
-                    "example_values": [
-                        "Folder id: AAMkAGFmNTRhODA4LWIxMjQtNDJjYy05NDM2LWQ5MzY1MGFhMTkzYwAuAAAAAADRlY7ewL4xToKRDciQog5UAQBvUzMoUJx2S4nbgxzZWx2PAAEApxCTAAA="
-                    ]
-                },
-                {
                     "data_path": "action_result.summary.folder_id",
                     "data_type": "string",
                     "example_values": [
@@ -5201,6 +5406,13 @@
                     ],
                     "contains": [
                         "msgoffice365 folder id"
+                    ]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "Folder id: AAMkAGFmNTRhODA4LWIxMjQtNDJjYy05NDM2LWQ5MzY1MGFhMTkzYwAuAAAAAADRlY7ewL4xToKRDciQog5UAQBvUzMoUJx2S4nbgxzZWx2PAAEApxCTAAA="
                     ]
                 },
                 {
@@ -5282,7 +5494,7 @@
             },
             {
                 "module": "certifi",
-                "input_file": "wheels/shared/certifi-2021.10.8-py2.py3-none-any.whl"
+                "input_file": "wheels/py3/certifi-2022.6.15-py3-none-any.whl"
             },
             {
                 "module": "chardet",
@@ -5306,7 +5518,7 @@
             },
             {
                 "module": "soupsieve",
-                "input_file": "wheels/py3/soupsieve-2.3.2-py3-none-any.whl"
+                "input_file": "wheels/py3/soupsieve-2.3.2.post1-py3-none-any.whl"
             },
             {
                 "module": "sqlparse",
@@ -5330,7 +5542,7 @@
             },
             {
                 "module": "asgiref",
-                "input_file": "wheels/py3/asgiref-3.5.0-py3-none-any.whl"
+                "input_file": "wheels/py3/asgiref-3.5.2-py3-none-any.whl"
             },
             {
                 "module": "beautifulsoup4",
@@ -5338,7 +5550,7 @@
             },
             {
                 "module": "certifi",
-                "input_file": "wheels/shared/certifi-2021.10.8-py2.py3-none-any.whl"
+                "input_file": "wheels/py3/certifi-2022.6.15-py3-none-any.whl"
             },
             {
                 "module": "chardet",
@@ -5362,7 +5574,7 @@
             },
             {
                 "module": "soupsieve",
-                "input_file": "wheels/py3/soupsieve-2.3.2-py3-none-any.whl"
+                "input_file": "wheels/py3/soupsieve-2.3.2.post1-py3-none-any.whl"
             },
             {
                 "module": "sqlparse",
