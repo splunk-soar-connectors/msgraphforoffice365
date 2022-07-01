@@ -21,7 +21,7 @@
     "main_module": "office365_connector.py",
     "min_phantom_version": "5.2.0",
     "latest_tested_versions": [
-        "Cloud 20 June, 2022"
+        "Cloud 24 June, 2022"
     ],
     "app_wizard_version": "1.0.0",
     "python_version": "3",
@@ -134,8 +134,10 @@
             "default": false,
             "order": 18
         },
-        "ph_4": {
-            "data_type": "ph",
+        "ingest_eml": {
+            "description": "Ingest EML file for the itemAttachment",
+            "data_type": "boolean",
+            "default": false,
             "order": 19
         },
         "ingest_manner": {
@@ -181,10 +183,6 @@
             "parameters": {},
             "output": [
                 {
-                    "data_path": "action_result.data",
-                    "data_type": "string"
-                },
-                {
                     "data_path": "action_result.status",
                     "data_type": "string",
                     "example_values": [
@@ -195,6 +193,14 @@
                     "column_order": 0
                 },
                 {
+                    "data_path": "action_result.data",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.summary",
+                    "data_type": "string"
+                },
+                {
                     "data_path": "action_result.message",
                     "data_type": "string",
                     "example_values": [
@@ -202,10 +208,6 @@
                     ],
                     "column_name": "Message",
                     "column_order": 1
-                },
-                {
-                    "data_path": "action_result.summary",
-                    "data_type": "string"
                 },
                 {
                     "data_path": "summary.total_objects",
@@ -248,6 +250,14 @@
                 }
             },
             "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
                 {
                     "data_path": "action_result.parameter.user_id",
                     "data_type": "string",
@@ -329,11 +339,10 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.status",
-                    "data_type": "string",
+                    "data_path": "action_result.summary.events_matched",
+                    "data_type": "numeric",
                     "example_values": [
-                        "success",
-                        "failed"
+                        1
                     ]
                 },
                 {
@@ -341,13 +350,6 @@
                     "data_type": "string",
                     "example_values": [
                         "Successfully retrieved out of office status"
-                    ]
-                },
-                {
-                    "data_path": "action_result.summary.events_matched",
-                    "data_type": "numeric",
-                    "example_values": [
-                        1
                     ]
                 },
                 {
@@ -412,6 +414,14 @@
                 }
             },
             "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
                 {
                     "data_path": "action_result.parameter.filter",
                     "data_type": "string",
@@ -1007,11 +1017,10 @@
                     "data_type": "string"
                 },
                 {
-                    "data_path": "action_result.status",
-                    "data_type": "string",
+                    "data_path": "action_result.summary.events_matched",
+                    "data_type": "numeric",
                     "example_values": [
-                        "success",
-                        "failed"
+                        8
                     ]
                 },
                 {
@@ -1019,13 +1028,6 @@
                     "data_type": "string",
                     "example_values": [
                         "Successfully retrieved 8 events"
-                    ]
-                },
-                {
-                    "data_path": "action_result.summary.events_matched",
-                    "data_type": "numeric",
-                    "example_values": [
-                        8
                     ]
                 },
                 {
@@ -1071,6 +1073,14 @@
                 }
             },
             "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
                 {
                     "data_path": "action_result.parameter.filter",
                     "data_type": "string",
@@ -1171,11 +1181,10 @@
                     "column_order": 1
                 },
                 {
-                    "data_path": "action_result.status",
-                    "data_type": "string",
+                    "data_path": "action_result.summary.total_users_returned",
+                    "data_type": "numeric",
                     "example_values": [
-                        "success",
-                        "failed"
+                        11
                     ]
                 },
                 {
@@ -1183,13 +1192,6 @@
                     "data_type": "string",
                     "example_values": [
                         "Successfully retrieved 11 users"
-                    ]
-                },
-                {
-                    "data_path": "action_result.summary.total_users_returned",
-                    "data_type": "numeric",
-                    "example_values": [
-                        11
                     ]
                 },
                 {
@@ -1234,6 +1236,14 @@
                 }
             },
             "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
                 {
                     "data_path": "action_result.parameter.filter",
                     "data_type": "string",
@@ -1441,11 +1451,10 @@
                     "column_order": 5
                 },
                 {
-                    "data_path": "action_result.status",
-                    "data_type": "string",
+                    "data_path": "action_result.summary.total_groups_returned",
+                    "data_type": "numeric",
                     "example_values": [
-                        "success",
-                        "failed"
+                        9
                     ]
                 },
                 {
@@ -1453,13 +1462,6 @@
                     "data_type": "string",
                     "example_values": [
                         "Successfully retrieved 9 groups"
-                    ]
-                },
-                {
-                    "data_path": "action_result.summary.total_groups_returned",
-                    "data_type": "numeric",
-                    "example_values": [
-                        9
                     ]
                 },
                 {
@@ -1721,6 +1723,14 @@
             },
             "output": [
                 {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
+                {
                     "data_path": "action_result.parameter.folder_id",
                     "data_type": "string",
                     "example_values": [
@@ -1818,11 +1828,10 @@
                     "column_order": 4
                 },
                 {
-                    "data_path": "action_result.status",
-                    "data_type": "string",
+                    "data_path": "action_result.summary.total_folders_returned",
+                    "data_type": "numeric",
                     "example_values": [
-                        "success",
-                        "failed"
+                        14
                     ]
                 },
                 {
@@ -1830,13 +1839,6 @@
                     "data_type": "string",
                     "example_values": [
                         "Successfully retrieved 14 mail folders"
-                    ]
-                },
-                {
-                    "data_path": "action_result.summary.total_folders_returned",
-                    "data_type": "numeric",
-                    "example_values": [
-                        14
                     ]
                 },
                 {
@@ -1910,6 +1912,14 @@
                 }
             },
             "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
                 {
                     "data_path": "action_result.parameter.email_address",
                     "data_type": "string",
@@ -2257,12 +2267,8 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.status",
-                    "data_type": "string",
-                    "example_values": [
-                        "success",
-                        "failed"
-                    ]
+                    "data_path": "action_result.summary",
+                    "data_type": "string"
                 },
                 {
                     "data_path": "action_result.message",
@@ -2270,10 +2276,6 @@
                     "example_values": [
                         "Successfully copied email"
                     ]
-                },
-                {
-                    "data_path": "action_result.summary",
-                    "data_type": "string"
                 },
                 {
                     "data_path": "summary.total_objects",
@@ -2346,6 +2348,14 @@
                 }
             },
             "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
                 {
                     "data_path": "action_result.parameter.email_address",
                     "data_type": "string",
@@ -2693,12 +2703,8 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.status",
-                    "data_type": "string",
-                    "example_values": [
-                        "success",
-                        "failed"
-                    ]
+                    "data_path": "action_result.summary",
+                    "data_type": "string"
                 },
                 {
                     "data_path": "action_result.message",
@@ -2706,10 +2712,6 @@
                     "example_values": [
                         "Successfully moved email"
                     ]
-                },
-                {
-                    "data_path": "action_result.summary",
-                    "data_type": "string"
                 },
                 {
                     "data_path": "summary.total_objects",
@@ -2764,6 +2766,16 @@
             },
             "output": [
                 {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "column_name": "Status",
+                    "column_order": 2,
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
+                {
                     "data_path": "action_result.parameter.email_address",
                     "data_type": "string",
                     "contains": [
@@ -2792,14 +2804,8 @@
                     "data_type": "string"
                 },
                 {
-                    "data_path": "action_result.status",
-                    "data_type": "string",
-                    "column_name": "Status",
-                    "column_order": 2,
-                    "example_values": [
-                        "success",
-                        "failed"
-                    ]
+                    "data_path": "action_result.summary",
+                    "data_type": "string"
                 },
                 {
                     "data_path": "action_result.message",
@@ -2807,10 +2813,6 @@
                     "example_values": [
                         "Successfully deleted email"
                     ]
-                },
-                {
-                    "data_path": "action_result.summary",
-                    "data_type": "string"
                 },
                 {
                     "data_path": "summary.total_objects",
@@ -2954,6 +2956,7 @@
             "action": "get email",
             "identifier": "get_email",
             "description": "Get an email from the server",
+            "verbose": "If the 'download attachments' parameter is set to true, the action will ingest the '#microsoft.graph.itemAttachment' and '#microsoft.graph.fileAttachment' type of attachments.",
             "type": "investigate",
             "read_only": true,
             "parameters": {
@@ -2978,7 +2981,7 @@
                     "order": 1
                 },
                 "download_attachments": {
-                    "description": "Download attachments to vault (ingest only '#microsoft.graph.fileAttachment' type of attachments)",
+                    "description": "Download attachments to vault",
                     "data_type": "boolean",
                     "order": 2
                 },
@@ -2989,6 +2992,14 @@
                 }
             },
             "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
                 {
                     "data_path": "action_result.parameter.download_attachments",
                     "data_type": "boolean",
@@ -4170,15 +4181,15 @@
                     ]
                 },
                 {
+                    "data_path": "action_result.summary",
+                    "data_type": "string"
+                },
+                {
                     "data_path": "action_result.message",
                     "data_type": "string",
                     "example_values": [
                         "Successfully fetched email"
                     ]
-                },
-                {
-                    "data_path": "action_result.summary",
-                    "data_type": "string"
                 },
                 {
                     "data_path": "summary.total_objects",
@@ -4259,6 +4270,14 @@
                 }
             },
             "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
                 {
                     "data_path": "action_result.parameter.email_address",
                     "data_type": "string",
@@ -4823,12 +4842,8 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.status",
-                    "data_type": "string",
-                    "example_values": [
-                        "success",
-                        "failed"
-                    ]
+                    "data_path": "action_result.summary",
+                    "data_type": "string"
                 },
                 {
                     "data_path": "action_result.message",
@@ -4836,10 +4851,6 @@
                     "example_values": [
                         "Successfully fetched email"
                     ]
-                },
-                {
-                    "data_path": "action_result.summary",
-                    "data_type": "string"
                 },
                 {
                     "data_path": "summary.total_objects",
@@ -4946,6 +4957,14 @@
                 }
             },
             "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
                 {
                     "data_path": "action_result.parameter.body",
                     "data_type": "string",
@@ -5497,11 +5516,10 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.status",
-                    "data_type": "string",
+                    "data_path": "action_result.summary.emails_matched",
+                    "data_type": "numeric",
                     "example_values": [
-                        "success",
-                        "failed"
+                        1
                     ]
                 },
                 {
@@ -5509,13 +5527,6 @@
                     "data_type": "string",
                     "example_values": [
                         "Emails matched: 1"
-                    ]
-                },
-                {
-                    "data_path": "action_result.summary.emails_matched",
-                    "data_type": "numeric",
-                    "example_values": [
-                        1
                     ]
                 },
                 {
@@ -5578,6 +5589,14 @@
                 }
             },
             "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
                 {
                     "data_path": "action_result.parameter.all_subdirs",
                     "data_type": "boolean",
@@ -5691,21 +5710,6 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.status",
-                    "data_type": "string",
-                    "example_values": [
-                        "success",
-                        "failed"
-                    ]
-                },
-                {
-                    "data_path": "action_result.message",
-                    "data_type": "string",
-                    "example_values": [
-                        "Emails matched: 1"
-                    ]
-                },
-                {
                     "data_path": "action_result.summary.folder",
                     "data_type": "string",
                     "example_values": [
@@ -5717,6 +5721,13 @@
                     "data_type": "numeric",
                     "example_values": [
                         1
+                    ]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "Emails matched: 1"
                     ]
                 },
                 {
@@ -5774,6 +5785,14 @@
             },
             "output": [
                 {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
+                {
                     "data_path": "action_result.parameter.email_address",
                     "data_type": "string",
                     "contains": [
@@ -5830,21 +5849,6 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.status",
-                    "data_type": "string",
-                    "example_values": [
-                        "success",
-                        "failed"
-                    ]
-                },
-                {
-                    "data_path": "action_result.message",
-                    "data_type": "string",
-                    "example_values": [
-                        "Folder id: AAMkAGFmNTRhODA4LWIxMjQtNDJjYy05NDM2LWQ5MzY1MGFhMTkzYwAuAAAAAADRlY7ewL4xToKRDciQog5UAQBvUzMoUJx2S4nbgxzZWx2PAAEApxCTAAA="
-                    ]
-                },
-                {
                     "data_path": "action_result.summary.folder_id",
                     "data_type": "string",
                     "example_values": [
@@ -5852,6 +5856,13 @@
                     ],
                     "contains": [
                         "msgoffice365 folder id"
+                    ]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "Folder id: AAMkAGFmNTRhODA4LWIxMjQtNDJjYy05NDM2LWQ5MzY1MGFhMTkzYwAuAAAAAADRlY7ewL4xToKRDciQog5UAQBvUzMoUJx2S4nbgxzZWx2PAAEApxCTAAA="
                     ]
                 },
                 {

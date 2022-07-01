@@ -235,7 +235,7 @@ and limitations under the License.
                                     <td>{{ file.name }}</td>
                                     <td>
                                         <a class="no-word-wrap" href="javascript:;" onclick="context_menu(this, [{'contains': ['sha1'],
-                                            'value': '{{ attachment.vaultId }}' }], 0, {{ container.id }}, null, false);">
+                                            'value': '{{ file.vaultId }}' }], 0, {{ container.id }}, null, false);">
                                         {{ file.vaultId }}
                                         &nbsp;
                                         <span class="fa fa-caret-down" style="font-size: smaller;"></span>
@@ -252,6 +252,7 @@ and limitations under the License.
                         <table class="phantom-table dataTable">
                             <thead>
                                 <th>Attachment Name</th>
+                                <th>Vault ID</th>
                                 <th>Attachment Type</th>
                                 <th>Item Attachment Type</th>
                                 <th>Content Type</th>
@@ -259,6 +260,14 @@ and limitations under the License.
                             {% for item in email_data.attachment_data.item_attachment %}
                                 <tr>
                                     <td>{{ item.name }}</td>
+                                    <td>
+                                        <a class="no-word-wrap" href="javascript:;" onclick="context_menu(this, [{'contains': ['sha1'],
+                                            'value': '{{ item.vaultId }}' }], 0, {{ container.id }}, null, false);">
+                                        {{ item.vaultId }}
+                                        &nbsp;
+                                        <span class="fa fa-caret-down" style="font-size: smaller;"></span>
+                                        </a>
+                                    </td>
                                     <td>{{ item.attachmentType }}</td>
                                     <td>{{ item.itemType }}</td>
                                     <td>{{ item.contentType }}</td>

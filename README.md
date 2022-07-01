@@ -188,6 +188,13 @@ The app should now be ready to be used.
 -   extract_ips - Extracts the IP addresses present in the emails.
 -   extract_domains - Extract the domain names present in the emails.
 -   extract_hashes - Extract the hashes present in the emails (MD5).
+-   ingest_eml - Fetch the EML file content for the 'item attachment' and ingest it into the vault.
+    This will only ingest the first level 'item attachment' as an EML file. The nested item
+    attachments will not be ingested into the vault. If the extract_attachments flag is set to
+    false, then the application will also skip the EML file ingestion regardless of this flag value.
+
+If extract_attachments is set to true, only fileAttachment will be ingested. If both ingest_eml and
+extract_attachments are set to true, then both fileAttachment and itemAttachment will be ingested.
 
 ## Guidelines to provide folder parameter value
 
@@ -248,9 +255,9 @@ Please check the permissions for the state file as mentioned below.
     parameter in the asset configuration. All the actions will get executed according to the scopes
     provided in the **scope** config parameter. The actions will throw an appropriate error if the
     scope of the corresponding permission is not provided by the end-user.
--   There is an API limitation that will affect run_query action
-    when providing Unicode values in the subject or in the body as parameters and if the
-    result count exceeds 999, the action will fail.
+-   There is an API limitation that will affect run_query action when providing Unicode values in
+    the subject or in the body as parameters and if the result count exceeds 999, the action will
+    fail.
 -   The sensitive values are stored encrypted in the state file.
 
   
@@ -289,7 +296,7 @@ VARIABLE | REQUIRED | TYPE | DESCRIPTION
 **extract\_ips** |  optional  | boolean | Extract IPs
 **extract\_domains** |  optional  | boolean | Extract Domain Names
 **extract\_hashes** |  optional  | boolean | Extract Hashes
-**ph\_4** |  optional  | ph | 
+**ingest\_eml** |  optional  | boolean | Ingest EML file for the itemAttachment
 **ingest\_manner** |  optional  | string | How to Ingest \(during ingestion, should the app get the latest emails or the oldest\)
 
 ### Supported Actions  
@@ -335,10 +342,10 @@ No parameters are required for this action
 #### Action Output
 DATA PATH | TYPE | CONTAINS
 --------- | ---- | --------
-action\_result\.data | string | 
 action\_result\.status | string | 
-action\_result\.message | string | 
+action\_result\.data | string | 
 action\_result\.summary | string | 
+action\_result\.message | string | 
 summary\.total\_objects | numeric | 
 summary\.total\_objects\_successful | numeric |   
 
@@ -356,6 +363,7 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 #### Action Output
 DATA PATH | TYPE | CONTAINS
 --------- | ---- | --------
+action\_result\.status | string | 
 action\_result\.parameter\.user\_id | string |  `msgoffice365 user id`  `msgoffice365 user principal name`  `email` 
 action\_result\.data\.\*\.\@odata\.context | string |  `url` 
 action\_result\.data\.\*\.\@odata\.etag | string | 
@@ -367,9 +375,8 @@ action\_result\.data\.\*\.scheduledEndDateTime\.timeZone | string |
 action\_result\.data\.\*\.scheduledStartDateTime\.dateTime | string | 
 action\_result\.data\.\*\.scheduledStartDateTime\.timeZone | string | 
 action\_result\.data\.\*\.status | string | 
-action\_result\.status | string | 
-action\_result\.message | string | 
 action\_result\.summary\.events\_matched | numeric | 
+action\_result\.message | string | 
 summary\.total\_objects | numeric | 
 summary\.total\_objects\_successful | numeric |   
 
@@ -390,6 +397,7 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 #### Action Output
 DATA PATH | TYPE | CONTAINS
 --------- | ---- | --------
+action\_result\.status | string | 
 action\_result\.parameter\.filter | string | 
 action\_result\.parameter\.group\_id | string |  `msgoffice365 group id` 
 action\_result\.parameter\.limit | numeric | 
@@ -471,9 +479,8 @@ action\_result\.data\.\*\.transactionId | string |
 action\_result\.data\.\*\.type | string | 
 action\_result\.data\.\*\.webLink | string |  `url` 
 action\_result\.data\.locations\.\*\.displayName | string | 
-action\_result\.status | string | 
-action\_result\.message | string | 
 action\_result\.summary\.events\_matched | numeric | 
+action\_result\.message | string | 
 summary\.total\_objects | numeric | 
 summary\.total\_objects\_successful | numeric |   
 
@@ -492,6 +499,7 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 #### Action Output
 DATA PATH | TYPE | CONTAINS
 --------- | ---- | --------
+action\_result\.status | string | 
 action\_result\.parameter\.filter | string | 
 action\_result\.parameter\.limit | numeric | 
 action\_result\.data\.\*\.businessPhones | string | 
@@ -505,9 +513,8 @@ action\_result\.data\.\*\.officeLocation | string |
 action\_result\.data\.\*\.preferredLanguage | string | 
 action\_result\.data\.\*\.surname | string | 
 action\_result\.data\.\*\.userPrincipalName | string |  `msgoffice365 user principal name`  `email` 
-action\_result\.status | string | 
-action\_result\.message | string | 
 action\_result\.summary\.total\_users\_returned | numeric | 
+action\_result\.message | string | 
 summary\.total\_objects | numeric | 
 summary\.total\_objects\_successful | numeric |   
 
@@ -526,6 +533,7 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 #### Action Output
 DATA PATH | TYPE | CONTAINS
 --------- | ---- | --------
+action\_result\.status | string | 
 action\_result\.parameter\.filter | string | 
 action\_result\.parameter\.limit | numeric | 
 action\_result\.data\.\*\.classification | string | 
@@ -559,9 +567,8 @@ action\_result\.data\.\*\.securityEnabled | boolean |
 action\_result\.data\.\*\.securityIdentifier | string | 
 action\_result\.data\.\*\.theme | string | 
 action\_result\.data\.\*\.visibility | string | 
-action\_result\.status | string | 
-action\_result\.message | string | 
 action\_result\.summary\.total\_groups\_returned | numeric | 
+action\_result\.message | string | 
 summary\.total\_objects | numeric | 
 summary\.total\_objects\_successful | numeric |   
 
@@ -621,6 +628,7 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 #### Action Output
 DATA PATH | TYPE | CONTAINS
 --------- | ---- | --------
+action\_result\.status | string | 
 action\_result\.parameter\.folder\_id | string |  `msgoffice365 folder id` 
 action\_result\.parameter\.user\_id | string |  `msgoffice365 user id`  `msgoffice365 user principal name`  `email` 
 action\_result\.data\.\*\.childFolderCount | numeric | 
@@ -631,9 +639,8 @@ action\_result\.data\.\*\.parentFolderId | string |  `msgoffice365 folder id`
 action\_result\.data\.\*\.sizeInBytes | numeric | 
 action\_result\.data\.\*\.totalItemCount | numeric | 
 action\_result\.data\.\*\.unreadItemCount | numeric | 
-action\_result\.status | string | 
-action\_result\.message | string | 
 action\_result\.summary\.total\_folders\_returned | numeric | 
+action\_result\.message | string | 
 summary\.total\_objects | numeric | 
 summary\.total\_objects\_successful | numeric |   
 
@@ -656,6 +663,7 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 #### Action Output
 DATA PATH | TYPE | CONTAINS
 --------- | ---- | --------
+action\_result\.status | string | 
 action\_result\.parameter\.email\_address | string |  `email` 
 action\_result\.parameter\.folder | string |  `msgoffice365 mail folder`  `msgoffice365 mail folder path`  `msgoffice365 folder id` 
 action\_result\.parameter\.get\_folder\_id | boolean | 
@@ -698,9 +706,8 @@ action\_result\.data\.\*\.subject | string |  `msgoffice365 subject`
 action\_result\.data\.\*\.toRecipients\.\*\.emailAddress\.address | string |  `email` 
 action\_result\.data\.\*\.toRecipients\.\*\.emailAddress\.name | string | 
 action\_result\.data\.\*\.webLink | string |  `url` 
-action\_result\.status | string | 
-action\_result\.message | string | 
 action\_result\.summary | string | 
+action\_result\.message | string | 
 summary\.total\_objects | numeric | 
 summary\.total\_objects\_successful | numeric |   
 
@@ -723,6 +730,7 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 #### Action Output
 DATA PATH | TYPE | CONTAINS
 --------- | ---- | --------
+action\_result\.status | string | 
 action\_result\.parameter\.email\_address | string |  `email` 
 action\_result\.parameter\.folder | string |  `msgoffice365 mail folder`  `msgoffice365 mail folder path`  `msgoffice365 folder id` 
 action\_result\.parameter\.get\_folder\_id | boolean | 
@@ -765,9 +773,8 @@ action\_result\.data\.\*\.subject | string |  `msgoffice365 subject`
 action\_result\.data\.\*\.toRecipients\.\*\.emailAddress\.address | string |  `email` 
 action\_result\.data\.\*\.toRecipients\.\*\.emailAddress\.name | string | 
 action\_result\.data\.\*\.webLink | string |  `url` 
-action\_result\.status | string | 
-action\_result\.message | string | 
 action\_result\.summary | string | 
+action\_result\.message | string | 
 summary\.total\_objects | numeric | 
 summary\.total\_objects\_successful | numeric |   
 
@@ -786,12 +793,12 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 #### Action Output
 DATA PATH | TYPE | CONTAINS
 --------- | ---- | --------
+action\_result\.status | string | 
 action\_result\.parameter\.email\_address | string |  `email` 
 action\_result\.parameter\.id | string |  `msgoffice365 message id` 
 action\_result\.data | string | 
-action\_result\.status | string | 
-action\_result\.message | string | 
 action\_result\.summary | string | 
+action\_result\.message | string | 
 summary\.total\_objects | numeric | 
 summary\.total\_objects\_successful | numeric |   
 
@@ -801,17 +808,20 @@ Get an email from the server
 Type: **investigate**  
 Read only: **True**
 
+If the 'download attachments' parameter is set to true, the action will ingest the '\#microsoft\.graph\.itemAttachment' and '\#microsoft\.graph\.fileAttachment' type of attachments\.
+
 #### Action Parameters
 PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 --------- | -------- | ----------- | ---- | --------
 **id** |  required  | Message ID to get | string |  `msgoffice365 message id` 
 **email\_address** |  required  | Email address of the mailbox owner | string |  `email` 
-**download\_attachments** |  optional  | Download attachments to vault \(ingest only '\#microsoft\.graph\.fileAttachment' type of attachments\) | boolean | 
+**download\_attachments** |  optional  | Download attachments to vault | boolean | 
 **extract\_headers** |  optional  | Extract email headers | boolean | 
 
 #### Action Output
 DATA PATH | TYPE | CONTAINS
 --------- | ---- | --------
+action\_result\.status | string | 
 action\_result\.parameter\.download\_attachments | boolean | 
 action\_result\.parameter\.email\_address | string |  `email` 
 action\_result\.parameter\.extract\_headers | boolean | 
@@ -925,9 +935,8 @@ action\_result\.data\.\*\.subject | string |  `msgoffice365 subject`
 action\_result\.data\.\*\.toRecipients\.\*\.emailAddress\.address | string |  `email` 
 action\_result\.data\.\*\.toRecipients\.\*\.emailAddress\.name | string | 
 action\_result\.data\.\*\.webLink | string |  `url` 
-action\_result\.status | string | 
-action\_result\.message | string | 
 action\_result\.summary | string | 
+action\_result\.message | string | 
 summary\.total\_objects | numeric | 
 summary\.total\_objects\_successful | numeric |   
 
@@ -953,6 +962,7 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 #### Action Output
 DATA PATH | TYPE | CONTAINS
 --------- | ---- | --------
+action\_result\.status | string | 
 action\_result\.parameter\.email\_address | string |  `email` 
 action\_result\.parameter\.get\_body | boolean | 
 action\_result\.parameter\.get\_headers | boolean | 
@@ -1030,9 +1040,8 @@ action\_result\.data\.\*\.sender\.emailAddress\.name | string |  `email`
 action\_result\.data\.\*\.subject | string | 
 action\_result\.data\.\*\.uniqueBody\.content | string | 
 action\_result\.data\.\*\.uniqueBody\.contentType | string | 
-action\_result\.status | string | 
-action\_result\.message | string | 
 action\_result\.summary | string | 
+action\_result\.message | string | 
 summary\.total\_objects | numeric | 
 summary\.total\_objects\_successful | numeric |   
 
@@ -1061,6 +1070,7 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 #### Action Output
 DATA PATH | TYPE | CONTAINS
 --------- | ---- | --------
+action\_result\.status | string | 
 action\_result\.parameter\.body | string | 
 action\_result\.parameter\.email\_address | string |  `email` 
 action\_result\.parameter\.folder | string |  `msgoffice365 mail folder`  `msgoffice365 mail folder path`  `msgoffice365 folder id` 
@@ -1134,9 +1144,8 @@ action\_result\.data\.\*\.toRecipients\.\*\.emailAddress\.address | string |  `e
 action\_result\.data\.\*\.toRecipients\.\*\.emailAddress\.name | string | 
 action\_result\.data\.\*\.type | string | 
 action\_result\.data\.\*\.webLink | string |  `url` 
-action\_result\.status | string | 
-action\_result\.message | string | 
 action\_result\.summary\.emails\_matched | numeric | 
+action\_result\.message | string | 
 summary\.total\_objects | numeric | 
 summary\.total\_objects\_successful | numeric |   
 
@@ -1158,6 +1167,7 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 #### Action Output
 DATA PATH | TYPE | CONTAINS
 --------- | ---- | --------
+action\_result\.status | string | 
 action\_result\.parameter\.all\_subdirs | boolean | 
 action\_result\.parameter\.email\_address | string |  `email` 
 action\_result\.parameter\.folder | string |  `msgoffice365 mail folder`  `msgoffice365 mail folder path` 
@@ -1171,10 +1181,9 @@ action\_result\.data\.\*\.parentFolderId | string |  `msgoffice365 folder id`
 action\_result\.data\.\*\.sizeInBytes | numeric | 
 action\_result\.data\.\*\.totalItemCount | numeric | 
 action\_result\.data\.\*\.unreadItemCount | numeric | 
-action\_result\.status | string | 
-action\_result\.message | string | 
 action\_result\.summary\.folder | string | 
 action\_result\.summary\.folders created | numeric | 
+action\_result\.message | string | 
 summary\.total\_objects | numeric | 
 summary\.total\_objects\_successful | numeric |   
 
@@ -1195,14 +1204,14 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 #### Action Output
 DATA PATH | TYPE | CONTAINS
 --------- | ---- | --------
+action\_result\.status | string | 
 action\_result\.parameter\.email\_address | string |  `email` 
 action\_result\.parameter\.folder | string |  `msgoffice365 mail folder`  `msgoffice365 mail folder path` 
 action\_result\.data\.\*\.folder | string |  `msgoffice365 mail folder`  `msgoffice365 mail folder path` 
 action\_result\.data\.\*\.folder\_id | string |  `msgoffice365 folder id` 
 action\_result\.data\.\*\.path | string |  `msgoffice365 mail folder`  `msgoffice365 mail folder path` 
-action\_result\.status | string | 
-action\_result\.message | string | 
 action\_result\.summary\.folder\_id | string |  `msgoffice365 folder id` 
+action\_result\.message | string | 
 summary\.total\_objects | numeric | 
 summary\.total\_objects\_successful | numeric |   
 
