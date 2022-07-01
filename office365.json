@@ -147,6 +147,18 @@
                 "latest first"
             ],
             "default": "oldest first"
+        },
+        "retry_count": {
+            "description": "Maximum attempts to retry the API call (Default: 3)",
+            "data_type": "numeric",
+            "default": 3,
+            "order": 21
+        },
+        "retry_wait_time": {
+            "description": "Delay in seconds between retries (Default: 60)",
+            "data_type": "numeric",
+            "default": 60,
+            "order": 22
         }
     },
     "actions": [

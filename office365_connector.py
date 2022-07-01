@@ -570,17 +570,23 @@ class Office365Connector(BaseConnector):
         except AttributeError:
             return RetVal(action_result.set_status(phantom.APP_ERROR, "Invalid method: {0}".format(method)), resp_json)
 
-        try:
-            r = request_func(
-                url,
-                data=data,
-                headers=headers,
-                verify=verify,
-                params=params,
-                timeout=MSGOFFICE365_DEFAULT_REQUEST_TIMEOUT)
-        except Exception as e:
-            error_msg = _get_error_message_from_exception(e)
-            return RetVal(action_result.set_status(phantom.APP_ERROR, "Error connecting to server. {0}".format(error_msg)), resp_json)
+        for _ in range(self._number_of_retries):
+            try:
+                r = request_func(
+                                url,
+                                data=data,
+                                headers=headers,
+                                verify=verify,
+                                params=params,
+                                timeout=MSGOFFICE365_DEFAULT_REQUEST_TIMEOUT)
+            except Exception as e:
+                error_msg = _get_error_message_from_exception(e)
+                return RetVal(action_result.set_status(phantom.APP_ERROR, "Error connecting to server. {0}".format(error_msg)), resp_json)
+            r.status_code = 502
+            if r.status_code != 502:
+                break
+            self.debug_print("Received 502 status code from the server")
+            time.sleep(self._retry_wait_time)
 
         return self._process_response(r, action_result)
 
@@ -693,7 +699,7 @@ class Office365Connector(BaseConnector):
         msg = action_result.get_message()
 
         if msg and 'token is invalid' in msg or ('Access token has expired' in
-                                                 msg) or ('ExpiredAuthenticationToken' in msg) or ('AuthenticationFailed' in msg):
+                msg) or ('ExpiredAuthenticationToken' in msg) or ('AuthenticationFailed' in msg) or ('TokenExpired' in msg):
 
             self.debug_print("Token is invalid/expired. Hence, generating a new token.")
             ret_val = self._get_token(action_result)
@@ -2456,6 +2462,18 @@ class Office365Connector(BaseConnector):
         self._admin_access = config.get('admin_access')
         self._admin_consent = config.get('admin_consent')
         self._scope = config.get('scope') if config.get('scope') else None
+
+        self._number_of_retries = config.get("retry_count", MSGOFFICE365_DEFAULT_NUMBER_OF_RETRIES)
+        ret_val, self._number_of_retries = _validate_integer(self, self._number_of_retries,
+                "'Maximum attempts to retry the API call' asset configuration")
+        if phantom.is_fail(ret_val):
+            return self.get_status()
+
+        self._retry_wait_time = config.get("retry_wait_time", MSGOFFICE365_DEFAULT_RETRY_WAIT_TIME)
+        ret_val, self._retry_wait_time = _validate_integer(self, self._retry_wait_time,
+                "'Delay in seconds between retries' asset configuration")
+        if phantom.is_fail(ret_val):
+            return self.get_status()
 
         if not self._admin_access:
             if not self._scope:

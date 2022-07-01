@@ -41,6 +41,8 @@ MSGOFFICE365_DUPLICATE_CONTAINER_FOUND_MSG = "duplicate container found"
 MSGOFFICE365_ERR_EMPTY_RESPONSE = "Status Code {code}. Empty response and no information in the header."
 
 MSGOFFICE365_DEFAULT_REQUEST_TIMEOUT = 30  # in seconds
+MSGOFFICE365_DEFAULT_NUMBER_OF_RETRIES = 3
+MSGOFFICE365_DEFAULT_RETRY_WAIT_TIME = 60  # in seconds
 MSGOFFICE365_CONTAINER_DESCRIPTION = 'Email ingested using MS Graph API - {last_modified_time}'
 
 # Constants relating to '_get_error_message_from_exception'
