@@ -581,7 +581,6 @@ class Office365Connector(BaseConnector):
             except Exception as e:
                 error_msg = _get_error_message_from_exception(e)
                 return RetVal(action_result.set_status(phantom.APP_ERROR, "Error connecting to server. {0}".format(error_msg)), resp_json)
-            r.status_code = 502
             if r.status_code != 502:
                 break
             self.debug_print("Received 502 status code from the server")
