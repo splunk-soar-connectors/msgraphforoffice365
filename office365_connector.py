@@ -1742,6 +1742,11 @@ class Office365Connector(BaseConnector):
                 if attachment_type == '#microsoft.graph.itemAttachment':
                     attachment['itemType'] = attachment.get('item', {}).get('@odata.type', '')
 
+        if param.get('download_email'):
+            email_message = {'id': message_id, 'name': response.get('subject', 'email_message')}
+            self._handle_item_attachment(email_message, self.get_container_id(), '/users/{0}/messages'.format(email_addr), action_result)
+            response['vaultId'] = email_message['vaultId']
+
         action_result.add_data(response)
 
         return action_result.set_status(phantom.APP_SUCCESS, "Successfully fetched email")

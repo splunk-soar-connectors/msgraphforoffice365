@@ -2989,6 +2989,11 @@
                     "description": "Extract email headers",
                     "data_type": "boolean",
                     "order": 3
+                },
+                "download_email": {
+                    "description": "Download email to vault",
+                    "data_type": "boolean",
+                    "order": 4
                 }
             },
             "output": [
@@ -3020,6 +3025,14 @@
                 },
                 {
                     "data_path": "action_result.parameter.extract_headers",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.download_email",
                     "data_type": "boolean",
                     "example_values": [
                         true,
@@ -5307,6 +5320,13 @@
                     "example_values": [
                         true,
                         false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.vaultId",
+                    "data_type": "string",
+                    "example_values": [
+                        "719dbf72d7c0bc89d7e34306c08a0b66191902b9"
                     ]
                 },
                 {
