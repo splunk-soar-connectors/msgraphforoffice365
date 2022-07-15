@@ -3159,7 +3159,8 @@
                         "719dbf72d7c0bc89d7e34306c08a0b66191902b9"
                     ],
                     "contains": [
-                        "sha1"
+                        "sha1",
+                        "vault id"
                     ]
                 },
                 {
@@ -5327,6 +5328,10 @@
                     "data_type": "string",
                     "example_values": [
                         "719dbf72d7c0bc89d7e34306c08a0b66191902b9"
+                    ],
+                    "contains": [
+                        "sha1",
+                        "vault id"
                     ]
                 },
                 {
