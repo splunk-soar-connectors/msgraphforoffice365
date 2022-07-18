@@ -15,7 +15,7 @@
         }
     ],
     "license": "Copyright (c) 2017-2022 Splunk Inc.",
-    "app_version": "2.6.0",
+    "app_version": "2.7.0",
     "utctime_updated": "2022-02-04T01:20:46.000000Z",
     "package_name": "phantom_msgraphoffice365",
     "main_module": "office365_connector.py",
@@ -73,7 +73,7 @@
             "order": 7
         },
         "email_address": {
-            "description": "User Email Mailbox (On Poll)",
+            "description": "Email Address (On Poll)",
             "data_type": "string",
             "order": 8
         },
@@ -149,6 +149,18 @@
                 "latest first"
             ],
             "default": "oldest first"
+        },
+        "retry_count": {
+            "description": "Maximum attempts to retry the API call (Default: 3)",
+            "data_type": "numeric",
+            "default": 3,
+            "order": 21
+        },
+        "retry_wait_time": {
+            "description": "Delay in seconds between retries (Default: 60)",
+            "data_type": "numeric",
+            "default": 60,
+            "order": 22
         }
     },
     "actions": [
@@ -2826,6 +2838,121 @@
             "versions": "EQ(*)"
         },
         {
+            "action": "delete event",
+            "identifier": "delete_event",
+            "description": "Delete an event",
+            "type": "contain",
+            "read_only": false,
+            "parameters": {
+                "id": {
+                    "description": "Event ID to delete",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": true,
+                    "contains": [
+                        "msgoffice365 event id"
+                    ],
+                    "order": 0
+                },
+                "email_address": {
+                    "description": "Email address of the mailbox owner",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": true,
+                    "contains": [
+                        "email"
+                    ],
+                    "order": 1
+                },
+                "send_response": {
+                    "description": "Send decline response to the organizer",
+                    "data_type": "boolean",
+                    "default": true,
+                    "order": 2
+                }
+            },
+            "output": [
+                {
+                    "data_path": "action_result.parameter.email_address",
+                    "data_type": "string",
+                    "contains": [
+                        "email"
+                    ],
+                    "column_name": "Email",
+                    "column_order": 1,
+                    "example_values": [
+                        "test@testdomain.onmicrosoft.com"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.id",
+                    "data_type": "string",
+                    "contains": [
+                        "msgoffice365 event id"
+                    ],
+                    "column_name": "Event ID",
+                    "column_order": 0,
+                    "example_values": [
+                        "TestAGFmNTRhODA4LWIxMjQtNDJjYy05NDM2LWQ5MzY1MGFhMTkzYwBGAAAAAADRlY7ewL4xToKRDciQog5UBwBvUzMoUJx2S4nbgxzZWx2PAAAAAAEMAABvUzMoUJx2S4nbgxzZWx2PAAEIbt7NAAA="
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.send_response",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "column_name": "Status",
+                    "column_order": 2,
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "Successfully deleted email"
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                }
+            ],
+            "render": {
+                "width": 12,
+                "title": "Delete email",
+                "type": "table",
+                "height": 5
+            },
+            "versions": "EQ(*)"
+        },
+        {
             "action": "get email",
             "identifier": "get_email",
             "description": "Get an email from the server",
@@ -2862,6 +2989,11 @@
                     "description": "Extract email headers",
                     "data_type": "boolean",
                     "order": 3
+                },
+                "download_email": {
+                    "description": "Download email to vault",
+                    "data_type": "boolean",
+                    "order": 4
                 }
             },
             "output": [
@@ -2893,6 +3025,14 @@
                 },
                 {
                     "data_path": "action_result.parameter.extract_headers",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.download_email",
                     "data_type": "boolean",
                     "example_values": [
                         true,
@@ -3019,7 +3159,8 @@
                         "719dbf72d7c0bc89d7e34306c08a0b66191902b9"
                     ],
                     "contains": [
-                        "sha1"
+                        "sha1",
+                        "vault id"
                     ]
                 },
                 {
@@ -3728,6 +3869,329 @@
                     ],
                     "contains": [
                         "url"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.id",
+                    "data_type": "string",
+                    "example_values": [
+                        "AAMkAGYwYmE5NmQ0LWVhOGItNGFhMy05OWNlLTE5MzhjMTE5YWYyMQBGAAAAAACkbmmUA5U5RZwZvvg8zew_BwDWyBbuDx-uTKpJ-DXRPByGAAAA1bxhAAAr0tXr3dtaS5qYgFGhi6QjAAQiOoS2AAA="
+                    ],
+                    "contains": [
+                        "msgoffice365 event id"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.end.dateTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "0001-01-01T00:00:00.0000000"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.end.timeZone",
+                    "data_type": "string",
+                    "example_values": [
+                        "UTC"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.body.content",
+                    "data_type": "string",
+                    "example_values": [
+                        "plain text?\r\n"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.body.contentType",
+                    "data_type": "string",
+                    "example_values": [
+                        "html",
+                        "text"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "singleInstance"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.start.dateTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "0001-01-01T00:00:00.0000000"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.start.timeZone",
+                    "data_type": "string",
+                    "example_values": [
+                        "UTC"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.showAs",
+                    "data_type": "string",
+                    "example_values": [
+                        "tentative"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.iCalUId",
+                    "data_type": "string",
+                    "example_values": [
+                        "040000008200E00074C5B7101A82E0080000000074AC2CF9CF5ED8010000000000000000100000005B5B104FC55A6E44BC5C6A093AB7F07C"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.subject",
+                    "data_type": "string",
+                    "example_values": [
+                        "Just wanted to say hello"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.webLink",
+                    "data_type": "string",
+                    "example_values": [
+                        "https://test.abc.com/owa?itemid=AAMkAGYwYmE5NmQ0LWVhOGItNGFhMy05OWNlLTE5MzhjMTE5YWYyMQBGAAAAAACkbmmUA5U5RZwZvvg8zew%2BBwDWyBbuDx%2FuTKpJ%2FDXRPByGAAAA1bxhAAAr0tXr3dtaS5qYgFGhi6QjAAQiOoS2AAA%3D&exvsurl=1&path=/calendar/item"
+                    ],
+                    "contains": [
+                        "url"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.isAllDay",
+                    "data_type": "numeric",
+                    "example_values": [
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.location.displayName",
+                    "data_type": "string",
+                    "example_values": [
+                        "Test"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.attendees.*.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "required"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.attendees.*.status.time",
+                    "data_type": "string",
+                    "example_values": [
+                        "0001-01-01T00:00:00Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.attendees.*.status.response",
+                    "data_type": "string",
+                    "example_values": [
+                        "none"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.attendees.*.emailAddress.name",
+                    "data_type": "string",
+                    "example_values": [
+                        "Test Name"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.attendees.*.emailAddress.address",
+                    "data_type": "string",
+                    "example_values": [
+                        "test@testdomain.onmicrosoft.com"
+                    ],
+                    "contains": [
+                        "email"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.changeKey",
+                    "data_type": "string",
+                    "example_values": [
+                        "CQAAABYAAABBKXVvwEWISZupmqX4mJS3AAFQwHj9"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.organizer.emailAddress.name",
+                    "data_type": "string",
+                    "example_values": [
+                        "Test Name"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.organizer.emailAddress.address",
+                    "data_type": "string",
+                    "example_values": [
+                        "test@testdomain.onmicrosoft.com"
+                    ],
+                    "contains": [
+                        "email"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.importance",
+                    "data_type": "string",
+                    "example_values": [
+                        "normal"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.recurrence",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.event.@odata.etag",
+                    "data_type": "string",
+                    "example_values": [
+                        "W/\"CQAAABYAAABBKXVvwEWISZupmqX4mJS3AAFLoCsS\""
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.bodyPreview",
+                    "data_type": "string",
+                    "example_values": [
+                        "plain text?"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.isCancelled",
+                    "data_type": "numeric",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.isOrganizer",
+                    "data_type": "numeric",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.sensitivity",
+                    "data_type": "string",
+                    "example_values": [
+                        "normal"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.isReminderOn",
+                    "data_type": "numeric",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.hasAttachments",
+                    "data_type": "numeric",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.responseStatus.time",
+                    "data_type": "string",
+                    "example_values": [
+                        "0001-01-01T00:00:00Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.responseStatus.response",
+                    "data_type": "string",
+                    "example_values": [
+                        "none",
+                        "organizer",
+                        "tentativelyAccepted",
+                        "accepted",
+                        "declined",
+                        "notResponded"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.seriesMasterId",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.event.createdDateTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "0001-01-01T00:00:00Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.onlineMeetingUrl",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.event.responseRequested",
+                    "data_type": "numeric",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.originalEndTimeZone",
+                    "data_type": "string",
+                    "example_values": [
+                        "UTC"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.lastModifiedDateTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "0001-01-01T00:00:00Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.originalStartTimeZone",
+                    "data_type": "string",
+                    "example_values": [
+                        "UTC"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.reminderMinutesBeforeStart",
+                    "data_type": "numeric",
+                    "example_values": [
+                        0
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.@odata.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "#microsoft.graph.eventMessage"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.meetingMessageType",
+                    "data_type": "string",
+                    "example_values": [
+                        "meetingRequest"
+                    ]
+                },
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
                     ]
                 },
                 {
@@ -4857,6 +5321,17 @@
                     "example_values": [
                         true,
                         false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.vaultId",
+                    "data_type": "string",
+                    "example_values": [
+                        "719dbf72d7c0bc89d7e34306c08a0b66191902b9"
+                    ],
+                    "contains": [
+                        "sha1",
+                        "vault id"
                     ]
                 },
                 {

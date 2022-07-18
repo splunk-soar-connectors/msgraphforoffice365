@@ -126,6 +126,7 @@ and limitations under the License.
                 <h4 class="wf-h4-style">Data</h4>
                 <table class="phantom-table dataTable">
                     <thead>
+                        <th class="widget-th">Event ID</th>
                         <th class="widget-th">Subject</th>
                         <th class="widget-th">Start Time</th>
                         <th class="widget-th">End Time</th>
@@ -133,6 +134,18 @@ and limitations under the License.
                     </thead>
                     {% for data in result.data %}
                         <tr>
+                            {% if data.id %}
+                                <td>
+                                    <a href="javascript:;" onclick="context_menu(this, [{'contains': ['msgoffice365 event id'],
+                                        'value': '{{ data.id }}' }], 0, {{ container.id }}, null, false);">
+                                    {{ data.id }}
+                                    &nbsp;
+                                    <span class="fa fa-caret-down" style="font-size: smaller;"></span>
+                                    </a>
+                                </td>
+                            {% else %}
+                                <td>None</td>
+                            {% endif %}
                             <td>{{ data.subject }}</td>
                             <td>{{ data.start.dateTime }}</td>
                             <td>{{ data.end.dateTime }}</td>
