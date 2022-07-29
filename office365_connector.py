@@ -704,7 +704,7 @@ class Office365Connector(BaseConnector):
         msg = action_result.get_message()
 
         if msg and 'token is invalid' in msg or ('Access token has expired' in
-                msg) or ('ExpiredAuthenticationToken' in msg) or ('AuthenticationFailed' in msg) or ('TokenExpired' in msg):
+                msg) or ('ExpiredAuthenticationToken' in msg) or ('AuthenticationFailed' in msg) or ('TokenExpired' in msg) or ('InvalidAuthenticationToken' in msg):
 
             self.debug_print("Token is invalid/expired. Hence, generating a new token.")
             ret_val = self._get_token(action_result)
@@ -1137,6 +1137,17 @@ class Office365Connector(BaseConnector):
 
         return phantom.APP_SUCCESS
 
+    def _remove_tokens(self, action_result):
+        if len(list(filter(lambda x: x in action_result.get_message(), MSGOFFICE365_ASSET_PARAM_CHECK_LIST_ERRORS))) > 0:
+            if not self._admin_access:
+                if self._state.get('non_admin_auth', {}).get('access_token'):
+                    self._state['non_admin_auth'].pop('access_token')
+                if self._state.get('non_admin_auth', {}).get('refresh_token'):
+                    self._state['non_admin_auth'].pop('refresh_token')
+            else:
+                if self._state.get('admin_auth', {}).get('access_token'):
+                    self._state['admin_auth'].pop('access_token')
+
     def _handle_test_connectivity(self, param):
         """ Function that handles the test connectivity action, it is much simpler than other action handlers."""
 
@@ -1247,6 +1258,7 @@ class Office365Connector(BaseConnector):
         ret_val = self._get_token(action_result)
 
         if phantom.is_fail(ret_val):
+            self._remove_tokens(action_result)
             return action_result.get_status()
 
         params = {'$top': '1'}
@@ -2571,9 +2583,6 @@ class Office365Connector(BaseConnector):
         if self._admin_access:
             if not admin_consent and action_id != 'test_connectivity':
                 return self.set_status(phantom.APP_ERROR, MSGOFFICE365_RUN_CONNECTIVITY_MSG)
-
-            if not self._access_token:
-                return self.set_status(phantom.APP_ERROR, MSGOFFICE365_UNEXPECTED_ACCESS_TOKEN_ERR)
 
         if not self._admin_access and action_id != 'test_connectivity' and (not self._access_token or not self._refresh_token):
             ret_val = self._get_token(action_result)

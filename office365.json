@@ -276,7 +276,7 @@
                     "data_path": "action_result.data.*.@odata.context",
                     "data_type": "string",
                     "example_values": [
-                        "https://graph.microsoft.com/v1.0/$metadata#users('eeb3645f-df19-47a1-8e8c-fcd234cb5f6f')/mailboxSettings/automaticRepliesSetting"
+                        "https://test.abc.com/v1.0/$metadata#users('eeb3645f-df19-47a1-8e8c-fcd234cb5f6f')/mailboxSettings/automaticRepliesSetting"
                     ],
                     "contains": [
                         "url"
@@ -426,8 +426,7 @@
                     "data_path": "action_result.parameter.filter",
                     "data_type": "string",
                     "example_values": [
-                        "$filter=subject eq 'Test2'",
-                        "$orderby=organizer/emailAddress/name desc"
+                        "$filter=subject eq 'Test2'"
                     ]
                 },
                 {
@@ -456,7 +455,7 @@
                         "email"
                     ],
                     "example_values": [
-                        "test@testdomain.onmicrosoft.com"
+                        "test@testdomain.abc.com"
                     ]
                 },
                 {
@@ -487,7 +486,7 @@
                     "data_path": "action_result.data.*.attendees.*.emailAddress.address",
                     "data_type": "string",
                     "example_values": [
-                        "H-test@testdomain.onmicrosoft.com"
+                        "H-test@testdomain.abc.com"
                     ],
                     "contains": [
                         "email"
@@ -525,7 +524,7 @@
                     "data_path": "action_result.data.*.body.content",
                     "data_type": "string",
                     "example_values": [
-                        "<html><head><meta name=\"Generator\" content=\"Microsoft Exchange Server\">\r\n<!-- converted from text -->\r\n<style><!-- .EmailQuote { margin-left: 1pt; padding-left: 4pt; border-left: #800000 2px solid; } --></style></head>\r\n<body>\r\n<font size=\"2\"><span style=\"font-size:11pt;\"><div class=\"PlainText\">&nbsp;</div></span></font>\r\n</body>\r\n</html>\r\n"
+                        "<html><head><meta name=\"Generator\" content=\"Test Server\">\r\n<!-- converted from text -->\r\n<style><!-- .EmailQuote { margin-left: 1pt; padding-left: 4pt; border-left: #800000 2px solid; } --></style></head>\r\n<body>\r\n<font size=\"2\"><span style=\"font-size:11pt;\"><div class=\"PlainText\">&nbsp;</div></span></font>\r\n</body>\r\n</html>\r\n"
                     ]
                 },
                 {
@@ -543,7 +542,7 @@
                     "data_path": "action_result.data.*.calendar@odata.associationLink",
                     "data_type": "string",
                     "example_values": [
-                        "https://graph.microsoft.com/v1.0/users('ggfe645f-df19-47a1-8e8c-fcd234cb5f6f')/calendars('AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQBGAAADeDDJKaEf4EihMWU6SZgKbAcA07XhOkNngkCkqoNfY_k-jQAAAgEGAAAA07XhOkNngkCkqoNfY_k-jQAAAhTzBBAA')/$ref"
+                        "https://test.abc.com/v1.0/users('ggfe645f-df19-47a1-8e8c-fcd234cb5f6f')/calendars('AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQBGAAADeDDJKaEf4EihMWU6SZgKbAcA07XhOkNngkCkqoNfY_k-jQAAAgEGAAAA07XhOkNngkCkqoNfY_k-jQAAAhTzBBAA')/$ref"
                     ],
                     "contains": [
                         "url"
@@ -553,7 +552,7 @@
                     "data_path": "action_result.data.*.calendar@odata.navigationLink",
                     "data_type": "string",
                     "example_values": [
-                        "https://graph.microsoft.com/v1.0/users('ffb3645f-df20-47a1-8e9c-fcd234cb5f6f')/calendars('AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQBGAAADeDDJKaEf4EihMWU6SZgKbAcA07XhOkNngkCkqoNfY_k-jQAAAgEGAAAA07XhOkNngkCkqoNfY_k-jQAAAhTzABBB')"
+                        "https://test.abc.com/v1.0/users('ffb3645f-df20-47a1-8e9c-fcd234cb5f6f')/calendars('AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQBGAAADeDDJKaEf4EihMWU6SZgKbAcA07XhOkNngkCkqoNfY_k-jQAAAgEGAAAA07XhOkNngkCkqoNfY_k-jQAAAhTzABBB')"
                     ],
                     "contains": [
                         "url"
@@ -888,7 +887,7 @@
                         "email"
                     ],
                     "example_values": [
-                        "test@testdomain.onmicrosoft.com"
+                        "test@testdomain.abc.com"
                     ]
                 },
                 {
@@ -1143,7 +1142,7 @@
                         "email"
                     ],
                     "example_values": [
-                        "test@testdomain.onmicrosoft.com"
+                        "test@testdomain.abc.com"
                     ]
                 },
                 {
@@ -1171,7 +1170,7 @@
                     "data_path": "action_result.data.*.userPrincipalName",
                     "data_type": "string",
                     "example_values": [
-                        "test@testdomain.onmicrosoft.com"
+                        "test@testdomain.abc.com"
                     ],
                     "contains": [
                         "msgoffice365 user principal name",
@@ -1331,7 +1330,7 @@
                     "data_path": "action_result.data.*.mail",
                     "data_type": "string",
                     "example_values": [
-                        "Test-test-site@testdomain.onmicrosoft.com"
+                        "Test-test-site@testdomain.abc.com"
                     ],
                     "contains": [
                         "email"
@@ -1398,7 +1397,7 @@
                     "data_path": "action_result.data.*.proxyAddresses",
                     "data_type": "string",
                     "example_values": [
-                        "SMTP:test-h@testdomain.onmicrosoft.com"
+                        "SMTP:test-h@testdomain.abc.com"
                     ]
                 },
                 {
@@ -1531,13 +1530,10 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.parameter.group_id",
+                    "data_path": "action_result.parameter.filter",
                     "data_type": "string",
-                    "contains": [
-                        "msgoffice365 group id"
-                    ],
                     "example_values": [
-                        "11907d21-7631-4ea7-97b2-1328d1c5b901"
+                        "displayName eq 'Group Name'"
                     ]
                 },
                 {
@@ -1549,10 +1545,13 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.parameter.filter",
+                    "data_path": "action_result.parameter.group_id",
                     "data_type": "string",
+                    "contains": [
+                        "msgoffice365 group id"
+                    ],
                     "example_values": [
-                        "displayName eq 'Group Name'"
+                        "11907d21-7631-4ea7-97b2-1328d1c5b901"
                     ]
                 },
                 {
@@ -1560,6 +1559,13 @@
                     "data_type": "numeric",
                     "example_values": [
                         20
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.@odata.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "#test.abc.user"
                     ]
                 },
                 {
@@ -1610,14 +1616,7 @@
                         "email"
                     ],
                     "example_values": [
-                        "test@testdomain.onmicrosoft.com"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.@odata.type",
-                    "data_type": "string",
-                    "example_values": [
-                        "#microsoft.graph.user"
+                        "test@testdomain.abc.com"
                     ]
                 },
                 {
@@ -1645,7 +1644,7 @@
                     "data_path": "action_result.data.*.userPrincipalName",
                     "data_type": "string",
                     "example_values": [
-                        "test@testdomain.onmicrosoft.com"
+                        "test@testdomain.abc.com"
                     ],
                     "contains": [
                         "msgoffice365 user principal name",
@@ -1744,7 +1743,7 @@
                     "data_path": "action_result.parameter.user_id",
                     "data_type": "string",
                     "example_values": [
-                        "test@testdomain.onmicrosoft.com"
+                        "test@testdomain.abc.com"
                     ],
                     "contains": [
                         "msgoffice365 user id",
@@ -1929,7 +1928,7 @@
                     "column_name": "Email",
                     "column_order": 0,
                     "example_values": [
-                        "test@testdomain.onmicrosoft.com"
+                        "test@testdomain.abc.com"
                     ]
                 },
                 {
@@ -1968,7 +1967,7 @@
                     "data_path": "action_result.data.*.@odata.context",
                     "data_type": "string",
                     "example_values": [
-                        "https://graph.microsoft.com/v1.0/$metadata#message"
+                        "https://test.abc.com/v1.0/$metadata#message"
                     ],
                     "contains": [
                         "url"
@@ -1985,7 +1984,7 @@
                     "data_path": "action_result.data.*.@odata.type",
                     "data_type": "string",
                     "example_values": [
-                        "#microsoft.graph.message"
+                        "#test.abc.message"
                     ]
                 },
                 {
@@ -1995,7 +1994,7 @@
                         "email"
                     ],
                     "example_values": [
-                        "test@testdomain.onmicrosoft.com"
+                        "test@testdomain.abc.com"
                     ]
                 },
                 {
@@ -2037,7 +2036,7 @@
                         "email"
                     ],
                     "example_values": [
-                        "test@testdomain.onmicrosoft.com"
+                        "test@testdomain.abc.com"
                     ]
                 },
                 {
@@ -2086,7 +2085,7 @@
                     "data_path": "action_result.data.*.from.emailAddress.address",
                     "data_type": "string",
                     "example_values": [
-                        "test@testdomain.onmicrosoft.com"
+                        "test@testdomain.abc.com"
                     ],
                     "contains": [
                         "email"
@@ -2137,7 +2136,7 @@
                     "data_path": "action_result.data.*.internetMessageId",
                     "data_type": "string",
                     "example_values": [
-                        "<CABO4XoNKorysqU1nR=of7qDBFbR1cv9icBSb38M=g3ryBb=CrA@mail.gmail.com>"
+                        "<CABO4XoNKorysqU1nR=of7qDBFbR1cv9icBSb38M=g3ryBb=CrA@mail.test.com>"
                     ],
                     "contains": [
                         "msgoffice365 internet message id"
@@ -2209,7 +2208,7 @@
                     "data_path": "action_result.data.*.sender.emailAddress.address",
                     "data_type": "string",
                     "example_values": [
-                        "test@testdomain.onmicrosoft.com"
+                        "test@testdomain.abc.com"
                     ],
                     "contains": [
                         "email"
@@ -2243,7 +2242,7 @@
                     "data_path": "action_result.data.*.toRecipients.*.emailAddress.address",
                     "data_type": "string",
                     "example_values": [
-                        "Test@testdomain.onmicrosoft.com"
+                        "Test@testdomain.abc.com"
                     ],
                     "contains": [
                         "email"
@@ -2365,7 +2364,7 @@
                     "column_name": "Email",
                     "column_order": 0,
                     "example_values": [
-                        "test@testdomain.onmicrosoft.com"
+                        "test@testdomain.abc.com"
                     ]
                 },
                 {
@@ -2404,7 +2403,7 @@
                     "data_path": "action_result.data.*.@odata.context",
                     "data_type": "string",
                     "example_values": [
-                        "https://graph.microsoft.com/v1.0/$metadata#message"
+                        "https://test.abc.com/v1.0/$metadata#message"
                     ],
                     "contains": [
                         "url"
@@ -2421,7 +2420,7 @@
                     "data_path": "action_result.data.*.@odata.type",
                     "data_type": "string",
                     "example_values": [
-                        "#microsoft.graph.message"
+                        "#test.abc.message"
                     ]
                 },
                 {
@@ -2431,7 +2430,7 @@
                         "email"
                     ],
                     "example_values": [
-                        "test@testdomain.onmicrosoft.com"
+                        "test@testdomain.abc.com"
                     ]
                 },
                 {
@@ -2473,7 +2472,7 @@
                         "email"
                     ],
                     "example_values": [
-                        "test@testdomain.onmicrosoft.com"
+                        "test@testdomain.abc.com"
                     ]
                 },
                 {
@@ -2522,7 +2521,7 @@
                     "data_path": "action_result.data.*.from.emailAddress.address",
                     "data_type": "string",
                     "example_values": [
-                        "test@testdomain.onmicrosoft.com"
+                        "test@testdomain.abc.com"
                     ],
                     "contains": [
                         "email"
@@ -2573,7 +2572,7 @@
                     "data_path": "action_result.data.*.internetMessageId",
                     "data_type": "string",
                     "example_values": [
-                        "<CABO4XoNKorysqU1nR=of7qDBFbR1cv9icBSb38M=g3ryBb=CrA@mail.gmail.com>"
+                        "<CABO4XoNKorysqU1nR=of7qDBFbR1cv9icBSb38M=g3ryBb=CrA@mail.test.com>"
                     ],
                     "column_name": "Internet Message ID",
                     "column_order": 3,
@@ -2645,7 +2644,7 @@
                     "data_path": "action_result.data.*.sender.emailAddress.address",
                     "data_type": "string",
                     "example_values": [
-                        "test@testdomain.onmicrosoft.com"
+                        "test@testdomain.abc.com"
                     ],
                     "contains": [
                         "email"
@@ -2679,7 +2678,7 @@
                     "data_path": "action_result.data.*.toRecipients.*.emailAddress.address",
                     "data_type": "string",
                     "example_values": [
-                        "Test@testdomain.onmicrosoft.com"
+                        "Test@testdomain.abc.com"
                     ],
                     "contains": [
                         "email"
@@ -2784,7 +2783,7 @@
                     "column_name": "Email",
                     "column_order": 1,
                     "example_values": [
-                        "test@testdomain.onmicrosoft.com"
+                        "test@testdomain.abc.com"
                     ]
                 },
                 {
@@ -2873,6 +2872,16 @@
             },
             "output": [
                 {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "column_name": "Status",
+                    "column_order": 2,
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
+                {
                     "data_path": "action_result.parameter.email_address",
                     "data_type": "string",
                     "contains": [
@@ -2881,7 +2890,7 @@
                     "column_name": "Email",
                     "column_order": 1,
                     "example_values": [
-                        "test@testdomain.onmicrosoft.com"
+                        "test@testdomain.abc.com"
                     ]
                 },
                 {
@@ -2909,14 +2918,8 @@
                     "data_type": "string"
                 },
                 {
-                    "data_path": "action_result.status",
-                    "data_type": "string",
-                    "column_name": "Status",
-                    "column_order": 2,
-                    "example_values": [
-                        "success",
-                        "failed"
-                    ]
+                    "data_path": "action_result.summary",
+                    "data_type": "string"
                 },
                 {
                     "data_path": "action_result.message",
@@ -2924,10 +2927,6 @@
                     "example_values": [
                         "Successfully deleted email"
                     ]
-                },
-                {
-                    "data_path": "action_result.summary",
-                    "data_type": "string"
                 },
                 {
                     "data_path": "summary.total_objects",
@@ -3014,17 +3013,7 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.parameter.email_address",
-                    "data_type": "string",
-                    "contains": [
-                        "email"
-                    ],
-                    "example_values": [
-                        "test@onmicrosoft.com"
-                    ]
-                },
-                {
-                    "data_path": "action_result.parameter.extract_headers",
+                    "data_path": "action_result.parameter.download_email",
                     "data_type": "boolean",
                     "example_values": [
                         true,
@@ -3032,7 +3021,17 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.parameter.download_email",
+                    "data_path": "action_result.parameter.email_address",
+                    "data_type": "string",
+                    "contains": [
+                        "email"
+                    ],
+                    "example_values": [
+                        "test@abc.com"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.extract_headers",
                     "data_type": "boolean",
                     "example_values": [
                         true,
@@ -3053,7 +3052,7 @@
                     "data_path": "action_result.data.*.@odata.context",
                     "data_type": "string",
                     "example_values": [
-                        "https://graph.microsoft.com/v1.0/$metadata#users('test%40onmicrosoft.com')/messages/$entity"
+                        "https://abc.test.com/v1.0/$metadata#users('test%40abc.com')/messages/$entity"
                     ],
                     "contains": [
                         "url"
@@ -3063,9 +3062,19 @@
                     "data_path": "action_result.data.*.@odata.etag",
                     "data_type": "string",
                     "example_values": [
-                        "W/\"CQAAABYAAABBKXVvwEWISZupmqX4mJS3AAFLoCsS\"",
-                        "W/\"CQAAABYAAABBKXVvwEWISZupmqX4mJS3AAO8DBJl\""
+                        "W/\"CQAAABYAAABBKXVvwEWISZupmqX4mJS3AAFLoCsS\""
                     ]
+                },
+                {
+                    "data_path": "action_result.data.*.@odata.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "#test.abc.eventMessage"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.allowNewTimeProposals",
+                    "data_type": "string"
                 },
                 {
                     "data_path": "action_result.data.*.attachments.*.@odata.mediaContentType",
@@ -3078,14 +3087,14 @@
                     "data_path": "action_result.data.*.attachments.*.@odata.type",
                     "data_type": "string",
                     "example_values": [
-                        "#microsoft.graph.fileAttachment"
+                        "#test.abc.fileAttachment"
                     ]
                 },
                 {
                     "data_path": "action_result.data.*.attachments.*.attachmentType",
                     "data_type": "string",
                     "example_values": [
-                        "#microsoft.graph.fileAttachment"
+                        "#test.abc.fileAttachment"
                     ]
                 },
                 {
@@ -3128,7 +3137,7 @@
                     "data_path": "action_result.data.*.attachments.*.itemType",
                     "data_type": "string",
                     "example_values": [
-                        "#microsoft.graph.message"
+                        "#test.abc.message"
                     ]
                 },
                 {
@@ -3170,7 +3179,7 @@
                         "email"
                     ],
                     "example_values": [
-                        "test@testdomain.onmicrosoft.com"
+                        "test@testdomain.abc.com"
                     ]
                 },
                 {
@@ -3184,29 +3193,29 @@
                     "data_path": "action_result.data.*.body.content",
                     "data_type": "string",
                     "example_values": [
-                        "Have a good time with these.\r\n",
-                        "<html><head>\r\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"><meta content=\"text/html; charset=utf-8\"></head><body><h2>HTML heading</h2>HTML body.</body></html>"
+                        "Have a good time with these.\r\n"
                     ]
                 },
                 {
                     "data_path": "action_result.data.*.body.contentType",
                     "data_type": "string",
                     "example_values": [
-                        "text",
-                        "html"
+                        "text"
                     ]
                 },
                 {
                     "data_path": "action_result.data.*.bodyPreview",
                     "data_type": "string",
                     "example_values": [
-                        "Have a good time with these.",
-                        "HTML heading\r\nHTML body."
+                        "Have a good time with these."
                     ]
                 },
                 {
                     "data_path": "action_result.data.*.categories",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "Green category"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.ccRecipients.email",
@@ -3215,7 +3224,7 @@
                         "email"
                     ],
                     "example_values": [
-                        "test@testdomain.onmicrosoft.com"
+                        "test@testdomain.abc.com"
                     ]
                 },
                 {
@@ -3229,16 +3238,14 @@
                     "data_path": "action_result.data.*.changeKey",
                     "data_type": "string",
                     "example_values": [
-                        "CQAAABYAAABBKXVvwEWISZupmqX4mJS3AAFLoCsS",
-                        "CQAAABYAAABBKXVvwEWISZupmqX4mJS3AAO8DBJl"
+                        "CQAAABYAAABBKXVvwEWISZupmqX4mJS3AAFLoCsS"
                     ]
                 },
                 {
                     "data_path": "action_result.data.*.conversationId",
                     "data_type": "string",
                     "example_values": [
-                        "AAQkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQAQAEU43FQ-fk5LmOxKoTpmHfw=",
-                        "AAQkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQAQAE0u8cumTkhHhJdGoa0RzX0="
+                        "AAQkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQAQAEU43FQ-fk5LmOxKoTpmHfw="
                     ]
                 },
                 {
@@ -3252,8 +3259,408 @@
                     "data_path": "action_result.data.*.createdDateTime",
                     "data_type": "string",
                     "example_values": [
-                        "2017-10-26T01:31:43Z",
-                        "2020-06-18T09:11:31Z"
+                        "2017-10-26T01:31:43Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.endDateTime.dateTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "2022-07-26T09:30:00.0000000"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.endDateTime.timeZone",
+                    "data_type": "string",
+                    "example_values": [
+                        "UTC"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.@odata.etag",
+                    "data_type": "string",
+                    "example_values": [
+                        "W/\"CQAAABYAAABBKXVvwEWISZupmqX4mJS3AAFLoCsS\""
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.allowNewTimeProposals",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.attendees.*.emailAddress.address",
+                    "data_type": "string",
+                    "example_values": [
+                        "test@testdomain.abc.com"
+                    ],
+                    "contains": [
+                        "email"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.attendees.*.emailAddress.name",
+                    "data_type": "string",
+                    "example_values": [
+                        "Test Name"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.attendees.*.status.response",
+                    "data_type": "string",
+                    "example_values": [
+                        "none"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.attendees.*.status.time",
+                    "data_type": "string",
+                    "example_values": [
+                        "0001-01-01T00:00:00Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.attendees.*.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "required"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.body.content",
+                    "data_type": "string",
+                    "example_values": [
+                        "plain text?\r\n"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.body.contentType",
+                    "data_type": "string",
+                    "example_values": [
+                        "text"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.bodyPreview",
+                    "data_type": "string",
+                    "example_values": [
+                        "plain text?"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.calendar@odata.associationLink",
+                    "data_type": "string",
+                    "example_values": [
+                        "https://test.abc.com/v1.0/users('test@user.abc.com')/calendars('AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQAuAAADeDDJKaEf4EihMWU6SZgKbAEA07XhOkNngkCkqoNfY_k-jQAAAgENAAAA')/$ref"
+                    ],
+                    "contains": [
+                        "url"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.calendar@odata.navigationLink",
+                    "data_type": "string",
+                    "example_values": [
+                        "https://test.abc.com/v1.0/users('test@user.abc.com')/calendars('AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQAuAAADeDDJKaEf4EihMWU6SZgKbAEA07XhOkNngkCkqoNfY_k-jQAAAgENAAAA')"
+                    ],
+                    "contains": [
+                        "url"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.changeKey",
+                    "data_type": "string",
+                    "example_values": [
+                        "CQAAABYAAABBKXVvwEWISZupmqX4mJS3AAFQwHj9"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.createdDateTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "0001-01-01T00:00:00Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.end.dateTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "0001-01-01T00:00:00.0000000"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.end.timeZone",
+                    "data_type": "string",
+                    "example_values": [
+                        "UTC"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.hasAttachments",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.hideAttendees",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.iCalUId",
+                    "data_type": "string",
+                    "example_values": [
+                        "040000008200E00074C5B7101A82E0080000000074AC2CF9CF5ED8010000000000000000100000005B5B104FC55A6E44BC5C6A093AB7F07C"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.id",
+                    "data_type": "string",
+                    "example_values": [
+                        "AAMkAGYwYmE5NmQ0LWVhOGItNGFhMy05OWNlLTE5MzhjMTE5YWYyMQBGAAAAAACkbmmUA5U5RZwZvvg8zew_BwDWyBbuDx-uTKpJ-DXRPByGAAAA1bxhAAAr0tXr3dtaS5qYgFGhi6QjAAQiOoS2AAA="
+                    ],
+                    "contains": [
+                        "msgoffice365 event id"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.importance",
+                    "data_type": "string",
+                    "example_values": [
+                        "normal"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.isAllDay",
+                    "data_type": "boolean",
+                    "example_values": [
+                        false,
+                        true
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.isCancelled",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.isDraft",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.isOnlineMeeting",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.isOrganizer",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.isReminderOn",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.lastModifiedDateTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "0001-01-01T00:00:00Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.location.displayName",
+                    "data_type": "string",
+                    "example_values": [
+                        "Test"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.location.locationType",
+                    "data_type": "string",
+                    "example_values": [
+                        "default"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.location.uniqueIdType",
+                    "data_type": "string",
+                    "example_values": [
+                        "unknown"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.occurrenceId",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.event.onlineMeeting.joinUrl",
+                    "data_type": "string",
+                    "example_values": [
+                        "https://test.abc.com/l/meetup-join/19%3ameeting_ZjViMTdlNjEtZjYxNi00N2QyLWJmOWYtMGU5MjVjMDM3ZTZl%40thread.v2/0?context=%7b%22Tid%22%3a%22a417c578-c7ee-480d-a225-d48057e74df5%22%2c%22Oid%22%3a%22e4c722ac-3b83-478d-8f52-c388885dc30f%22%7d"
+                    ],
+                    "contains": [
+                        "url"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.onlineMeetingProvider",
+                    "data_type": "string",
+                    "example_values": [
+                        "teamsForBusiness"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.onlineMeetingUrl",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.event.organizer.emailAddress.address",
+                    "data_type": "string",
+                    "example_values": [
+                        "test@testdomain.abc.com"
+                    ],
+                    "contains": [
+                        "email"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.organizer.emailAddress.name",
+                    "data_type": "string",
+                    "example_values": [
+                        "Test Name"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.originalEndTimeZone",
+                    "data_type": "string",
+                    "example_values": [
+                        "UTC"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.originalStartTimeZone",
+                    "data_type": "string",
+                    "example_values": [
+                        "UTC"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.recurrence",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.event.reminderMinutesBeforeStart",
+                    "data_type": "numeric",
+                    "example_values": [
+                        0
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.responseRequested",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.responseStatus.response",
+                    "data_type": "string",
+                    "example_values": [
+                        "accepted"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.responseStatus.time",
+                    "data_type": "string",
+                    "example_values": [
+                        "0001-01-01T00:00:00Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.sensitivity",
+                    "data_type": "string",
+                    "example_values": [
+                        "normal"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.seriesMasterId",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.event.showAs",
+                    "data_type": "string",
+                    "example_values": [
+                        "tentative"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.start.dateTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "0001-01-01T00:00:00.0000000"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.start.timeZone",
+                    "data_type": "string",
+                    "example_values": [
+                        "UTC"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.subject",
+                    "data_type": "string",
+                    "example_values": [
+                        "Just wanted to say hello"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.transactionId",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.event.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "singleInstance"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.event.webLink",
+                    "data_type": "string",
+                    "example_values": [
+                        "https://test.abc.com/owa?itemid=AAMkAGYwYmE5NmQ0LWVhOGItNGFhMy05OWNlLTE5MzhjMTE5YWYyMQBGAAAAAACkbmmUA5U5RZwZvvg8zew%2BBwDWyBbuDx%2FuTKpJ%2FDXRPByGAAAA1bxhAAAr0tXr3dtaS5qYgFGhi6QjAAQiOoS2AAA%3D&exvsurl=1&path=/calendar/item"
+                    ],
+                    "contains": [
+                        "url"
                     ]
                 },
                 {
@@ -3267,7 +3674,7 @@
                     "data_path": "action_result.data.*.from.emailAddress.address",
                     "data_type": "string",
                     "example_values": [
-                        "test@testdomain.onmicrosoft.com"
+                        "test@testdomain.abc.com"
                     ],
                     "contains": [
                         "email"
@@ -3312,8 +3719,28 @@
                     "data_path": "action_result.data.*.inferenceClassification",
                     "data_type": "string",
                     "example_values": [
-                        "focused",
-                        "other"
+                        "focused"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.ARC-Authentication-Results",
+                    "data_type": "string",
+                    "example_values": [
+                        "i=1; mx.test.com 1; spf=pass smtp.mailfrom=user.test.com; dmarc=pass action=none header.from=user.abc.com; dkim=pass header.d=test.abc.com; arc=none"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.ARC-Message-Signature",
+                    "data_type": "string",
+                    "example_values": [
+                        "i=1; a=rsa-sha256; c=relaxed/relaxed; d=test.com; s=arcselector9901; h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1; bh=3fZ/7Rn8nzby4BCiwxGpfUUiHgfvSZ6MOHtHg1Hmixs=; b=f7VAkSO/T2NJuxMrJNBzeow/t2iTVZfAkVaZGgtAoYq3Wb9cUDEfAtTE4RmzSqLEqP2iXxLK7JsRfV2uqsbGinp3ZuRnHSqMoRzO0XCN8KjE/Z9hUyUmq05clk2rB3TqCcKK6ipy1+N+4mvCFFb6O+bN/9TGhPos1dY0X0sy33sow9oeND6nm8HvtIzp/hG0xKduPnEHwQiCCwRTmdAtbAzMWmnEyyodRQg/PCgjAPKPpeFELZ+pr/bbEkySxLCu/xY1qhoa8JMIrh1EUFHyFyscTDc580YNnowNqAR//iO8DRGaTG1Znv4MI7mlcmM/vopKYAa6zNPXb2LHDqwKBQ=="
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.ARC-Seal",
+                    "data_type": "string",
+                    "example_values": [
+                        "i=1; a=rsa-sha256; s=arcselector9901; d=test.com; cv=none; b=GIfa87IhNn+v4Mdn75nJpk9WjELaP8fw9+C+Ey0QFktfU60rPvtJDc5qJS5mN/g6COFa2inOEc4S+Cm3R1BLcBgqkCZR/niPjMp/A2tEHs9OeY75S+T8d5OsfmFcD2jC5/59Dc8EAEKw3UnYKxCC4CKWPFCXrE+Cu3jLEtt04Izr1rXTTQacfCjwYN4OsKI9lHyn6JRDlePR2RZKztMcnt/hcOJz6cwFe+MAUgg0qjKB8p+27o2hQKu+LlQDg8nMRQ6jHkD8DylOclHe2nVKmEhNXi67PTeoqTfZe4+YgSOrnJOUdlra5q/EoWN0FnM9Zt0+0K42ncYSWcC0NpsbqQ=="
                     ]
                 },
                 {
@@ -3327,7 +3754,14 @@
                     "data_path": "action_result.data.*.internetMessageHeaders.Authentication-Results",
                     "data_type": "string",
                     "example_values": [
-                        "spf=pass (sender IP is 209.85.210.171) smtp.mailfrom=testdomain.com; .onmicrosoft.com; dkim=pass (signature was verified) header.d=testdomain.com.20150623.gappssmtp.com;.onmicrosoft.com; dmarc=pass action=none header.from=testdomain.com;compauth=pass reason=100"
+                        "spf=pass (sender IP is 209.85.210.171) smtp.mailfrom=testdomain.com; .abc.com; dkim=pass (signature was verified) header.d=testdomain.com.20150623.gappssmtp.com;.abc.com; dmarc=pass action=none header.from=testdomain.com;compauth=pass reason=100"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.Authentication-Results-Original",
+                    "data_type": "string",
+                    "example_values": [
+                        "dkim=none (message not signed) header.d=none;dmarc=none action=none header.from=test.abc.com;"
                     ]
                 },
                 {
@@ -3390,21 +3824,21 @@
                     "data_path": "action_result.data.*.internetMessageHeaders.Message-ID",
                     "data_type": "string",
                     "example_values": [
-                        "<5eeb2fbe.1c69fb81.22b4b.676a@mx.google.com>"
+                        "<5eeb2fbe.1c69fb81.22b4b.676a@mx.test.com>"
                     ]
                 },
                 {
                     "data_path": "action_result.data.*.internetMessageHeaders.Received",
                     "data_type": "string",
                     "example_values": [
-                        "from localhost.localdomain (host-240.splunk.com. [204.107.141.240])        by smtp.gmail.com with UTF8SMTPSA id ng12sm1923252pjb.15.2020.06.18.02.11.26        for <test@onmicrosoft.com>        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);        Thu, 18 Jun 2020 02:11:26 -0700 (PDT)"
+                        "from localhost.localdomain (host-240.test.com. [204.107.141.240])        by test.abc.com with UTF8SMTPSA id ng12sm1923252pjb.15.2020.06.18.02.11.26        for <test@abc.com>        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);        Thu, 18 Jun 2020 02:11:26 -0700 (PDT)"
                     ]
                 },
                 {
                     "data_path": "action_result.data.*.internetMessageHeaders.Received-SPF",
                     "data_type": "string",
                     "example_values": [
-                        "Pass (protection.outlook.com: domain of testdomain.com designates 209.85.210.171 as permitted sender) receiver=protection.outlook.com; client-ip=209.85.210.171; helo=mail-pf1-f171.google.com;"
+                        "Pass (protection.test.com: domain of testdomain.com designates 209.85.210.171 as permitted sender) receiver=protection.test.com; client-ip=209.85.210.171; helo=mail-pf1-f171.test.com;"
                     ]
                 },
                 {
@@ -3470,7 +3904,14 @@
                     "data_path": "action_result.data.*.internetMessageHeaders.X-Forefront-Antispam-Report",
                     "data_type": "string",
                     "example_values": [
-                        "CIP:209.85.210.171;CTRY:US;LANG:en;SCL:-1;SRV:;IPV:NLI;SFV:SFE;H:mail-pf1-f171.google.com;PTR:mail-pf1-f171.google.com;CAT:NONE;SFTY:;SFS:;DIR:INB;SFP:;"
+                        "CIP:209.85.210.171;CTRY:US;LANG:en;SCL:-1;SRV:;IPV:NLI;SFV:SFE;H:mail-pf1-f171.test.com;PTR:mail-pf1-f171.test.com;CAT:NONE;SFTY:;SFS:;DIR:INB;SFP:;"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-Forefront-Antispam-Report-Untrusted",
+                    "data_type": "string",
+                    "example_values": [
+                        "CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BYAPR18MB2408.namprd18.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230016)(136003)(396003)(346002)(39830400003)(376002)(366004)(186003)(83380400001)(64756008)(76116006)(66946007)(71200400001)(8676002)(66476007)(66446008)(66556008)(6916009)(55016003)(91956017)(9686003)(41300700001)(6506007)(7696005)(26005)(2906002)(33656002)(38070700005)(86362001)(38100700002)(3480700007)(122000001)(5660300002)(4744005)(316002)(296002)(166002)(478600001)(8936002)(52536014);DIR:OUT;SFP:1102;"
                     ]
                 },
                 {
@@ -3499,6 +3940,20 @@
                     "data_type": "string",
                     "example_values": [
                         "VSM9HTzub/OH3NCwWNKQqkkzjnhdw5kXsgd9WM0SRgZ0qRdPg5D9/o3LA7lf8ziXc5k0mm9M5mHvFoYePXNXs/MGhGdBGxa/qUQ+FVHA2mDgfPkamJCEZxz//OX/uruTDo+zF4p9D1dQJpnIpx1M75OhuvrHX/BxWWzyAh78DXfF214YHdyFBCYepwl56CS7+fSGQL/r3p+OvWIBnIkISC+HJljSro2k47pPPAkspMhoUkb+zklyENFjez+JcEHYlih2FiNeUO8kb9b7qvlm3zPK98HLspzDh4BojpQ6Ff330iy7nfIK726tCMByxjOdnEQSB9Ua2sbE5gxSeeWL8MB5DHcQSSsXg+sR8w4gXrXLO3meE0lNQKRoAv2b1U0Q+yM0QBqeQWlymZG21bKeuH4gtAFQvfXNjoCtIbBQK1n7ZnL7fI21FJZRcMcKEneus6gLYUqD4PdLEq9FEGbfgiLmVYeUAL2A0Q/gectvL1OVudtHVR5gFMJKt65F1OtS04CPulfLLFSl1F4AzpjjtBSyQcK9R7bOsjoHxQXPMd9fMCzMSIq5f551pO0klKqWY7l11Un2Noj6CA7EtXiD1bTv8JmYQEKR+0HTZagNd+79GeTvKjxTvt9MkyO8k3aqWyNqT331ITnVICtksN1TVMCp8GVeDudNMr2PLSW0alOduR5unuEgTWrqHoaTGOovQx0PVjudNlpZ80ANK9hqaC/ZhLLOtNpJ3fZnjs06PzrPLGhE/IeccY1n8sYDvGm1QA9TN6JaaGPl1Pj6ecy16k0XuF/PKGHTL0M4LCpxSS6T87oFFH1zHkKtmbJp3aAI4bt3ihbQmwFb29JyMgL7ZOy+zrIwXGILh1KQGWQQv1uXXnAuqQy29HeFXs6D2hDHxHlBk5ZQ+vgRtsvRvGnq58vJ3CapjntfL3pOINUj1avLyAZxjasBWMTwaZs9JQ4ZIMekzkIk05lh9XfDSeULk2yKaH8YSCC6ENUHxSWa6pPHJfOdp9kXwOtlp09/VTTAikKy862k9ybN4bRWZB45B9Pv5scna8IX3rthIXUih8c="
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-AntiSpam-MessageData-Original-0",
+                    "data_type": "string",
+                    "example_values": [
+                        "SC/7FB9jcHrfqMtL+8C1Sp2MBDl48qjRn/ZzFJk8+2yWs9kmQwzxXC8TA3HuU0EMts58S8uTyFbx12+qQUJ45/B5QFEfP5j1o7B5kj1Q0C9S+LAg6YptTwxi29Ei1T4mf+CpfzIeA73NzXB7pWjnmycYYlL3TAn0xJATthWspUZ+g4jZoDzNSIdAZWqoc1j4+dHA6WR+U9zZi0vODxRmplSWq2FeO8uMKqD43StpvYk6chxcaGGc5+rNRxP6RLF7OLirJ0MQ1FfZNRdNfUKBvGAF2r6HLp62apGZg0d5gJ5M7zg/1V4ygWW19cuGXyAr5b9bow1MPIOBfrDrMS3CBk2F9DfATTZ/oFwOv/hCUVs2MkWSdr/upJfPt0xoAYtXk1UjxKpV/nHgTTfQy/ijlxEsYn/HY9O6tfqvn/BRvehvPjjoouvxcZteyP1glEcajum7Op67/kV9p4Wv+U+A+31/kyrb3Tjt4GJGpTIBfLi/VjIiHUDFrpAcBz3rFqxyfKQcCqDsOMjD5CrxBj3ow7uMlQiaQoU0Dxwc4eDggbe9Af/F3YqZuvqpj2H0U0hm7+7j56WjFxewVKHLJBwkCXG6a8UdEmKBtA685mUbfpICdYaoLatC4LYOMeqsx6CeEr75vyfdqTdKOZrBKkhTluMbR0s1pvh0kID7B+HL/LKqFSnpgQidfIugk5FUSh42vsBUjrxq6LWYDSHWwYweeuZi/6vVgKQl1XS5X7JUhwNxZSzSF76pNeCIq6KGlCmfIrAnAAhfd0a0xMGy/gOJiqM8JcWjnCMA25UrRL2XrMLC4mnLpi71rATOU62rcgNyczpKI74uHEQAGtQBHfoJjuAqK1JNAK5+j1kIT9gr1F0CC2iJ+68DOI+dveK2lkGqyNYx+eKeTjJSKO4bfzQiM0oBg9eIwqtU3Wn+sSQEg74MzrMjEfaorXh7X+LdO4DwA7dNyEurnYEgmjvjJoNbcxgjhbLSkTe3LFAX7iUia79VIqgD80bxgwoCWyKiSiCKARb/krBWOCOOuF1I6v6azxPHpwsQxC6AvFlOWW7BXsFY9NcCeGvV7l+9ZnLuRjdbjrgdk1b7PRv6aaRzmVk1I3KPBCPvFasP2XhNJXGgYmv7hxiyOci1Eoq4QcXEfr9VsrOEkcl0z4HI8yHx354Lc7Peck8XFvGCe9ElyhxmEtu/ySFQ3BOakjPikOOIA4XlUj3GsUk8qfwnePHVPBnKKm0jtaqjK6tA8uZyKG8jTNgICFZ9wKmsijFMPXVY2lt5zuPnw1V31D//IYjdXpcU1cMfXgZ06vld4anBSEv3WL3zCZaIJsRhxkB7ixumw4h5yieKNJFIVhbV6Ty4Yog9JFmQbAbRfKh1b8ltoym804+hOH8n7oWVqSbtzuylg7DPCIVOcWdUNraXYgmgtXDM6vq0SsDK1j2diz4ywM2BlBSsnCyAdt1NN5gZyMfOufZ3a8SKdwTaRH3bFh6BmfLEZ8NgYbeJQX7GrVbBU5kHT9+k2g3Klchapmqv8mzl0uKvX1av2hW6ce5xo+owa9Qk/Gza4j4o74bVl8tJ/iYClX4kpHY6kek/TOA/Sxj/IvWb1QZvpgmj0LNNCrLdrLUiTDG3lodE9j+Lr8qhmgL8S78="
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-AntiSpam-MessageData-Original-ChunkCount",
+                    "data_type": "string",
+                    "example_values": [
+                        "1"
                     ]
                 },
                 {
@@ -3635,10 +4090,24 @@
                     ]
                 },
                 {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-Transport-CrossTenantHeadersPromoted",
+                    "data_type": "string",
+                    "example_values": [
+                        "DM6NAM11FT064.eop-nam11.prod.protection.outlook.com"
+                    ]
+                },
+                {
                     "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-Transport-CrossTenantHeadersStamped",
                     "data_type": "string",
                     "example_values": [
                         "BN6PR18MB1492"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-Transport-CrossTenantHeadersStripped",
+                    "data_type": "string",
+                    "example_values": [
+                        "DM6NAM11FT064.eop-nam11.prod.protection.outlook.com"
                     ]
                 },
                 {
@@ -3660,6 +4129,13 @@
                     "data_type": "string",
                     "example_values": [
                         "4b1ef179-4fe7-4248-7ec0-08d81367956e"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Office365-Filtering-Correlation-Id-Prvs",
+                    "data_type": "string",
+                    "example_values": [
+                        "0c3038e5-2c60-453b-188f-08da6ed1ea0c"
                     ]
                 },
                 {
@@ -3712,6 +4188,20 @@
                     ]
                 },
                 {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-Microsoft-Antispam-Message-Info-Original",
+                    "data_type": "string",
+                    "example_values": [
+                        "MTrWp0GiNTxQrZWPlJ6veyKekVjJA0FKYcYQlNCKCrjhAtIn4oDZCbWPNm21Zr7mX+CXhspXNSQSEjpIERhcHIWABmuzCF/vnMr0xwLTzuh2T0si6wgTdha+BdCpnx/kvbN+TMK3rCmD9ro6qHf/v1dTbLKJUZ3Cwfl+LoqJLCkw+T8E7/De1QBlCJrKVGfSztXncKPdvPxC2Qjw/QoPmYp7oFbqW8uwNZX1q8HmAXfLzYPeOuLDE/h4s61EeZGvIY7nBMwm6DwKdTqfmQqy3+BTMfoTaN/82aHLgfBI8V0NbiPVvbKbUU8UOusHZM5H6pzOpZFOSsS7yWz1jpIvKK5CJtNUK5XkOCLxv06yzbWib2abzwEhoLUBHYhJGnwNaIznz/C7a6vZLPe1hNxyLBv0/SyYmt1m9v0vB3TSdSH2V+Ork2OK5nz/r1KcOScedjs14GZpifgjEXiIhK4eJlTkI8LE7HnqXr+82C39t13fqV8L8oRYjGiJJE9wpGJIhMa4PQYwgP0D2cQGrVwuVK2qP01TsSE+NWOXyB8hAYn11K/wCnq4TqtwRbptF9aiw0k45eDHfvB/sBARv37sajixtW4QuFQ3eYI9bVVfllmcpnKj5VUD1mdMAnkgpOCiQSEiSI6Tlo9cEycBulSc4fmocQoev7eUTFw43FDjmRpebuNF0lmm7OcvXgS8jBJSzkbLPrrsqTj1fluowoLjQTQsSPn/LK5LdOdCt7x70/BaweDCm9VdcGgh5Mqe0Qp4GxnBSpS61OCmDYZEkCL5W1A+M7Ah9mANYucdydHU9bLxJBcoi42VIDK6oYaKs3oobr0k1M/dk/pjDT65LuHwsA=="
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.X-Microsoft-Antispam-Untrusted",
+                    "data_type": "string",
+                    "example_values": [
+                        "BCL:0;"
+                    ]
+                },
+                {
                     "data_path": "action_result.data.*.internetMessageHeaders.X-Originating-IP",
                     "data_type": "string",
                     "example_values": [
@@ -3733,14 +4223,57 @@
                     ]
                 },
                 {
+                    "data_path": "action_result.data.*.internetMessageHeaders.x-ms-exchange-antispam-relay",
+                    "data_type": "string",
+                    "example_values": [
+                        "0"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.x-ms-exchange-calendar-series-instance-id",
+                    "data_type": "string",
+                    "example_values": [
+                        "BAAAAIIA4AB0xbcQGoLgCAAAAAAhGy3GuqDYAQAAAAAAAAAAEAAAAMqUNBGdAN9NtAV6x5ZM9JU="
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.x-ms-exchange-senderadcheck",
+                    "data_type": "string",
+                    "example_values": [
+                        "1"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.x-ms-traffictypediagnostic",
+                    "data_type": "string",
+                    "example_values": [
+                        "BYAPR18MB2408:EE_MeetingMessage|BL1PR18MB4325:EE_MeetingMessage|DM6NAM11FT064:EE_|CH0PR11MB5427:EE_"
+                    ]
+                },
+                {
                     "data_path": "action_result.data.*.internetMessageId",
                     "data_type": "string",
                     "example_values": [
-                        "<CABO4XoP4y0jiKDGWr5yQ=-AwrRC-Vbc4LSNju1-Mroxrwn=Rrg@mail.gmail.com>",
-                        "<5eeb2fbe.1c69fb81.22b4b.676a@mx.google.com>"
+                        "<CABO4XoP4y0jiKDGWr5yQ=-AwrRC-Vbc4LSNju1-Mroxrwn=Rrg@mail.test.com>"
                     ],
                     "contains": [
                         "msgoffice365 internet message id"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.isAllDay",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.isDelegated",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
                     ]
                 },
                 {
@@ -3753,6 +4286,14 @@
                 },
                 {
                     "data_path": "action_result.data.*.isDraft",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.isOutOfDate",
                     "data_type": "boolean",
                     "example_values": [
                         true,
@@ -3779,8 +4320,21 @@
                     "data_path": "action_result.data.*.lastModifiedDateTime",
                     "data_type": "string",
                     "example_values": [
-                        "2017-10-26T01:31:43Z",
-                        "2020-06-18T09:11:32Z"
+                        "2017-10-26T01:31:43Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.meetingMessageType",
+                    "data_type": "string",
+                    "example_values": [
+                        "meetingRequest"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.meetingRequestType",
+                    "data_type": "string",
+                    "example_values": [
+                        "newMeetingRequest"
                     ]
                 },
                 {
@@ -3794,22 +4348,73 @@
                     ]
                 },
                 {
+                    "data_path": "action_result.data.*.previousEndDateTime",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.previousLocation",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.previousStartDateTime",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.previousEndDateTime.dateTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "2022-05-09T13:30:00.0000000"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.previousEndDateTime.timeZone",
+                    "data_type": "string",
+                    "example_values": [
+                        "UTC"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.previousStartDateTime.dateTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "2022-05-09T13:00:00.0000000"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.previousStartDateTime.timeZone",
+                    "data_type": "string",
+                    "example_values": [
+                        "UTC"
+                    ]
+                },
+                {
                     "data_path": "action_result.data.*.receivedDateTime",
                     "data_type": "string",
                     "example_values": [
-                        "2017-10-26T01:31:43Z",
-                        "2020-06-18T09:11:31Z"
+                        "2017-10-26T01:31:43Z"
                     ]
+                },
+                {
+                    "data_path": "action_result.data.*.recurrence",
+                    "data_type": "string"
                 },
                 {
                     "data_path": "action_result.data.*.replyTo",
                     "data_type": "string"
                 },
                 {
+                    "data_path": "action_result.data.*.responseRequested",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
                     "data_path": "action_result.data.*.sender.emailAddress.address",
                     "data_type": "string",
                     "example_values": [
-                        "test@testdomain.onmicrosoft.com"
+                        "test@testdomain.abc.com"
                     ],
                     "contains": [
                         "email"
@@ -3829,16 +4434,28 @@
                     "data_path": "action_result.data.*.sentDateTime",
                     "data_type": "string",
                     "example_values": [
-                        "2017-10-26T01:31:35Z",
-                        "2020-06-18T09:11:26Z"
+                        "2017-10-26T01:31:35Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.startDateTime.dateTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "2022-07-26T09:00:00.0000000"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.startDateTime.timeZone",
+                    "data_type": "string",
+                    "example_values": [
+                        "UTC"
                     ]
                 },
                 {
                     "data_path": "action_result.data.*.subject",
                     "data_type": "string",
                     "example_values": [
-                        "more attachments",
-                        "test html"
+                        "more attachments"
                     ],
                     "contains": [
                         "msgoffice365 subject"
@@ -3848,7 +4465,7 @@
                     "data_path": "action_result.data.*.toRecipients.*.emailAddress.address",
                     "data_type": "string",
                     "example_values": [
-                        "Test@testdomain.onmicrosoft.com"
+                        "Test@testdomain.abc.com"
                     ],
                     "contains": [
                         "email"
@@ -3862,6 +4479,20 @@
                     ]
                 },
                 {
+                    "data_path": "action_result.data.*.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "singleInstance"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.vaultId",
+                    "data_type": "string",
+                    "example_values": [
+                        "ff89bab9ec1e063a0f100aa7b0ac5fbc7425ab22"
+                    ]
+                },
+                {
                     "data_path": "action_result.data.*.webLink",
                     "data_type": "string",
                     "example_values": [
@@ -3869,329 +4500,6 @@
                     ],
                     "contains": [
                         "url"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.event.id",
-                    "data_type": "string",
-                    "example_values": [
-                        "AAMkAGYwYmE5NmQ0LWVhOGItNGFhMy05OWNlLTE5MzhjMTE5YWYyMQBGAAAAAACkbmmUA5U5RZwZvvg8zew_BwDWyBbuDx-uTKpJ-DXRPByGAAAA1bxhAAAr0tXr3dtaS5qYgFGhi6QjAAQiOoS2AAA="
-                    ],
-                    "contains": [
-                        "msgoffice365 event id"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.event.end.dateTime",
-                    "data_type": "string",
-                    "example_values": [
-                        "0001-01-01T00:00:00.0000000"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.event.end.timeZone",
-                    "data_type": "string",
-                    "example_values": [
-                        "UTC"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.event.body.content",
-                    "data_type": "string",
-                    "example_values": [
-                        "plain text?\r\n"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.event.body.contentType",
-                    "data_type": "string",
-                    "example_values": [
-                        "html",
-                        "text"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.event.type",
-                    "data_type": "string",
-                    "example_values": [
-                        "singleInstance"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.event.start.dateTime",
-                    "data_type": "string",
-                    "example_values": [
-                        "0001-01-01T00:00:00.0000000"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.event.start.timeZone",
-                    "data_type": "string",
-                    "example_values": [
-                        "UTC"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.event.showAs",
-                    "data_type": "string",
-                    "example_values": [
-                        "tentative"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.event.iCalUId",
-                    "data_type": "string",
-                    "example_values": [
-                        "040000008200E00074C5B7101A82E0080000000074AC2CF9CF5ED8010000000000000000100000005B5B104FC55A6E44BC5C6A093AB7F07C"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.event.subject",
-                    "data_type": "string",
-                    "example_values": [
-                        "Just wanted to say hello"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.event.webLink",
-                    "data_type": "string",
-                    "example_values": [
-                        "https://test.abc.com/owa?itemid=AAMkAGYwYmE5NmQ0LWVhOGItNGFhMy05OWNlLTE5MzhjMTE5YWYyMQBGAAAAAACkbmmUA5U5RZwZvvg8zew%2BBwDWyBbuDx%2FuTKpJ%2FDXRPByGAAAA1bxhAAAr0tXr3dtaS5qYgFGhi6QjAAQiOoS2AAA%3D&exvsurl=1&path=/calendar/item"
-                    ],
-                    "contains": [
-                        "url"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.event.isAllDay",
-                    "data_type": "numeric",
-                    "example_values": [
-                        false
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.event.location.displayName",
-                    "data_type": "string",
-                    "example_values": [
-                        "Test"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.event.attendees.*.type",
-                    "data_type": "string",
-                    "example_values": [
-                        "required"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.event.attendees.*.status.time",
-                    "data_type": "string",
-                    "example_values": [
-                        "0001-01-01T00:00:00Z"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.event.attendees.*.status.response",
-                    "data_type": "string",
-                    "example_values": [
-                        "none"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.event.attendees.*.emailAddress.name",
-                    "data_type": "string",
-                    "example_values": [
-                        "Test Name"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.event.attendees.*.emailAddress.address",
-                    "data_type": "string",
-                    "example_values": [
-                        "test@testdomain.onmicrosoft.com"
-                    ],
-                    "contains": [
-                        "email"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.event.changeKey",
-                    "data_type": "string",
-                    "example_values": [
-                        "CQAAABYAAABBKXVvwEWISZupmqX4mJS3AAFQwHj9"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.event.organizer.emailAddress.name",
-                    "data_type": "string",
-                    "example_values": [
-                        "Test Name"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.event.organizer.emailAddress.address",
-                    "data_type": "string",
-                    "example_values": [
-                        "test@testdomain.onmicrosoft.com"
-                    ],
-                    "contains": [
-                        "email"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.event.importance",
-                    "data_type": "string",
-                    "example_values": [
-                        "normal"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.event.recurrence",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.data.*.event.@odata.etag",
-                    "data_type": "string",
-                    "example_values": [
-                        "W/\"CQAAABYAAABBKXVvwEWISZupmqX4mJS3AAFLoCsS\""
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.event.bodyPreview",
-                    "data_type": "string",
-                    "example_values": [
-                        "plain text?"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.event.isCancelled",
-                    "data_type": "numeric",
-                    "example_values": [
-                        true,
-                        false
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.event.isOrganizer",
-                    "data_type": "numeric",
-                    "example_values": [
-                        true,
-                        false
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.event.sensitivity",
-                    "data_type": "string",
-                    "example_values": [
-                        "normal"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.event.isReminderOn",
-                    "data_type": "numeric",
-                    "example_values": [
-                        true,
-                        false
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.event.hasAttachments",
-                    "data_type": "numeric",
-                    "example_values": [
-                        true,
-                        false
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.event.responseStatus.time",
-                    "data_type": "string",
-                    "example_values": [
-                        "0001-01-01T00:00:00Z"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.event.responseStatus.response",
-                    "data_type": "string",
-                    "example_values": [
-                        "none",
-                        "organizer",
-                        "tentativelyAccepted",
-                        "accepted",
-                        "declined",
-                        "notResponded"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.event.seriesMasterId",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.data.*.event.createdDateTime",
-                    "data_type": "string",
-                    "example_values": [
-                        "0001-01-01T00:00:00Z"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.event.onlineMeetingUrl",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.data.*.event.responseRequested",
-                    "data_type": "numeric",
-                    "example_values": [
-                        true,
-                        false
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.event.originalEndTimeZone",
-                    "data_type": "string",
-                    "example_values": [
-                        "UTC"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.event.lastModifiedDateTime",
-                    "data_type": "string",
-                    "example_values": [
-                        "0001-01-01T00:00:00Z"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.event.originalStartTimeZone",
-                    "data_type": "string",
-                    "example_values": [
-                        "UTC"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.event.reminderMinutesBeforeStart",
-                    "data_type": "numeric",
-                    "example_values": [
-                        0
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.@odata.type",
-                    "data_type": "string",
-                    "example_values": [
-                        "#microsoft.graph.eventMessage"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.meetingMessageType",
-                    "data_type": "string",
-                    "example_values": [
-                        "meetingRequest"
-                    ]
-                },
-                {
-                    "data_path": "action_result.status",
-                    "data_type": "string",
-                    "example_values": [
-                        "success",
-                        "failed"
                     ]
                 },
                 {
@@ -4296,7 +4604,7 @@
                     "data_path": "action_result.parameter.email_address",
                     "data_type": "string",
                     "example_values": [
-                        "user@onmicrosoft.com"
+                        "user@abc.com"
                     ],
                     "contains": [
                         "email"
@@ -4348,7 +4656,6 @@
                     "data_path": "action_result.parameter.properties_list",
                     "data_type": "string",
                     "example_values": [
-                        "subject",
                         "subject,receivedDateTime"
                     ]
                 },
@@ -4356,8 +4663,7 @@
                     "data_path": "action_result.data.*.@odata.context",
                     "data_type": "string",
                     "example_values": [
-                        "https://graph.microsoft.com/v1.0/$metadata#users('user%40.onmicrosoft.com')/messages(internetMessageHeaders,body,uniqueBody,sender,subject)/$entity",
-                        "https://graph.microsoft.com/v1.0/$metadata#users('user%40.onmicrosoft.com')/messages(internetMessageHeaders,body,uniqueBody,sender,subject,receivedDateTime)/$entity"
+                        "https://test.abc.com/v1.0/$metadata#users('user%40.abc.com')/messages(internetMessageHeaders,body,uniqueBody,sender,subject)/$entity"
                     ],
                     "contains": [
                         "url"
@@ -4402,7 +4708,7 @@
                     "data_path": "action_result.data.*.internetMessageHeaders.Authentication-Results",
                     "data_type": "string",
                     "example_values": [
-                        "spf=pass (sender IP is 209.85.210.171) smtp.mailfrom=testdomain.com; .onmicrosoft.com; dkim=pass (signature was verified) header.d=testdomain.com.20150623.gappssmtp.com;.onmicrosoft.com; dmarc=pass action=none header.from=testdomain.com;compauth=pass reason=100"
+                        "spf=pass (sender IP is 209.85.210.171) smtp.mailfrom=testdomain.com; .abc.com; dkim=pass (signature was verified) header.d=testdomain.com.20150623.gappssmtp.com;.abc.com; dmarc=pass action=none header.from=testdomain.com;compauth=pass reason=100"
                     ]
                 },
                 {
@@ -4465,21 +4771,21 @@
                     "data_path": "action_result.data.*.internetMessageHeaders.Message-ID",
                     "data_type": "string",
                     "example_values": [
-                        "<5eeb2fbe.1c69fb81.22b4b.676a@mx.google.com>"
+                        "<5eeb2fbe.1c69fb81.22b4b.676a@mx.test.com>"
                     ]
                 },
                 {
                     "data_path": "action_result.data.*.internetMessageHeaders.Received",
                     "data_type": "string",
                     "example_values": [
-                        "from localhost.localdomain (host-240.splunk.com. [204.107.141.240])        by smtp.gmail.com with UTF8SMTPSA id ng12sm1923252pjb.15.2020.06.18.02.11.26        for <user@onmicrosoft.com>        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);        Thu, 18 Jun 2020 02:11:26 -0700 (PDT)"
+                        "from localhost.localdomain (host-240.test.com. [204.107.141.240])        by tset.abc.com with UTF8SMTPSA id ng12sm1923252pjb.15.2020.06.18.02.11.26        for <user@test.com>        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);        Thu, 18 Jun 2020 02:11:26 -0700 (PDT)"
                     ]
                 },
                 {
                     "data_path": "action_result.data.*.internetMessageHeaders.Received-SPF",
                     "data_type": "string",
                     "example_values": [
-                        "Pass (protection.outlook.com: domain of testdomain.com designates 209.85.210.171 as permitted sender) receiver=protection.outlook.com; client-ip=209.85.210.171; helo=mail-pf1-f171.google.com;"
+                        "Pass (protection.test.com: domain of testdomain.com designates 209.85.210.171 as permitted sender) receiver=protection.test.com; client-ip=209.85.210.171; helo=mail-pf1-f171.test.com;"
                     ]
                 },
                 {
@@ -4545,7 +4851,7 @@
                     "data_path": "action_result.data.*.internetMessageHeaders.X-Forefront-Antispam-Report",
                     "data_type": "string",
                     "example_values": [
-                        "CIP:209.85.210.171;CTRY:US;LANG:en;SCL:-1;SRV:;IPV:NLI;SFV:SFE;H:mail-pf1-f171.google.com;PTR:mail-pf1-f171.google.com;CAT:NONE;SFTY:;SFS:;DIR:INB;SFP:;"
+                        "CIP:209.85.210.171;CTRY:US;LANG:en;SCL:-1;SRV:;IPV:NLI;SFV:SFE;H:mail-pf1-f171.test.com;PTR:mail-pf1-f171.test.com;CAT:NONE;SFTY:;SFS:;DIR:INB;SFP:;"
                     ]
                 },
                 {
@@ -4993,7 +5299,7 @@
                         "email"
                     ],
                     "example_values": [
-                        "test@testdomain.onmicrosoft.com"
+                        "test@testdomain.abc.com"
                     ]
                 },
                 {
@@ -5037,8 +5343,7 @@
                     "data_path": "action_result.parameter.query",
                     "data_type": "string",
                     "example_values": [
-                        "$filter=contains(subject,'Urgent')",
-                        "$orderby=propertyName desc"
+                        "$filter=contains(subject,'Urgent')"
                     ]
                 },
                 {
@@ -5056,7 +5361,7 @@
                         "email"
                     ],
                     "example_values": [
-                        "test@testdomain.onmicrosoft.com"
+                        "test@testdomain.abc.com"
                     ]
                 },
                 {
@@ -5080,7 +5385,7 @@
                     "data_path": "action_result.data.*.@odata.type",
                     "data_type": "string",
                     "example_values": [
-                        "#microsoft.graph.eventMessageRequests"
+                        "#test.abc.eventMessageRequests"
                     ]
                 },
                 {
@@ -5108,7 +5413,7 @@
                         "email"
                     ],
                     "example_values": [
-                        "test@testdomain.onmicrosoft.com"
+                        "test@testdomain.abc.com"
                     ]
                 },
                 {
@@ -5164,7 +5469,7 @@
                         "email"
                     ],
                     "example_values": [
-                        "test@testdomain.onmicrosoft.com"
+                        "test@testdomain.abc.com"
                     ]
                 },
                 {
@@ -5227,7 +5532,7 @@
                     "data_path": "action_result.data.*.from.emailAddress.address",
                     "data_type": "string",
                     "example_values": [
-                        "test@testdomain.onmicrosoft.com"
+                        "test@testdomain.abc.com"
                     ],
                     "contains": [
                         "email"
@@ -5276,8 +5581,7 @@
                     "data_path": "action_result.data.*.internetMessageId",
                     "data_type": "string",
                     "example_values": [
-                        "<CABO4XoM2X=z02-=jmuvtis3MUxHgvTcH7vkVgVC=dwcuN5yT6Q@mail.gmail.com>",
-                        "<BYAPR17MB3031A8F1998135A8D717F54495820@BYAPR17MB3031.namprd17.prod.outlook.com>"
+                        "<CABO4XoM2X=z02-=jmuvtis3MUxHgvTcH7vkVgVC=dwcuN5yT6Q@mail.test.com>"
                     ],
                     "contains": [
                         "msgoffice365 internet message id"
@@ -5321,17 +5625,6 @@
                     "example_values": [
                         true,
                         false
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.vaultId",
-                    "data_type": "string",
-                    "example_values": [
-                        "719dbf72d7c0bc89d7e34306c08a0b66191902b9"
-                    ],
-                    "contains": [
-                        "sha1",
-                        "vault id"
                     ]
                 },
                 {
@@ -5462,7 +5755,7 @@
                     "data_path": "action_result.data.*.sender.emailAddress.address",
                     "data_type": "string",
                     "example_values": [
-                        "test@testdomain.onmicrosoft.com"
+                        "test@testdomain.abc.com"
                     ],
                     "contains": [
                         "email"
@@ -5510,7 +5803,7 @@
                     "data_path": "action_result.data.*.toRecipients.*.emailAddress.address",
                     "data_type": "string",
                     "example_values": [
-                        "Test@testdomain.onmicrosoft.com"
+                        "Test@testdomain.abc.com"
                     ],
                     "contains": [
                         "email"
@@ -5528,6 +5821,17 @@
                     "data_type": "string",
                     "example_values": [
                         "singleInstance"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.vaultId",
+                    "data_type": "string",
+                    "example_values": [
+                        "719dbf72d7c0bc89d7e34306c08a0b66191902b9"
+                    ],
+                    "contains": [
+                        "sha1",
+                        "vault id"
                     ]
                 },
                 {
@@ -5637,7 +5941,7 @@
                         "email"
                     ],
                     "example_values": [
-                        "test@testdomain.onmicrosoft.com"
+                        "test@testdomain.abc.com"
                     ]
                 },
                 {
@@ -5655,7 +5959,7 @@
                     "data_path": "action_result.data.*.@odata.context",
                     "data_type": "string",
                     "example_values": [
-                        "https://graph.microsoft.com/v1.0/$metadata#users('abc%def.onmicrosoft.com')/mailFolders/$entity"
+                        "https://test.abc.com/v1.0/$metadata#users('abc%def.test.com')/mailFolders/$entity"
                     ],
                     "contains": [
                         "url"
@@ -5824,7 +6128,7 @@
                         "email"
                     ],
                     "example_values": [
-                        "test@testdomain.onmicrosoft.com"
+                        "test@testdomain.abc.com"
                     ]
                 },
                 {
