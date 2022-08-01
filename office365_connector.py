@@ -1756,7 +1756,8 @@ class Office365Connector(BaseConnector):
                     attachment['itemType'] = attachment.get('item', {}).get('@odata.type', '')
 
         if param.get('download_email'):
-            email_message = {'id': message_id, 'name': response.get('subject', 'email_message')}
+            subject = response.get('subject')
+            email_message = {'id': message_id, 'name': subject if subject else "email_message_{}".format(message_id)}
             if not self._handle_item_attachment(email_message, self.get_container_id(), '/users/{0}/messages'.format(email_addr), action_result):
                 return action_result.set_status(phantom.APP_ERROR, 'Could not download the email. See logs for details')
             response['vaultId'] = email_message['vaultId']
