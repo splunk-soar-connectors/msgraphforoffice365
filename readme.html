@@ -31,7 +31,7 @@ On the next page, select <b>New registration</b> and give your app a name.
 Once the app is created, follow the below-mentioned steps:
 <ul>
     <li>Under <b>Certificates & secrets</b> select <b>New client secret</b>. Enter the <b>Description</b> and select the desired duration in <b>Expires</b>. Click on <b>Add</b>. Note down this <b>value</b> somewhere secure, as it cannot be retrieved after closing the window.</li>
-    <li>Under <b>Authentication</b>, select <b>Add a platform</b>. In the <b>Add a platform</b> window, select <b>Web</b>. The <b>Redirect URLs</b> should be filled right here. We will get <b>Redirect URLs</b> from the Phantom asset we create below in the section titled <b>Phantom Graph Asset</b>.</li>
+    <li>Under <b>Authentication</b>, select <b>Add a platform</b>. In the <b>Add a platform</b> window, select <b>Web</b>. The <b>Redirect URLs</b> should be filled right here. We will get <b>Redirect URLs</b> from the Splunk SOAR asset we create below in the section titled <b>Splunk SOAR Graph Asset</b>.</li>
     <li>Under <b>API Permissions</b> Click on <b>Add a permission</b>.</li>
     <li>Under the <b>Microsoft API</b> section, select <b>Microsoft Graph</b>.</li>
     <li>Provide the following Application permissions to the app:</li>
@@ -42,18 +42,18 @@ Once the app is created, follow the below-mentioned steps:
             <ul><li>For non-admin access, use User.Read (Delegated permission) instead (https://graph.microsoft.com/User.Read)</li></ul>
         <li>Group.Read.All (https://graph.microsoft.com/Group.Read.All) - It is required only if you want to run the <b>list events</b> action for the group's calendar and for the <b>list groups</b> and the <b>list group members</b> action.</li>
         <li>Calendar.Read (https://graph.microsoft.com/Calendars.Read) - It is required only if you want to run the <b>list events</b> action for the user's calendar.</li>
-        <li>Calendars.ReadWrite (https://graph.microsoft.com/Calendars.ReadWrite) - It is required only if you want to run the <b>delete event</b> action for the user's calendar.</li></li>
+        <li>Calendars.ReadWrite (https://graph.microsoft.com/Calendars.ReadWrite) - It is required only if you want to run the <b>delete event</b> action from the user's calendar.</li></li>
         <li>MailboxSettings.Read (https://graph.microsoft.com/MailboxSettings.Read) - It is required only if you want to run the <b>oof status</b> action.</li>
     </ul>
 </ul>
 After making these changes, click <b>Add permissions</b>, then select <b>Grant admin consent for &lt;your_organization_name_as_on_azure_portal&gt;</b> at the bottom of the screen.
-<h2>Phantom Graph Asset</h2>
+<h2>Splunk SOAR Graph Asset</h2>
 When creating an asset for the <b>MS Graph for Office 365</b> app, place <b>Application ID</b> of the app created during the app registration on the Azure Portal in the <b>Application ID</b> field and place the client secret generated during the app registration process in the <b>Application Secret</b> field. Then, after filling out the <b>Tenant</b> field, click <b>SAVE</b>. Both the Application/Client ID and the Tenant ID can be found in the <b>Overview</b> tab on your app's Azure page.
 <br><br>
 After saving, a new field will appear in the <b>Asset Settings</b> tab. Take the URL found in the <b>POST incoming for MS Graph for Office 365 to this location</b> field and place it in the <b>Redirect URLs</b> field mentioned in the previous step. To this URL, add <b>/result</b>. After doing so the URL should look something like:
 <br><br>
 <p>
-https://&lt;phantom_host&gt;/rest/handler/msgraphforoffice365_0a0a4087-10e8-4c96-9872-b740ff26d8bb/&lt;asset_name&gt;/result
+https://&lt;splunk_soar_host&gt;/rest/handler/msgraphforoffice365_0a0a4087-10e8-4c96-9872-b740ff26d8bb/&lt;asset_name&gt;/result
 </p>
 <br>
 Once again, click SAVE at the bottom of the screen.
@@ -75,9 +75,9 @@ To complete the authorization process, this app needs permission to view assets,
 <ul>
   <li>Configure the asset with required details while keeping the <b>Admin Access Required</b> as checked.</li>
   <li>While configuring the asset for the first time, keep <b>Admin Consent Already Provided</b> as unchecked.</li>
-  <li>The <b>Redirect URLs</b> must be configured before executing test connectivity. To configure <b>Redirect URLs</b>, checkout the section titled <b>Phantom Graph Asset</b> above.</li>
+  <li>The <b>Redirect URLs</b> must be configured before executing test connectivity. To configure <b>Redirect URLs</b>, checkout the section titled <b>Splunk SOAR Graph Asset</b> above.</li>
   <li>After setting up the asset and user, click the <b>TEST CONNECTIVITY</b> button.</li>
-  <li>A window should pop up and display a URL. You will be asked to open the link in a new tab. Open the link in the same browser so that you are logged into Splunk Phantom for the redirect. If you wish to use a different browser, log in to the Splunk Phantom first, and then open the provided link. This new tab will redirect to the Microsoft login page.</li>
+  <li>A window should pop up and display a URL. You will be asked to open the link in a new tab. Open the link in the same browser so that you are logged into Splunk SOAR for the redirect. If you wish to use a different browser, log in to the Splunk SOAR first, and then open the provided link. This new tab will redirect to the Microsoft login page.</li>
   <li>Log in to the Microsoft account with the admin user.</li>
   <li>You will be prompted to agree to the permissions requested by the App.</li>
   <li>Review the requested permissions listed, then click <b>Accept</b>.</li>
@@ -90,9 +90,9 @@ To complete the authorization process, this app needs permission to view assets,
 <ul>
   <li>Configure the asset with required details while keeping the <b>Admin Access Required</b> as unchecked. <b>Admin Consent Already Provided</b> config parameter will be ignored in the non-admin workflow.</li>
   <li>Provide <b>Access Scope</b> parameter in the asset configuration. All the actions will get executed according to the scopes provided in the <b>Access Scope</b> config parameter.</li>
-  <li>The <b>Redirect URLs</b> must be configured before executing test connectivity. To configure <b>Redirect URLs</b>, checkout the section titled <b>Phantom Graph Asset</b> above.</li>
+  <li>The <b>Redirect URLs</b> must be configured before executing test connectivity. To configure <b>Redirect URLs</b>, checkout the section titled <b>Splunk SOAR Graph Asset</b> above.</li>
   <li>After setting up the asset and user, click the <b>TEST CONNECTIVITY</b> button.</li>
-  <li>A window should pop up and display a URL. You will be asked to open the link in a new tab. Open the link in the same browser so that you are logged into Splunk Phantom for the redirect. If you wish to use a different browser, log in to the Splunk Phantom first, and then open the provided link. This new tab will redirect to the Microsoft login page.</li>
+  <li>A window should pop up and display a URL. You will be asked to open the link in a new tab. Open the link in the same browser so that you are logged into Splunk SOAR for the redirect. If you wish to use a different browser, log in to the Splunk SOAR first, and then open the provided link. This new tab will redirect to the Microsoft login page.</li>
   <li>Log in to the Microsoft account.</li>
   <li>You will be prompted to agree to the permissions requested by the App.</li>
   <li>Review the requested permissions listed, then click <b>Accept</b>.</li>
@@ -145,8 +145,8 @@ The app should now be ready to be used.
     </ul>
     <h4>State file permissions</h4>
     <ul>
-      <li>File rights: rw-rw-r-- (664) (The phantom user should have read and write access for the state file)</li>
-      <li>File owner: Appropriate phantom user</li>
+      <li>File rights: rw-rw-r-- (664) (The Splunk SOAR user should have read and write access for the state file)</li>
+      <li>File owner: Appropriate Splunk SOAR user</li>
     </ul>
   </p>
 

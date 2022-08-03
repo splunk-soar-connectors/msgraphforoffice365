@@ -538,7 +538,7 @@ class Office365Connector(BaseConnector):
             return self._process_json_response(r, action_result)
 
         # Process an HTML response, Do this no matter what the api talks.
-        # There is a high chance of a PROXY in between phantom and the rest of
+        # There is a high chance of a PROXY in between Splunk SOAR and the rest of
         # world, in case of errors, PROXY's return HTML, this function parses
         # the error and adds it to the action_result.
         if 'html' in r.headers.get('Content-Type', ''):
@@ -596,7 +596,7 @@ class Office365Connector(BaseConnector):
 
     def _get_asset_name(self, action_result):
 
-        rest_endpoint = PHANTOM_ASSET_INFO_URL.format(url=self.get_phantom_base_url(), asset_id=self._asset_id)
+        rest_endpoint = SPLUNK_SOAR_ASSET_INFO_URL.format(url=self.get_phantom_base_url(), asset_id=self._asset_id)
 
         ret_val, resp_json = self._make_rest_call(action_result, rest_endpoint, False)
 
@@ -619,7 +619,7 @@ class Office365Connector(BaseConnector):
         :param container: container's payload to update
         :return: status phantom.APP_ERROR/phantom.APP_SUCCESS with status message
         """
-        rest_endpoint = PHANTOM_CONTAINER_INFO_URL.format(url=self.get_phantom_base_url(), container_id=container_id)
+        rest_endpoint = SPLUNK_SOAR_CONTAINER_INFO_URL.format(url=self.get_phantom_base_url(), container_id=container_id)
 
         try:
             data = json.dumps(container)
@@ -640,7 +640,7 @@ class Office365Connector(BaseConnector):
 
     def _get_phantom_base_url(self, action_result):
 
-        ret_val, resp_json = self._make_rest_call(action_result, PHANTOM_SYS_INFO_URL.format(url=self.get_phantom_base_url()), False)
+        ret_val, resp_json = self._make_rest_call(action_result, SPLUNK_SOAR_SYS_INFO_URL.format(url=self.get_phantom_base_url()), False)
 
         if phantom.is_fail(ret_val):
             return (ret_val, None)
@@ -649,7 +649,7 @@ class Office365Connector(BaseConnector):
 
         if not phantom_base_url:
             return (action_result.set_status(phantom.APP_ERROR,
-                                         "Phantom Base URL not found in System Settings. Please specify this value in System Settings"), None)
+                    "Splunk SOAR Base URL not found in System Settings. Please specify this value in System Settings"), None)
 
         return (phantom.APP_SUCCESS, phantom_base_url)
 
@@ -658,7 +658,7 @@ class Office365Connector(BaseConnector):
         if not action_result:
             action_result = ActionResult()
 
-        # get the phantom ip to redirect to
+        # get the Splunk SOAR ip to redirect to
         ret_val, phantom_base_url = self._get_phantom_base_url(action_result)
 
         if phantom.is_fail(ret_val):
@@ -670,7 +670,7 @@ class Office365Connector(BaseConnector):
         if phantom.is_fail(ret_val):
             return (action_result.get_status(), None)
 
-        self.save_progress('Using Phantom base URL as: {0}'.format(phantom_base_url))
+        self.save_progress('Using Splunk SOAR base URL as: {0}'.format(phantom_base_url))
 
         app_json = self.get_app_json()
 
