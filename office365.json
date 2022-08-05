@@ -2866,7 +2866,7 @@
                     ],
                     "order": 1
                 },
-                "send_response": {
+                "send_decline_response": {
                     "description": "Send decline response to the organizer",
                     "data_type": "boolean",
                     "default": true,
@@ -2909,7 +2909,7 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.parameter.send_response",
+                    "data_path": "action_result.parameter.send_decline_response",
                     "data_type": "boolean",
                     "example_values": [
                         true,

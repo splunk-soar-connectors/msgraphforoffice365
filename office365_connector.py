@@ -1139,6 +1139,7 @@ class Office365Connector(BaseConnector):
         return phantom.APP_SUCCESS
 
     def _remove_tokens(self, action_result):
+        # checks whether the message includes any of the known error codes
         if len(list(filter(lambda x: x in action_result.get_message(), MSGOFFICE365_ASSET_PARAM_CHECK_LIST_ERRORS))) > 0:
             if not self._admin_access:
                 if self._state.get('non_admin_auth', {}).get('access_token'):
@@ -1380,13 +1381,11 @@ class Office365Connector(BaseConnector):
 
         email_addr = param['email_address']
         message_id = param['id']
-        send_response = param.get('send_response')
-        endpoint = "/users/{0}".format(email_addr)
-
-        endpoint += '/events/{0}'.format(message_id)
+        send_decline_response = param.get('send_decline_response')
+        endpoint = "/users/{0}/events/{1}".format(email_addr, message_id)
         method = "delete"
         data = None
-        if send_response:
+        if send_decline_response:
             method = "post"
             endpoint += '/decline'
             data = json.dumps({'sendResponse': True})
