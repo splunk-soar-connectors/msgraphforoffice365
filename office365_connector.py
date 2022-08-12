@@ -538,7 +538,7 @@ class Office365Connector(BaseConnector):
             return self._process_json_response(r, action_result)
 
         # Process an HTML response, Do this no matter what the api talks.
-        # There is a high chance of a PROXY in between phantom and the rest of
+        # There is a high chance of a PROXY in between Splunk SOAR and the rest of
         # world, in case of errors, PROXY's return HTML, this function parses
         # the error and adds it to the action_result.
         if 'html' in r.headers.get('Content-Type', ''):
@@ -569,17 +569,22 @@ class Office365Connector(BaseConnector):
         except AttributeError:
             return RetVal(action_result.set_status(phantom.APP_ERROR, "Invalid method: {0}".format(method)), resp_json)
 
-        try:
-            r = request_func(
-                url,
-                data=data,
-                headers=headers,
-                verify=verify,
-                params=params,
-                timeout=MSGOFFICE365_DEFAULT_REQUEST_TIMEOUT)
-        except Exception as e:
-            error_msg = _get_error_message_from_exception(e)
-            return RetVal(action_result.set_status(phantom.APP_ERROR, "Error connecting to server. {0}".format(error_msg)), resp_json)
+        for _ in range(self._number_of_retries):
+            try:
+                r = request_func(
+                                url,
+                                data=data,
+                                headers=headers,
+                                verify=verify,
+                                params=params,
+                                timeout=MSGOFFICE365_DEFAULT_REQUEST_TIMEOUT)
+            except Exception as e:
+                error_msg = _get_error_message_from_exception(e)
+                return RetVal(action_result.set_status(phantom.APP_ERROR, "Error connecting to server. {0}".format(error_msg)), resp_json)
+            if r.status_code != 502:
+                break
+            self.debug_print("Received 502 status code from the server")
+            time.sleep(self._retry_wait_time)
 
         if download:
             if 200 <= r.status_code < 399:
@@ -591,7 +596,7 @@ class Office365Connector(BaseConnector):
 
     def _get_asset_name(self, action_result):
 
-        rest_endpoint = PHANTOM_ASSET_INFO_URL.format(url=self.get_phantom_base_url(), asset_id=self._asset_id)
+        rest_endpoint = SPLUNK_SOAR_ASSET_INFO_URL.format(url=self.get_phantom_base_url(), asset_id=self._asset_id)
 
         ret_val, resp_json = self._make_rest_call(action_result, rest_endpoint, False)
 
@@ -614,7 +619,7 @@ class Office365Connector(BaseConnector):
         :param container: container's payload to update
         :return: status phantom.APP_ERROR/phantom.APP_SUCCESS with status message
         """
-        rest_endpoint = PHANTOM_CONTAINER_INFO_URL.format(url=self.get_phantom_base_url(), container_id=container_id)
+        rest_endpoint = SPLUNK_SOAR_CONTAINER_INFO_URL.format(url=self.get_phantom_base_url(), container_id=container_id)
 
         try:
             data = json.dumps(container)
@@ -635,7 +640,7 @@ class Office365Connector(BaseConnector):
 
     def _get_phantom_base_url(self, action_result):
 
-        ret_val, resp_json = self._make_rest_call(action_result, PHANTOM_SYS_INFO_URL.format(url=self.get_phantom_base_url()), False)
+        ret_val, resp_json = self._make_rest_call(action_result, SPLUNK_SOAR_SYS_INFO_URL.format(url=self.get_phantom_base_url()), False)
 
         if phantom.is_fail(ret_val):
             return (ret_val, None)
@@ -644,7 +649,7 @@ class Office365Connector(BaseConnector):
 
         if not phantom_base_url:
             return (action_result.set_status(phantom.APP_ERROR,
-                                         "Phantom Base URL not found in System Settings. Please specify this value in System Settings"), None)
+                    "Splunk SOAR Base URL not found in System Settings. Please specify this value in System Settings"), None)
 
         return (phantom.APP_SUCCESS, phantom_base_url)
 
@@ -653,7 +658,7 @@ class Office365Connector(BaseConnector):
         if not action_result:
             action_result = ActionResult()
 
-        # get the phantom ip to redirect to
+        # get the Splunk SOAR ip to redirect to
         ret_val, phantom_base_url = self._get_phantom_base_url(action_result)
 
         if phantom.is_fail(ret_val):
@@ -665,7 +670,7 @@ class Office365Connector(BaseConnector):
         if phantom.is_fail(ret_val):
             return (action_result.get_status(), None)
 
-        self.save_progress('Using Phantom base URL as: {0}'.format(phantom_base_url))
+        self.save_progress('Using Splunk SOAR base URL as: {0}'.format(phantom_base_url))
 
         app_json = self.get_app_json()
 
@@ -699,7 +704,8 @@ class Office365Connector(BaseConnector):
         msg = action_result.get_message()
 
         if msg and 'token is invalid' in msg or ('Access token has expired' in
-                                                 msg) or ('ExpiredAuthenticationToken' in msg) or ('AuthenticationFailed' in msg):
+                msg) or ('ExpiredAuthenticationToken' in msg) or ('AuthenticationFailed' in msg) or ('TokenExpired' in
+                    msg) or ('InvalidAuthenticationToken' in msg):
 
             self.debug_print("Token is invalid/expired. Hence, generating a new token.")
             ret_val = self._get_token(action_result)
@@ -1132,6 +1138,18 @@ class Office365Connector(BaseConnector):
 
         return phantom.APP_SUCCESS
 
+    def _remove_tokens(self, action_result):
+        # checks whether the message includes any of the known error codes
+        if len(list(filter(lambda x: x in action_result.get_message(), MSGOFFICE365_ASSET_PARAM_CHECK_LIST_ERRORS))) > 0:
+            if not self._admin_access:
+                if self._state.get('non_admin_auth', {}).get('access_token'):
+                    self._state['non_admin_auth'].pop('access_token')
+                if self._state.get('non_admin_auth', {}).get('refresh_token'):
+                    self._state['non_admin_auth'].pop('refresh_token')
+            else:
+                if self._state.get('admin_auth', {}).get('access_token'):
+                    self._state['admin_auth'].pop('access_token')
+
     def _handle_test_connectivity(self, param):
         """ Function that handles the test connectivity action, it is much simpler than other action handlers."""
 
@@ -1242,6 +1260,7 @@ class Office365Connector(BaseConnector):
         ret_val = self._get_token(action_result)
 
         if phantom.is_fail(ret_val):
+            self._remove_tokens(action_result)
             return action_result.get_status()
 
         params = {'$top': '1'}
@@ -1354,6 +1373,28 @@ class Office365Connector(BaseConnector):
             return action_result.get_status()
 
         return action_result.set_status(phantom.APP_SUCCESS, "Successfully deleted email")
+
+    def _handle_delete_event(self, param):
+
+        self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
+        action_result = self.add_action_result(ActionResult(dict(param)))
+
+        email_addr = param['email_address']
+        message_id = param['id']
+        send_decline_response = param.get('send_decline_response')
+        endpoint = "/users/{0}/events/{1}".format(email_addr, message_id)
+        method = "delete"
+        data = None
+        if send_decline_response:
+            method = "post"
+            endpoint += '/decline'
+            data = json.dumps({'sendResponse': True})
+
+        ret_val, _ = self._make_rest_call_helper(action_result, endpoint, method=method, data=data)
+        if phantom.is_fail(ret_val):
+            return action_result.get_status()
+
+        return action_result.set_status(phantom.APP_SUCCESS, "Successfully deleted event")
 
     def _handle_oof_check(self, param):
         self.save_progress('In action handler for: {0}'.format(self.get_action_identifier()))
@@ -1671,10 +1712,10 @@ class Office365Connector(BaseConnector):
             response['internetMessageHeaders'] = header_response.get('internetMessageHeaders')
 
         if param.get('download_attachments', False) and response.get('hasAttachments'):
-
             endpoint += '/attachments'
             attachment_endpoint = '{}?$expand=microsoft.graph.itemattachment/item'.format(endpoint)
             ret_val, attach_resp = self._make_rest_call_helper(action_result, attachment_endpoint)
+
             if phantom.is_fail(ret_val):
                 return action_result.get_status()
 
@@ -1689,6 +1730,16 @@ class Office365Connector(BaseConnector):
 
             response['attachments'] = attach_resp['value']
 
+        if response.get('@odata.type') in ["#microsoft.graph.eventMessage", "#microsoft.graph.eventMessageRequest",
+                "#microsoft.graph.eventMessageResponse"]:
+
+            event_endpoint = '{}/?$expand=Microsoft.Graph.EventMessage/Event'.format(endpoint)
+            ret_val, event_resp = self._make_rest_call_helper(action_result, event_endpoint)
+            if phantom.is_fail(ret_val):
+                return action_result.get_status()
+
+            response['event'] = event_resp['event']
+
         if 'internetMessageHeaders' in response:
             response['internetMessageHeaders'] = self._flatten_headers(response['internetMessageHeaders'])
 
@@ -1702,6 +1753,13 @@ class Office365Connector(BaseConnector):
                 attachment['attachmentType'] = attachment_type
                 if attachment_type == '#microsoft.graph.itemAttachment':
                     attachment['itemType'] = attachment.get('item', {}).get('@odata.type', '')
+
+        if param.get('download_email'):
+            subject = response.get('subject')
+            email_message = {'id': message_id, 'name': subject if subject else "email_message_{}".format(message_id)}
+            if not self._handle_item_attachment(email_message, self.get_container_id(), '/users/{0}/messages'.format(email_addr), action_result):
+                return action_result.set_status(phantom.APP_ERROR, 'Could not download the email. See logs for details')
+            response['vaultId'] = email_message['vaultId']
 
         action_result.add_data(response)
 
@@ -2348,6 +2406,9 @@ class Office365Connector(BaseConnector):
         elif action_id == 'delete_email':
             ret_val = self._handle_delete_email(param)
 
+        elif action_id == 'delete_event':
+            ret_val = self._handle_delete_event(param)
+
         elif action_id == 'get_email':
             ret_val = self._handle_get_email(param)
 
@@ -2491,6 +2552,18 @@ class Office365Connector(BaseConnector):
         self._admin_consent = config.get('admin_consent')
         self._scope = config.get('scope') if config.get('scope') else None
 
+        self._number_of_retries = config.get("retry_count", MSGOFFICE365_DEFAULT_NUMBER_OF_RETRIES)
+        ret_val, self._number_of_retries = _validate_integer(self, self._number_of_retries,
+                "'Maximum attempts to retry the API call' asset configuration")
+        if phantom.is_fail(ret_val):
+            return self.get_status()
+
+        self._retry_wait_time = config.get("retry_wait_time", MSGOFFICE365_DEFAULT_RETRY_WAIT_TIME)
+        ret_val, self._retry_wait_time = _validate_integer(self, self._retry_wait_time,
+                "'Delay in seconds between retries' asset configuration")
+        if phantom.is_fail(ret_val):
+            return self.get_status()
+
         if not self._admin_access:
             if not self._scope:
                 return self.set_status(phantom.APP_ERROR, "Please provide scope for non-admin access in the asset configuration")
@@ -2511,9 +2584,6 @@ class Office365Connector(BaseConnector):
         if self._admin_access:
             if not admin_consent and action_id != 'test_connectivity':
                 return self.set_status(phantom.APP_ERROR, MSGOFFICE365_RUN_CONNECTIVITY_MSG)
-
-            if not self._access_token:
-                return self.set_status(phantom.APP_ERROR, MSGOFFICE365_UNEXPECTED_ACCESS_TOKEN_ERR)
 
         if not self._admin_access and action_id != 'test_connectivity' and (not self._access_token or not self._refresh_token):
             ret_val = self._get_token(action_result)
