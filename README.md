@@ -2,11 +2,11 @@
 # MS Graph for Office 365
 
 Publisher: Splunk  
-Connector Version: 2\.6\.0  
+Connector Version: 2\.7\.0  
 Product Vendor: Microsoft  
 Product Name: Office 365 \(MS Graph\)  
 Product Version Supported (regex): "\.\*"  
-Minimum Product Version: 5\.2\.0  
+Minimum Product Version: 5\.3\.0  
 
 This app connects to Office 365 using the MS Graph API to support investigate and generic actions related to the email messages and calendar events
 
@@ -47,7 +47,7 @@ Once the app is created, follow the below-mentioned steps:
 
 -   Under **Authentication** , select **Add a platform** . In the **Add a platform** window, select
     **Web** . The **Redirect URLs** should be filled right here. We will get **Redirect URLs** from
-    the Phantom asset we create below in the section titled **Phantom Graph Asset** .
+    the Splunk SOAR asset we create below in the section titled **Splunk SOAR Graph Asset** .
 
 -   Under **API Permissions** Click on **Add a permission** .
 
@@ -75,13 +75,16 @@ Once the app is created, follow the below-mentioned steps:
     -   Calendar.Read (https://graph.microsoft.com/Calendars.Read) - It is required only if you want
         to run the **list events** action for the user's calendar.
 
+    -   Calendars.ReadWrite (https://graph.microsoft.com/Calendars.ReadWrite) - It is required only
+        if you want to run the **delete event** action from the user's calendar.
+
     -   MailboxSettings.Read (https://graph.microsoft.com/MailboxSettings.Read) - It is required
         only if you want to run the **oof status** action.
 
 After making these changes, click **Add permissions** , then select **Grant admin consent for
 \<your_organization_name_as_on_azure_portal>** at the bottom of the screen.
 
-## Phantom Graph Asset
+## Splunk SOAR Graph Asset
 
 When creating an asset for the **MS Graph for Office 365** app, place **Application ID** of the app
 created during the app registration on the Azure Portal in the **Application ID** field and place
@@ -95,7 +98,7 @@ URLs** field mentioned in the previous step. To this URL, add **/result** . Afte
 should look something like:  
   
 
-https://\<phantom_host>/rest/handler/msgraphforoffice365_0a0a4087-10e8-4c96-9872-b740ff26d8bb/\<asset_name>/result
+https://\<splunk_soar_host>/rest/handler/msgraphforoffice365_0a0a4087-10e8-4c96-9872-b740ff26d8bb/\<asset_name>/result
 
   
 Once again, click SAVE at the bottom of the screen.  
@@ -130,11 +133,11 @@ the window. To give this user permission to view assets, follow these steps:
 -   While configuring the asset for the first time, keep **Admin Consent Already Provided** as
     unchecked.
 -   The **Redirect URLs** must be configured before executing test connectivity. To configure
-    **Redirect URLs** , checkout the section titled **Phantom Graph Asset** above.
+    **Redirect URLs** , checkout the section titled **Splunk SOAR Graph Asset** above.
 -   After setting up the asset and user, click the **TEST CONNECTIVITY** button.
 -   A window should pop up and display a URL. You will be asked to open the link in a new tab. Open
-    the link in the same browser so that you are logged into Splunk Phantom for the redirect. If you
-    wish to use a different browser, log in to the Splunk Phantom first, and then open the provided
+    the link in the same browser so that you are logged into Splunk SOAR for the redirect. If you
+    wish to use a different browser, log in to the Splunk SOAR first, and then open the provided
     link. This new tab will redirect to the Microsoft login page.
 -   Log in to the Microsoft account with the admin user.
 -   You will be prompted to agree to the permissions requested by the App.
@@ -154,11 +157,11 @@ the window. To give this user permission to view assets, follow these steps:
 -   Provide **Access Scope** parameter in the asset configuration. All the actions will get executed
     according to the scopes provided in the **Access Scope** config parameter.
 -   The **Redirect URLs** must be configured before executing test connectivity. To configure
-    **Redirect URLs** , checkout the section titled **Phantom Graph Asset** above.
+    **Redirect URLs** , checkout the section titled **Splunk SOAR Graph Asset** above.
 -   After setting up the asset and user, click the **TEST CONNECTIVITY** button.
 -   A window should pop up and display a URL. You will be asked to open the link in a new tab. Open
-    the link in the same browser so that you are logged into Splunk Phantom for the redirect. If you
-    wish to use a different browser, log in to the Splunk Phantom first, and then open the provided
+    the link in the same browser so that you are logged into Splunk SOAR for the redirect. If you
+    wish to use a different browser, log in to the Splunk SOAR first, and then open the provided
     link. This new tab will redirect to the Microsoft login page.
 -   Log in to the Microsoft account.
 -   You will be prompted to agree to the permissions requested by the App.
@@ -226,9 +229,9 @@ Please check the permissions for the state file as mentioned below.
 
 #### State file permissions
 
--   File rights: rw-rw-r-- (664) (The phantom user should have read and write access for the state
-    file)
--   File owner: Appropriate phantom user
+-   File rights: rw-rw-r-- (664) (The Splunk SOAR user should have read and write access for the
+    state file)
+-   File owner: Appropriate Splunk SOAR user
 
 ### Note
 
@@ -285,8 +288,8 @@ VARIABLE | REQUIRED | TYPE | DESCRIPTION
 **admin\_consent** |  optional  | boolean | Admin Consent Already Provided
 **scope** |  optional  | string | Access Scope \(for use with non\-admin access; space\-separated\)
 **ph\_2** |  optional  | ph | 
-**email\_address** |  optional  | string | User Email Mailbox \(On Poll\)
-**folder** |  optional  | string | Mailbox folder name/folder path or the internal o365 folder ID to ingest \(On Poll\)
+**email\_address** |  optional  | string | Email Address of the User \(On Poll\)
+**folder** |  optional  | string | Mailbox folder name/folder path or the internal office365 folder ID to ingest \(On Poll\)
 **get\_folder\_id** |  optional  | boolean | Retrieve the folder ID for the provided folder name/folder path automatically and replace the folder parameter value \(On Poll\)
 **ph\_3** |  optional  | ph | 
 **first\_run\_max\_emails** |  optional  | numeric | Maximum Containers for scheduled polling first time
@@ -298,6 +301,8 @@ VARIABLE | REQUIRED | TYPE | DESCRIPTION
 **extract\_hashes** |  optional  | boolean | Extract Hashes
 **ingest\_eml** |  optional  | boolean | Ingest EML file for the itemAttachment
 **ingest\_manner** |  optional  | string | How to Ingest \(during ingestion, should the app get the latest emails or the oldest\)
+**retry\_count** |  optional  | numeric | Maximum attempts to retry the API call \(Default\: 3\)
+**retry\_wait\_time** |  optional  | numeric | Delay in seconds between retries \(Default\: 60\)
 
 ### Supported Actions  
 [test connectivity](#action-test-connectivity) - Use supplied credentials to generate a token with MS Graph  
@@ -311,6 +316,7 @@ VARIABLE | REQUIRED | TYPE | DESCRIPTION
 [copy email](#action-copy-email) - Copy an email to a folder  
 [move email](#action-move-email) - Move an email to a folder  
 [delete email](#action-delete-email) - Delete an email  
+[delete event](#action-delete-event) - Delete an event from user calendar  
 [get email](#action-get-email) - Get an email from the server  
 [get email properties](#action-get-email-properties) - Get non\-standard email properties from the server  
 [run query](#action-run-query) - Search emails  
@@ -423,7 +429,7 @@ action\_result\.data\.\*\.end\.timeZone | string |
 action\_result\.data\.\*\.hasAttachments | boolean | 
 action\_result\.data\.\*\.hideAttendees | boolean | 
 action\_result\.data\.\*\.iCalUId | string | 
-action\_result\.data\.\*\.id | string | 
+action\_result\.data\.\*\.id | string |  `msgoffice365 event id` 
 action\_result\.data\.\*\.importance | string | 
 action\_result\.data\.\*\.isAllDay | boolean | 
 action\_result\.data\.\*\.isCancelled | boolean | 
@@ -590,17 +596,17 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 DATA PATH | TYPE | CONTAINS
 --------- | ---- | --------
 action\_result\.status | string | 
-action\_result\.parameter\.group\_id | string |  `msgoffice365 group id` 
-action\_result\.parameter\.get\_transitive\_members | boolean | 
 action\_result\.parameter\.filter | string | 
+action\_result\.parameter\.get\_transitive\_members | boolean | 
+action\_result\.parameter\.group\_id | string |  `msgoffice365 group id` 
 action\_result\.parameter\.limit | numeric | 
+action\_result\.data\.\*\.\@odata\.type | string | 
 action\_result\.data\.\*\.businessPhones | string | 
 action\_result\.data\.\*\.displayName | string | 
 action\_result\.data\.\*\.givenName | string | 
 action\_result\.data\.\*\.id | string |  `msgoffice365 user id` 
 action\_result\.data\.\*\.jobTitle | string | 
 action\_result\.data\.\*\.mail | string |  `email` 
-action\_result\.data\.\*\.\@odata\.type | string | 
 action\_result\.data\.\*\.mobilePhone | string | 
 action\_result\.data\.\*\.officeLocation | string | 
 action\_result\.data\.\*\.preferredLanguage | string | 
@@ -802,6 +808,32 @@ action\_result\.message | string |
 summary\.total\_objects | numeric | 
 summary\.total\_objects\_successful | numeric |   
 
+## action: 'delete event'
+Delete an event from user calendar
+
+Type: **generic**  
+Read only: **False**
+
+#### Action Parameters
+PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
+--------- | -------- | ----------- | ---- | --------
+**id** |  required  | Event ID to delete | string |  `msgoffice365 event id` 
+**email\_address** |  required  | Email address of the mailbox owner | string |  `email` 
+**send\_decline\_response** |  optional  | Send decline response to the organizer | boolean | 
+
+#### Action Output
+DATA PATH | TYPE | CONTAINS
+--------- | ---- | --------
+action\_result\.status | string | 
+action\_result\.parameter\.email\_address | string |  `email` 
+action\_result\.parameter\.id | string |  `msgoffice365 event id` 
+action\_result\.parameter\.send\_decline\_response | boolean | 
+action\_result\.data | string | 
+action\_result\.summary | string | 
+action\_result\.message | string | 
+summary\.total\_objects | numeric | 
+summary\.total\_objects\_successful | numeric |   
+
 ## action: 'get email'
 Get an email from the server
 
@@ -817,17 +849,21 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 **email\_address** |  required  | Email address of the mailbox owner | string |  `email` 
 **download\_attachments** |  optional  | Download attachments to vault | boolean | 
 **extract\_headers** |  optional  | Extract email headers | boolean | 
+**download\_email** |  optional  | Download email to vault | boolean | 
 
 #### Action Output
 DATA PATH | TYPE | CONTAINS
 --------- | ---- | --------
 action\_result\.status | string | 
 action\_result\.parameter\.download\_attachments | boolean | 
+action\_result\.parameter\.download\_email | boolean | 
 action\_result\.parameter\.email\_address | string |  `email` 
 action\_result\.parameter\.extract\_headers | boolean | 
 action\_result\.parameter\.id | string |  `msgoffice365 message id` 
 action\_result\.data\.\*\.\@odata\.context | string |  `url` 
 action\_result\.data\.\*\.\@odata\.etag | string | 
+action\_result\.data\.\*\.\@odata\.type | string | 
+action\_result\.data\.\*\.allowNewTimeProposals | string | 
 action\_result\.data\.\*\.attachments\.\*\.\@odata\.mediaContentType | string | 
 action\_result\.data\.\*\.attachments\.\*\.\@odata\.type | string | 
 action\_result\.data\.\*\.attachments\.\*\.attachmentType | string | 
@@ -840,7 +876,7 @@ action\_result\.data\.\*\.attachments\.\*\.itemType | string |
 action\_result\.data\.\*\.attachments\.\*\.lastModifiedDateTime | string | 
 action\_result\.data\.\*\.attachments\.\*\.name | string | 
 action\_result\.data\.\*\.attachments\.\*\.size | numeric | 
-action\_result\.data\.\*\.attachments\.\*\.vaultId | string |  `sha1` 
+action\_result\.data\.\*\.attachments\.\*\.vaultId | string |  `sha1`  `vault id` 
 action\_result\.data\.\*\.bccRecipients\.email | string |  `email` 
 action\_result\.data\.\*\.bccRecipients\.name | string | 
 action\_result\.data\.\*\.body\.content | string | 
@@ -853,6 +889,61 @@ action\_result\.data\.\*\.changeKey | string |
 action\_result\.data\.\*\.conversationId | string | 
 action\_result\.data\.\*\.conversationIndex | string | 
 action\_result\.data\.\*\.createdDateTime | string | 
+action\_result\.data\.\*\.endDateTime\.dateTime | string | 
+action\_result\.data\.\*\.endDateTime\.timeZone | string | 
+action\_result\.data\.\*\.event\.\@odata\.etag | string | 
+action\_result\.data\.\*\.event\.allowNewTimeProposals | boolean | 
+action\_result\.data\.\*\.event\.attendees\.\*\.emailAddress\.address | string |  `email` 
+action\_result\.data\.\*\.event\.attendees\.\*\.emailAddress\.name | string | 
+action\_result\.data\.\*\.event\.attendees\.\*\.status\.response | string | 
+action\_result\.data\.\*\.event\.attendees\.\*\.status\.time | string | 
+action\_result\.data\.\*\.event\.attendees\.\*\.type | string | 
+action\_result\.data\.\*\.event\.body\.content | string | 
+action\_result\.data\.\*\.event\.body\.contentType | string | 
+action\_result\.data\.\*\.event\.bodyPreview | string | 
+action\_result\.data\.\*\.event\.calendar\@odata\.associationLink | string |  `url` 
+action\_result\.data\.\*\.event\.calendar\@odata\.navigationLink | string |  `url` 
+action\_result\.data\.\*\.event\.changeKey | string | 
+action\_result\.data\.\*\.event\.createdDateTime | string | 
+action\_result\.data\.\*\.event\.end\.dateTime | string | 
+action\_result\.data\.\*\.event\.end\.timeZone | string | 
+action\_result\.data\.\*\.event\.hasAttachments | boolean | 
+action\_result\.data\.\*\.event\.hideAttendees | boolean | 
+action\_result\.data\.\*\.event\.iCalUId | string | 
+action\_result\.data\.\*\.event\.id | string |  `msgoffice365 event id` 
+action\_result\.data\.\*\.event\.importance | string | 
+action\_result\.data\.\*\.event\.isAllDay | boolean | 
+action\_result\.data\.\*\.event\.isCancelled | boolean | 
+action\_result\.data\.\*\.event\.isDraft | boolean | 
+action\_result\.data\.\*\.event\.isOnlineMeeting | boolean | 
+action\_result\.data\.\*\.event\.isOrganizer | boolean | 
+action\_result\.data\.\*\.event\.isReminderOn | boolean | 
+action\_result\.data\.\*\.event\.lastModifiedDateTime | string | 
+action\_result\.data\.\*\.event\.location\.displayName | string | 
+action\_result\.data\.\*\.event\.location\.locationType | string | 
+action\_result\.data\.\*\.event\.location\.uniqueIdType | string | 
+action\_result\.data\.\*\.event\.occurrenceId | string | 
+action\_result\.data\.\*\.event\.onlineMeeting\.joinUrl | string |  `url` 
+action\_result\.data\.\*\.event\.onlineMeetingProvider | string | 
+action\_result\.data\.\*\.event\.onlineMeetingUrl | string | 
+action\_result\.data\.\*\.event\.organizer\.emailAddress\.address | string |  `email` 
+action\_result\.data\.\*\.event\.organizer\.emailAddress\.name | string | 
+action\_result\.data\.\*\.event\.originalEndTimeZone | string | 
+action\_result\.data\.\*\.event\.originalStartTimeZone | string | 
+action\_result\.data\.\*\.event\.recurrence | string | 
+action\_result\.data\.\*\.event\.reminderMinutesBeforeStart | numeric | 
+action\_result\.data\.\*\.event\.responseRequested | boolean | 
+action\_result\.data\.\*\.event\.responseStatus\.response | string | 
+action\_result\.data\.\*\.event\.responseStatus\.time | string | 
+action\_result\.data\.\*\.event\.sensitivity | string | 
+action\_result\.data\.\*\.event\.seriesMasterId | string | 
+action\_result\.data\.\*\.event\.showAs | string | 
+action\_result\.data\.\*\.event\.start\.dateTime | string | 
+action\_result\.data\.\*\.event\.start\.timeZone | string | 
+action\_result\.data\.\*\.event\.subject | string | 
+action\_result\.data\.\*\.event\.transactionId | string | 
+action\_result\.data\.\*\.event\.type | string | 
+action\_result\.data\.\*\.event\.webLink | string |  `url` 
 action\_result\.data\.\*\.flag\.flagStatus | string | 
 action\_result\.data\.\*\.from\.emailAddress\.address | string |  `email` 
 action\_result\.data\.\*\.from\.emailAddress\.name | string |  `email` 
@@ -860,8 +951,12 @@ action\_result\.data\.\*\.hasAttachments | boolean |
 action\_result\.data\.\*\.id | string |  `msgoffice365 message id` 
 action\_result\.data\.\*\.importance | string | 
 action\_result\.data\.\*\.inferenceClassification | string | 
+action\_result\.data\.\*\.internetMessageHeaders\.ARC\-Authentication\-Results | string | 
+action\_result\.data\.\*\.internetMessageHeaders\.ARC\-Message\-Signature | string | 
+action\_result\.data\.\*\.internetMessageHeaders\.ARC\-Seal | string | 
 action\_result\.data\.\*\.internetMessageHeaders\.Accept\-Language | string | 
 action\_result\.data\.\*\.internetMessageHeaders\.Authentication\-Results | string | 
+action\_result\.data\.\*\.internetMessageHeaders\.Authentication\-Results\-Original | string | 
 action\_result\.data\.\*\.internetMessageHeaders\.Content\-Language | string | 
 action\_result\.data\.\*\.internetMessageHeaders\.Content\-Transfer\-Encoding | string | 
 action\_result\.data\.\*\.internetMessageHeaders\.Content\-Type | string | 
@@ -882,10 +977,13 @@ action\_result\.data\.\*\.internetMessageHeaders\.To | string |
 action\_result\.data\.\*\.internetMessageHeaders\.X\-EOPAttributedMessage | string | 
 action\_result\.data\.\*\.internetMessageHeaders\.X\-EOPTenantAttributedMessage | string | 
 action\_result\.data\.\*\.internetMessageHeaders\.X\-Forefront\-Antispam\-Report | string | 
+action\_result\.data\.\*\.internetMessageHeaders\.X\-Forefront\-Antispam\-Report\-Untrusted | string | 
 action\_result\.data\.\*\.internetMessageHeaders\.X\-Gm\-Message\-State | string | 
 action\_result\.data\.\*\.internetMessageHeaders\.X\-Google\-DKIM\-Signature | string | 
 action\_result\.data\.\*\.internetMessageHeaders\.X\-Google\-Smtp\-Source | string | 
 action\_result\.data\.\*\.internetMessageHeaders\.X\-MS\-Exchange\-AntiSpam\-MessageData | string | 
+action\_result\.data\.\*\.internetMessageHeaders\.X\-MS\-Exchange\-AntiSpam\-MessageData\-Original\-0 | string | 
+action\_result\.data\.\*\.internetMessageHeaders\.X\-MS\-Exchange\-AntiSpam\-MessageData\-Original\-ChunkCount | string | 
 action\_result\.data\.\*\.internetMessageHeaders\.X\-MS\-Exchange\-CrossTenant\-AuthAs | string | 
 action\_result\.data\.\*\.internetMessageHeaders\.X\-MS\-Exchange\-CrossTenant\-AuthSource | string | 
 action\_result\.data\.\*\.internetMessageHeaders\.X\-MS\-Exchange\-CrossTenant\-FromEntityHeader | string | 
@@ -905,10 +1003,13 @@ action\_result\.data\.\*\.internetMessageHeaders\.X\-MS\-Exchange\-Organization\
 action\_result\.data\.\*\.internetMessageHeaders\.X\-MS\-Exchange\-Organization\-Network\-Message\-Id | string | 
 action\_result\.data\.\*\.internetMessageHeaders\.X\-MS\-Exchange\-Organization\-SCL | string | 
 action\_result\.data\.\*\.internetMessageHeaders\.X\-MS\-Exchange\-Processed\-By\-BccFoldering | string | 
+action\_result\.data\.\*\.internetMessageHeaders\.X\-MS\-Exchange\-Transport\-CrossTenantHeadersPromoted | string | 
 action\_result\.data\.\*\.internetMessageHeaders\.X\-MS\-Exchange\-Transport\-CrossTenantHeadersStamped | string | 
+action\_result\.data\.\*\.internetMessageHeaders\.X\-MS\-Exchange\-Transport\-CrossTenantHeadersStripped | string | 
 action\_result\.data\.\*\.internetMessageHeaders\.X\-MS\-Exchange\-Transport\-EndToEndLatency | string | 
 action\_result\.data\.\*\.internetMessageHeaders\.X\-MS\-Has\-Attach | string | 
 action\_result\.data\.\*\.internetMessageHeaders\.X\-MS\-Office365\-Filtering\-Correlation\-Id | string | 
+action\_result\.data\.\*\.internetMessageHeaders\.X\-MS\-Office365\-Filtering\-Correlation\-Id\-Prvs | string | 
 action\_result\.data\.\*\.internetMessageHeaders\.X\-MS\-Oob\-TLC\-OOBClassifiers | string | 
 action\_result\.data\.\*\.internetMessageHeaders\.X\-MS\-PublicTrafficType | string | 
 action\_result\.data\.\*\.internetMessageHeaders\.X\-MS\-TNEF\-Correlator | string | 
@@ -916,24 +1017,48 @@ action\_result\.data\.\*\.internetMessageHeaders\.X\-MS\-TrafficTypeDiagnostic |
 action\_result\.data\.\*\.internetMessageHeaders\.X\-Microsoft\-Antispam | string | 
 action\_result\.data\.\*\.internetMessageHeaders\.X\-Microsoft\-Antispam\-Mailbox\-Delivery | string | 
 action\_result\.data\.\*\.internetMessageHeaders\.X\-Microsoft\-Antispam\-Message\-Info | string | 
+action\_result\.data\.\*\.internetMessageHeaders\.X\-Microsoft\-Antispam\-Message\-Info\-Original | string | 
+action\_result\.data\.\*\.internetMessageHeaders\.X\-Microsoft\-Antispam\-Untrusted | string | 
 action\_result\.data\.\*\.internetMessageHeaders\.X\-Originating\-IP | string | 
 action\_result\.data\.\*\.internetMessageHeaders\.X\-Received | string | 
 action\_result\.data\.\*\.internetMessageHeaders\.subject | string | 
+action\_result\.data\.\*\.internetMessageHeaders\.x\-ms\-exchange\-antispam\-relay | string | 
+action\_result\.data\.\*\.internetMessageHeaders\.x\-ms\-exchange\-calendar\-series\-instance\-id | string | 
+action\_result\.data\.\*\.internetMessageHeaders\.x\-ms\-exchange\-senderadcheck | string | 
+action\_result\.data\.\*\.internetMessageHeaders\.x\-ms\-traffictypediagnostic | string | 
 action\_result\.data\.\*\.internetMessageId | string |  `msgoffice365 internet message id` 
+action\_result\.data\.\*\.isAllDay | boolean | 
+action\_result\.data\.\*\.isDelegated | boolean | 
 action\_result\.data\.\*\.isDeliveryReceiptRequested | boolean | 
 action\_result\.data\.\*\.isDraft | boolean | 
+action\_result\.data\.\*\.isOutOfDate | boolean | 
 action\_result\.data\.\*\.isRead | boolean | 
 action\_result\.data\.\*\.isReadReceiptRequested | boolean | 
 action\_result\.data\.\*\.lastModifiedDateTime | string | 
+action\_result\.data\.\*\.meetingMessageType | string | 
+action\_result\.data\.\*\.meetingRequestType | string | 
 action\_result\.data\.\*\.parentFolderId | string |  `msgoffice365 folder id` 
+action\_result\.data\.\*\.previousEndDateTime | string | 
+action\_result\.data\.\*\.previousLocation | string | 
+action\_result\.data\.\*\.previousStartDateTime | string | 
+action\_result\.data\.\*\.previousEndDateTime\.dateTime | string | 
+action\_result\.data\.\*\.previousEndDateTime\.timeZone | string | 
+action\_result\.data\.\*\.previousStartDateTime\.dateTime | string | 
+action\_result\.data\.\*\.previousStartDateTime\.timeZone | string | 
 action\_result\.data\.\*\.receivedDateTime | string | 
+action\_result\.data\.\*\.recurrence | string | 
 action\_result\.data\.\*\.replyTo | string | 
+action\_result\.data\.\*\.responseRequested | boolean | 
 action\_result\.data\.\*\.sender\.emailAddress\.address | string |  `email` 
 action\_result\.data\.\*\.sender\.emailAddress\.name | string |  `email` 
 action\_result\.data\.\*\.sentDateTime | string | 
+action\_result\.data\.\*\.startDateTime\.dateTime | string | 
+action\_result\.data\.\*\.startDateTime\.timeZone | string | 
 action\_result\.data\.\*\.subject | string |  `msgoffice365 subject` 
 action\_result\.data\.\*\.toRecipients\.\*\.emailAddress\.address | string |  `email` 
 action\_result\.data\.\*\.toRecipients\.\*\.emailAddress\.name | string | 
+action\_result\.data\.\*\.type | string | 
+action\_result\.data\.\*\.vaultId | string | 
 action\_result\.data\.\*\.webLink | string |  `url` 
 action\_result\.summary | string | 
 action\_result\.message | string | 
@@ -1143,6 +1268,7 @@ action\_result\.data\.\*\.subject | string |  `msgoffice365 subject`
 action\_result\.data\.\*\.toRecipients\.\*\.emailAddress\.address | string |  `email` 
 action\_result\.data\.\*\.toRecipients\.\*\.emailAddress\.name | string | 
 action\_result\.data\.\*\.type | string | 
+action\_result\.data\.\*\.vaultId | string |  `sha1`  `vault id` 
 action\_result\.data\.\*\.webLink | string |  `url` 
 action\_result\.summary\.emails\_matched | numeric | 
 action\_result\.message | string | 
