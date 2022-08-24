@@ -15,7 +15,7 @@
         }
     ],
     "license": "Copyright (c) 2017-2022 Splunk Inc.",
-    "app_version": "2.7.0",
+    "app_version": "2.7.1",
     "utctime_updated": "2022-02-04T01:20:46.000000Z",
     "package_name": "phantom_msgraphoffice365",
     "main_module": "office365_connector.py",
@@ -6264,7 +6264,7 @@
         "wheel": [
             {
                 "module": "Django",
-                "input_file": "wheels/py3/Django-3.2.13-py3-none-any.whl"
+                "input_file": "wheels/py3/Django-3.2.15-py3-none-any.whl"
             },
             {
                 "module": "asgiref",
@@ -6292,7 +6292,7 @@
             },
             {
                 "module": "pytz",
-                "input_file": "wheels/shared/pytz-2022.1-py2.py3-none-any.whl"
+                "input_file": "wheels/shared/pytz-2022.2.1-py2.py3-none-any.whl"
             },
             {
                 "module": "requests",
@@ -6312,7 +6312,7 @@
             },
             {
                 "module": "urllib3",
-                "input_file": "wheels/shared/urllib3-1.26.9-py2.py3-none-any.whl"
+                "input_file": "wheels/shared/urllib3-1.26.12-py2.py3-none-any.whl"
             }
         ]
     },
@@ -6320,7 +6320,7 @@
         "wheel": [
             {
                 "module": "Django",
-                "input_file": "wheels/py3/Django-3.2.13-py3-none-any.whl"
+                "input_file": "wheels/py3/Django-3.2.15-py3-none-any.whl"
             },
             {
                 "module": "asgiref",
@@ -6348,7 +6348,7 @@
             },
             {
                 "module": "pytz",
-                "input_file": "wheels/shared/pytz-2022.1-py2.py3-none-any.whl"
+                "input_file": "wheels/shared/pytz-2022.2.1-py2.py3-none-any.whl"
             },
             {
                 "module": "requests",
@@ -6364,7 +6364,7 @@
             },
             {
                 "module": "urllib3",
-                "input_file": "wheels/shared/urllib3-1.26.9-py2.py3-none-any.whl"
+                "input_file": "wheels/shared/urllib3-1.26.12-py2.py3-none-any.whl"
             }
         ]
     }
