@@ -6276,7 +6276,7 @@
             },
             {
                 "module": "certifi",
-                "input_file": "wheels/py3/certifi-2022.6.15-py3-none-any.whl"
+                "input_file": "wheels/py3/certifi-2022.9.14-py3-none-any.whl"
             },
             {
                 "module": "chardet",
@@ -6332,7 +6332,7 @@
             },
             {
                 "module": "certifi",
-                "input_file": "wheels/py3/certifi-2022.6.15-py3-none-any.whl"
+                "input_file": "wheels/py3/certifi-2022.9.14-py3-none-any.whl"
             },
             {
                 "module": "chardet",

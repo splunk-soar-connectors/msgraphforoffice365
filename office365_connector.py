@@ -416,6 +416,7 @@ class Office365Connector(BaseConnector):
         try:
             state = _decrypt_state(state, self._asset_id)
         except Exception as e:
+            self._dump_error_log(e)
             self.debug_print("{}: {}".format(MSGOFFICE365_DECRYPTION_ERR, str(e)))
             state = None
 
@@ -431,10 +432,14 @@ class Office365Connector(BaseConnector):
         try:
             state = _encrypt_state(state, self._asset_id)
         except Exception as e:
+            self._dump_error_log(e)
             self.debug_print("{}: {}".format(MSGOFFICE365_ENCRYPTION_ERR, str(e)))
             return phantom.APP_ERROR
 
         return super().save_state(state)
+
+    def _dump_error_log(self, error, message="Exception occurred."):
+        self.error_print(message, dump_object=error)
 
     def _process_empty_response(self, response, action_result):
 
@@ -580,6 +585,7 @@ class Office365Connector(BaseConnector):
                                 timeout=MSGOFFICE365_DEFAULT_REQUEST_TIMEOUT)
             except Exception as e:
                 error_msg = _get_error_message_from_exception(e)
+                self._dump_error_log(e)
                 return RetVal(action_result.set_status(phantom.APP_ERROR, "Error connecting to server. {0}".format(error_msg)), resp_json)
             if r.status_code != 502:
                 break
@@ -756,6 +762,7 @@ class Office365Connector(BaseConnector):
                 self.debug_print("No content found in the attachment. Hence, skipping the vault file creation.")
 
         except Exception as e:
+            self._dump_error_log(e)
             error_msg = _get_error_message_from_exception(e)
             self.debug_print("Error saving file to vault: {0}".format(error_msg))
             return phantom.APP_ERROR
@@ -804,6 +811,7 @@ class Office365Connector(BaseConnector):
 
         except Exception as e:
             error_msg = _get_error_message_from_exception(e)
+            self._dump_error_log(e)
             self.debug_print("Error saving file to vault: {0}".format(error_msg))
             return phantom.APP_ERROR
 
@@ -1053,6 +1061,7 @@ class Office365Connector(BaseConnector):
                         rfc822_email = UnicodeDammit(rfc822_email).unicode_markup
                     except Exception as e:
                         error_msg = _get_error_message_from_exception(e)
+                        self._dump_error_log(e)
                         self.debug_print("Unable to decode Email Mime Content. {0}".format(error_msg))
                         return action_result.set_status(phantom.APP_ERROR, "Unable to decode Email Mime Content")
 
@@ -1310,7 +1319,8 @@ class Office365Connector(BaseConnector):
         if param.get('get_folder_id', True):
             try:
                 dir_id, error, _ = self._get_folder_id(action_result, folder, email_addr)
-            except ReturnException:
+            except ReturnException as e:
+                self._dump_error_log(e)
                 return action_result.get_status()
 
             if dir_id:
@@ -1344,7 +1354,8 @@ class Office365Connector(BaseConnector):
             try:
                 dir_id, error, _ = self._get_folder_id(action_result, folder, email_addr)
 
-            except ReturnException:
+            except ReturnException as e:
+                self._dump_error_log(e)
                 return action_result.get_status()
 
             if dir_id:
@@ -1878,7 +1889,8 @@ class Office365Connector(BaseConnector):
             if config.get('get_folder_id', True):
                 try:
                     dir_id, error, _ = self._get_folder_id(action_result, folder, config.get('email_address'))
-                except ReturnException:
+                except ReturnException as e:
+                    self._dump_error_log(e)
                     return action_result.get_status()
                 if dir_id:
                     folder = dir_id
@@ -1931,6 +1943,7 @@ class Office365Connector(BaseConnector):
                 except Exception as e:
                     failed_email_ids += 1
                     error_msg = _get_error_message_from_exception(e)
+                    self._dump_error_log(e)
                     self.debug_print(f"Exception occurred while processing email ID: {email.get('id')}. {error_msg}")
 
             if failed_email_ids == total_emails:
@@ -2062,7 +2075,8 @@ class Office365Connector(BaseConnector):
             if param.get('get_folder_id', True):
                 try:
                     dir_id, error, _ = self._get_folder_id(action_result, folder, email_addr)
-                except ReturnException:
+                except ReturnException as e:
+                    self._dump_error_log(e)
                     return action_result.get_status()
                 if dir_id:
                     folder = dir_id
@@ -2122,6 +2136,7 @@ class Office365Connector(BaseConnector):
         try:
             dir_id = self._get_folder(action_result, path[0], email)
         except ReturnException as e:
+            self._dump_error_log(e)
             return None, "Error occurred while fetching folder {}. {}".format(path[0], e), None
 
         if not dir_id:
@@ -2139,7 +2154,8 @@ class Office365Connector(BaseConnector):
                     return None, "Error: child folder not found; {}".format(subpath), ret
 
                 ret.append({"path": subpath, "folder": subf, "folder_id": dir_id})
-        except ReturnException:
+        except ReturnException as e:
+            self._dump_error_log(e)
             return None, action_result.get_message(), None
 
         return dir_id, None, ret
@@ -2309,7 +2325,8 @@ class Office365Connector(BaseConnector):
                 dir_id = self._new_child_folder(action_result, final, parent_id, email, pathsofar)
                 action_result.add_data(self._currentdir)
 
-        except ReturnException:
+        except ReturnException as e:
+            self._dump_error_log(e)
             return action_result.get_status()
 
         action_result.update_summary({"folders created": len(action_result.get_data()), "folder": self._currentdir['id']})
@@ -2326,7 +2343,8 @@ class Office365Connector(BaseConnector):
         try:
             dir_id, error, ret = self._get_folder_id(action_result, folder, email)
 
-        except ReturnException:
+        except ReturnException as e:
+            self._dump_error_log(e)
             return action_result.get_status()
 
         if ret and len(ret) > 0:
