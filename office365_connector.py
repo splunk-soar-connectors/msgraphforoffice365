@@ -984,6 +984,10 @@ class Office365Connector(BaseConnector):
                 else:
                     sub_email = attachment.get('item', {})
 
+                if sub_email:
+                    sub_artifacts = self._create_email_artifacts(container_id, sub_email, attachment['id'])
+                    artifacts += sub_artifacts
+
                 # Use recursive approach to extract the reference attachment
                 item_attachments = sub_email.pop('attachments', [])
                 if item_attachments:
@@ -1003,7 +1007,8 @@ class Office365Connector(BaseConnector):
                         # Create ProcessEmail Object for email item attachment
                         process_email_obj = ProcessEmail(self, config)
                         process_email_obj._trigger_automation = False
-                        ret_val, message = process_email_obj.process_email(rfc822_email, attachment['id'], epoch=None, container_id=container_id)
+                        ret_val, message = process_email_obj.process_email(
+                            rfc822_email, attachment['id'], epoch=None, container_id=container_id, ingest_email=False)
                         if phantom.is_fail(ret_val):
                             self.debug_print("Error while processing the email content, for attachment id: {}".format(attachment['id']))
 

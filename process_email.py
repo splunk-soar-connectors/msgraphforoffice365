@@ -454,7 +454,7 @@ class ProcessEmail(object):
 
         return added_artifacts
 
-    def _create_artifacts(self, parsed_mail):
+    def _create_artifacts(self, parsed_mail, ingest_email=True):
 
         # get all the artifact data in their own list objects
         ips = [dict(t) for t in set([tuple(d.items()) for d in parsed_mail[PROC_EMAIL_JSON_IPS]])]
@@ -480,9 +480,9 @@ class ProcessEmail(object):
         added_artifacts = self._add_artifacts(domains, 'Domain Artifact', artifact_id, self._artifacts)
         artifact_id += added_artifacts
 
-        added_artifacts = self._add_email_header_artifacts(email_headers, artifact_id, self._artifacts)
-        email_headers = email_headers
-        artifact_id += added_artifacts
+        if ingest_email:
+            added_artifacts = self._add_email_header_artifacts(email_headers, artifact_id, self._artifacts)
+            artifact_id += added_artifacts
 
         return phantom.APP_SUCCESS
 
@@ -864,12 +864,11 @@ class ProcessEmail(object):
 
         return len(email_header_artifacts)
 
-    def _handle_mail_object(self, mail, email_id, rfc822_email, tmp_dir, start_time_epoch):
+    def _handle_mail_object(self, mail, email_id, rfc822_email, tmp_dir, start_time_epoch, ingest_email=True):
 
         self._parsed_mail = OrderedDict()
 
         # Create a tmp directory for this email, will extract all files here
-        tmp_dir = tmp_dir
         if not os.path.exists(tmp_dir):
             os.makedirs(tmp_dir)
 
@@ -969,7 +968,7 @@ class ProcessEmail(object):
         # Files
         self._attachments.extend(files)
 
-        self._create_artifacts(self._parsed_mail)
+        self._create_artifacts(self._parsed_mail, ingest_email=ingest_email)
 
         return phantom.APP_SUCCESS
 
@@ -989,7 +988,7 @@ class ProcessEmail(object):
             self._email_id_contains = ["msgoffice365 message id"]
         return
 
-    def _int_process_email(self, rfc822_email, email_id, start_time_epoch):
+    def _int_process_email(self, rfc822_email, email_id, start_time_epoch, ingest_email=True):
 
         mail = email.message_from_string(rfc822_email)
 
@@ -999,7 +998,7 @@ class ProcessEmail(object):
         self._tmp_dirs.append(tmp_dir)
 
         try:
-            ret_val = self._handle_mail_object(mail, email_id, rfc822_email, tmp_dir, start_time_epoch)
+            ret_val = self._handle_mail_object(mail, email_id, rfc822_email, tmp_dir, start_time_epoch, ingest_email=ingest_email)
         except Exception as e:
             message = "ErrorExp in self._handle_mail_object: {0}".format(e)
             self._debug_print(message)
@@ -1009,7 +1008,7 @@ class ProcessEmail(object):
 
         return (ret_val, "Email Parsed", results)
 
-    def process_email(self, rfc822_email, email_id, epoch, container_id=None, email_headers=None, attachments_data=None):
+    def process_email(self, rfc822_email, email_id, epoch, container_id=None, email_headers=None, attachments_data=None, ingest_email=True):
 
         if email_headers:
             for curr_header in email_headers:
@@ -1023,7 +1022,7 @@ class ProcessEmail(object):
         except Exception:
             pass
 
-        ret_val, message, results = self._int_process_email(rfc822_email, email_id, epoch)
+        ret_val, message, results = self._int_process_email(rfc822_email, email_id, epoch, ingest_email=ingest_email)
 
         if not ret_val:
             self._del_tmp_dirs()
