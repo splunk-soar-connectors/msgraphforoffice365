@@ -992,6 +992,8 @@ class Office365Connector(BaseConnector):
                 else:
                     sub_email = attachment.get('item', {})
 
+                self.debug_print(f"Saphira: Sub_email: {sub_email}")
+
                 if sub_email:
                     sub_artifacts = self._create_email_artifacts(container_id, sub_email, attachment['id'])
                     artifacts += sub_artifacts
@@ -1906,6 +1908,8 @@ class Office365Connector(BaseConnector):
             '$orderBy': 'lastModifiedDateTime {}'.format(order)
         }
 
+        params['$select'] = ','.join(MSGOFFICE365_SELECT_PARAMETER_LIST)
+
         if start_time:
             params['$filter'] = "lastModifiedDateTime ge {0}".format(start_time)
 
@@ -1928,6 +1932,8 @@ class Office365Connector(BaseConnector):
 
             failed_email_ids = 0
             total_emails = len(emails)
+
+            self.debug_print(f"Saphira: Emails: {emails}")
 
             self.save_progress(f"Total emails fetched: {total_emails}")
             if self.is_poll_now():

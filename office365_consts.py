@@ -63,3 +63,34 @@ MSGOFFICE365_NON_NEG_INT_MSG = "Please provide a valid non-negative integer valu
 MSGOFFICE365_ENCRYPTION_ERR = "Error occurred while encrypting the state file"
 MSGOFFICE365_DECRYPTION_ERR = "Error occurred while decrypting the state file"
 MSGOFFICE365_UNEXPECTED_ACCESS_TOKEN_ERR = "Found unexpected value of access token. Please run the test connectivity to generate a new token"
+MSGOFFICE365_SELECT_PARAMETER_LIST = [
+    "createdDateTime",
+    "lastModifiedDateTime",
+    "changeKey",
+    "categories",
+    "receivedDateTime",
+    "sentDateTime",
+    "hasAttachments",
+    "internetMessageId",
+    "subject",
+    "bodyPreview",
+    "importance",
+    "parentFolderId",
+    "conversationId",
+    "conversationIndex",
+    "isDeliveryReceiptRequested",
+    "isReadReceiptRequested",
+    "isRead",
+    "isDraft",
+    "webLink",
+    "inferenceClassification",
+    "body",
+    "sender",
+    "from",
+    "toRecipients",
+    "ccRecipients",
+    "bccRecipients",
+    "replyTo",
+    "flag",
+    "internetMessageHeaders"
+]

@@ -89,7 +89,8 @@ PROC_EMAIL_JSON_MSG_ID = "message_id"
 PROC_EMAIL_JSON_EMAIL_HEADERS = "email_headers"
 PROC_EMAIL_CONTENT_TYPE_MESSAGE = "message/rfc822"
 
-URI_REGEX = r"[Hh][Tt][Tt][Pp][Ss]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+#]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+"
+URI_REGEX = r'([Hh][Tt][Tt][Pp][Ss]?:\/\/)((?:[:@\.\-_0-9]|[^ -@\[-\`\{-\~\s]|' \
+    r'[\[\(][^\s\[\]\(\)]*[\]\)])+)((?:[\/\?]+(?:[^\[\(\{\)\]\}\s]|[\[\(][^\[\]\(\)]*[\]\)])*)*)[\/]?'
 EMAIL_REGEX = r"\b[A-Z0-9._%+-]+@+[A-Z0-9.-]+\.[A-Z]{2,}\b"
 EMAIL_REGEX2 = r'".*"@[A-Z0-9.-]+\.[A-Z]{2,}\b'
 HASH_REGEX = r"\b[0-9a-fA-F]{32}\b|\b[0-9a-fA-F]{40}\b|\b[0-9a-fA-F]{64}\b"
@@ -217,7 +218,7 @@ class ProcessEmail(object):
 
     def _clean_url(self, url):
 
-        url = url.strip('>),.]\r\n')
+        url = url.strip('\r\n')
 
         # Check before splicing, find returns -1 if not found
         # _and_ you will end up splicing on -1 (incorrectly)
@@ -226,8 +227,6 @@ class ProcessEmail(object):
 
         if '>' in url:
             url = url[:url.find('>')]
-
-        url = url.rstrip(']')
 
         return url.strip()
 
@@ -281,9 +280,7 @@ class ProcessEmail(object):
         uris.extend(uri_text)
 
         # Parse it as a text file
-        uris_from_text = re.findall(uri_regexc, file_data)
-        if uris_from_text:
-            uris_from_text = [self._clean_url(uri) for uri in uris_from_text]
+        uris_from_text = [self._clean_url(uri.group(0)) for uri in re.finditer(uri_regexc, file_data)]
         uris.extend(uris_from_text)
 
         # Get unique uris
