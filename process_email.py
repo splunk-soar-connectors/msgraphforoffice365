@@ -262,26 +262,30 @@ class ProcessEmail(object):
 
         uri_text = []
 
-        for link in links:
-            # work on the text part of the link, they might be http links different from the href
-            # and were either missed by the uri_regexc while parsing text or there was no text counterpart
-            # in the email
-            uri_text.append(self._clean_url(link.get_text()))
-            # it's html, so get all the urls
-            if not link['href'].startswith('mailto:'):
-                uris.append(link['href'])
+        if links or srcs:
+            for link in links:
+                # work on the text part of the link, they might be http links different from the href
+                # and were either missed by the uri_regexc while parsing text or there was no text counterpart
+                # in the email
+                uri_text.append(self._clean_url(link.get_text()))
+                # it's html, so get all the urls
+                if not link['href'].startswith('mailto:'):
+                    uris.append(link['href'])
 
-        for src in srcs:
-            uri_text.append(self._clean_url(src.get_text()))
-            # it's html, so get all the urls
-            uris.append(src['src'])
+            for src in srcs:
+                uri_text.append(self._clean_url(src.get_text()))
+                # it's html, so get all the urls
+                uris.append(src['src'])
 
-        uri_text = [uri for uri in uri_text if uri.startswith('http')]
-        uris.extend(uri_text)
+            if uri_text:
+                uri_text = [x for x in uri_text if x.startswith('http')]
+                if uri_text:
+                    uris.extend(uri_text)
 
-        # Parse it as a text file
-        uris_from_text = [self._clean_url(uri.group(0)) for uri in re.finditer(uri_regexc, file_data)]
-        uris.extend(uris_from_text)
+        else:
+            # Parse it as a text file
+            uris_from_text = [self._clean_url(uri.group(0)) for uri in re.finditer(uri_regexc, file_data)]
+            uris.extend(uris_from_text)
 
         # Get unique uris
         unique_uris = set(uris)

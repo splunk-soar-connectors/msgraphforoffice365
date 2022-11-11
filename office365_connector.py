@@ -1014,14 +1014,6 @@ class Office365Connector(BaseConnector):
                         self.debug_print("Error while downloading the email content, for attachment id: {}".format(attachment['id']))
 
                     if rfc822_email:
-                        # Create ProcessEmail Object for email item attachment
-                        process_email_obj = ProcessEmail(self, config)
-                        process_email_obj._trigger_automation = False
-                        ret_val, message = process_email_obj.process_email(
-                            rfc822_email, attachment['id'], epoch=None, container_id=container_id, ingest_email=False)
-                        if phantom.is_fail(ret_val):
-                            self.debug_print("Error while processing the email content, for attachment id: {}".format(attachment['id']))
-
                         if config.get('ingest_eml', False):
                             # Add eml file into the vault if ingest_email is checked
                             ret_val, vault_id = self._add_attachment_to_vault(attachment, container_id, rfc822_email)
@@ -1070,6 +1062,7 @@ class Office365Connector(BaseConnector):
                     # Create ProcessEmail Object for email file attachment
                     process_email_obj = ProcessEmail(self, config)
                     process_email_obj._trigger_automation = False
+                    self.save_progress("ABV PROCESS EMAIL")
                     ret_val, message = process_email_obj.process_email(rfc822_email, attachment['id'], epoch=None, container_id=container_id)
                     if phantom.is_fail(ret_val):
                         return action_result.set_status(phantom.APP_ERROR, message)
