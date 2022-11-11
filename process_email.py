@@ -36,7 +36,7 @@ from django.core.validators import URLValidator
 from phantom.vault import Vault
 from requests.structures import CaseInsensitiveDict
 
-from office365_consts import ERR_MSG_UNAVAILABLE
+from office365_consts import ERROR_MESSAGE_UNAVAILABLE
 
 _container_common = {
     "run_automation": False  # Don't run any playbooks, when this artifact is added
@@ -85,7 +85,7 @@ PROC_EMAIL_JSON_IPS = "ips"
 PROC_EMAIL_JSON_HASHES = "hashes"
 PROC_EMAIL_JSON_URLS = "urls"
 PROC_EMAIL_JSON_DOMAINS = "domains"
-PROC_EMAIL_JSON_MSG_ID = "message_id"
+PROC_EMAIL_JSON_MESSAGE_ID = "message_id"
 PROC_EMAIL_JSON_EMAIL_HEADERS = "email_headers"
 PROC_EMAIL_CONTENT_TYPE_MESSAGE = "message/rfc822"
 
@@ -127,22 +127,22 @@ def _get_error_message_from_exception(e):
     """
 
     error_code = None
-    error_msg = ERR_MSG_UNAVAILABLE
+    error_message = ERROR_MESSAGE_UNAVAILABLE
 
     try:
         if hasattr(e, "args"):
             if len(e.args) > 1:
                 error_code = e.args[0]
-                error_msg = e.args[1]
+                error_message = e.args[1]
             elif len(e.args) == 1:
-                error_msg = e.args[0]
+                error_message = e.args[0]
     except Exception:
         pass
 
     if not error_code:
-        error_text = "Error Message: {}".format(error_msg)
+        error_text = "Error Message: {}".format(error_message)
     else:
-        error_text = "Error Code: {}. Error Message: {}".format(error_code, error_msg)
+        error_text = "Error Code: {}. Error Message: {}".format(error_code, error_message)
 
     return error_text
 
@@ -251,8 +251,8 @@ class ProcessEmail(object):
             file_data = unescape(file_data)
             soup = BeautifulSoup(file_data, "html.parser")
         except Exception as e:
-            error_msg = _get_error_message_from_exception(e)
-            self._debug_print("Error occurred while parsing email data. {0}".format(error_msg))
+            error_message = _get_error_message_from_exception(e)
+            self._debug_print("Error occurred while parsing email data. {0}".format(error_message))
             return
 
         uris = []
@@ -503,8 +503,8 @@ class ProcessEmail(object):
             decoded_strings = [decode_header(x)[0] for x in encoded_strings]
             decoded_strings = [{'value': x[0], 'encoding': x[1]} for x in decoded_strings]
         except Exception as e:
-            error_msg = _get_error_message_from_exception(e)
-            self._debug_print("Decoding: {0}. {1}".format(encoded_strings, error_msg))
+            error_message = _get_error_message_from_exception(e)
+            self._debug_print("Decoding: {0}. {1}".format(encoded_strings, error_message))
             return def_name
 
         # convert to dict for safe access, if it's an empty list, the dict will be empty
@@ -664,8 +664,8 @@ class ProcessEmail(object):
                 f.write(part_payload)
             files.append({'file_name': file_name, 'file_path': file_path, 'meta_info': attach_meta_info})
         except IOError as ioerr:
-            error_msg = _get_error_message_from_exception(ioerr)
-            if "File name too long" in error_msg:
+            error_message = _get_error_message_from_exception(ioerr)
+            if "File name too long" in error_message:
                 self.write_with_new_filename(part_payload, files, file_name, as_byte=False)
             else:
                 self._debug_print('Failed to write file: {}'.format(ioerr))
@@ -772,18 +772,18 @@ class ProcessEmail(object):
         try:
             [headers.update({x[0]: self._get_string(x[1], charset)}) for x in email_headers]
         except Exception as e:
-            error_msg = _get_error_message_from_exception(e)
+            error_message = _get_error_message_from_exception(e)
             err = "Error occurred while converting the header tuple into a dictionary"
-            self._debug_print("{}. {}".format(err, error_msg))
+            self._debug_print("{}. {}".format(err, error_message))
 
         # Handle received seperately
         received_headers = list()
         try:
             received_headers = [self._get_string(x[1], charset) for x in email_headers if x[0].lower() == 'received']
         except Exception as e:
-            error_msg = _get_error_message_from_exception(e)
+            error_message = _get_error_message_from_exception(e)
             err = "Error occurred while handling the received header tuple separately"
-            self._debug_print("{}. {}".format(err, error_msg))
+            self._debug_print("{}. {}".format(err, error_message))
 
         if received_headers:
             headers['Received'] = received_headers
@@ -885,7 +885,7 @@ class ProcessEmail(object):
         self._parsed_mail[PROC_EMAIL_JSON_FROM] = mail.get('From', '')
         self._parsed_mail[PROC_EMAIL_JSON_TO] = mail.get('To', '')
         self._parsed_mail[PROC_EMAIL_JSON_DATE] = mail.get('Date', '')
-        self._parsed_mail[PROC_EMAIL_JSON_MSG_ID] = mail.get('Message-ID', '')
+        self._parsed_mail[PROC_EMAIL_JSON_MESSAGE_ID] = mail.get('Message-ID', '')
         self._parsed_mail[PROC_EMAIL_JSON_FILES] = files = []
         self._parsed_mail[PROC_EMAIL_JSON_BODIES] = bodies = []
         self._parsed_mail[PROC_EMAIL_JSON_START_TIME] = start_time_epoch
@@ -1238,13 +1238,13 @@ class ProcessEmail(object):
         vault_attach_dict[phantom.APP_JSON_APP_RUN_ID] = self._base_connector.get_app_run_id()
 
         vault_add_success = False
-        vault_add_msg = ""
+        vault_add_message = ""
         vault_id = None
 
         file_name = self._decode_uni_string(file_name, file_name)
 
         try:
-            vault_add_success, vault_add_msg, vault_id = phantom_rules.vault_add(
+            vault_add_success, vault_add_message, vault_id = phantom_rules.vault_add(
                 file_location=local_file_path,
                 container=container_id,
                 file_name=file_name,
@@ -1255,7 +1255,7 @@ class ProcessEmail(object):
             return (phantom.APP_ERROR, phantom.APP_ERROR)
 
         if not vault_add_success:
-            self._debug_print("Failed to add file to Vault: {0}".format(vault_add_msg))
+            self._debug_print("Failed to add file to Vault: {0}".format(vault_add_message))
             return (phantom.APP_ERROR, phantom.APP_ERROR)
 
         # add the vault id artifact to the container
