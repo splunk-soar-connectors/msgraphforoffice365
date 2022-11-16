@@ -36,7 +36,7 @@ from django.core.validators import URLValidator
 from phantom.vault import Vault
 from requests.structures import CaseInsensitiveDict
 
-from office365_consts import ERROR_MESSAGE_UNAVAILABLE
+from office365_consts import ERROR_MSG_UNAVAILABLE
 
 _container_common = {
     "run_automation": False  # Don't run any playbooks, when this artifact is added
@@ -85,9 +85,9 @@ PROC_EMAIL_JSON_IPS = "ips"
 PROC_EMAIL_JSON_HASHES = "hashes"
 PROC_EMAIL_JSON_URLS = "urls"
 PROC_EMAIL_JSON_DOMAINS = "domains"
-PROC_EMAIL_JSON_MESSAGE_ID = "message_id"
+PROC_EMAIL_JSON_MSG_ID = "message_id"
 PROC_EMAIL_JSON_EMAIL_HEADERS = "email_headers"
-PROC_EMAIL_CONTENT_TYPE_MESSAGE = "message/rfc822"
+PROC_EMAIL_CONTENT_TYPE_MSG = "message/rfc822"
 
 URI_REGEX = r'([Hh][Tt][Tt][Pp][Ss]?:\/\/)((?:[:@\.\-_0-9]|[^ -@\[-\`\{-\~\s]|' \
     r'[\[\(][^\s\[\]\(\)]*[\]\)])+)((?:[\/\?]+(?:[^\[\(\{\)\]\}\s]|[\[\(][^\[\]\(\)]*[\]\)])*)*)[\/]?'
@@ -127,7 +127,7 @@ def _get_error_message_from_exception(e):
     """
 
     error_code = None
-    error_message = ERROR_MESSAGE_UNAVAILABLE
+    error_message = ERROR_MSG_UNAVAILABLE
 
     try:
         if hasattr(e, "args"):
@@ -726,7 +726,7 @@ class ProcessEmail(object):
             return phantom.APP_SUCCESS
 
         # is this another email as an attachment
-        if content_type is not None and content_type.find(PROC_EMAIL_CONTENT_TYPE_MESSAGE) != -1:
+        if content_type is not None and content_type.find(PROC_EMAIL_CONTENT_TYPE_MSG) != -1:
             return phantom.APP_SUCCESS
 
         # This is an attachment and it's not an email
@@ -885,7 +885,7 @@ class ProcessEmail(object):
         self._parsed_mail[PROC_EMAIL_JSON_FROM] = mail.get('From', '')
         self._parsed_mail[PROC_EMAIL_JSON_TO] = mail.get('To', '')
         self._parsed_mail[PROC_EMAIL_JSON_DATE] = mail.get('Date', '')
-        self._parsed_mail[PROC_EMAIL_JSON_MESSAGE_ID] = mail.get('Message-ID', '')
+        self._parsed_mail[PROC_EMAIL_JSON_MSG_ID] = mail.get('Message-ID', '')
         self._parsed_mail[PROC_EMAIL_JSON_FILES] = files = []
         self._parsed_mail[PROC_EMAIL_JSON_BODIES] = bodies = []
         self._parsed_mail[PROC_EMAIL_JSON_START_TIME] = start_time_epoch

@@ -151,7 +151,7 @@ def _get_error_message_from_exception(e):
     :return: error message
     """
     error_code = None
-    error_message = ERROR_MESSAGE_UNAVAILABLE
+    error_message = ERROR_MSG_UNAVAILABLE
 
     try:
         if hasattr(e, "args"):
@@ -184,16 +184,16 @@ def _validate_integer(action_result, parameter, key, allow_zero=False):
     if parameter is not None:
         try:
             if not float(parameter).is_integer():
-                return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_VALID_INT_MESSAGE.format(param=key)), None
+                return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_VALID_INT_MSG.format(param=key)), None
 
             parameter = int(parameter)
         except Exception:
-            return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_VALID_INT_MESSAGE.format(param=key)), None
+            return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_VALID_INT_MSG.format(param=key)), None
 
         if parameter < 0:
-            return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_NON_NEG_INT_MESSAGE.format(param=key)), None
+            return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_NON_NEG_INT_MSG.format(param=key)), None
         if not allow_zero and parameter == 0:
-            return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_NON_NEG_NON_ZERO_INT_MESSAGE.format(param=key)), None
+            return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_NON_NEG_NON_ZERO_INT_MSG.format(param=key)), None
 
     return phantom.APP_SUCCESS, parameter
 
@@ -1108,7 +1108,7 @@ class Office365Connector(BaseConnector):
         if phantom.is_fail(ret_val) or not container_id:
             return action_result.set_status(phantom.APP_ERROR, message)
 
-        if MSGOFFICE365_DUPLICATE_CONTAINER_FOUND_MESSAGE in message.lower():
+        if MSGOFFICE365_DUPLICATE_CONTAINER_FOUND_MSG in message.lower():
             self.debug_print("Duplicate container found")
             self._duplicate_count += 1
 
@@ -1224,7 +1224,7 @@ class Office365Connector(BaseConnector):
 
             self.save_progress('Please connect to the following URL from a different tab to continue the connectivity process')
             self.save_progress(url_to_show)
-            self.save_progress(MSGOFFICE365_AUTHORIZE_TROUBLESHOOT_MESSAGE)
+            self.save_progress(MSGOFFICE365_AUTHORIZE_TROUBLESHOOT_MSG)
 
             time.sleep(5)
 
@@ -2612,13 +2612,13 @@ class Office365Connector(BaseConnector):
         # if it was not and the current action is not test connectivity then it's an error
         if self._admin_access:
             if not admin_consent and action_id != 'test_connectivity':
-                return self.set_status(phantom.APP_ERROR, MSGOFFICE365_RUN_CONNECTIVITY_MESSAGE)
+                return self.set_status(phantom.APP_ERROR, MSGOFFICE365_RUN_CONNECTIVITY_MSG)
 
         if not self._admin_access and action_id != 'test_connectivity' and (not self._access_token or not self._refresh_token):
             ret_val = self._get_token(action_result)
 
             if phantom.is_fail(ret_val):
-                return self.set_status(phantom.APP_ERROR, "{0}. {1}".format(MSGOFFICE365_RUN_CONNECTIVITY_MESSAGE, action_result.get_message()))
+                return self.set_status(phantom.APP_ERROR, "{0}. {1}".format(MSGOFFICE365_RUN_CONNECTIVITY_MSG, action_result.get_message()))
 
         # Create ProcessEmail Object for on_poll
         self._process_email = ProcessEmail(self, config)
