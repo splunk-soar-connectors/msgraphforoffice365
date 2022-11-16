@@ -842,7 +842,7 @@ class Office365Connector(BaseConnector):
 
         return phantom.APP_SUCCESS
 
-    def _create_email_artifacts(self, container_id, email, artifact_id=None):
+    def _create_email_artifacts(self, container_id, email, artifact_id=None, create_iocs=True):
         """
         Create email artifacts.
 
@@ -911,6 +911,9 @@ class Office365Connector(BaseConnector):
                     cef['bodyText'] = body_text
             except Exception:
                 self.debug_print("Cannot parse email body text details")
+
+        if not create_iocs:
+            return [email_artifact]
 
         body = email['body']['content']
 
@@ -992,10 +995,8 @@ class Office365Connector(BaseConnector):
                 else:
                     sub_email = attachment.get('item', {})
 
-                self.debug_print(f"Saphira: Sub_email: {sub_email}")
-
                 if sub_email:
-                    sub_artifacts = self._create_email_artifacts(container_id, sub_email, attachment['id'])
+                    sub_artifacts = self._create_email_artifacts(container_id, sub_email, attachment['id'], create_iocs=False)
                     artifacts += sub_artifacts
 
                 # Use recursive approach to extract the reference attachment
@@ -1014,6 +1015,15 @@ class Office365Connector(BaseConnector):
                         self.debug_print("Error while downloading the email content, for attachment id: {}".format(attachment['id']))
 
                     if rfc822_email:
+                        # Create ProcessEmail Object for email item attachment
+                        process_email_obj = ProcessEmail(self, config)
+                        process_email_obj._trigger_automation = False
+                        ret_val, message = process_email_obj.process_email(
+                            rfc822_email, attachment['id'], epoch=None,
+                            container_id=container_id, ingest_email=False)
+                        if phantom.is_fail(ret_val):
+                            self.debug_print("Error while processing the email content, for attachment id: {}".format(attachment['id']))
+
                         if config.get('ingest_eml', False):
                             # Add eml file into the vault if ingest_email is checked
                             ret_val, vault_id = self._add_attachment_to_vault(attachment, container_id, rfc822_email)
@@ -1062,7 +1072,6 @@ class Office365Connector(BaseConnector):
                     # Create ProcessEmail Object for email file attachment
                     process_email_obj = ProcessEmail(self, config)
                     process_email_obj._trigger_automation = False
-                    self.save_progress("ABV PROCESS EMAIL")
                     ret_val, message = process_email_obj.process_email(rfc822_email, attachment['id'], epoch=None, container_id=container_id)
                     if phantom.is_fail(ret_val):
                         return action_result.set_status(phantom.APP_ERROR, message)
@@ -1925,8 +1934,6 @@ class Office365Connector(BaseConnector):
 
             failed_email_ids = 0
             total_emails = len(emails)
-
-            self.debug_print(f"Saphira: Emails: {emails}")
 
             self.save_progress(f"Total emails fetched: {total_emails}")
             if self.is_poll_now():
