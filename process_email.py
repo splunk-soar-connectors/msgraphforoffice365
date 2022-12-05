@@ -248,7 +248,6 @@ class ProcessEmail(object):
 
         # try to load the email
         try:
-            file_data = unescape(file_data)
             soup = BeautifulSoup(file_data, "html.parser")
         except Exception as e:
             error_message = _get_error_message_from_exception(e)
@@ -283,6 +282,7 @@ class ProcessEmail(object):
                     uris.extend(uri_text)
 
         else:
+            file_data = unescape(file_data)
             # Parse it as a text file
             uris_from_text = [self._clean_url(uri.group(0)) for uri in re.finditer(uri_regexc, file_data)]
             uris.extend(uris_from_text)
@@ -393,14 +393,10 @@ class ProcessEmail(object):
         domains = parsed_mail[PROC_EMAIL_JSON_DOMAINS]
 
         file_data = None
-        try:
-            with open(local_file_path, 'r') as f:   # noqa
-                file_data = f.read()
-        except Exception:
-            with open(local_file_path, 'rb') as f:  # noqa
-                file_data = f.read()
-            self._base_connector.debug_print("Reading file data using binary mode")
-            file_data = self._get_string(file_data, 'utf-8')
+        with open(local_file_path, 'rb') as f:  # noqa
+            file_data = f.read()
+        self._base_connector.debug_print("Reading file data using binary mode")
+        file_data = self._get_string(file_data, 'utf-8')
 
         if file_data is None or len(file_data) == 0:
             return phantom.APP_ERROR
