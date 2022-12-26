@@ -144,7 +144,7 @@ def _save_app_state(state, asset_id, app_connector):
     return phantom.APP_SUCCESS
 
 
-def _get_error_message_from_exception(e):
+def _get_error_message_from_exception(e, app_connector=None):
     """
     Get appropriate error message from the exception.
     :param e: Exception object
@@ -152,6 +152,7 @@ def _get_error_message_from_exception(e):
     """
     error_code = None
     error_message = ERROR_MSG_UNAVAILABLE
+    app_connector.error_print("Error occurred:", e)
 
     try:
         if hasattr(e, "args"):
@@ -168,6 +169,7 @@ def _get_error_message_from_exception(e):
     else:
         error_text = "Error Code: {}. Error Message: {}".format(error_code, error_message)
 
+    app_connector.error_print("{}".format(error_text))
     return error_text
 
 
@@ -1853,6 +1855,26 @@ class Office365Connector(BaseConnector):
         limit = expected_duplicate_count_in_next_cycle + remaining_count
         return limit, total_ingested
 
+    def _get_select_query_parameters(self, action_result, endpoint):
+
+        param_list = []
+
+        ret_val, response = self._make_rest_call_helper(action_result, endpoint=endpoint)
+        if phantom.is_fail(ret_val):
+            return param_list
+
+        value = response.get('value', [])
+        if value:
+            for item in value:
+                for key, _ in item.items():
+                    if key == "@odata.etag":
+                        continue
+                    if key == "id":
+                        continue
+                    param_list.append(key)
+
+        return list(set(param_list))
+
     def _handle_on_poll(self, param):
 
         self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
@@ -1910,7 +1932,13 @@ class Office365Connector(BaseConnector):
             '$orderBy': 'lastModifiedDateTime {}'.format(order)
         }
 
-        params['$select'] = ','.join(MSGOFFICE365_SELECT_PARAMETER_LIST)
+        param_list = self._get_select_query_parameters(action_result, endpoint)
+
+        if not param_list:
+            params['$select'] = ','.join(MSGOFFICE365_SELECT_PARAMETER_LIST)
+        else:
+            param_list.append("internetMessageHeaders")
+            params['$select'] = ','.join(param_list)
 
         if start_time:
             params['$filter'] = "lastModifiedDateTime ge {0}".format(start_time)

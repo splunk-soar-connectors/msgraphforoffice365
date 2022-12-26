@@ -21,7 +21,7 @@
     "main_module": "office365_connector.py",
     "min_phantom_version": "5.3.5",
     "latest_tested_versions": [
-        "Cloud 3 August, 2022"
+        "Cloud 26 December, 2022"
     ],
     "app_wizard_version": "1.0.0",
     "python_version": "3",
@@ -6276,7 +6276,7 @@
             },
             {
                 "module": "certifi",
-                "input_file": "wheels/py3/certifi-2022.9.24-py3-none-any.whl"
+                "input_file": "wheels/py3/certifi-2022.12.7-py3-none-any.whl"
             },
             {
                 "module": "chardet",
@@ -6292,7 +6292,7 @@
             },
             {
                 "module": "pytz",
-                "input_file": "wheels/shared/pytz-2022.6-py2.py3-none-any.whl"
+                "input_file": "wheels/shared/pytz-2022.7-py2.py3-none-any.whl"
             },
             {
                 "module": "requests",
@@ -6324,7 +6324,7 @@
             },
             {
                 "module": "asgiref",
-                "input_file": "wheels/py3/asgiref-3.5.2-py3-none-any.whl"
+                "input_file": "wheels/py3/asgiref-3.6.0-py3-none-any.whl"
             },
             {
                 "module": "beautifulsoup4",
@@ -6332,7 +6332,7 @@
             },
             {
                 "module": "certifi",
-                "input_file": "wheels/py3/certifi-2022.9.24-py3-none-any.whl"
+                "input_file": "wheels/py3/certifi-2022.12.7-py3-none-any.whl"
             },
             {
                 "module": "chardet",
@@ -6348,7 +6348,7 @@
             },
             {
                 "module": "pytz",
-                "input_file": "wheels/shared/pytz-2022.6-py2.py3-none-any.whl"
+                "input_file": "wheels/shared/pytz-2022.7-py2.py3-none-any.whl"
             },
             {
                 "module": "requests",

@@ -89,8 +89,8 @@ PROC_EMAIL_JSON_MSG_ID = "message_id"
 PROC_EMAIL_JSON_EMAIL_HEADERS = "email_headers"
 PROC_EMAIL_CONTENT_TYPE_MSG = "message/rfc822"
 
-URI_REGEX = r'([Hh][Tt][Tt][Pp][Ss]?:\/\/)((?:[:@\.\-_0-9]|[^ -@\[-\`\{-\~\s]|' \
-    r'[\[\(][^\s\[\]\(\)]*[\]\)])+)((?:[\/\?]+(?:[^\[\(\{\<\)\]\}\>\s]|[\[\(][^\[\]\(\)]*[\]\)])*)*)[\/]?'
+URI_REGEX = r'([Hh][Tt][Tt][Pp][Ss]?:\/\/)((?:[:@\.\-_0-9]|[^\"\„\“\‟\”\’\❝\❞\〝\〞\〟\＂\‚\‘\‛\❛\❜\'\″ -@\[-\`\{-\~\s]|' \
+    r'[\[\(][^\s\[\]\(\)]*[\]\)])+)((?:[\/\?]+(?:[^\"\„\“\‟\”\’\❝\❞\〝\〞\〟\＂\‚\‘\‛\❛\❜\'\″\[\(\{\<\)\]\}\>\s]|[\[\(][^\[\]\(\)]*[\]\)])*)*)[\/]?'
 EMAIL_REGEX = r"\b[A-Z0-9._%+-]+@+[A-Z0-9.-]+\.[A-Z]{2,}\b"
 EMAIL_REGEX2 = r'".*"@[A-Z0-9.-]+\.[A-Z]{2,}\b'
 HASH_REGEX = r"\b[0-9a-fA-F]{32}\b|\b[0-9a-fA-F]{40}\b|\b[0-9a-fA-F]{64}\b"
@@ -380,7 +380,6 @@ class ProcessEmail(object):
         charset = body.get('charset')
         parent_id = None
 
-        # parent_id = parsed_mail['email_headers'][body_index]['cef'].get('parentInternetMessageId')
         if 'True' in local_file_path:
             for item in parsed_mail['email_headers']:
                 parent_id = item['cef'].get('parentInternetMessageId')
@@ -544,7 +543,6 @@ class ProcessEmail(object):
 
                     # make new string instead of replacing in the input string because issue find in PAPP-9531
                     if value:
-                        # value = UnicodeDammit(value).unicode_markup
                         new_str += UnicodeDammit(value).unicode_markup
                         new_str_create_count += 1
                 except Exception:
@@ -918,7 +916,6 @@ class ProcessEmail(object):
 
         else:
             self._parse_email_headers(self._parsed_mail, mail, add_email_id=email_id)
-            # parsed_mail[PROC_EMAIL_JSON_EMAIL_HEADERS].append(mail.items())
             file_path = "{0}/part_1.text".format(tmp_dir)
             with open(file_path, 'wb') as f:    # noqa
                 f.write(mail.get_payload(decode=True))
@@ -1120,11 +1117,9 @@ class ProcessEmail(object):
         param = self._base_connector.get_current_param()
 
         container_count = MSG_DEFAULT_CONTAINER_COUNT
-        # artifact_count = MSG_DEFAULT_ARTIFACT_COUNT
 
         if param:
             container_count = param.get(phantom.APP_JSON_CONTAINER_COUNT, MSG_DEFAULT_CONTAINER_COUNT)
-            # artifact_count = param.get(phantom.APP_JSON_ARTIFACT_COUNT, EWS_DEFAULT_ARTIFACT_COUNT)
 
         results = results[:container_count]
 
@@ -1172,7 +1167,6 @@ class ProcessEmail(object):
                     if parent_guid in self._guid_to_hash:
                         cef_artifact['parentSourceDataIdentifier'] = self._guid_to_hash[parent_guid]
                 if 'emailGuid' in cef_artifact:
-                    # cef_artifact['emailGuid'] = self._guid_to_hash[cef_artifact['emailGuid']]
                     del cef_artifact['emailGuid']
 
             self._handle_save_ingested(artifacts, container, container_id, result.get('files'))
