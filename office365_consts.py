@@ -14,6 +14,7 @@
 # and limitations under the License.
 TC_STATUS_SLEEP = 2
 MSGOFFICE365_PER_PAGE_COUNT = 999
+MSGOFFICE365_UPLOAD_SESSION_CUTOFF = 3145728  # 3MB
 SPLUNK_SOAR_SYS_INFO_URL = "{url}rest/system_info"
 SPLUNK_SOAR_ASSET_INFO_URL = "{url}rest/asset/{asset_id}"
 SPLUNK_SOAR_CONTAINER_INFO_URL = "{url}rest/container/{container_id}"

@@ -18,6 +18,7 @@ import grp
 import json
 import os
 import pwd
+import re
 import sys
 import tempfile
 import time
@@ -32,6 +33,7 @@ from bs4 import BeautifulSoup, UnicodeDammit
 from django.http import HttpResponse
 from phantom.action_result import ActionResult
 from phantom.base_connector import BaseConnector
+import phantom.vault as phantom_vault
 from phantom.vault import Vault
 
 from office365_consts import *
@@ -2336,6 +2338,184 @@ class Office365Connector(BaseConnector):
             self.save_progress(error)
             return action_result.set_status(phantom.APP_ERROR, error)
 
+    def _email_to_recipient(self, email: str):
+        recipient = {
+            "emailAddress": {
+                "address": email
+            }
+        }
+        return recipient
+
+    def _create_draft_message(self, action_result, subject: str, body: str, from_email: str,
+                              *, to_emails: list[str], cc_emails: list[str], bcc_emails: list[str], headers: dict[str, str]):
+        endpoint = f'/users/{from_email}/messages'
+        req_headers = {
+            'Prefer': 'IdType="ImmutableId"'
+        }
+        message = {
+            "subject": subject,
+            "body": {
+                "contentType": "HTML",
+                "content": body
+            }
+        }
+        if to_emails:
+            message['toRecipients'] = [self._email_to_recipient(email) for email in to_emails]
+        if cc_emails:
+            message['ccRecipients'] = [self._email_to_recipient(email) for email in cc_emails]
+        if bcc_emails:
+            message['bccRecipients'] = [self._email_to_recipient(email) for email in bcc_emails]
+        if headers:
+            message['internetMessageHeaders'] = [
+                {'name': key, 'value': value} for key, value in headers.items()]
+
+        ret_val, response = self._make_rest_call_helper(action_result, endpoint, method='post', headers=req_headers, data=json.dumps(message))
+        if phantom.is_fail(ret_val):
+            return action_result.set_status(phantom.APP_ERROR, 'Failed to create draft email'), None
+
+        message_id = response['id']
+        return action_result, message_id
+
+    def _send_draft_message(self, action_result, user_id, message_id):
+        endpoint = f'/users/{user_id}/messages/{message_id}/send'
+
+        ret_val, _ = self._make_rest_call_helper(action_result, endpoint, method='post')
+        if phantom.is_fail(ret_val):
+            return action_result.set_status(phantom.APP_ERROR, f'Failed to send draft email with id: {message_id}'), None
+
+        return action_result, message_id
+
+    def _get_vault_info(self, vault_id):
+        _, _, vault_infos = phantom_vault.vault_info(container_id=self.get_container_id(), vault_id=vault_id)
+        if not vault_infos:
+            _, _, vault_infos = phantom_vault.vault_info(vault_id=vault_id)
+        return vault_infos[0] if vault_infos else None
+
+    def _add_attachment_to_message(self, action_result, vault_id, user_id, message_id):
+        vault_info = self._get_vault_info(vault_id)
+        if not vault_info:
+            return action_result.set_status(phantom.APP_ERROR, f'Failed to find vault entry {vault_id}'), None
+
+        if vault_info['size'] > MSGOFFICE365_UPLOAD_SESSION_CUTOFF:
+            ret_val, attachment_id = self._upload_large_attachment(action_result, vault_info, user_id, message_id)
+        else:
+            ret_val, attachment_id = self._upload_small_attachment(action_result, vault_info, user_id, message_id)
+
+        return ret_val, attachment_id
+
+    def _upload_small_attachment(self, action_result, vault_info, user_id, message_id):
+        endpoint = f'/users/{user_id}/messages/{message_id}/attachments'
+        with open(vault_info['path'], mode='rb') as file:
+            file_content = file.read()
+        data = {
+            '@odata.type': '#microsoft.graph.fileAttachment',
+            'name': vault_info['name'],
+            'contentType': vault_info['mime_type'],
+            'contentBytes': base64.b64encode(file_content).decode('ascii'),
+            'contentId': vault_info['vault_id']
+        }
+        ret_val, response = self._make_rest_call_helper(action_result, endpoint, method='post', data=json.dumps(data))
+        if phantom.is_fail(ret_val):
+            return action_result.set_status(phantom.APP_ERROR, f'Failed to upload vault entry {vault_info["vault_id"]}'), None
+        attachment_id = response['id']
+        return phantom.APP_SUCCESS, attachment_id
+
+    def _upload_large_attachment(self, action_result, vault_info, user_id, message_id):
+        endpoint = f'/users/{user_id}/messages/{message_id}/attachments/createUploadSession'
+        file_size = vault_info['size']
+        data = {
+            'AttachmentItem': {
+                'attachmentType': 'file',
+                'name': vault_info['name'],
+                'contentType': vault_info['mime_type'],
+                'contentId': vault_info['vault_id'],
+                'size': file_size
+            }
+        }
+        ret_val, response = self._make_rest_call_helper(action_result, endpoint, method='post', data=json.dumps(data))
+        if phantom.is_fail(ret_val):
+            return action_result.set_status(phantom.APP_ERROR, f'Failed to upload vault entry {vault_info["vault_id"]}'), None
+        upload_url = response['uploadUrl']
+        with open(vault_info['path'], mode='rb') as file:
+            for start_position in range(0, file_size, MSGOFFICE365_UPLOAD_SESSION_CUTOFF):
+                file_content = file.read(MSGOFFICE365_UPLOAD_SESSION_CUTOFF)
+                end_position = start_position + len(file_content)
+                headers = {
+                    'Content-Type': 'application/octet-stream',
+                    'Content-Range': f'bytes {start_position}-{end_position}/{file_size}'
+                }
+                response = requests.put(upload_url, headers=headers, data=data)
+                response.raise_for_status()
+
+        if response.status_code != 201:
+            return action_result.set_status(phantom.APP_ERROR,
+                                            f'Unexpected status code during file upload session for {vault_info["vault_id"]}'), None
+        result_location = response.headers['Location']
+        match = re.search(r"Attachments\('(?P<attachment_id>[^']+)'\)", result_location)
+        if match is None:
+            return action_result.set_status(phantom.APP_ERROR, f'Unable to extract attachment id from url {result_location}'), None
+        attachment_id = match.group('attachment_id')
+        return phantom.APP_SUCCESS, attachment_id
+
+    def _get_message(self, action_result, user_id, message_id):
+        endpoint = f'/users/{user_id}/messages/{message_id}'
+
+        ret_val, response = self._make_rest_call_helper(action_result, endpoint, method='post')
+        if phantom.is_fail(ret_val):
+            return action_result.set_status(phantom.APP_ERROR, f'Failed to get email with id: {message_id}'), None
+
+        return action_result, response
+
+    def _handle_send_email(self, param):
+        self.save_progress(f"In action handler for: {self.get_action_identifier()}")
+        action_result = self.add_action_result(ActionResult(dict(param)))
+        config = self.get_config()
+
+        from_email = param.get('from') or config.get('email_address')
+        to_emails = [email for x in param.get('to', '') if (email := x.strip())]
+        cc_emails = [email for x in param.get('cc', '') if (email := x.strip())]
+        bcc_emails = [email for x in param.get('bcc', '') if (email := x.strip())]
+
+        subject = param['subject']
+        headers = json.loads(param.get('headers', '{}'))
+        body = param['body']
+        vault_ids = [vault_id for x in param.get('attachment_vault_id', '') if (vault_id := x.strip())]
+
+        self.save_progress("Creating draft message")
+        ret_val, message_id = self._create_draft_message(action_result, subject, body, from_email, headers=headers,
+                                                         to_emails=to_emails, cc_emails=cc_emails, bcc_emails=bcc_emails)
+        if phantom.is_fail(ret_val):
+            return action_result
+        self.save_progress(f"Created draft message with id: {message_id}")
+
+        attachments = []
+        for vault_id in vault_ids:
+            self.save_progress(f"Creating attachment for vault id: {vault_id}")
+            ret_val, attachment_id = self._add_attachment_to_message(action_result, vault_id, from_email, message_id)
+            if phantom.is_fail(ret_val):
+                return action_result
+            self.save_progress(f"Created attachment with id: {attachment_id}")
+            attachment = {
+                'vault_id': vault_id,
+                'attachment_id': attachment_id
+            }
+            attachments.append(attachment)
+
+        self.save_progress(f"Sending draft email with id: {message_id}")
+        ret_val, message_id = self._send_draft_message(action_result, from_email, message_id)
+        if phantom.is_fail(ret_val):
+            return action_result
+        self.save_progress("Successfully sent draft email.")
+
+        self.save_progress(f"Getting sent email details with id: {message_id}")
+        ret_val, message_details = self._get_message(action_result, from_email, message_id)
+        if phantom.is_fail(ret_val):
+            return action_result
+        self.save_progress("Got sent email details.")
+
+        action_result.add_data(message_details)
+        return action_result.set_status(phantom.APP_SUCCESS, "Successfully sent email")
+
     def _paginator(self, action_result, endpoint, limit=None, params=None, query=None):
         """
         This action is used to create an iterator that will paginate through responses from called methods.
@@ -2447,6 +2627,9 @@ class Office365Connector(BaseConnector):
 
         elif action_id == 'get_folder_id':
             ret_val = self._handle_get_folder_id(param)
+
+        elif action_id == 'send_email':
+            ret_val = self._handle_send_email(param)
 
         return ret_val
 
