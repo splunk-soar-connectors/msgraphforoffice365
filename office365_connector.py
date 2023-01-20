@@ -2436,21 +2436,20 @@ class Office365Connector(BaseConnector):
         if phantom.is_fail(ret_val):
             return action_result.set_status(phantom.APP_ERROR, f'Failed to upload vault entry {vault_info["vault_id"]}'), None
         upload_url = response['uploadUrl']
+
         with open(vault_info['path'], mode='rb') as file:
             for start_position in range(0, file_size, MSGOFFICE365_UPLOAD_SESSION_CUTOFF):
                 file_content = file.read(MSGOFFICE365_UPLOAD_SESSION_CUTOFF)
-                end_position = start_position + len(file_content)
+                end_position = start_position + len(file_content) - 1
                 headers = {
                     'Content-Type': 'application/octet-stream',
                     'Content-Range': f'bytes {start_position}-{end_position}/{file_size}'
                 }
-                response = requests.put(upload_url, headers=headers, data=data)
-                response.raise_for_status()
+                response = requests.put(upload_url, headers=headers, data=file_content)
+                if not response.ok:
+                    return action_result.set_status(phantom.APP_ERROR, f'Failed to upload {headers["Content-Range"]}'), None
 
-        if response.status_code != 201:
-            return action_result.set_status(phantom.APP_ERROR,
-                                            f'Unexpected status code during file upload session for {vault_info["vault_id"]}'), None
-        result_location = response.headers['Location']
+        result_location = response.headers.get('Location', 'no_location_found')
         match = re.search(r"Attachments\('(?P<attachment_id>[^']+)'\)", result_location)
         if match is None:
             return action_result.set_status(phantom.APP_ERROR, f'Unable to extract attachment id from url {result_location}'), None
@@ -2472,14 +2471,14 @@ class Office365Connector(BaseConnector):
         config = self.get_config()
 
         from_email = param.get('from') or config.get('email_address')
-        to_emails = [email for x in param.get('to', '') if (email := x.strip())]
-        cc_emails = [email for x in param.get('cc', '') if (email := x.strip())]
-        bcc_emails = [email for x in param.get('bcc', '') if (email := x.strip())]
+        to_emails = [email for x in param.get('to', '').split(',') if (email := x.strip())]
+        cc_emails = [email for x in param.get('cc', '').split(',') if (email := x.strip())]
+        bcc_emails = [email for x in param.get('bcc', '').split(',') if (email := x.strip())]
 
         subject = param['subject']
         headers = json.loads(param.get('headers', '{}'))
         body = param['body']
-        vault_ids = [vault_id for x in param.get('attachment_vault_id', '') if (vault_id := x.strip())]
+        vault_ids = [vault_id for x in param.get('attachment_vault_id', '').split(',') if (vault_id := x.strip())]
 
         self.save_progress("Creating draft message")
         ret_val, message_id = self._create_draft_message(action_result, subject, body, from_email, headers=headers,
