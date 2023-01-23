@@ -28,12 +28,12 @@ from datetime import datetime
 import encryption_helper
 import phantom.app as phantom
 import phantom.rules as ph_rules
+import phantom.vault as phantom_vault
 import requests
 from bs4 import BeautifulSoup, UnicodeDammit
 from django.http import HttpResponse
 from phantom.action_result import ActionResult
 from phantom.base_connector import BaseConnector
-import phantom.vault as phantom_vault
 from phantom.vault import Vault
 
 from office365_consts import *
