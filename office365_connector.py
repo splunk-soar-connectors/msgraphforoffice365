@@ -2459,7 +2459,7 @@ class Office365Connector(BaseConnector):
     def _get_message(self, action_result, user_id, message_id):
         endpoint = f'/users/{user_id}/messages/{message_id}'
 
-        ret_val, response = self._make_rest_call_helper(action_result, endpoint, method='post')
+        ret_val, response = self._make_rest_call_helper(action_result, endpoint, method='get')
         if phantom.is_fail(ret_val):
             return action_result.set_status(phantom.APP_ERROR, f'Failed to get email with id: {message_id}'), None
 
