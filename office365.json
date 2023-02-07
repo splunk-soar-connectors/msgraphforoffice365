@@ -6267,6 +6267,10 @@
                 "input_file": "wheels/py3/Django-3.2.15-py3-none-any.whl"
             },
             {
+                "module": "PyJWT",
+                "input_file": "wheels/py3/PyJWT-2.4.0-py3-none-any.whl"
+            },
+            {
                 "module": "asgiref",
                 "input_file": "wheels/py3/asgiref-3.4.1-py3-none-any.whl"
             },
@@ -6276,15 +6280,31 @@
             },
             {
                 "module": "certifi",
-                "input_file": "wheels/py3/certifi-2022.6.15-py3-none-any.whl"
+                "input_file": "wheels/py3/certifi-2022.12.7-py3-none-any.whl"
+            },
+            {
+                "module": "cffi",
+                "input_file": "wheels/py36/cffi-1.15.1-cp36-cp36m-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl"
             },
             {
                 "module": "chardet",
                 "input_file": "wheels/shared/chardet-3.0.4-py2.py3-none-any.whl"
             },
             {
+                "module": "cryptography",
+                "input_file": "wheels/py36/cryptography-39.0.0-cp36-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl"
+            },
+            {
                 "module": "idna",
                 "input_file": "wheels/shared/idna-2.10-py2.py3-none-any.whl"
+            },
+            {
+                "module": "msal",
+                "input_file": "wheels/shared/msal-1.21.0-py2.py3-none-any.whl"
+            },
+            {
+                "module": "pycparser",
+                "input_file": "wheels/shared/pycparser-2.21-py2.py3-none-any.whl"
             },
             {
                 "module": "python_magic",
@@ -6292,7 +6312,7 @@
             },
             {
                 "module": "pytz",
-                "input_file": "wheels/shared/pytz-2022.2.1-py2.py3-none-any.whl"
+                "input_file": "wheels/shared/pytz-2022.7.1-py2.py3-none-any.whl"
             },
             {
                 "module": "requests",
@@ -6304,7 +6324,7 @@
             },
             {
                 "module": "sqlparse",
-                "input_file": "wheels/py3/sqlparse-0.4.2-py3-none-any.whl"
+                "input_file": "wheels/py3/sqlparse-0.4.3-py3-none-any.whl"
             },
             {
                 "module": "typing_extensions",
@@ -6312,7 +6332,7 @@
             },
             {
                 "module": "urllib3",
-                "input_file": "wheels/shared/urllib3-1.26.12-py2.py3-none-any.whl"
+                "input_file": "wheels/shared/urllib3-1.26.14-py2.py3-none-any.whl"
             }
         ]
     },
@@ -6323,8 +6343,12 @@
                 "input_file": "wheels/py3/Django-3.2.15-py3-none-any.whl"
             },
             {
+                "module": "PyJWT",
+                "input_file": "wheels/py3/PyJWT-2.6.0-py3-none-any.whl"
+            },
+            {
                 "module": "asgiref",
-                "input_file": "wheels/py3/asgiref-3.5.2-py3-none-any.whl"
+                "input_file": "wheels/py3/asgiref-3.6.0-py3-none-any.whl"
             },
             {
                 "module": "beautifulsoup4",
@@ -6332,15 +6356,31 @@
             },
             {
                 "module": "certifi",
-                "input_file": "wheels/py3/certifi-2022.6.15-py3-none-any.whl"
+                "input_file": "wheels/py3/certifi-2022.12.7-py3-none-any.whl"
+            },
+            {
+                "module": "cffi",
+                "input_file": "wheels/py39/cffi-1.15.1-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl"
             },
             {
                 "module": "chardet",
                 "input_file": "wheels/shared/chardet-3.0.4-py2.py3-none-any.whl"
             },
             {
+                "module": "cryptography",
+                "input_file": "wheels/py36/cryptography-39.0.0-cp36-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl"
+            },
+            {
                 "module": "idna",
                 "input_file": "wheels/shared/idna-2.10-py2.py3-none-any.whl"
+            },
+            {
+                "module": "msal",
+                "input_file": "wheels/shared/msal-1.21.0-py2.py3-none-any.whl"
+            },
+            {
+                "module": "pycparser",
+                "input_file": "wheels/shared/pycparser-2.21-py2.py3-none-any.whl"
             },
             {
                 "module": "python_magic",
@@ -6348,7 +6388,7 @@
             },
             {
                 "module": "pytz",
-                "input_file": "wheels/shared/pytz-2022.2.1-py2.py3-none-any.whl"
+                "input_file": "wheels/shared/pytz-2022.7.1-py2.py3-none-any.whl"
             },
             {
                 "module": "requests",
@@ -6360,11 +6400,11 @@
             },
             {
                 "module": "sqlparse",
-                "input_file": "wheels/py3/sqlparse-0.4.2-py3-none-any.whl"
+                "input_file": "wheels/py3/sqlparse-0.4.3-py3-none-any.whl"
             },
             {
                 "module": "urllib3",
-                "input_file": "wheels/shared/urllib3-1.26.12-py2.py3-none-any.whl"
+                "input_file": "wheels/shared/urllib3-1.26.14-py2.py3-none-any.whl"
             }
         ]
     }
