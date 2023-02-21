@@ -14,7 +14,7 @@
             "name": "Alan Shaikh"
         }
     ],
-    "license": "Copyright (c) 2017-2022 Splunk Inc.",
+    "license": "Copyright (c) 2017-2023 Splunk Inc.",
     "app_version": "2.7.1",
     "utctime_updated": "2022-02-04T01:20:46.000000Z",
     "package_name": "phantom_msgraphoffice365",
