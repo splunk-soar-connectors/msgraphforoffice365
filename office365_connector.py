@@ -83,8 +83,8 @@ def _load_app_state(asset_id, app_connector=None):
             state = json.loads(state_file_data)
     except Exception as e:
         if app_connector:
-            error_msg = _get_error_message_from_exception(e)
-            app_connector.debug_print('In _load_app_state: {0}'.format(error_msg))
+            error_message = _get_error_message_from_exception(e)
+            app_connector.debug_print('In _load_app_state: {0}'.format(error_message))
 
     if app_connector:
         app_connector.debug_print('Loaded state: ', state)
@@ -137,10 +137,10 @@ def _save_app_state(state, asset_id, app_connector):
         with open(real_state_file_path, 'w+') as state_file_obj:
             state_file_obj.write(json.dumps(state))
     except Exception as e:
-        error_msg = _get_error_message_from_exception(e)
+        error_message = _get_error_message_from_exception(e)
         if app_connector:
-            app_connector.debug_print('Unable to save state file: {0}'.format(error_msg))
-        print('Unable to save state file: {0}'.format(error_msg))
+            app_connector.debug_print('Unable to save state file: {0}'.format(error_message))
+        print('Unable to save state file: {0}'.format(error_message))
         return phantom.APP_ERROR
 
     return phantom.APP_SUCCESS
@@ -153,22 +153,22 @@ def _get_error_message_from_exception(e):
     :return: error message
     """
     error_code = None
-    error_msg = ERROR_MSG_UNAVAILABLE
+    error_message = ERROR_MESSAGE_UNAVAILABLE
 
     try:
         if hasattr(e, "args"):
             if len(e.args) > 1:
                 error_code = e.args[0]
-                error_msg = e.args[1]
+                error_message = e.args[1]
             elif len(e.args) == 1:
-                error_msg = e.args[0]
+                error_message = e.args[0]
     except Exception:
         pass
 
     if not error_code:
-        error_text = "Error Message: {}".format(error_msg)
+        error_text = "Error Message: {}".format(error_message)
     else:
-        error_text = "Error Code: {}. Error Message: {}".format(error_code, error_msg)
+        error_text = "Error Code: {}. Error Message: {}".format(error_code, error_message)
 
     return error_text
 
@@ -186,16 +186,16 @@ def _validate_integer(action_result, parameter, key, allow_zero=False):
     if parameter is not None:
         try:
             if not float(parameter).is_integer():
-                return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_VALID_INT_MSG.format(param=key)), None
+                return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_VALID_INT_MESSAGE.format(param=key)), None
 
             parameter = int(parameter)
         except Exception:
-            return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_VALID_INT_MSG.format(param=key)), None
+            return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_VALID_INT_MESSAGE.format(param=key)), None
 
         if parameter < 0:
-            return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_NON_NEG_INT_MSG.format(param=key)), None
+            return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_NON_NEG_INT_MESSAGE.format(param=key)), None
         if not allow_zero and parameter == 0:
-            return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_NON_NEG_NON_ZERO_INT_MSG.format(param=key)), None
+            return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_NON_NEG_NON_ZERO_INT_MESSAGE.format(param=key)), None
 
     return phantom.APP_SUCCESS, parameter
 
@@ -475,8 +475,8 @@ class Office365Connector(BaseConnector):
         try:
             resp_json = r.json()
         except Exception as e:
-            error_msg = _get_error_message_from_exception(e)
-            return RetVal(action_result.set_status(phantom.APP_ERROR, "Unable to parse JSON response. {0}".format(error_msg)), None)
+            error_message = _get_error_message_from_exception(e)
+            return RetVal(action_result.set_status(phantom.APP_ERROR, "Unable to parse JSON response. {0}".format(error_message)), None)
 
         # Please specify the status codes here
         if 200 <= r.status_code < 399:
@@ -581,8 +581,8 @@ class Office365Connector(BaseConnector):
                                 params=params,
                                 timeout=MSGOFFICE365_DEFAULT_REQUEST_TIMEOUT)
             except Exception as e:
-                error_msg = _get_error_message_from_exception(e)
-                return RetVal(action_result.set_status(phantom.APP_ERROR, "Error connecting to server. {0}".format(error_msg)), resp_json)
+                error_message = _get_error_message_from_exception(e)
+                return RetVal(action_result.set_status(phantom.APP_ERROR, "Error connecting to server. {0}".format(error_message)), resp_json)
             if r.status_code != 502:
                 break
             self.debug_print("Received 502 status code from the server")
@@ -626,12 +626,12 @@ class Office365Connector(BaseConnector):
         try:
             data = json.dumps(container)
         except Exception as e:
-            error_msg = _get_error_message_from_exception(e)
+            error_message = _get_error_message_from_exception(e)
             message = (
                 "json.dumps failed while updating the container: {}. "
                 "Possibly a value in the container dictionary is not encoded properly. "
                 "Exception: {}"
-            ).format(container_id, error_msg)
+            ).format(container_id, error_message)
             return action_result.set_status(phantom.APP_ERROR, message)
 
         ret_val, _ = self._make_rest_call(action_result, rest_endpoint, False, data=data, method="post")
@@ -703,11 +703,11 @@ class Office365Connector(BaseConnector):
         ret_val, resp_json = self._make_rest_call(action_result, url, verify, headers, params, data, method, download=download)
 
         # If token is expired, generate a new token
-        msg = action_result.get_message()
+        message = action_result.get_message()
 
-        if msg and 'token is invalid' in msg or ('Access token has expired' in
-                msg) or ('ExpiredAuthenticationToken' in msg) or ('AuthenticationFailed' in msg) or ('TokenExpired' in
-                    msg) or ('InvalidAuthenticationToken' in msg):
+        if message and 'token is invalid' in message or ('Access token has expired' in
+                message) or ('ExpiredAuthenticationToken' in message) or ('AuthenticationFailed' in message) or ('TokenExpired' in
+                    message) or ('InvalidAuthenticationToken' in message):
 
             self.debug_print("Token is invalid/expired. Hence, generating a new token.")
             ret_val = self._get_token(action_result)
@@ -758,8 +758,8 @@ class Office365Connector(BaseConnector):
                 self.debug_print("No content found in the attachment. Hence, skipping the vault file creation.")
 
         except Exception as e:
-            error_msg = _get_error_message_from_exception(e)
-            self.debug_print("Error saving file to vault: {0}".format(error_msg))
+            error_message = _get_error_message_from_exception(e)
+            self.debug_print("Error saving file to vault: {0}".format(error_message))
             return phantom.APP_ERROR
 
         if artifact_json is None:
@@ -805,8 +805,8 @@ class Office365Connector(BaseConnector):
                 self.debug_print("No content found for the item attachment. Hence, skipping the vault file creation.")
 
         except Exception as e:
-            error_msg = _get_error_message_from_exception(e)
-            self.debug_print("Error saving file to vault: {0}".format(error_msg))
+            error_message = _get_error_message_from_exception(e)
+            self.debug_print("Error saving file to vault: {0}".format(error_message))
             return phantom.APP_ERROR
 
         attachment['vaultId'] = vault_id
@@ -1049,8 +1049,8 @@ class Office365Connector(BaseConnector):
                         rfc822_email = base64.b64decode(attachment['contentBytes'])
                         rfc822_email = UnicodeDammit(rfc822_email).unicode_markup
                     except Exception as e:
-                        error_msg = _get_error_message_from_exception(e)
-                        self.debug_print("Unable to decode Email Mime Content. {0}".format(error_msg))
+                        error_message = _get_error_message_from_exception(e)
+                        self.debug_print("Unable to decode Email Mime Content. {0}".format(error_message))
                         return action_result.set_status(phantom.APP_ERROR, "Unable to decode Email Mime Content")
 
                     # Create ProcessEmail Object for email file attachment
@@ -1092,7 +1092,7 @@ class Office365Connector(BaseConnector):
         if phantom.is_fail(ret_val) or not container_id:
             return action_result.set_status(phantom.APP_ERROR, message)
 
-        if MSGOFFICE365_DUPLICATE_CONTAINER_FOUND_MSG in message.lower():
+        if MSGOFFICE365_DUPLICATE_CONTAINER_FOUND_MESSAGE in message.lower():
             self.debug_print("Duplicate container found")
             self._duplicate_count += 1
 
@@ -1105,9 +1105,9 @@ class Office365Connector(BaseConnector):
                 )
 
             if container_info.get('description', '') == container_description:
-                msg = "Email ID: {} has not been modified. Hence, skipping the artifact ingestion.".format(email['id'])
-                self.debug_print(msg)
-                return action_result.set_status(phantom.APP_SUCCESS, msg)
+                message = "Email ID: {} has not been modified. Hence, skipping the artifact ingestion.".format(email['id'])
+                self.debug_print(message)
+                return action_result.set_status(phantom.APP_SUCCESS, message)
             else:
                 # Update the container's description and continue
                 self.debug_print("Updating container's description")
@@ -1208,7 +1208,7 @@ class Office365Connector(BaseConnector):
 
             self.save_progress('Please connect to the following URL from a different tab to continue the connectivity process')
             self.save_progress(url_to_show)
-            self.save_progress(MSGOFFICE365_AUTHORIZE_TROUBLESHOOT_MSG)
+            self.save_progress(MSGOFFICE365_AUTHORIZE_TROUBLESHOOT_MESSAGE)
 
             time.sleep(5)
 
@@ -1266,18 +1266,18 @@ class Office365Connector(BaseConnector):
             return action_result.get_status()
 
         params = {'$top': '1'}
-        msg_failed = ""
+        message_failed = ""
         if self._admin_access:
-            msg_failed = "API to fetch details of all the users failed"
+            message_failed = "API to fetch details of all the users failed"
             self.save_progress("Getting info about all users to verify token")
             ret_val, response = self._make_rest_call_helper(action_result, "/users", params=params)
         else:
-            msg_failed = "API to get user details failed"
+            message_failed = "API to get user details failed"
             self.save_progress("Getting info about a single user to verify token")
             ret_val, response = self._make_rest_call_helper(action_result, "/me", params=params)
 
         if phantom.is_fail(ret_val):
-            self.save_progress(msg_failed)
+            self.save_progress(message_failed)
             self.save_progress("Test Connectivity Failed")
             return action_result.set_status(phantom.APP_ERROR)
 
@@ -1450,11 +1450,11 @@ class Office365Connector(BaseConnector):
         ret_val, events = self._paginator(action_result, endpoint, limit)
 
         if phantom.is_fail(ret_val):
-            msg = action_result.get_message()
-            if '$top' in msg or '$top/top' in msg:
-                msg += "The '$top' parameter is already used internally to handle pagination logic. "
-                msg += "If you want to restrict results in terms of number of output results, you can use the 'limit' parameter."
-                return action_result.set_status(phantom.APP_ERROR, msg)
+            message = action_result.get_message()
+            if '$top' in message or '$top/top' in message:
+                message += "The '$top' parameter is already used internally to handle pagination logic. "
+                message += "If you want to restrict results in terms of number of output results, you can use the 'limit' parameter."
+                return action_result.set_status(phantom.APP_ERROR, message)
             return action_result.get_status()
 
         if not events:
@@ -1927,8 +1927,8 @@ class Office365Connector(BaseConnector):
                         self.debug_print(f"Error occurred while processing email ID: {email.get('id')}. {action_result.get_message()}")
                 except Exception as e:
                     failed_email_ids += 1
-                    error_msg = _get_error_message_from_exception(e)
-                    self.debug_print(f"Exception occurred while processing email ID: {email.get('id')}. {error_msg}")
+                    error_message = _get_error_message_from_exception(e)
+                    self.debug_print(f"Exception occurred while processing email ID: {email.get('id')}. {error_message}")
 
             if failed_email_ids == total_emails:
                 return action_result.set_status(phantom.APP_ERROR, "Error occurred while processing all the email IDs")
@@ -2089,11 +2089,11 @@ class Office365Connector(BaseConnector):
             ret_val, messages = self._paginator(action_result, endpoint, limit, params=params)
 
         if phantom.is_fail(ret_val):
-            msg = action_result.get_message()
-            if '$top' in msg or '$top/top' in msg:
-                msg += "The '$top' parameter is already used internally to handle pagination logic. "
-                msg += "If you want to restrict results in terms of number of output results, you can use the 'limit' parameter."
-                return action_result.set_status(phantom.APP_ERROR, msg)
+            message = action_result.get_message()
+            if '$top' in message or '$top/top' in message:
+                message += "The '$top' parameter is already used internally to handle pagination logic. "
+                message += "If you want to restrict results in terms of number of output results, you can use the 'limit' parameter."
+                return action_result.set_status(phantom.APP_ERROR, message)
             return action_result.get_status()
 
         if not messages:
@@ -2191,9 +2191,9 @@ class Office365Connector(BaseConnector):
             self.save_progress("Success({}): created folder in mailbox".format(folder))
             return response['id']
 
-        msg = "Error({}): unable to create folder in mailbox".format(folder)
-        self.save_progress(msg)
-        action_result.set_status(phantom.APP_ERROR, msg)
+        message = "Error({}): unable to create folder in mailbox".format(folder)
+        self.save_progress(message)
+        action_result.set_status(phantom.APP_ERROR, message)
         raise ReturnException()
 
     def _new_child_folder(self, action_result, folder, parent_id, email, pathsofar):
@@ -2210,9 +2210,9 @@ class Office365Connector(BaseConnector):
             self.save_progress("Success({}): created child folder in folder {}".format(folder, pathsofar))
             return response['id']
 
-        msg = "Error({}): unable to create child folder in folder {}".format(folder, pathsofar)
-        self.save_progress(msg)
-        action_result.set_status(phantom.APP_ERROR, msg)
+        message = "Error({}): unable to create child folder in folder {}".format(folder, pathsofar)
+        self.save_progress(message)
+        action_result.set_status(phantom.APP_ERROR, message)
         raise ReturnException()
 
     def _handle_create_folder(self, param):
@@ -2236,9 +2236,9 @@ class Office365Connector(BaseConnector):
         path = list(filter(None, folder_names))
 
         if len(path) == 0:
-            msg = "Error: Invalid folder path"
-            self.save_progress(msg)
-            return action_result.set_status(phantom.APP_ERROR, msg)
+            message = "Error: Invalid folder path"
+            self.save_progress(message)
+            return action_result.set_status(phantom.APP_ERROR, message)
 
         try:
 
@@ -2248,9 +2248,9 @@ class Office365Connector(BaseConnector):
             if len(path) == 1:
 
                 if dir_id:
-                    msg = "Error({}): folder already exists in mailbox".format(path[0])
-                    self.save_progress(msg)
-                    return action_result.set_status(phantom.APP_ERROR, msg)
+                    message = "Error({}): folder already exists in mailbox".format(path[0])
+                    self.save_progress(message)
+                    return action_result.set_status(phantom.APP_ERROR, message)
 
                 self._new_folder(action_result, path[0], email)
                 action_result.add_data(self._currentdir)
@@ -2267,9 +2267,9 @@ class Office365Connector(BaseConnector):
                         action_result.add_data(self._currentdir)
 
                     else:
-                        msg = "Error({}): folder doesn't exists in mailbox".format(path[0])
-                        self.save_progress(msg)
-                        return action_result.set_status(phantom.APP_ERROR, msg)
+                        message = "Error({}): folder doesn't exists in mailbox".format(path[0])
+                        self.save_progress(message)
+                        return action_result.set_status(phantom.APP_ERROR, message)
 
                 pathsofar += "/" + path[0]
                 parent_id = dir_id
@@ -2289,9 +2289,9 @@ class Office365Connector(BaseConnector):
                             action_result.add_data(self._currentdir)
 
                         else:
-                            msg = "Error({}): child folder doesn't exists in folder {}".format(subf, pathsofar)
-                            self.save_progress(msg)
-                            return action_result.set_status(phantom.APP_ERROR, msg)
+                            message = "Error({}): child folder doesn't exists in folder {}".format(subf, pathsofar)
+                            self.save_progress(message)
+                            return action_result.set_status(phantom.APP_ERROR, message)
 
                     pathsofar += "/" + subf
                     parent_id = dir_id
@@ -2299,9 +2299,9 @@ class Office365Connector(BaseConnector):
                 # finally, the actual folder
                 dir_id = self._get_child_folder(action_result, final, parent_id, email)
                 if dir_id:
-                    msg = "Error: child folder {0} already exists in the folder {1}".format(final, pathsofar)
-                    self.save_progress(msg)
-                    return action_result.set_status(phantom.APP_ERROR, msg)
+                    message = "Error: child folder {0} already exists in the folder {1}".format(final, pathsofar)
+                    self.save_progress(message)
+                    return action_result.set_status(phantom.APP_ERROR, message)
 
                 dir_id = self._new_child_folder(action_result, final, parent_id, email, pathsofar)
                 action_result.add_data(self._currentdir)
@@ -2765,13 +2765,13 @@ class Office365Connector(BaseConnector):
         # if it was not and the current action is not test connectivity then it's an error
         if self._admin_access:
             if not admin_consent and action_id != 'test_connectivity':
-                return self.set_status(phantom.APP_ERROR, MSGOFFICE365_RUN_CONNECTIVITY_MSG)
+                return self.set_status(phantom.APP_ERROR, MSGOFFICE365_RUN_CONNECTIVITY_MESSAGE)
 
         if not self._admin_access and action_id != 'test_connectivity' and (not self._access_token or not self._refresh_token):
             ret_val = self._get_token(action_result)
 
             if phantom.is_fail(ret_val):
-                return self.set_status(phantom.APP_ERROR, "{0}. {1}".format(MSGOFFICE365_RUN_CONNECTIVITY_MSG, action_result.get_message()))
+                return self.set_status(phantom.APP_ERROR, "{0}. {1}".format(MSGOFFICE365_RUN_CONNECTIVITY_MESSAGE, action_result.get_message()))
 
         # Create ProcessEmail Object for on_poll
         self._process_email = ProcessEmail(self, config)
