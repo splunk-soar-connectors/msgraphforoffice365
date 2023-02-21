@@ -1104,6 +1104,7 @@ class Office365Connector(BaseConnector):
         container_description = MSGOFFICE365_CONTAINER_DESCRIPTION.format(last_modified_time=email['lastModifiedDateTime'])
         container['description'] = container_description
         container['source_data_identifier'] = email['id']
+        container['data'] = {'raw_email': email}
 
         ret_val, message, container_id = self.save_container(container)
 
