@@ -93,7 +93,7 @@ def _load_app_state(asset_id, app_connector=None):
         state = _decrypt_state(state, asset_id)
     except Exception as e:
         if app_connector:
-            app_connector.debug_print("{}: {}".format(MSGOFFICE365_DECRYPTION_ERR, str(e)))
+            app_connector.debug_print("{}: {}".format(MSGOFFICE365_DECRYPTION_ERROR, str(e)))
         state = {}
 
     return state
@@ -127,7 +127,7 @@ def _save_app_state(state, asset_id, app_connector):
         state = _encrypt_state(state, asset_id)
     except Exception as e:
         if app_connector:
-            app_connector.debug_print("{}: {}".format(MSGOFFICE365_ENCRYPTION_ERR, str(e)))
+            app_connector.debug_print("{}: {}".format(MSGOFFICE365_ENCRYPTION_ERROR, str(e)))
         return phantom.APP_ERROR
 
     if app_connector:
@@ -153,7 +153,7 @@ def _get_error_message_from_exception(e):
     :return: error message
     """
     error_code = None
-    error_msg = ERR_MSG_UNAVAILABLE
+    error_msg = ERROR_MSG_UNAVAILABLE
 
     try:
         if hasattr(e, "args"):
@@ -418,7 +418,7 @@ class Office365Connector(BaseConnector):
         try:
             state = _decrypt_state(state, self._asset_id)
         except Exception as e:
-            self.debug_print("{}: {}".format(MSGOFFICE365_DECRYPTION_ERR, str(e)))
+            self.debug_print("{}: {}".format(MSGOFFICE365_DECRYPTION_ERROR, str(e)))
             state = None
 
         return state
@@ -433,7 +433,7 @@ class Office365Connector(BaseConnector):
         try:
             state = _encrypt_state(state, self._asset_id)
         except Exception as e:
-            self.debug_print("{}: {}".format(MSGOFFICE365_ENCRYPTION_ERR, str(e)))
+            self.debug_print("{}: {}".format(MSGOFFICE365_ENCRYPTION_ERROR, str(e)))
             return phantom.APP_ERROR
 
         return super().save_state(state)
@@ -443,7 +443,7 @@ class Office365Connector(BaseConnector):
         if response.status_code == 200:
             return RetVal(phantom.APP_SUCCESS, {})
 
-        return RetVal(action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_ERR_EMPTY_RESPONSE.format(code=response.status_code)), None)
+        return RetVal(action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_ERROR_EMPTY_RESPONSE.format(code=response.status_code)), None)
 
     def _process_html_response(self, response, action_result):
 
