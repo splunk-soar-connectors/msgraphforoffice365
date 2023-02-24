@@ -36,7 +36,7 @@ from django.core.validators import URLValidator
 from phantom.vault import Vault
 from requests.structures import CaseInsensitiveDict
 
-from office365_consts import ERR_MSG_UNAVAILABLE
+from office365_consts import ERROR_MESSAGE_UNAVAILABLE
 
 _container_common = {
     "run_automation": False  # Don't run any playbooks, when this artifact is added
@@ -126,7 +126,7 @@ def _get_error_message_from_exception(e):
     """
 
     error_code = None
-    error_msg = ERR_MSG_UNAVAILABLE
+    error_msg = ERROR_MESSAGE_UNAVAILABLE
 
     try:
         if hasattr(e, "args"):
