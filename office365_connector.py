@@ -153,7 +153,7 @@ def _get_error_message_from_exception(e, app_connector=None):
     :return: error message
     """
     error_code = None
-    error_message = ERROR_MSG_UNAVAILABLE
+    error_message = ERROR_MESSAGE_UNAVAILABLE
     app_connector.error_print("Error occurred:", e)
 
     try:

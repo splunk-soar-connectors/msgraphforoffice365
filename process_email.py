@@ -36,7 +36,7 @@ from django.core.validators import URLValidator
 from phantom.vault import Vault
 from requests.structures import CaseInsensitiveDict
 
-from office365_consts import ERROR_MSG_UNAVAILABLE
+from office365_consts import ERROR_MESSAGE_UNAVAILABLE
 
 _container_common = {
     "run_automation": False  # Don't run any playbooks, when this artifact is added
@@ -64,8 +64,8 @@ MAGIC_FORMATS = [
     (re.compile('^Macromedia Flash'), ['flash']),
 ]
 
-MSG_DEFAULT_ARTIFACT_COUNT = 100
-MSG_DEFAULT_CONTAINER_COUNT = 100
+MESSAGE_DEFAULT_ARTIFACT_COUNT = 100
+MESSAGE_DEFAULT_CONTAINER_COUNT = 100
 HASH_FIXED_PHANTOM_VERSION = "2.0.201"
 
 PROC_EMAIL_JSON_FILES = "files"
@@ -85,7 +85,7 @@ PROC_EMAIL_JSON_IPS = "ips"
 PROC_EMAIL_JSON_HASHES = "hashes"
 PROC_EMAIL_JSON_URLS = "urls"
 PROC_EMAIL_JSON_DOMAINS = "domains"
-PROC_EMAIL_JSON_MSG_ID = "message_id"
+PROC_EMAIL_JSON_MESSAGE_ID = "message_id"
 PROC_EMAIL_JSON_EMAIL_HEADERS = "email_headers"
 PROC_EMAIL_CONTENT_TYPE_MSG = "message/rfc822"
 
@@ -127,7 +127,7 @@ def _get_error_message_from_exception(e):
     """
 
     error_code = None
-    error_message = ERROR_MSG_UNAVAILABLE
+    error_message = ERROR_MESSAGE_UNAVAILABLE
 
     try:
         if hasattr(e, "args"):
@@ -892,7 +892,7 @@ class ProcessEmail(object):
         self._parsed_mail[PROC_EMAIL_JSON_FROM] = mail.get('From', '')
         self._parsed_mail[PROC_EMAIL_JSON_TO] = mail.get('To', '')
         self._parsed_mail[PROC_EMAIL_JSON_DATE] = mail.get('Date', '')
-        self._parsed_mail[PROC_EMAIL_JSON_MSG_ID] = mail.get('Message-ID', '')
+        self._parsed_mail[PROC_EMAIL_JSON_MESSAGE_ID] = mail.get('Message-ID', '')
         self._parsed_mail[PROC_EMAIL_JSON_FILES] = files = []
         self._parsed_mail[PROC_EMAIL_JSON_BODIES] = bodies = []
         self._parsed_mail[PROC_EMAIL_JSON_START_TIME] = start_time_epoch
@@ -1129,10 +1129,10 @@ class ProcessEmail(object):
 
         param = self._base_connector.get_current_param()
 
-        container_count = MSG_DEFAULT_CONTAINER_COUNT
+        container_count = MESSAGE_DEFAULT_CONTAINER_COUNT
 
         if param:
-            container_count = param.get(phantom.APP_JSON_CONTAINER_COUNT, MSG_DEFAULT_CONTAINER_COUNT)
+            container_count = param.get(phantom.APP_JSON_CONTAINER_COUNT, MESSAGE_DEFAULT_CONTAINER_COUNT)
 
         results = results[:container_count]
 
