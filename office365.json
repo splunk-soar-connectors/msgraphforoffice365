@@ -15,7 +15,7 @@
         }
     ],
     "license": "Copyright (c) 2017-2023 Splunk Inc.",
-    "app_version": "2.7.2",
+    "app_version": "2.8.0",
     "utctime_updated": "2022-02-04T01:20:46.000000Z",
     "package_name": "phantom_msgraphoffice365",
     "main_module": "office365_connector.py",
