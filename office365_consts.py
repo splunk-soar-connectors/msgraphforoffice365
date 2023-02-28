@@ -29,7 +29,9 @@ MSGOFFICE365_WELL_KNOWN_FOLDERS_FILTER = "displayName eq 'archive' or displayNam
     "displayName eq 'sync issues'"
 MSGOFFICE365_STATE_FILE_CORRUPT_ERROR = "Error occurred while loading the state file. " \
     "Resetting the state file with the default format. Please test the connectivity."
-MSGOFFICE365_AUTHORIZE_TROUBLESHOOT_MESSAGE = 'If authorization URL fails to communicate with your Splunk SOAR instance, check whether you have:  '\
+
+MSGOFFICE365_AUTHORIZE_TROUBLESHOOT_MSG = 'If authorization URL fails to communicate with your '\
+    'Splunk SOAR instance, check whether you have:  '\
     ' 1. Specified the Web Redirect URL of your App -- The Redirect URL should be <POST URL>/result . '\
     ' 2. Configured the base URL of your Splunk SOAR Instance at Administration -> Company Settings -> Info'
 MSGOFFICE365_INVALID_PERMISSION_ERROR = "Error occurred while saving the newly generated access token "\
@@ -38,7 +40,8 @@ MSGOFFICE365_INVALID_PERMISSION_ERROR += " Please check the owner, owner group, 
 MSGOFFICE365_INVALID_PERMISSION_ERROR += "user should have the correct access rights and ownership for the corresponding state file "\
     "(refer to readme file for more information)."
 MSGOFFICE365_NO_DATA_FOUND = "No data found"
-MSGOFFICE365_DUPLICATE_CONTAINER_FOUND_MESSAGE = "duplicate container found"
+
+MSGOFFICE365_DUPLICATE_CONTAINER_FOUND_MSG = "duplicate container found"
 MSGOFFICE365_ERROR_EMPTY_RESPONSE = "Status Code {code}. Empty response and no information in the header."
 
 MSGOFFICE365_DEFAULT_REQUEST_TIMEOUT = 30  # in seconds
@@ -49,18 +52,51 @@ MSGOFFICE365_HTTP_401_STATUS_CODE = '401'
 MSGOFFICE365_INVALID_CLIENT_ID_ERROR_CODE = 'AADSTS700016'
 MSGOFFICE365_INVALID_TENANT_ID_FORMAT_ERROR_CODE = 'AADSTS900023'
 MSGOFFICE365_INVALID_TENANT_ID_NOT_FOUND_ERROR_CODE = 'AADSTS90002'
-MSGOFFICE365_ASSET_PARAM_CHECK_LIST_ERRORS = [MSGOFFICE365_HTTP_401_STATUS_CODE, MSGOFFICE365_INVALID_CLIENT_ID_ERROR_CODE,
+MSGOFFICE365_ASSET_PARAM_CHECK_LIST_ERROR = [MSGOFFICE365_HTTP_401_STATUS_CODE, MSGOFFICE365_INVALID_CLIENT_ID_ERROR_CODE,
     MSGOFFICE365_INVALID_TENANT_ID_FORMAT_ERROR_CODE, MSGOFFICE365_INVALID_TENANT_ID_NOT_FOUND_ERROR_CODE]
 
 # Constants relating to '_get_error_message_from_exception'
-ERROR_MESSAGE_UNAVAILABLE = "Error message unavailable. Please check the asset configuration and|or action parameters"
+
+ERROR_MSG_UNAVAILABLE = "Error message unavailable. Please check the asset configuration and|or action parameters"
 
 # Constants relating to 'validate_integer'
 MSGOFFICE365_VALID_INT_MESSAGE = "Please provide a valid integer value in the {param} parameter"
 MSGOFFICE365_NON_NEG_NON_ZERO_INT_MESSAGE = (
     "Please provide a valid non-zero positive integer value in the {param} parameter"
 )
-MSGOFFICE365_NON_NEG_INT_MESSAGE = "Please provide a valid non-negative integer value in the {param} parameter"
+
+MSGOFFICE365_NON_NEG_INT_MSG = "Please provide a valid non-negative integer value in the {param} parameter"
 MSGOFFICE365_ENCRYPTION_ERROR = "Error occurred while encrypting the state file"
 MSGOFFICE365_DECRYPTION_ERROR = "Error occurred while decrypting the state file"
 MSGOFFICE365_UNEXPECTED_ACCESS_TOKEN_ERROR = "Found unexpected value of access token. Please run the test connectivity to generate a new token"
+MSGOFFICE365_SELECT_PARAMETER_LIST = [
+    "createdDateTime",
+    "lastModifiedDateTime",
+    "changeKey",
+    "categories",
+    "receivedDateTime",
+    "sentDateTime",
+    "hasAttachments",
+    "internetMessageId",
+    "subject",
+    "bodyPreview",
+    "importance",
+    "parentFolderId",
+    "conversationId",
+    "conversationIndex",
+    "isDeliveryReceiptRequested",
+    "isReadReceiptRequested",
+    "isRead",
+    "isDraft",
+    "webLink",
+    "inferenceClassification",
+    "body",
+    "sender",
+    "from",
+    "toRecipients",
+    "ccRecipients",
+    "bccRecipients",
+    "replyTo",
+    "flag",
+    "internetMessageHeaders"
+]

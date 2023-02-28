@@ -146,14 +146,16 @@ def _save_app_state(state, asset_id, app_connector):
     return phantom.APP_SUCCESS
 
 
-def _get_error_message_from_exception(e):
+def _get_error_message_from_exception(e, app_connector=None):
     """
     Get appropriate error message from the exception.
     :param e: Exception object
     :return: error message
     """
     error_code = None
-    error_message = ERROR_MESSAGE_UNAVAILABLE
+    error_message = ERROR_MSG_UNAVAILABLE
+    app_connector.error_print("Error occurred:", e)
+
 
     try:
         if hasattr(e, "args"):
@@ -170,6 +172,7 @@ def _get_error_message_from_exception(e):
     else:
         error_text = "Error Code: {}. Error Message: {}".format(error_code, error_message)
 
+    app_connector.error_print("{}".format(error_text))
     return error_text
 
 
@@ -418,6 +421,7 @@ class Office365Connector(BaseConnector):
         try:
             state = _decrypt_state(state, self._asset_id)
         except Exception as e:
+            self._dump_error_log(e)
             self.debug_print("{}: {}".format(MSGOFFICE365_DECRYPTION_ERROR, str(e)))
             state = None
 
@@ -433,10 +437,14 @@ class Office365Connector(BaseConnector):
         try:
             state = _encrypt_state(state, self._asset_id)
         except Exception as e:
+            self._dump_error_log(e)
             self.debug_print("{}: {}".format(MSGOFFICE365_ENCRYPTION_ERROR, str(e)))
             return phantom.APP_ERROR
 
         return super().save_state(state)
+
+    def _dump_error_log(self, error, message="Exception occurred."):
+        self.error_print(message, dump_object=error)
 
     def _process_empty_response(self, response, action_result):
 
@@ -582,8 +590,10 @@ class Office365Connector(BaseConnector):
                                 timeout=MSGOFFICE365_DEFAULT_REQUEST_TIMEOUT)
             except Exception as e:
                 error_message = _get_error_message_from_exception(e)
+
+                self._dump_error_log(e)
                 return RetVal(action_result.set_status(phantom.APP_ERROR, "Error connecting to server. {0}".format(error_message)), resp_json)
-            
+
             if r.status_code != 502:
                 break
             self.debug_print("Received 502 status code from the server")
@@ -774,6 +784,7 @@ class Office365Connector(BaseConnector):
                 self.debug_print("No content found in the attachment. Hence, skipping the vault file creation.")
 
         except Exception as e:
+            self._dump_error_log(e)
             error_message = _get_error_message_from_exception(e)
             self.debug_print("Error saving file to vault: {0}".format(error_message))
             return phantom.APP_ERROR
@@ -822,6 +833,7 @@ class Office365Connector(BaseConnector):
 
         except Exception as e:
             error_message = _get_error_message_from_exception(e)
+            self._dump_error_log(e)
             self.debug_print("Error saving file to vault: {0}".format(error_message))
             return phantom.APP_ERROR
 
@@ -852,7 +864,7 @@ class Office365Connector(BaseConnector):
 
         return phantom.APP_SUCCESS
 
-    def _create_email_artifacts(self, container_id, email, artifact_id=None):
+    def _create_email_artifacts(self, container_id, email, artifact_id=None, create_iocs=True):
         """
         Create email artifacts.
 
@@ -921,6 +933,9 @@ class Office365Connector(BaseConnector):
                     cef['bodyText'] = body_text
             except Exception:
                 self.debug_print("Cannot parse email body text details")
+
+        if not create_iocs:
+            return [email_artifact]
 
         body = email['body']['content']
 
@@ -1002,6 +1017,10 @@ class Office365Connector(BaseConnector):
                 else:
                     sub_email = attachment.get('item', {})
 
+                if sub_email:
+                    sub_artifacts = self._create_email_artifacts(container_id, sub_email, attachment['id'], create_iocs=False)
+                    artifacts += sub_artifacts
+
                 # Use recursive approach to extract the reference attachment
                 item_attachments = sub_email.pop('attachments', [])
                 if item_attachments:
@@ -1021,7 +1040,9 @@ class Office365Connector(BaseConnector):
                         # Create ProcessEmail Object for email item attachment
                         process_email_obj = ProcessEmail(self, config)
                         process_email_obj._trigger_automation = False
-                        ret_val, message = process_email_obj.process_email(rfc822_email, attachment['id'], epoch=None, container_id=container_id)
+                        ret_val, message = process_email_obj.process_email(
+                            rfc822_email, attachment['id'], epoch=None,
+                            container_id=container_id, ingest_email=False)
                         if phantom.is_fail(ret_val):
                             self.debug_print("Error while processing the email content, for attachment id: {}".format(attachment['id']))
 
@@ -1066,6 +1087,7 @@ class Office365Connector(BaseConnector):
                         rfc822_email = UnicodeDammit(rfc822_email).unicode_markup
                     except Exception as e:
                         error_message = _get_error_message_from_exception(e)
+                        self._dump_error_log(e)
                         self.debug_print("Unable to decode Email Mime Content. {0}".format(error_message))
                         return action_result.set_status(phantom.APP_ERROR, "Unable to decode Email Mime Content")
 
@@ -1102,6 +1124,7 @@ class Office365Connector(BaseConnector):
         container_description = MSGOFFICE365_CONTAINER_DESCRIPTION.format(last_modified_time=email['lastModifiedDateTime'])
         container['description'] = container_description
         container['source_data_identifier'] = email['id']
+        container['data'] = {'raw_email': email}
 
         ret_val, message, container_id = self.save_container(container)
 
@@ -1158,7 +1181,7 @@ class Office365Connector(BaseConnector):
 
     def _remove_tokens(self, action_result):
         # checks whether the message includes any of the known error codes
-        if len(list(filter(lambda x: x in action_result.get_message(), MSGOFFICE365_ASSET_PARAM_CHECK_LIST_ERRORS))) > 0:
+        if len(list(filter(lambda x: x in action_result.get_message(), MSGOFFICE365_ASSET_PARAM_CHECK_LIST_ERROR))) > 0:
             if not self._admin_access:
                 if self._state.get('non_admin_auth', {}).get('access_token'):
                     self._state['non_admin_auth'].pop('access_token')
@@ -1323,7 +1346,8 @@ class Office365Connector(BaseConnector):
         if param.get('get_folder_id', True):
             try:
                 dir_id, error, _ = self._get_folder_id(action_result, folder, email_addr)
-            except ReturnException:
+            except ReturnException as e:
+                self._dump_error_log(e)
                 return action_result.get_status()
 
             if dir_id:
@@ -1357,7 +1381,8 @@ class Office365Connector(BaseConnector):
             try:
                 dir_id, error, _ = self._get_folder_id(action_result, folder, email_addr)
 
-            except ReturnException:
+            except ReturnException as e:
+                self._dump_error_log(e)
                 return action_result.get_status()
 
             if dir_id:
@@ -1851,6 +1876,26 @@ class Office365Connector(BaseConnector):
         limit = expected_duplicate_count_in_next_cycle + remaining_count
         return limit, total_ingested
 
+    def _get_select_query_parameters(self, action_result, endpoint):
+
+        param_list = []
+
+        ret_val, response = self._make_rest_call_helper(action_result, endpoint=endpoint)
+        if phantom.is_fail(ret_val):
+            return param_list
+
+        value = response.get('value', [])
+        if value:
+            for item in value:
+                for key, _ in item.items():
+                    if key == "@odata.etag":
+                        continue
+                    if key == "id":
+                        continue
+                    param_list.append(key)
+
+        return list(set(param_list))
+
     def _handle_on_poll(self, param):
 
         self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
@@ -1891,7 +1936,8 @@ class Office365Connector(BaseConnector):
             if config.get('get_folder_id', True):
                 try:
                     dir_id, error, _ = self._get_folder_id(action_result, folder, config.get('email_address'))
-                except ReturnException:
+                except ReturnException as e:
+                    self._dump_error_log(e)
                     return action_result.get_status()
                 if dir_id:
                     folder = dir_id
@@ -1906,6 +1952,14 @@ class Office365Connector(BaseConnector):
         params = {
             '$orderBy': 'lastModifiedDateTime {}'.format(order)
         }
+
+        param_list = self._get_select_query_parameters(action_result, endpoint)
+
+        if not param_list:
+            params['$select'] = ','.join(MSGOFFICE365_SELECT_PARAMETER_LIST)
+        else:
+            param_list.append("internetMessageHeaders")
+            params['$select'] = ','.join(param_list)
 
         if start_time:
             params['$filter'] = "lastModifiedDateTime ge {0}".format(start_time)
@@ -1944,7 +1998,9 @@ class Office365Connector(BaseConnector):
                 except Exception as e:
                     failed_email_ids += 1
                     error_message = _get_error_message_from_exception(e)
-                    self.debug_print("Exception occurred while processing email ID: {}. {}".format(email.get('id'),error_message))
+                    self._dump_error_log(e)
+                    self.debug_print(f"Exception occurred while processing email ID: {email.get('id')}. {error_message}")
+
 
             if failed_email_ids == total_emails:
                 return action_result.set_status(phantom.APP_ERROR, "Error occurred while processing all the email IDs")
@@ -2075,7 +2131,8 @@ class Office365Connector(BaseConnector):
             if param.get('get_folder_id', True):
                 try:
                     dir_id, error, _ = self._get_folder_id(action_result, folder, email_addr)
-                except ReturnException:
+                except ReturnException as e:
+                    self._dump_error_log(e)
                     return action_result.get_status()
                 if dir_id:
                     folder = dir_id
@@ -2135,6 +2192,7 @@ class Office365Connector(BaseConnector):
         try:
             dir_id = self._get_folder(action_result, path[0], email)
         except ReturnException as e:
+            self._dump_error_log(e)
             return None, "Error occurred while fetching folder {}. {}".format(path[0], e), None
 
         if not dir_id:
@@ -2152,7 +2210,8 @@ class Office365Connector(BaseConnector):
                     return None, "Error: child folder not found; {}".format(subpath), ret
 
                 ret.append({"path": subpath, "folder": subf, "folder_id": dir_id})
-        except ReturnException:
+        except ReturnException as e:
+            self._dump_error_log(e)
             return None, action_result.get_message(), None
 
         return dir_id, None, ret
@@ -2322,7 +2381,8 @@ class Office365Connector(BaseConnector):
                 dir_id = self._new_child_folder(action_result, final, parent_id, email, pathsofar)
                 action_result.add_data(self._currentdir)
 
-        except ReturnException:
+        except ReturnException as e:
+            self._dump_error_log(e)
             return action_result.get_status()
 
         action_result.update_summary({"folders created": len(action_result.get_data()), "folder": self._currentdir['id']})
@@ -2339,7 +2399,8 @@ class Office365Connector(BaseConnector):
         try:
             dir_id, error, ret = self._get_folder_id(action_result, folder, email)
 
-        except ReturnException:
+        except ReturnException as e:
+            self._dump_error_log(e)
             return action_result.get_status()
 
         if ret and len(ret) > 0:
