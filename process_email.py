@@ -359,6 +359,17 @@ class ProcessEmail(object):
                         ips.append({'sourceAddress': ip, 'parentInternetMessageId': parent_id})
                     else:
                         ips.append({'sourceAddress': ip})
+    
+    def _sanitize_dict(self, obj):
+
+        if isinstance(obj, str):
+            return obj.replace('\x00', '')
+        if isinstance(obj, list):
+            return [self._sanitize_dict(item) for item in obj]
+        if isinstance(obj, dict):
+            return {k: self._sanitize_dict(v) for k, v in obj.items()}
+        
+        return obj
 
     def _extract_hashes(self, file_data, hashes, parent_id=None):
 
@@ -424,6 +435,8 @@ class ProcessEmail(object):
             artifact['cef'] = item
             artifact['name'] = artifact_name
             self._debug_print('Artifact:', artifact)
+            if artifact:
+                artifact = self._sanitize_dict(artifact)
             artifacts.append(artifact)
             added_artifacts += 1
 
