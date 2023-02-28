@@ -359,7 +359,7 @@ class ProcessEmail(object):
                         ips.append({'sourceAddress': ip, 'parentInternetMessageId': parent_id})
                     else:
                         ips.append({'sourceAddress': ip})
-    
+
     def _sanitize_dict(self, obj):
 
         if isinstance(obj, str):
@@ -368,7 +368,7 @@ class ProcessEmail(object):
             return [self._sanitize_dict(item) for item in obj]
         if isinstance(obj, dict):
             return {k: self._sanitize_dict(v) for k, v in obj.items()}
-        
+
         return obj
 
     def _extract_hashes(self, file_data, hashes, parent_id=None):

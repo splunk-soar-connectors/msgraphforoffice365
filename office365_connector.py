@@ -156,7 +156,6 @@ def _get_error_message_from_exception(e, app_connector=None):
     error_message = ERROR_MSG_UNAVAILABLE
     app_connector.error_print("Error occurred:", e)
 
-
     try:
         if hasattr(e, "args"):
             if len(e.args) > 1:
@@ -598,10 +597,7 @@ class Office365Connector(BaseConnector):
                 break
             self.debug_print("Received 502 status code from the server")
             time.sleep(self._retry_wait_time)
-        
-            
-                            
-        
+
         if r.status_code >= 400 and r.status_code <= 509:
             resp = json.loads(r.text)
             return RetVal(phantom.APP_ERROR, "Error Code: {0}, ERROR : {1}, MESSAGE : {2}".format(
@@ -725,7 +721,7 @@ class Office365Connector(BaseConnector):
 
         ret_val, resp_json = self._make_rest_call(action_result, url, verify, headers, params, data, method, download=download)
         if phantom.is_fail(ret_val):
-                return action_result.get_status(), resp_json
+            return action_result.get_status(), resp_json
 
         # If token is expired, generate a new token
         message = action_result.get_message()
@@ -743,7 +739,6 @@ class Office365Connector(BaseConnector):
 
             ret_val, resp_json = self._make_rest_call(action_result, url, verify, headers, params, data, method, download=download)
 
-        
         if phantom.is_fail(ret_val):
             return action_result.get_status(), None
 
@@ -1994,13 +1989,12 @@ class Office365Connector(BaseConnector):
                     ret_val = self._process_email_data(config, action_result, endpoint, email)
                     if phantom.is_fail(ret_val):
                         failed_email_ids += 1
-                        self.debug_print("Error occurred while processing email ID: {}. {}".format(email.get('id'),action_result.get_message()))
+                        self.debug_print("Error occurred while processing email ID: {}. {}".format(email.get('id'), action_result.get_message()))
                 except Exception as e:
                     failed_email_ids += 1
                     error_message = _get_error_message_from_exception(e)
                     self._dump_error_log(e)
                     self.debug_print(f"Exception occurred while processing email ID: {email.get('id')}. {error_message}")
-
 
             if failed_email_ids == total_emails:
                 return action_result.set_status(phantom.APP_ERROR, "Error occurred while processing all the email IDs")
@@ -2455,7 +2449,7 @@ class Office365Connector(BaseConnector):
         return action_result, message_id
 
     def _send_draft_message(self, action_result, user_id, message_id):
-        endpoint = "/users/{}/messages/{}/send".format(user_id,message_id)
+        endpoint = "/users/{}/messages/{}/send".format(user_id, message_id)
 
         ret_val, _ = self._make_rest_call_helper(action_result, endpoint, method='post')
         if phantom.is_fail(ret_val):
@@ -2482,7 +2476,7 @@ class Office365Connector(BaseConnector):
         return ret_val, attachment_id
 
     def _upload_small_attachment(self, action_result, vault_info, user_id, message_id):
-        endpoint = "/users/{}/messages/{}/attachments".format(user_id,message_id)
+        endpoint = "/users/{}/messages/{}/attachments".format(user_id, message_id)
         with open(vault_info['path'], mode='rb') as file:
             file_content = file.read()
         data = {
@@ -2499,7 +2493,7 @@ class Office365Connector(BaseConnector):
         return phantom.APP_SUCCESS, attachment_id
 
     def _upload_large_attachment(self, action_result, vault_info, user_id, message_id):
-        endpoint = "/users/{}/messages/{}/attachments/createUploadSession".format(user_id,message_id)
+        endpoint = "/users/{}/messages/{}/attachments/createUploadSession".format(user_id, message_id)
         file_size = vault_info['size']
         data = {
             'AttachmentItem': {
@@ -2521,7 +2515,7 @@ class Office365Connector(BaseConnector):
                 end_position = start_position + len(file_content) - 1
                 headers = {
                     'Content-Type': 'application/octet-stream',
-                    'Content-Range': "bytes {}-{}/{}".format(start_position,end_position,file_size)
+                    'Content-Range': "bytes {}-{}/{}".format(start_position, end_position, file_size)
                 }
                 response = requests.put(upload_url, headers=headers, data=file_content)
                 if not response.ok:
@@ -2535,7 +2529,7 @@ class Office365Connector(BaseConnector):
         return phantom.APP_SUCCESS, attachment_id
 
     def _get_message(self, action_result, user_id, message_id):
-        endpoint = "/users/{}/messages/{}".format(user_id,message_id)
+        endpoint = "/users/{}/messages/{}".format(user_id, message_id)
 
         ret_val, response = self._make_rest_call_helper(action_result, endpoint, method='get')
         if phantom.is_fail(ret_val):
