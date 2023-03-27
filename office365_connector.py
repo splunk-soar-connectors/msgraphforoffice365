@@ -154,7 +154,8 @@ def _get_error_msg_from_exception(e, app_connector=None):
     """
     error_code = None
     error_msg = ERROR_MSG_UNAVAILABLE
-    app_connector.error_print("Error occurred:", e)
+    if app_connector:
+        app_connector.error_print("Error occurred:", e)
 
     try:
         if hasattr(e, "args"):
@@ -170,8 +171,8 @@ def _get_error_msg_from_exception(e, app_connector=None):
         error_text = "Error Message: {}".format(error_msg)
     else:
         error_text = "Error Code: {}. Error Message: {}".format(error_code, error_msg)
-
-    app_connector.error_print("{}".format(error_text))
+    if app_connector:
+        app_connector.error_print("{}".format(error_text))
     return error_text
 
 
@@ -469,8 +470,7 @@ class Office365Connector(BaseConnector):
         except Exception:
             error_text = "Cannot parse error details"
 
-        msg = "Status Code: {0}. Data from server:\n{1}\n".format(status_code,
-                                                                      error_text)
+        msg = "Status Code: {0}. Data from server:\n{1}\n".format(status_code, error_text)
 
         msg = msg.replace('{', '{{').replace('}', '}}')
 
@@ -482,7 +482,7 @@ class Office365Connector(BaseConnector):
         try:
             resp_json = r.json()
         except Exception as e:
-            error_msg = _get_error_msg_from_exception(e)
+            error_msg = _get_error_msg_from_exception(e, self)
             return RetVal(action_result.set_status(phantom.APP_ERROR, "Unable to parse JSON response. {0}".format(error_msg)), None)
 
         # Please specify the status codes here
@@ -588,7 +588,7 @@ class Office365Connector(BaseConnector):
                                 params=params,
                                 timeout=MSGOFFICE365_DEFAULT_REQUEST_TIMEOUT)
             except Exception as e:
-                error_msg = _get_error_msg_from_exception(e)
+                error_msg = _get_error_msg_from_exception(e, self)
 
                 self._dump_error_log(e)
                 return RetVal(action_result.set_status(phantom.APP_ERROR, "Error connecting to server. {0}".format(error_msg)), resp_json)
@@ -644,7 +644,7 @@ class Office365Connector(BaseConnector):
         try:
             data = json.dumps(container)
         except Exception as e:
-            error_msg = _get_error_msg_from_exception(e)
+            error_msg = _get_error_msg_from_exception(e, self)
             msg = (
                 "json.dumps failed while updating the container: {}. "
                 "Possibly a value in the container dictionary is not encoded properly."
@@ -780,7 +780,7 @@ class Office365Connector(BaseConnector):
 
         except Exception as e:
             self._dump_error_log(e)
-            error_msg = _get_error_msg_from_exception(e)
+            error_msg = _get_error_msg_from_exception(e, self)
             self.debug_print("Error saving file to vault: {0}".format(error_msg))
             return phantom.APP_ERROR
 
@@ -827,7 +827,7 @@ class Office365Connector(BaseConnector):
                 self.debug_print("No content found for the item attachment. Hence, skipping the vault file creation.")
 
         except Exception as e:
-            error_msg = _get_error_msg_from_exception(e)
+            error_msg = _get_error_msg_from_exception(e, self)
             self._dump_error_log(e)
             self.debug_print("Error saving file to vault: {0}".format(error_msg))
             return phantom.APP_ERROR
@@ -1081,7 +1081,7 @@ class Office365Connector(BaseConnector):
                         rfc822_email = base64.b64decode(attachment['contentBytes'])
                         rfc822_email = UnicodeDammit(rfc822_email).unicode_markup
                     except Exception as e:
-                        error_msg = _get_error_msg_from_exception(e)
+                        error_msg = _get_error_msg_from_exception(e, self)
                         self._dump_error_log(e)
                         self.debug_print("Unable to decode Email Mime Content. {0}".format(error_msg))
                         return action_result.set_status(phantom.APP_ERROR, "Unable to decode Email Mime Content")
@@ -1871,26 +1871,6 @@ class Office365Connector(BaseConnector):
         limit = expected_duplicate_count_in_next_cycle + remaining_count
         return limit, total_ingested
 
-    def _get_select_query_parameters(self, action_result, endpoint):
-
-        param_list = []
-
-        ret_val, response = self._make_rest_call_helper(action_result, endpoint=endpoint)
-        if phantom.is_fail(ret_val):
-            return param_list
-
-        value = response.get('value', [])
-        if value:
-            for item in value:
-                for key, _ in item.items():
-                    if key == "@odata.etag":
-                        continue
-                    if key == "id":
-                        continue
-                    param_list.append(key)
-
-        return list(set(param_list))
-
     def _handle_on_poll(self, param):
 
         self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
@@ -1948,13 +1928,7 @@ class Office365Connector(BaseConnector):
             '$orderBy': 'lastModifiedDateTime {}'.format(order)
         }
 
-        param_list = self._get_select_query_parameters(action_result, endpoint)
-
-        if not param_list:
-            params['$select'] = ','.join(MSGOFFICE365_SELECT_PARAMETER_LIST)
-        else:
-            param_list.append("internetMessageHeaders")
-            params['$select'] = ','.join(param_list)
+        params['$select'] = ','.join(MSGOFFICE365_SELECT_PARAMETER_LIST)
 
         if start_time:
             params['$filter'] = "lastModifiedDateTime ge {0}".format(start_time)
@@ -1992,7 +1966,7 @@ class Office365Connector(BaseConnector):
                         self.debug_print("Error occurred while processing email ID: {}. {}".format(email.get('id'), action_result.get_message()))
                 except Exception as e:
                     failed_email_ids += 1
-                    error_msg = _get_error_msg_from_exception(e)
+                    error_msg = _get_error_msg_from_exception(e, self)
                     self._dump_error_log(e)
                     self.debug_print(f"Exception occurred while processing email ID: {email.get('id')}. {error_msg}")
 
