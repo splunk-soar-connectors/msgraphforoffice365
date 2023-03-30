@@ -1997,6 +1997,24 @@ class Office365Connector(BaseConnector):
             phantom.APP_SUCCESS, "Successfully retrieved inbox rules"
         )
 
+    def flatten_json(self, y):
+        out = {}
+
+        def flatten(x, name=""):
+            if type(x) is dict:
+                for a in x:
+                    flatten(x[a], name + a + "_")
+            elif type(x) is list:
+                i = 0
+                for a in x:
+                    flatten(a, name + str(i) + "_")
+                    i += 1
+            else:
+                out[name[:-1]] = x
+
+        flatten(y)
+        return out
+
     def _handle_get_rule(self, param):
 
         self.save_progress(
@@ -2021,6 +2039,8 @@ class Office365Connector(BaseConnector):
                 phantom.APP_SUCCESS, MSGOFFICE365_NO_DATA_FOUND
             )
 
+        rule = self.flatten_json(rule)
+        self.debug_print(rule)
         action_result.add_data(rule)
 
         return action_result.set_status(

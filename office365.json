@@ -11,8 +11,7 @@
     "publisher": "Splunk",
     "contributors": [
         {
-            "name": "Alan Shaikh",
-            "name": "Chris Hutto"
+            "name": "Alan Shaikh, Chris Hutto"
         }
     ],
     "license": "Copyright (c) 2017-2022 Splunk Inc.",
@@ -1108,28 +1107,14 @@
                 {
                     "data_path": "action_result.parameter.rule_id",
                     "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.data.*.displayName",
-                    "data_type": "string",
-                    "column_name": "Rule Display Name",
-                    "column_order": 0
-                },
-                {
-                    "data_path": "action_result.data.*.actions",
-                    "data_type": "string",
-                    "column_name": "Actions",
-                    "column_order": 1
-                },
-                {
-                    "data_path": "action_result.data.*.conditions",
-                    "data_type": "string",
-                    "column_name": "Conditions",
-                    "column_order": 2
                 }
             ],
             "render": {
-                "type": "table"
+                "width": 12,
+                "title": "get rule",
+                "type": "custom",
+                "height": 5,
+                "view": "office365_view.display_view"
             },
             "versions": "EQ(*)"
         },
