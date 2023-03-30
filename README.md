@@ -320,7 +320,7 @@ VARIABLE | REQUIRED | TYPE | DESCRIPTION
 [delete event](#action-delete-event) - Delete an event from user calendar  
 [get email](#action-get-email) - Get an email from the server  
 [get email properties](#action-get-email-properties) - Get non\-standard email properties from the server  
-[get rule](#action-get-rule) - Get the properties and relationships of a messageRule object 
+[get rule](#action-get-rule) - Get the properties and relationships of a messageRule object  
 [run query](#action-run-query) - Search emails  
 [create folder](#action-create-folder) - Create a new folder  
 [get folder id](#action-get-folder-id) - Get the API ID of the folder  
@@ -655,7 +655,7 @@ summary\.total\_objects\_successful | numeric |
 ## action: 'list rules'
 Get all the messageRule objects defined for the user's inbox
 
-Type: **investigate**
+Type: **investigate**  
 Read only: **True**
 
 ### Action Parameters
@@ -1197,7 +1197,7 @@ summary\.total\_objects\_successful | numeric |
 ## action: 'get rule'
 Get the properties and relationships of a messageRule object.
 
-Type: **investigate**
+Type: **investigate**  
 Read only: **True**
 
 #### Action Parameters
