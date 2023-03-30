@@ -660,7 +660,7 @@ Read only: **True**
 
 ### Action Parameters
 PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
---------- | ---- | --------
+--------- | -------- | ----------- | ---- | --------
 **user\_id** |  required  | User ID/Principal name | string |  `msgoffice365 user id`  `msgoffice365 user principal name`  `email` 
 
 ### Action Output
