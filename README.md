@@ -313,12 +313,14 @@ VARIABLE | REQUIRED | TYPE | DESCRIPTION
 [list groups](#action-list-groups) - List all the groups in an organization, including but not limited to Office 365 groups  
 [list group members](#action-list-group-members) - List all the members in group  
 [list folders](#action-list-folders) - Retrieve a list of mail folders  
+[list rules](#action-list-rules) - Get all the messageRule objects defined for the user's inbox  
 [copy email](#action-copy-email) - Copy an email to a folder  
 [move email](#action-move-email) - Move an email to a folder  
 [delete email](#action-delete-email) - Delete an email  
 [delete event](#action-delete-event) - Delete an event from user calendar  
 [get email](#action-get-email) - Get an email from the server  
 [get email properties](#action-get-email-properties) - Get non\-standard email properties from the server  
+[get rule](#action-get-rule) - Get the properties and relationships of a messageRule object 
 [run query](#action-run-query) - Search emails  
 [create folder](#action-create-folder) - Create a new folder  
 [get folder id](#action-get-folder-id) - Get the API ID of the folder  
@@ -649,6 +651,28 @@ action\_result\.summary\.total\_folders\_returned | numeric |
 action\_result\.message | string | 
 summary\.total\_objects | numeric | 
 summary\.total\_objects\_successful | numeric |   
+
+## action: 'list rules'
+Get all the messageRule objects defined for the user's inbox
+
+Type: **investigate**
+Read only: **True**
+
+### Action Parameters
+PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
+--------- | ---- | --------
+**user\_id** |  required  | User ID/Principal name | string |  `msgoffice365 user id`  `msgoffice365 user principal name`  `email` 
+
+### Action Output
+DATA PATH | TYPE | CONTAINS
+--------- | ---- | --------
+action\_result\.status | string | 
+action\_result\.parameter\.user\_id | string |  `msgoffice365 user id`  `msgoffice365 user principal name`  `email` 
+action\_result\.summary\.total\_rules\_returned\ | numeric | 
+action\_result\.data\.\*\.displayName | string | 
+action\_result\.data\.\*\.actions\.delete | boolean | 
+action\_result\.data\.\*\.actions | string | 
+action\_result\.data\.\*\.id | string |   
 
 ## action: 'copy email'
 Copy an email to a folder
@@ -1169,6 +1193,26 @@ action\_result\.summary | string |
 action\_result\.message | string | 
 summary\.total\_objects | numeric | 
 summary\.total\_objects\_successful | numeric |   
+
+## action: 'get rule'
+Get the properties and relationships of a messageRule object.
+
+Type: **investigate**
+Read only: **True**
+
+#### Action Parameters
+PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
+--------- | -------- | ----------- | ---- | --------
+**user\_id** |  required  | User ID/Principal name | string |  `msgoffice365 user id`  `msgoffice365 user principal name`  `email` 
+**rule\_id** |  required  | Specific inbox rule ID | string | 
+
+#### Action Output
+DATA PATH | TYPE | CONTAINS
+--------- | ---- | --------
+action\_result\.status | string | 
+action\_result\.parameter\.user\_id | string |  `msgoffice365 user id`  `msgoffice365 user principal name`  `email` 
+action\_result\.parameter\.rule\_id | string | 
+action\_result\.data\.\*\.displayName | string |  
 
 ## action: 'run query'
 Search emails
