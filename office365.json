@@ -12,7 +12,11 @@
     "contributors": [
         {
             "name": "Alan Shaikh"
-        },{
+        },
+        {
+            "name": "Chris Hutto"
+        },
+        {
             "name" : "Mathieu A. Cormier"
         }
     ],
@@ -1056,6 +1060,153 @@
                 "type": "custom",
                 "height": 5,
                 "view": "office365_view.display_view"
+            },
+            "versions": "EQ(*)"
+        },
+        {
+            "action": "get rule",
+            "identifier": "get_rule",
+            "description": "Get the properties and relationships of a messageRule object",
+            "type": "investigate",
+            "read_only": true,
+            "parameters": {
+                "user_id": {
+                    "description": "User ID/Principal name",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": true,
+                    "order": 0,
+                    "contains": [
+                        "msgoffice365 user id",
+                        "msgoffice365 user principal name",
+                        "email"
+                    ]
+                },
+                "rule_id": {
+                    "description": "Inbox rule ID",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": false,
+                    "order": 1
+                }
+            },
+            "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.user_id",
+                    "data_type": "string",
+                    "example_values": [
+                        "test@testdomain.abc.com"
+                    ],
+                    "contains": [
+                        "msgoffice365 user id",
+                        "msgoffice365 user principal name",
+                        "email"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.rule_id",
+                    "data_type": "string"
+                }
+            ],
+            "render": {
+                "width": 12,
+                "title": "get rule",
+                "type": "custom",
+                "height": 5,
+                "view": "office365_view.display_view"
+            },
+            "versions": "EQ(*)"
+        },
+        {
+            "action": "list rules",
+            "identifier": "list_rules",
+            "description": "Get all the messageRule objects defined for the user's inbox",
+            "type": "investigate",
+            "read_only": true,
+            "parameters": {
+                "user_id": {
+                    "description": "User ID/Principal name",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": true,
+                    "order": 0,
+                    "contains": [
+                        "msgoffice365 user id",
+                        "msgoffice365 user principal name",
+                        "email"
+                    ]
+                }
+            },
+            "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.user_id",
+                    "data_type": "string",
+                    "example_values": [
+                        "test@testdomain.abc.com"
+                    ],
+                    "contains": [
+                        "msgoffice365 user id",
+                        "msgoffice365 user principal name",
+                        "email"
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary.total_rules_returned",
+                    "data_type": "numeric",
+                    "example_values": [
+                        14
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.displayName",
+                    "data_type": "string",
+                    "example_values": [
+                        "Emails to Trash"
+                    ],
+                    "column_name": "Rule Name",
+                    "column_order": 0
+                },
+                {
+                    "data_path": "action_result.data.*.actions.delete",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ],
+                    "column_name": "Delete Email Enabled",
+                    "column_order": 2
+                },
+                {
+                    "data_path": "action_result.data.*.actions",
+                    "data_type": "string",
+                    "column_name": "Action",
+                    "column_order": 3
+                },
+                {
+                    "data_path": "action_result.data.*.id",
+                    "data_type": "string",
+                    "column_name": "Rule ID",
+                    "column_order": 1
+                }
+            ],
+            "render": {
+                "type": "table"
             },
             "versions": "EQ(*)"
         },
