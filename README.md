@@ -6,7 +6,7 @@ Connector Version: 2.8.0
 Product Vendor: Microsoft  
 Product Name: Office 365 (MS Graph)  
 Product Version Supported (regex): ".\*"  
-Minimum Product Version: 5.5.0  
+Minimum Product Version: 5.4.0  
 
 This app connects to Office 365 using the MS Graph API to support investigate and generic actions related to the email messages and calendar events
 
@@ -524,7 +524,7 @@ Read only: **True**
 PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 --------- | -------- | ----------- | ---- | --------
 **user_id** |  required  | User ID/Principal name | string |  `msgoffice365 user id`  `msgoffice365 user principal name`  `email` 
-**rule_id** |  required  | Inbox rule ID | string | 
+**rule_id** |  required  | Inbox rule ID | string |  `msgoffice365 rule id` 
 
 #### Action Output
 DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
@@ -553,7 +553,7 @@ action_result.summary.total_rules_returned | numeric |  |   14
 action_result.data.\*.displayName | string |  |   Emails to Trash 
 action_result.data.\*.actions.delete | boolean |  |   True  False 
 action_result.data.\*.actions | string |  |  
-action_result.data.\*.id | string |  |    
+action_result.data.\*.id | string |  `msgoffice365 rule id`  |    
 
 ## action: 'list users'
 Retrieve a list of users
