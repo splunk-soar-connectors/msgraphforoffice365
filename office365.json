@@ -25,10 +25,9 @@
     "utctime_updated": "2022-02-04T01:20:46.000000Z",
     "package_name": "phantom_msgraphoffice365",
     "main_module": "office365_connector.py",
-    "min_phantom_version": "5.5.0",
+    "min_phantom_version": "5.4.0",
     "latest_tested_versions": [
         "Cloud 23 February, 2023"
-
     ],
     "app_wizard_version": "1.0.0",
     "python_version": "3",
@@ -1086,8 +1085,11 @@
                     "description": "Inbox rule ID",
                     "data_type": "string",
                     "required": true,
-                    "primary": false,
-                    "order": 1
+                    "primary": true,
+                    "order": 1,
+                    "contains":[
+                        "msgoffice365 rule id"
+                    ]
                 }
             },
             "output": [
@@ -1202,11 +1204,16 @@
                     "data_path": "action_result.data.*.id",
                     "data_type": "string",
                     "column_name": "Rule ID",
+                    "contains":[
+                        "msgoffice365 rule id"
+                    ],
                     "column_order": 1
                 }
             ],
             "render": {
-                "type": "table"
+                "title": "list rules",
+                "type": "custom",
+                "view":"office365_view.display_view"
             },
             "versions": "EQ(*)"
         },
