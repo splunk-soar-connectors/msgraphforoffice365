@@ -17,7 +17,7 @@
             "name": "Chris Hutto"
         },
         {
-            "name" : "Mathieu A. Cormier"
+            "name": "Mathieu A. Cormier"
         }
     ],
     "license": "Copyright (c) 2017-2023 Splunk Inc.",
@@ -27,7 +27,7 @@
     "main_module": "office365_connector.py",
     "min_phantom_version": "5.4.0",
     "latest_tested_versions": [
-        "Cloud 23 February, 2023"
+        "Cloud 12 April, 2023"
     ],
     "app_wizard_version": "1.0.0",
     "python_version": "3",
@@ -1087,7 +1087,7 @@
                     "required": true,
                     "primary": true,
                     "order": 1,
-                    "contains":[
+                    "contains": [
                         "msgoffice365 rule id"
                     ]
                 }
@@ -1099,6 +1099,14 @@
                     "example_values": [
                         "success",
                         "failed"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.rule_id",
+                    "data_type": "string",
+                    "example_values": [],
+                    "contains": [
+                        "msgoffice365 rule id"
                     ]
                 },
                 {
@@ -1114,8 +1122,117 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.parameter.rule_id",
+                    "data_path": "action_result.data",
                     "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.@odata.context",
+                    "data_type": "string",
+                    "example_values": [
+                        "https://graph.microsoft.com/v1.0/$metadata#users('eeb3645f-df19-47a1-8e8c-fcd234cb5f6f')/mailFolders('inbox')/messageRules/$entity"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.actions_copyToFolder",
+                    "data_type": "string",
+                    "example_values": [
+                        "AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQAuAAADeDDJKaEf4EihMWU6SZgKbAEA07XhOkNngkCkqoNfY_k-jQAF6qrTswAAAA=="
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.actions_stopProcessingRules",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.conditions_fromAddresses_0_emailAddress_address",
+                    "data_type": "string",
+                    "example_values": [
+                        "herman@phantomengineering2.onmicrosoft.com"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.conditions_fromAddresses_0_emailAddress_name",
+                    "data_type": "string",
+                    "example_values": [
+                        "Herman Edwards"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.displayName",
+                    "data_type": "string",
+                    "example_values": [
+                        "Move all messages from Herman Edwards to hardik-msgoffice365-test"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.hasError",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.id",
+                    "data_type": "string",
+                    "example_values": [
+                        "AQAABgFGL8A="
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.isEnabled",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.isReadOnly",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.sequence",
+                    "data_type": "numeric",
+                    "example_values": [
+                        2
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary.total_users_returned",
+                    "data_type": "numeric",
+                    "example_values": [
+                        11
+                    ]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "Successfully retrieved 11 users"
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
                 }
             ],
             "render": {
@@ -1169,20 +1286,17 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.summary.total_rules_returned",
-                    "data_type": "numeric",
-                    "example_values": [
-                        14
-                    ]
+                    "data_path": "action_result.data.*.actions",
+                    "data_type": "string",
+                    "column_name": "Action",
+                    "column_order": 3
                 },
                 {
-                    "data_path": "action_result.data.*.displayName",
+                    "data_path": "action_result.data.*.actions.copyToFolder",
                     "data_type": "string",
                     "example_values": [
-                        "Emails to Trash"
-                    ],
-                    "column_name": "Rule Name",
-                    "column_order": 0
+                        "AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQAuAAADeDDJKaEf4EihMWU6SZgKbAEA07XhOkNngkCkqoNfY_k-jQAF6qrTswAAAA=="
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.actions.delete",
@@ -1195,25 +1309,114 @@
                     "column_order": 2
                 },
                 {
-                    "data_path": "action_result.data.*.actions",
+                    "data_path": "action_result.data.*.actions.moveToFolder",
                     "data_type": "string",
-                    "column_name": "Action",
-                    "column_order": 3
+                    "example_values": [
+                        "AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQAuAAADeDDJKaEf4EihMWU6SZgKbAEA07XhOkNngkCkqoNfY_k-jQAF6qrTtAAAAA=="
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.actions.stopProcessingRules",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.conditions.fromAddresses.*.emailAddress.address",
+                    "data_type": "string",
+                    "example_values": [
+                        "herman@phantomengineering2.onmicrosoft.com"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.conditions.fromAddresses.*.emailAddress.name",
+                    "data_type": "string",
+                    "example_values": [
+                        "Herman Edwards"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.displayName",
+                    "data_type": "string",
+                    "example_values": [
+                        "Emails to Trash"
+                    ],
+                    "column_name": "Rule Name",
+                    "column_order": 0
+                },
+                {
+                    "data_path": "action_result.data.*.hasError",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.id",
                     "data_type": "string",
                     "column_name": "Rule ID",
-                    "contains":[
+                    "contains": [
                         "msgoffice365 rule id"
                     ],
                     "column_order": 1
+                },
+                {
+                    "data_path": "action_result.data.*.isEnabled",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.isReadOnly",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.sequence",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary.total_rules_returned",
+                    "data_type": "numeric",
+                    "example_values": [
+                        14
+                    ]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": []
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
                 }
             ],
             "render": {
                 "title": "list rules",
                 "type": "custom",
-                "view":"office365_view.display_view"
+                "view": "office365_view.display_view"
             },
             "versions": "EQ(*)"
         },
@@ -4516,14 +4719,6 @@
                     "data_type": "string"
                 },
                 {
-                    "data_path": "action_result.data.*.previousLocation",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.data.*.previousStartDateTime",
-                    "data_type": "string"
-                },
-                {
                     "data_path": "action_result.data.*.previousEndDateTime.dateTime",
                     "data_type": "string",
                     "example_values": [
@@ -4536,6 +4731,14 @@
                     "example_values": [
                         "UTC"
                     ]
+                },
+                {
+                    "data_path": "action_result.data.*.previousLocation",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.previousStartDateTime",
+                    "data_type": "string"
                 },
                 {
                     "data_path": "action_result.data.*.previousStartDateTime.dateTime",
@@ -6462,33 +6665,10 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.parameter.from",
+                    "data_path": "action_result.parameter.attachment_vault_id",
                     "data_type": "string",
-                    "contains": [
-                        "email"
-                    ],
                     "example_values": [
-                        "test@testdomain.abc.com"
-                    ]
-                },
-                {
-                    "data_path": "action_result.parameter.to",
-                    "data_type": "string",
-                    "contains": [
-                        "email"
-                    ],
-                    "example_values": [
-                        "test@testdomain.abc.com"
-                    ]
-                },
-                {
-                    "data_path": "action_result.parameter.cc",
-                    "data_type": "string",
-                    "contains": [
-                        "email"
-                    ],
-                    "example_values": [
-                        "test@testdomain.abc.com"
+                        "da39a3ee5e6b4b0d3255bfef95601890afd80709"
                     ]
                 },
                 {
@@ -6502,10 +6682,30 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.parameter.subject",
+                    "data_path": "action_result.parameter.body",
                     "data_type": "string",
                     "example_values": [
-                        "Example subject"
+                        "<html><body><p>Example body</p></body></html>"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.cc",
+                    "data_type": "string",
+                    "contains": [
+                        "email"
+                    ],
+                    "example_values": [
+                        "test@testdomain.abc.com"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.from",
+                    "data_type": "string",
+                    "contains": [
+                        "email"
+                    ],
+                    "example_values": [
+                        "test@testdomain.abc.com"
                     ]
                 },
                 {
@@ -6516,17 +6716,20 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.parameter.body",
+                    "data_path": "action_result.parameter.subject",
                     "data_type": "string",
                     "example_values": [
-                        "<html><body><p>Example body</p></body></html>"
+                        "Example subject"
                     ]
                 },
                 {
-                    "data_path": "action_result.parameter.attachment_vault_id",
+                    "data_path": "action_result.parameter.to",
                     "data_type": "string",
+                    "contains": [
+                        "email"
+                    ],
                     "example_values": [
-                        "da39a3ee5e6b4b0d3255bfef95601890afd80709"
+                        "test@testdomain.abc.com"
                     ]
                 },
                 {
@@ -6701,7 +6904,7 @@
             },
             {
                 "module": "pytz",
-                "input_file": "wheels/shared/pytz-2022.7.1-py2.py3-none-any.whl"
+                "input_file": "wheels/shared/pytz-2023.3-py2.py3-none-any.whl"
             },
             {
                 "module": "requests",
@@ -6721,7 +6924,7 @@
             },
             {
                 "module": "urllib3",
-                "input_file": "wheels/shared/urllib3-1.26.14-py2.py3-none-any.whl"
+                "input_file": "wheels/shared/urllib3-1.26.15-py2.py3-none-any.whl"
             }
         ]
     },
@@ -6757,7 +6960,7 @@
             },
             {
                 "module": "pytz",
-                "input_file": "wheels/shared/pytz-2022.7.1-py2.py3-none-any.whl"
+                "input_file": "wheels/shared/pytz-2023.3-py2.py3-none-any.whl"
             },
             {
                 "module": "requests",
@@ -6773,7 +6976,7 @@
             },
             {
                 "module": "urllib3",
-                "input_file": "wheels/shared/urllib3-1.26.14-py2.py3-none-any.whl"
+                "input_file": "wheels/shared/urllib3-1.26.15-py2.py3-none-any.whl"
             }
         ]
     }

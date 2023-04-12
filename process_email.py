@@ -332,6 +332,9 @@ class ProcessEmail(object):
 
         return
 
+    def _sanitize_file_name(self, file_name):
+        return re.sub('[,"\']', '', file_name)
+
     def _get_ips(self, file_data, ips, parent_id=None):
 
         if not self._config[PROC_EMAIL_JSON_EXTRACT_IPS]:
@@ -719,7 +722,7 @@ class ProcessEmail(object):
 
             file_name = "{0}{1}".format(name, extension)
         else:
-            file_name = self._decode_uni_string(file_name, file_name)
+            file_name = self._sanitize_file_name(self._decode_uni_string(file_name, file_name))
 
         # Remove any chars that we don't want in the name
         file_path = "{0}/{1}_{2}_{3}".format(tmp_dir, part_index, file_name.replace('<', '').replace('>', '').replace(' ', ''), child)
@@ -1244,7 +1247,7 @@ class ProcessEmail(object):
         vault_add_msg = ""
         vault_id = None
 
-        file_name = self._decode_uni_string(file_name, file_name)
+        file_name = self._sanitize_file_name(self._decode_uni_string(file_name, file_name))
 
         try:
             vault_add_success, vault_add_msg, vault_id = phantom_rules.vault_add(
