@@ -530,8 +530,24 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
 --------- | ---- | -------- | --------------
 action_result.status | string |  |   success  failed 
+action_result.parameter.rule_id | string |  `msgoffice365 rule id`  |  
 action_result.parameter.user_id | string |  `msgoffice365 user id`  `msgoffice365 user principal name`  `email`  |   test@testdomain.abc.com 
-action_result.parameter.rule_id | string |  |    
+action_result.data | string |  |  
+action_result.data.\*.@odata.context | string |  |   https://graph.microsoft.com/v1.0/$metadata#users('eeb3645f-df19-47a1-8e8c-fcd234cb5f6f')/mailFolders('inbox')/messageRules/$entity 
+action_result.data.\*.actions_copyToFolder | string |  |   AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQAuAAADeDDJKaEf4EihMWU6SZgKbAEA07XhOkNngkCkqoNfY_k-jQAF6qrTswAAAA== 
+action_result.data.\*.actions_stopProcessingRules | boolean |  |   True  False 
+action_result.data.\*.conditions_fromAddresses_0_emailAddress_address | string |  |   herman@phantomengineering2.onmicrosoft.com 
+action_result.data.\*.conditions_fromAddresses_0_emailAddress_name | string |  |   Herman Edwards 
+action_result.data.\*.displayName | string |  |   Move all messages from Herman Edwards to hardik-msgoffice365-test 
+action_result.data.\*.hasError | boolean |  |   True  False 
+action_result.data.\*.id | string |  |   AQAABgFGL8A= 
+action_result.data.\*.isEnabled | boolean |  |   True  False 
+action_result.data.\*.isReadOnly | boolean |  |   True  False 
+action_result.data.\*.sequence | numeric |  |   2 
+action_result.summary.total_users_returned | numeric |  |   11 
+action_result.message | string |  |   Successfully retrieved 11 users 
+summary.total_objects | numeric |  |   1 
+summary.total_objects_successful | numeric |  |   1   
 
 ## action: 'list rules'
 Get all the messageRule objects defined for the user's inbox
@@ -549,11 +565,23 @@ DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
 --------- | ---- | -------- | --------------
 action_result.status | string |  |   success  failed 
 action_result.parameter.user_id | string |  `msgoffice365 user id`  `msgoffice365 user principal name`  `email`  |   test@testdomain.abc.com 
-action_result.summary.total_rules_returned | numeric |  |   14 
-action_result.data.\*.displayName | string |  |   Emails to Trash 
-action_result.data.\*.actions.delete | boolean |  |   True  False 
 action_result.data.\*.actions | string |  |  
-action_result.data.\*.id | string |  `msgoffice365 rule id`  |    
+action_result.data.\*.actions.copyToFolder | string |  |   AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQAuAAADeDDJKaEf4EihMWU6SZgKbAEA07XhOkNngkCkqoNfY_k-jQAF6qrTswAAAA== 
+action_result.data.\*.actions.delete | boolean |  |   True  False 
+action_result.data.\*.actions.moveToFolder | string |  |   AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQAuAAADeDDJKaEf4EihMWU6SZgKbAEA07XhOkNngkCkqoNfY_k-jQAF6qrTtAAAAA== 
+action_result.data.\*.actions.stopProcessingRules | boolean |  |   True  False 
+action_result.data.\*.conditions.fromAddresses.\*.emailAddress.address | string |  |   herman@phantomengineering2.onmicrosoft.com 
+action_result.data.\*.conditions.fromAddresses.\*.emailAddress.name | string |  |   Herman Edwards 
+action_result.data.\*.displayName | string |  |   Emails to Trash 
+action_result.data.\*.hasError | boolean |  |   True  False 
+action_result.data.\*.id | string |  `msgoffice365 rule id`  |  
+action_result.data.\*.isEnabled | boolean |  |   True  False 
+action_result.data.\*.isReadOnly | boolean |  |   True  False 
+action_result.data.\*.sequence | numeric |  |   1 
+action_result.summary.total_rules_returned | numeric |  |   14 
+action_result.message | string |  |  
+summary.total_objects | numeric |  |   1 
+summary.total_objects_successful | numeric |  |   1   
 
 ## action: 'list users'
 Retrieve a list of users
@@ -1108,10 +1136,10 @@ action_result.data.\*.meetingMessageType | string |  |   meetingRequest
 action_result.data.\*.meetingRequestType | string |  |   newMeetingRequest 
 action_result.data.\*.parentFolderId | string |  `msgoffice365 folder id`  |   AQMkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQAuAAADyW3X5P7Hb0_MMHKonvdoWQEAQSl1b8BFiEmbqZql_JiUtwAAAgEMAAAA 
 action_result.data.\*.previousEndDateTime | string |  |  
-action_result.data.\*.previousLocation | string |  |  
-action_result.data.\*.previousStartDateTime | string |  |  
 action_result.data.\*.previousEndDateTime.dateTime | string |  |   2022-05-09T13:30:00.0000000 
 action_result.data.\*.previousEndDateTime.timeZone | string |  |   UTC 
+action_result.data.\*.previousLocation | string |  |  
+action_result.data.\*.previousStartDateTime | string |  |  
 action_result.data.\*.previousStartDateTime.dateTime | string |  |   2022-05-09T13:00:00.0000000 
 action_result.data.\*.previousStartDateTime.timeZone | string |  |   UTC 
 action_result.data.\*.receivedDateTime | string |  |   2017-10-26T01:31:43Z 
@@ -1458,14 +1486,14 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
 --------- | ---- | -------- | --------------
 action_result.status | string |  |   success  failed 
-action_result.parameter.from | string |  `email`  |   test@testdomain.abc.com 
-action_result.parameter.to | string |  `email`  |   test@testdomain.abc.com 
-action_result.parameter.cc | string |  `email`  |   test@testdomain.abc.com 
-action_result.parameter.bcc | string |  `email`  |   test@testdomain.abc.com 
-action_result.parameter.subject | string |  |   Example subject 
-action_result.parameter.headers | string |  |   {"x-custom-header":"Custom value"} 
-action_result.parameter.body | string |  |   <html><body><p>Example body</p></body></html> 
 action_result.parameter.attachment_vault_id | string |  |   da39a3ee5e6b4b0d3255bfef95601890afd80709 
+action_result.parameter.bcc | string |  `email`  |   test@testdomain.abc.com 
+action_result.parameter.body | string |  |   <html><body><p>Example body</p></body></html> 
+action_result.parameter.cc | string |  `email`  |   test@testdomain.abc.com 
+action_result.parameter.from | string |  `email`  |   test@testdomain.abc.com 
+action_result.parameter.headers | string |  |   {"x-custom-header":"Custom value"} 
+action_result.parameter.subject | string |  |   Example subject 
+action_result.parameter.to | string |  `email`  |   test@testdomain.abc.com 
 action_result.data.\*.@odata.context | string |  `url`  |   https://test.abc.com/v1.0/$metadata#users('user%40.abc.com')/messages(internetMessageHeaders,body,uniqueBody,sender,subject)/$entity 
 action_result.data.\*.@odata.etag | string |  |   W/"CQAAABYAAABBKXVvwEWISZupmqX4mJS3AAO8DBJl" 
 action_result.data.\*.body.content | string |  |   <html><head>
