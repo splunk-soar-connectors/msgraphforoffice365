@@ -578,8 +578,8 @@ action\_result\.message | string |
 summary\.total\_objects | numeric | 
 summary\.total\_objects\_successful | numeric |   
 
-## action: 'list group members'
-List all the members in group
+## action: 'list group members by ID'
+List all the members in group by ID
 
 Type: **investigate**  
 Read only: **True**
@@ -588,6 +588,45 @@ Read only: **True**
 PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 --------- | -------- | ----------- | ---- | --------
 **group\_id** |  required  | Group ID | string |  `msgoffice365 group id` 
+**get\_transitive\_members** |  optional  | Get a list of the group's members\. A group can have users, devices, organizational contacts, and other groups as members\. This operation is transitive and returns a flat list of all nested members | boolean | 
+**filter** |  optional  | Search for specific results | string | 
+**limit** |  optional  | Maximum number of members to return | numeric | 
+
+#### Action Output
+DATA PATH | TYPE | CONTAINS
+--------- | ---- | --------
+action\_result\.status | string | 
+action\_result\.parameter\.filter | string | 
+action\_result\.parameter\.get\_transitive\_members | boolean | 
+action\_result\.parameter\.group\_id | string |  `msgoffice365 group id` 
+action\_result\.parameter\.limit | numeric | 
+action\_result\.data\.\*\.\@odata\.type | string | 
+action\_result\.data\.\*\.businessPhones | string | 
+action\_result\.data\.\*\.displayName | string | 
+action\_result\.data\.\*\.givenName | string | 
+action\_result\.data\.\*\.id | string |  `msgoffice365 user id` 
+action\_result\.data\.\*\.jobTitle | string | 
+action\_result\.data\.\*\.mail | string |  `email` 
+action\_result\.data\.\*\.mobilePhone | string | 
+action\_result\.data\.\*\.officeLocation | string | 
+action\_result\.data\.\*\.preferredLanguage | string | 
+action\_result\.data\.\*\.surname | string | 
+action\_result\.data\.\*\.userPrincipalName | string |  `msgoffice365 user principal name`  `email` 
+action\_result\.summary\.total\_members\_returned | numeric | 
+action\_result\.message | string | 
+summary\.total\_objects | numeric | 
+summary\.total\_objects\_successful | numeric |   
+
+## action: 'list group members by e-mail address'
+List all the members in group by e-mail address
+
+Type: **investigate**  
+Read only: **True**
+
+#### Action Parameters
+PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
+--------- | -------- | ----------- | ---- | --------
+**group\_email** |  required  | Group e-mail address if user do not know Group ID value | string | `msgoffice365 group e-mail address` 
 **get\_transitive\_members** |  optional  | Get a list of the group's members\. A group can have users, devices, organizational contacts, and other groups as members\. This operation is transitive and returns a flat list of all nested members | boolean | 
 **filter** |  optional  | Search for specific results | string | 
 **limit** |  optional  | Maximum number of members to return | numeric | 

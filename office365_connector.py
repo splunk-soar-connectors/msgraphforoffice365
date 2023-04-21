@@ -1504,7 +1504,7 @@ class Office365Connector(BaseConnector):
         return action_result.set_status(phantom.APP_SUCCESS, 'Successfully retrieved {} group{}'.format(
             num_groups, '' if num_groups == 1 else 's'))
 
-    def _handle_list_group_members(self, param):
+    def _handle_list_group_members_by_id(self, param):
 
         self.save_progress('In action handler for: {0}'.format(self.get_action_identifier()))
         action_result = self.add_action_result(ActionResult(dict(param)))
@@ -1519,7 +1519,53 @@ class Office365Connector(BaseConnector):
         query = param.get('filter') if param.get('filter') else None
         group_id = param['group_id']
         transitive_members = param.get('get_transitive_members', True)
+        endpoint = '/groups/{0}/members'.format(group_id)
+        if transitive_members:
+            endpoint = '/groups/{0}/transitiveMembers'.format(group_id)
 
+        ret_val, members = self._paginator(action_result, endpoint, limit, query=query)
+
+        if phantom.is_fail(ret_val):
+            return action_result.get_status()
+
+        if not members:
+            return action_result.set_status(phantom.APP_SUCCESS, MSGOFFICE365_NO_DATA_FOUND)
+
+        for member in members:
+            action_result.add_data(member)
+
+        num_members = len(members)
+        action_result.update_summary({'total_members_returned': num_members})
+
+        return action_result.set_status(phantom.APP_SUCCESS, 'Successfully retrieved {} group member{}'.format(
+            num_members, '' if num_members == 1 else 's'))
+
+    def _handle_list_group_members_by_email(self, param):
+        self.save_progress('In action handler for: {0}'.format(self.get_action_identifier()))
+        action_result = self.add_action_result(ActionResult(dict(param)))
+
+        limit = param.get('limit')
+
+        # Integer validation for 'limit' action parameter
+        ret_val, limit = _validate_integer(action_result, limit, "'limit' action")
+        if phantom.is_fail(ret_val):
+            return action_result.get_status()
+
+        query = param.get('filter') if param.get('filter') else None
+        group_email = param.get['group_email']
+
+        endpoint = "/groups?$filter=displayName eq '{0}'&$select=id".format(group_email)
+        ret_val, group_query = self._paginator(action_result, endpoint, limit, query=query)
+
+        try:
+            group_id = group_query[0]['id']
+        except (IndexError, KeyError):
+            return action_result.set_status(phantom.APP_ERROR, "There is no such {} e-mail address in your groups list, please check correctness of the e-mail address".format(group_email))
+        except:
+            import traceback
+            return action_result.set_status(phantom.APP_ERROR, "Occured unexpected problem: {}".format(traceback.format_exc()))
+
+        transitive_members = param.get('get_transitive_members', True)
         endpoint = '/groups/{0}/members'.format(group_id)
         if transitive_members:
             endpoint = '/groups/{0}/transitiveMembers'.format(group_id)
@@ -2427,8 +2473,11 @@ class Office365Connector(BaseConnector):
         elif action_id == 'list_groups':
             ret_val = self._handle_list_groups(param)
 
-        elif action_id == 'list_group_members':
-            ret_val = self._handle_list_group_members(param)
+        elif action_id == 'list_group_members_by_id':
+            ret_val = self._handle_list_group_members_by_id(param)
+        
+        elif action_id == 'list_group_members_by_email':
+            ret_val = self._handle_list_group_members_by_email(param)
 
         elif action_id == 'list_users':
             ret_val = self._handle_list_users(param)
