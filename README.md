@@ -6,7 +6,7 @@ Connector Version: 2.8.0
 Product Vendor: Microsoft  
 Product Name: Office 365 (MS Graph)  
 Product Version Supported (regex): ".\*"  
-Minimum Product Version: 5.4.0  
+Minimum Product Version: 5.5.0  
 
 This app connects to Office 365 using the MS Graph API to support investigate and generic actions related to the email messages and calendar events
 
@@ -317,6 +317,7 @@ VARIABLE | REQUIRED | TYPE | DESCRIPTION
 **ingest_manner** |  optional  | string | How to Ingest (during ingestion, should the app get the latest emails or the oldest)
 **retry_count** |  optional  | numeric | Maximum attempts to retry the API call (Default: 3)
 **retry_wait_time** |  optional  | numeric | Delay in seconds between retries (Default: 60)
+**extract_eml** |  optional  | boolean | Extract root (primary) email as Vault
 
 ### Supported Actions  
 [test connectivity](#action-test-connectivity) - Use supplied credentials to generate a token with MS Graph  
@@ -1474,7 +1475,7 @@ If the <b>from</b> parameter is not provided, then the action will consider the 
 PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 --------- | -------- | ----------- | ---- | --------
 **from** |  optional  | From field | string |  `email` 
-**to** |  optional  | List of recipients email addresses | string |  `email` 
+**to** |  required  | List of recipients email addresses | string |  `email` 
 **cc** |  optional  | List of recipients email addresses to include on cc line | string |  `email` 
 **bcc** |  optional  | List of recipients email addresses to include on bcc line | string |  `email` 
 **subject** |  required  | Message Subject | string | 
