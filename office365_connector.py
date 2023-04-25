@@ -850,16 +850,7 @@ class Office365Connector(BaseConnector):
 
         # If token is expired, generate a new token
         msg = action_result.get_message()
-        if (
-            msg
-            and "token is invalid" in msg
-            or ("Access token has expired" in msg)
-            or ("ExpiredAuthenticationToken" in msg)
-            or ("AuthenticationFailed" in msg)
-            or ("TokenExpired" in msg)
-            or ("InvalidAuthenticationToken" in msg)
-        ):
-
+        if msg and any(failure_msg in msg for failure_msg in AUTH_FAILURE_MSG):
             self.debug_print("Token is invalid/expired. Hence, generating a new token.")
             ret_val = self._get_token(action_result)
             if phantom.is_fail(ret_val):
@@ -1178,10 +1169,7 @@ class Office365Connector(BaseConnector):
                 # We need to expand the item attachment only once
                 if first_time:
                     sub_email_endpoint = (
-                        attach_endpoint
-                        + "/{0}?$expand=microsoft.graph.itemattachment/item".format(
-                            attachment["id"]
-                        )
+                        attach_endpoint + "/{0}?$expand=microsoft.graph.itemattachment/item".format(attachment["id"])
                     )
                     ret_val, sub_email_resp = self._make_rest_call_helper(
                         action_result, sub_email_endpoint
@@ -3491,11 +3479,7 @@ class Office365Connector(BaseConnector):
                     phantom.APP_ERROR, MSGOFFICE365_RUN_CONNECTIVITY_MSG
                 )
 
-        if (
-            not self._admin_access
-            and action_id != "test_connectivity"
-            and (not self._access_token or not self._refresh_token)
-        ):
+        if (not self._admin_access and action_id != "test_connectivity" and (not self._access_token or not self._refresh_token)):
             ret_val = self._get_token(action_result)
 
             if phantom.is_fail(ret_val):

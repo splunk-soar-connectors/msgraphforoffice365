@@ -6611,7 +6611,7 @@
                     "description": "List of recipients email addresses",
                     "data_type": "string",
                     "order": 1,
-                    "required":true,
+                    "required": true,
                     "primary": true,
                     "contains": [
                         "email"
@@ -6923,7 +6923,7 @@
             },
             {
                 "module": "sqlparse",
-                "input_file": "wheels/py3/sqlparse-0.4.3-py3-none-any.whl"
+                "input_file": "wheels/py3/sqlparse-0.4.4-py3-none-any.whl"
             },
             {
                 "module": "typing_extensions",
@@ -6975,11 +6975,11 @@
             },
             {
                 "module": "soupsieve",
-                "input_file": "wheels/py3/soupsieve-2.4-py3-none-any.whl"
+                "input_file": "wheels/py3/soupsieve-2.4.1-py3-none-any.whl"
             },
             {
                 "module": "sqlparse",
-                "input_file": "wheels/py3/sqlparse-0.4.3-py3-none-any.whl"
+                "input_file": "wheels/py3/sqlparse-0.4.4-py3-none-any.whl"
             },
             {
                 "module": "urllib3",
