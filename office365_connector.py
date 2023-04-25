@@ -845,6 +845,9 @@ class Office365Connector(BaseConnector):
 
         ret_val, resp_json = self._make_rest_call(action_result, url, verify, headers, params, data, method, download=download)
 
+        if phantom.is_fail(ret_val):
+            return action_result.get_status(), resp_json
+
         # If token is expired, generate a new token
         msg = action_result.get_message()
         if (
