@@ -520,7 +520,6 @@ class Office365Connector(BaseConnector):
             return RetVal(phantom.APP_SUCCESS, {})
         return RetVal(action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_ERROR_EMPTY_RESPONSE.format(code=response.status_code)), None)
 
-
     def _process_html_response(self, response, action_result):
 
         # An html response, treat it like an error
@@ -552,7 +551,6 @@ class Office365Connector(BaseConnector):
         except Exception as e:
             error_msg = _get_error_msg_from_exception(e, self)
             return RetVal(action_result.set_status(phantom.APP_ERROR, "Unable to parse JSON response. {0}".format(error_msg)), None)
-
 
         # Please specify the status codes here
         if 200 <= r.status_code < 399:
@@ -693,11 +691,11 @@ class Office365Connector(BaseConnector):
 
         if r.status_code >= 400 and r.status_code <= 509:
             resp = json.loads(r.text)
-            return RetVal(phantom.APP_ERROR, "Error Code: {0}, ERROR : {1}, MESSAGE : {2}".format(
+            return RetVal(action_result.set_status(phantom.APP_ERROR, "Error Code: {0}, ERROR : {1}, MESSAGE : {2}".format(
                 r.status_code,
-                resp.get('error').get('code'),
-                resp.get('error').get('message')
-            ))
+                resp.get('error', '').get('code'),
+                resp.get('error', '').get('message')
+            )), None)
 
         if download:
             if 200 <= r.status_code < 399:
@@ -846,13 +844,9 @@ class Office365Connector(BaseConnector):
         })
 
         ret_val, resp_json = self._make_rest_call(action_result, url, verify, headers, params, data, method, download=download)
-        if phantom.is_fail(ret_val):
-            return action_result.get_status(), resp_json
-
 
         # If token is expired, generate a new token
         msg = action_result.get_message()
-
         if (
             msg
             and "token is invalid" in msg
@@ -1097,7 +1091,6 @@ class Office365Connector(BaseConnector):
             except Exception:
                 self.debug_print("Cannot parse email body text details")
 
-
         if not create_iocs:
             return [email_artifact]
 
@@ -1306,7 +1299,6 @@ class Office365Connector(BaseConnector):
                         self.debug_print("Unable to decode Email Mime Content. {0}".format(error_msg))
                         return action_result.set_status(phantom.APP_ERROR, "Unable to decode Email Mime Content")
 
-
                     # Create ProcessEmail Object for email file attachment
                     process_email_obj = ProcessEmail(self, config)
                     process_email_obj._trigger_automation = False
@@ -1344,7 +1336,6 @@ class Office365Connector(BaseConnector):
         :return: status phantom.APP_ERROR/phantom.APP_SUCCESS with status message
         """
         container = {}
-
 
         container['name'] = email['subject'] if email['subject'] else email['id']
         container_description = MSGOFFICE365_CONTAINER_DESCRIPTION.format(last_modified_time=email['lastModifiedDateTime'])
@@ -1389,6 +1380,44 @@ class Office365Connector(BaseConnector):
         self.debug_print("Creating email artifacts")
         email_artifacts = self._create_email_artifacts(container_id, email)
         attachment_artifacts = []
+
+        if config.get("extract_eml"):
+            subject = email.get("subject")
+            email_message = {
+                "id": email['id'],
+                "name": subject if subject else "email_message_{}".format(email['id']),
+            }
+            if not self._handle_item_attachment(
+                email_message,
+                container_id,
+                "/users/{0}/messages".format(config.get("email_address")),
+                action_result,
+            ):
+                return action_result.set_status(
+                    phantom.APP_ERROR,
+                    "Could not download the email. See logs for details",
+                )
+            email["vaultId"] = email_message["vaultId"]
+
+            artifact_json = {
+                "name": "Vault Artifact",
+                "label": "Email Attachment",
+                "container_id": container_id,
+                "source_data_identifier": email["id"],
+            }
+
+            artifact_cef = {
+                "filename": "{}.eml".format(email_message["name"]),
+                'cs6Label': 'Vault ID'
+            }
+
+            if email_message["vaultId"]:
+                artifact_cef.update({
+                    "vaultId": email_message["vaultId"],
+                    "cs6": email_message["vaultId"]
+                })
+            artifact_json["cef"] = artifact_cef
+            attachment_artifacts.append(artifact_json)
 
         if email["hasAttachments"] and config.get("extract_attachments", False):
 
@@ -2743,7 +2772,7 @@ class Office365Connector(BaseConnector):
 
         try:
             for i, subf in enumerate(path[1:]):
-                subpath = "/".join(path[0 : i + 2])
+                subpath = "/".join(path[0: i + 2])
                 parent_id = dir_id
                 dir_id = self._get_child_folder(action_result, subf, parent_id, email)
 
@@ -3297,7 +3326,6 @@ class Office365Connector(BaseConnector):
 
         elif action_id == 'send_email':
             ret_val = self._handle_send_email(param)
-
 
         return ret_val
 

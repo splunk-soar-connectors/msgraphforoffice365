@@ -25,7 +25,7 @@
     "utctime_updated": "2022-02-04T01:20:46.000000Z",
     "package_name": "phantom_msgraphoffice365",
     "main_module": "office365_connector.py",
-    "min_phantom_version": "5.4.0",
+    "min_phantom_version": "5.5.0",
     "latest_tested_versions": [
         "Cloud 12 April, 2023"
     ],
@@ -167,6 +167,12 @@
             "data_type": "numeric",
             "default": 60,
             "order": 22
+        },
+        "extract_eml": {
+            "data_type": "boolean",
+            "description": "Extract root (primary) email as Vault",
+            "order": 23,
+            "default": true
         }
     },
     "actions": [
@@ -6605,6 +6611,7 @@
                     "description": "List of recipients email addresses",
                     "data_type": "string",
                     "order": 1,
+                    "required":true,
                     "primary": true,
                     "contains": [
                         "email"
