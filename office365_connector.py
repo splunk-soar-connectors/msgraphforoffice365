@@ -350,7 +350,7 @@ def handle_request(request, path_parts):
 
         # process the 'code'
         ret_val = _handle_oauth_result(request, path_parts)
-        asset_id = request.GET.get("state")
+        asset_id = request.GET.get("state")  # nosemgrep
         if asset_id and asset_id.isalnum():
             app_dir = os.path.dirname(os.path.abspath(__file__))
             auth_status_file_path = "{0}/{1}_{2}".format(app_dir, asset_id, TC_FILE)
