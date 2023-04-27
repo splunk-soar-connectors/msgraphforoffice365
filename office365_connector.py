@@ -1369,7 +1369,7 @@ class Office365Connector(BaseConnector):
         email_artifacts = self._create_email_artifacts(container_id, email)
         attachment_artifacts = []
 
-        if config.get("extract_eml"):
+        if config.get("extract_eml", True):
             subject = email.get("subject")
             email_message = {
                 "id": email['id'],
