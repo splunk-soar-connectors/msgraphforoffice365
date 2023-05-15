@@ -15,7 +15,7 @@
         }
     ],
     "license": "Copyright (c) 2017-2022 Splunk Inc.",
-    "app_version": "2.7.1",
+    "app_version": "2.7.2-group-name",
     "utctime_updated": "2022-02-04T01:20:46.000000Z",
     "package_name": "phantom_msgraphoffice365",
     "main_module": "office365_connector.py",
@@ -1694,19 +1694,19 @@
             "versions": "EQ(*)"
         },
         {
-            "action": "list group members by e-mail address",
-            "identifier": "list_group_members_by_email",
-            "description": "List all the members in group by e-mail address",
+            "action": "list members by group name",
+            "identifier": "list_group_members_by_name",
+            "description": "List all the members in group by group name",
             "type": "investigate",
             "read_only": true,
             "parameters": {
-                "group_email": {
-                    "description": "Group e-mail address if user do not know Group ID value",
+                "group_name": {
+                    "description": "Group Name if user do not know Group ID value",
                     "data_type": "string",
                     "required": true,
                     "primary": true,
                     "contains": [
-                        "msgoffice365 group e-mail address"
+                        "msgoffice365 group name"
                     ],
                     "order": 0
                 },

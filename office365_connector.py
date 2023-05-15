@@ -1540,7 +1540,7 @@ class Office365Connector(BaseConnector):
         return action_result.set_status(phantom.APP_SUCCESS, 'Successfully retrieved {} group member{}'.format(
             num_members, '' if num_members == 1 else 's'))
 
-    def _handle_list_group_members_by_email(self, param):
+    def _handle_list_group_members_by_name(self, param):
         self.save_progress('In action handler for: {0}'.format(self.get_action_identifier()))
         action_result = self.add_action_result(ActionResult(dict(param)))
 
@@ -1552,15 +1552,15 @@ class Office365Connector(BaseConnector):
             return action_result.get_status()
 
         query = param.get('filter') if param.get('filter') else None
-        group_email = param.get['group_email']
+        group_name = param['group_name']
 
-        endpoint = "/groups?$filter=displayName eq '{0}'&$select=id".format(group_email)
-        ret_val, group_query = self._paginator(action_result, endpoint, limit, query=query)
+        name_filtering = "displayName eq '{0}'".format(group_name)
+        ret_val, group_query = self._paginator(action_result, "/groups", limit, query=name_filtering)
 
         try:
             group_id = group_query[0]['id']
         except (IndexError, KeyError):
-            return action_result.set_status(phantom.APP_ERROR, "There is no such {} e-mail address in your groups list, please check correctness of the e-mail address".format(group_email))
+            return action_result.set_status(phantom.APP_ERROR, "There is no such {} group name, Please check the correct spelling or existence".format(group_name))
         except:
             import traceback
             return action_result.set_status(phantom.APP_ERROR, "Occured unexpected problem: {}".format(traceback.format_exc()))
@@ -2476,8 +2476,8 @@ class Office365Connector(BaseConnector):
         elif action_id == 'list_group_members_by_id':
             ret_val = self._handle_list_group_members_by_id(param)
         
-        elif action_id == 'list_group_members_by_email':
-            ret_val = self._handle_list_group_members_by_email(param)
+        elif action_id == 'list_group_members_by_name':
+            ret_val = self._handle_list_group_members_by_name(param)
 
         elif action_id == 'list_users':
             ret_val = self._handle_list_users(param)
