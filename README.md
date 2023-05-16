@@ -311,7 +311,8 @@ VARIABLE | REQUIRED | TYPE | DESCRIPTION
 [list events](#action-list-events) - List events from user or group calendar  
 [list users](#action-list-users) - Retrieve a list of users  
 [list groups](#action-list-groups) - List all the groups in an organization, including but not limited to Office 365 groups  
-[list group members](#action-list-group-members) - List all the members in group  
+[list group members by ID](#action-list-group-members-by-id) - List all the members in group by group ID  
+[list group members by e-mail address](#action-list-group-members-by-e-mail-address) - List all the members in group by group e-mail address  
 [list folders](#action-list-folders) - Retrieve a list of mail folders  
 [copy email](#action-copy-email) - Copy an email to a folder  
 [move email](#action-move-email) - Move an email to a folder  
