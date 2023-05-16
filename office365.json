@@ -1694,14 +1694,14 @@
             "versions": "EQ(*)"
         },
         {
-            "action": "list members by group name",
-            "identifier": "list_group_members_by_name",
-            "description": "List all the members in group by group name",
+            "action": "list members by group e-mail address",
+            "identifier": "list_group_members_by_email",
+            "description": "List all the members in group by group e-mail address",
             "type": "investigate",
             "read_only": true,
             "parameters": {
-                "group_name": {
-                    "description": "Group Name if user do not know Group ID value",
+                "group_email": {
+                    "description": "Group e-mail if user do not know Group ID value",
                     "data_type": "string",
                     "required": true,
                     "primary": true,
