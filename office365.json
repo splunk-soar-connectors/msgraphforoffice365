@@ -1706,7 +1706,7 @@
                     "required": true,
                     "primary": true,
                     "contains": [
-                        "msgoffice365 group name"
+                        "msgoffice365 group e-mail address"
                     ],
                     "order": 0
                 },
