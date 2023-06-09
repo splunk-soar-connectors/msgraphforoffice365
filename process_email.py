@@ -89,8 +89,8 @@ PROC_EMAIL_JSON_MSG_ID = "message_id"
 PROC_EMAIL_JSON_EMAIL_HEADERS = "email_headers"
 PROC_EMAIL_CONTENT_TYPE_MSG = "message/rfc822"
 
-URI_REGEX = r'([Hh][Tt][Tt][Pp][Ss]?:\/\/)((?:[:@\.\-_0-9]|[^\"\„\“\‟\”\’\❝\❞\〝\〞\〟\＂\‚\‘\‛\❛\❜\'\″ -@\[-\`\{-\~\s]|' \
-    r'[\[\(][^\s\[\]\(\)]*[\]\)])+)((?:[\/\?]+(?:[^\"\„\“\‟\”\’\❝\❞\〝\〞\〟\＂\‚\‘\‛\❛\❜\'\″\[\(\{\<\)\]\}\>\s]|[\[\(][^\[\]\(\)]*[\]\)])*)*)[\/]?'
+URI_REGEX = r'([Hh][Tt][Tt][Pp][Ss]?:\/\/)((?:[:@\.\-_0-9]|[^ -@\[-\`\{-\~\s]|' \
+    r'[\[\(][^\s\[\]\(\)]*[\]\)])+)((?:[\/\?]+(?:[^\[\(\{\)\]\}\s]|[\[\(][^\[\]\(\)]*[\]\)])*)*)[\/]?'
 EMAIL_REGEX = r"\b[A-Z0-9._%+-]+@+[A-Z0-9.-]+\.[A-Z]{2,}\b"
 EMAIL_REGEX2 = r'".*"@[A-Z0-9.-]+\.[A-Z]{2,}\b'
 HASH_REGEX = r"\b[0-9a-fA-F]{32}\b|\b[0-9a-fA-F]{40}\b|\b[0-9a-fA-F]{64}\b"
@@ -867,7 +867,7 @@ class ProcessEmail(object):
         artifact = {}
         artifact.update(_artifact_common)
         artifact['name'] = 'Email Artifact'
-        artifact['label'] = 'email'
+        artifact['label'] = 'process email'
         artifact['severity'] = self._base_connector.get_config().get('container_severity', 'medium')
         artifact['cef'] = cef_artifact
         artifact['cef_types'] = cef_types
