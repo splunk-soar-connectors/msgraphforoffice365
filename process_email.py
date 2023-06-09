@@ -867,7 +867,7 @@ class ProcessEmail(object):
         artifact = {}
         artifact.update(_artifact_common)
         artifact['name'] = 'Email Artifact'
-        artifact['label'] = 'process email'
+        artifact['label'] = 'email'
         artifact['severity'] = self._base_connector.get_config().get('container_severity', 'medium')
         artifact['cef'] = cef_artifact
         artifact['cef_types'] = cef_types
