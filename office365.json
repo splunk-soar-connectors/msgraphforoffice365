@@ -6594,7 +6594,7 @@
             "action": "send email",
             "identifier": "send_email",
             "description": "Sends an email with optional text rendering. Attachments are allowed a Content-ID tag for reference within the html",
-            "verbose": "If the <b>from</b> parameter is not provided, then the action will consider the <b>username</b> parameter provided in the asset configuration as the sender's email address.",
+            "verbose": "<div><div>Notes</div><ul><li>If the <b>from</b> parameter is not provided, then the action will consider the <b>username</b> parameter provided in the asset configuration as the sender's email address.</li><li>The send email action is executed in two stages. Before sending an email it creates a draft of the email. Once the  draft is successfully saved, the email is sent.</li></ul></div>",
             "type": "generic",
             "read_only": false,
             "parameters": {
