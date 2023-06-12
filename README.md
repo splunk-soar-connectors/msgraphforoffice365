@@ -444,8 +444,8 @@ action_result.data.\*.body.content | string |  |   <html><head><meta name="Gener
  
 action_result.data.\*.body.contentType | string |  |   html 
 action_result.data.\*.bodyPreview | string |  |  
-action_result.data.\*.calendar@odata.associationLink | string |  `url`  |   https://test.abc.com/v1.0/users('ggfe645f-df19-47a1-8e8c-fcd234cb5f6f')/calendars('AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQBGAAADeDDJKaEf4EihMWU6SZgKbAcA07XhOkNngkCkqoNfY_k-jQAAAgEGAAAA07XhOkNngkCkqoNfY_k-jQAAAhTzBBAA')/$ref  #pragma: allowlist secret
-action_result.data.\*.calendar@odata.navigationLink | string |  `url`  |   https://test.abc.com/v1.0/users('ffb3645f-df20-47a1-8e9c-fcd234cb5f6f')/calendars('AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQBGAAADeDDJKaEf4EihMWU6SZgKbAcA07XhOkNngkCkqoNfY_k-jQAAAgEGAAAA07XhOkNngkCkqoNfY_k-jQAAAhTzABBB')  #pragma: allowlist secret
+action_result.data.\*.calendar@odata.associationLink | string |  `url`  |   https://test.abc.com/v1.0/users('ggfe645f-df19-47a1-8e8c-fcd234cb5f6f')/calendars('AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQBGAAADeDDJKaEf4EihMWU6SZgKbAcA07XhOkNngkCkqoNfY_k-jQAAAgEGAAAA07XhOkNngkCkqoNfY_k-jQAAAhTzBBAA')/$ref 
+action_result.data.\*.calendar@odata.navigationLink | string |  `url`  |   https://test.abc.com/v1.0/users('ffb3645f-df20-47a1-8e9c-fcd234cb5f6f')/calendars('AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQBGAAADeDDJKaEf4EihMWU6SZgKbAcA07XhOkNngkCkqoNfY_k-jQAAAgEGAAAA07XhOkNngkCkqoNfY_k-jQAAAhTzABBB') 
 action_result.data.\*.categories.\*.name | string |  |  
 action_result.data.\*.changeKey | string |  |   b1MzKFCcdkuJ24Mc2VsdjwABAdhQhg== 
 action_result.data.\*.createdDateTime | string |  |   2019-10-03T09:03:42.4958512Z 
@@ -999,8 +999,8 @@ action_result.data.\*.event.body.content | string |  |   plain text?
  
 action_result.data.\*.event.body.contentType | string |  |   text 
 action_result.data.\*.event.bodyPreview | string |  |   plain text? 
-action_result.data.\*.event.calendar@odata.associationLink | string |  `url`  |   https://test.abc.com/v1.0/users('test@user.abc.com')/calendars('AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQAuAAADeDDJKaEf4EihMWU6SZgKbAEA07XhOkNngkCkqoNfY_k-jQAAAgENAAAA')/$ref  #pragma: allowlist secret
-action_result.data.\*.event.calendar@odata.navigationLink | string |  `url`  |   https://test.abc.com/v1.0/users('test@user.abc.com')/calendars('AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQAuAAADeDDJKaEf4EihMWU6SZgKbAEA07XhOkNngkCkqoNfY_k-jQAAAgENAAAA')  #pragma: allowlist secret
+action_result.data.\*.event.calendar@odata.associationLink | string |  `url`  |   https://test.abc.com/v1.0/users('test@user.abc.com')/calendars('AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQAuAAADeDDJKaEf4EihMWU6SZgKbAEA07XhOkNngkCkqoNfY_k-jQAAAgENAAAA')/$ref 
+action_result.data.\*.event.calendar@odata.navigationLink | string |  `url`  |   https://test.abc.com/v1.0/users('test@user.abc.com')/calendars('AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQAuAAADeDDJKaEf4EihMWU6SZgKbAEA07XhOkNngkCkqoNfY_k-jQAAAgENAAAA') 
 action_result.data.\*.event.changeKey | string |  |   CQAAABYAAABBKXVvwEWISZupmqX4mJS3AAFQwHj9 
 action_result.data.\*.event.createdDateTime | string |  |   0001-01-01T00:00:00Z 
 action_result.data.\*.event.end.dateTime | string |  |   0001-01-01T00:00:00.0000000 
@@ -1469,7 +1469,7 @@ Sends an email with optional text rendering. Attachments are allowed a Content-I
 Type: **generic**  
 Read only: **False**
 
-If the <b>from</b> parameter is not provided, then the action will consider the <b>username</b> parameter provided in the asset configuration as the sender's email address.
+<div><div>Notes</div><ul><li>If the <b>from</b> parameter is not provided, then the action will consider the <b>username</b> parameter provided in the asset configuration as the sender's email address.</li><li>The send email action is executed in two stages. Before sending an email it creates a draft of the email. Once the  draft is successfully saved, the email is sent.</li></ul></div>
 
 #### Action Parameters
 PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
