@@ -3048,7 +3048,7 @@ class Office365Connector(BaseConnector):
         ret_val, response = self._make_rest_call_helper(action_result, endpoint, method='post', headers=req_headers, data=json.dumps(msg))
 
         if phantom.is_fail(ret_val):
-            return action_result.set_status(phantom.APP_ERROR, "{} Failed to create draft email".format(response)), None
+            return action_result.get_status(), None
 
         message_id = response['id']
         return action_result, message_id
