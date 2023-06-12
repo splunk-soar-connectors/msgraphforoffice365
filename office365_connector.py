@@ -1060,6 +1060,8 @@ class Office365Connector(BaseConnector):
                             key_value = header.get("value")
                             if key_name and key_value:
                                 cef["internetMessageHeaders"][key_name] = key_value
+                elif k == "attachments":
+                    continue
                 else:
                     cef[k] = v
 
