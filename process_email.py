@@ -369,6 +369,8 @@ class ProcessEmail(object):
             return obj.replace('\x00', '')
         if isinstance(obj, list):
             return [self._sanitize_dict(item) for item in obj]
+        if isinstance(obj, set):
+            return {self._sanitize_dict(item) for item in obj}
         if isinstance(obj, dict):
             return {k: self._sanitize_dict(v) for k, v in obj.items()}
 
@@ -427,6 +429,7 @@ class ProcessEmail(object):
     def _add_artifacts(self, input_set, artifact_name, start_index, artifacts):
 
         added_artifacts = 0
+        input_set = self._sanitize_dict(input_set)
         for item in input_set:
             # ignore empty entries
             if not item:
@@ -438,8 +441,6 @@ class ProcessEmail(object):
             artifact['cef'] = item
             artifact['name'] = artifact_name
             self._debug_print('Artifact:', artifact)
-            if artifact:
-                artifact = self._sanitize_dict(artifact)
             artifacts.append(artifact)
             added_artifacts += 1
 

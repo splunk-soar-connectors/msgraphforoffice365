@@ -172,7 +172,7 @@
             "data_type": "boolean",
             "description": "Extract root (primary) email as Vault",
             "order": 23,
-            "default": true
+            "default": false
         }
     },
     "actions": [

@@ -871,6 +871,9 @@ class Office365Connector(BaseConnector):
 
         return phantom.APP_SUCCESS, resp_json
 
+    def _sanitize_file_name(self, file_name):
+        return re.sub('[,"\']', '', file_name)
+
     def _add_attachment_to_vault(self, attachment, container_id, file_data):
         if hasattr(Vault, "get_vault_tmp_dir"):
             fd, tmp_file_path = tempfile.mkstemp(dir=Vault.get_vault_tmp_dir())
@@ -881,10 +884,12 @@ class Office365Connector(BaseConnector):
         with open(tmp_file_path, file_mode) as f:
             f.write(file_data)
 
+        file_name = self._sanitize_file_name(attachment["name"])
+
         success, msg, vault_id = ph_rules.vault_add(
             container=container_id,
             file_location=tmp_file_path,
-            file_name=attachment["name"],
+            file_name=file_name,
         )
         if not success:
             self.debug_print("Error adding file to vault: {}".format(msg))
