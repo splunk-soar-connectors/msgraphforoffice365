@@ -3158,9 +3158,14 @@ class Office365Connector(BaseConnector):
         bcc_emails = [email for x in param.get('bcc', '').split(',') if (email := x.strip())]
 
         subject = param['subject']
-        headers = json.loads(param.get('headers', '{}'))
+
+        try:
+            headers = json.loads(param.get('headers', '{}'))
+        except Exception:
+            return action_result.set_status(phantom.APP_ERROR, "Please enter headers in a valid JSON format")
+
         body = param['body']
-        vault_ids = [vault_id for x in param.get('attachment_vault_id', '').split(',') if (vault_id := x.strip())]
+        vault_ids = [vault_id for x in param.get('attachments', '').split(',') if (vault_id := x.strip())]
 
         self.save_progress("Creating draft message")
         ret_val, message_id = self._create_draft_message(action_result, subject, body, from_email, headers=headers,

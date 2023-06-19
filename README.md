@@ -26,66 +26,66 @@ This app connects to Office 365 using the MS Graph API to support investigate an
 [comment]: # ""
 ## Playbook Backward Compatibility
 
--   The 'id' field of email artifact has been renamed to 'messageId'. Hence, it is requested to the
-    end-user to please update their existing playbooks by re-inserting | modifying | deleting the
-    corresponding action blocks to ensure the correct functioning of the playbooks created on the
-    earlier versions of the app.
+- The 'id' field of email artifact has been renamed to 'messageId'. Hence, it is requested to the
+  end-user to please update their existing playbooks by re-inserting | modifying | deleting the
+  corresponding action blocks to ensure the correct functioning of the playbooks created on the
+  earlier versions of the app.
 
 ## Authentication
 
 This app requires registration of a Microsoft Graph Application. To do so, navigate to the URL
-<https://portal.azure.com> in a browser and log in with the Microsoft account, then, click **App
-registrations** .  
+<a href="https://portal.azure.com" target="_blank">https://portal.azure.com</a> in a browser and log
+in with the Microsoft account, then, click **App registrations** .  
   
 On the next page, select **New registration** and give your app a name.  
   
 Once the app is created, follow the below-mentioned steps:
 
--   Under **Certificates & secrets** select **New client secret** . Enter the **Description** and
-    select the desired duration in **Expires** . Click on **Add** . Note down this **value**
-    somewhere secure, as it cannot be retrieved after closing the window.
+- Under **Certificates & secrets** select **New client secret** . Enter the **Description** and
+  select the desired duration in **Expires** . Click on **Add** . Note down this **value** somewhere
+  secure, as it cannot be retrieved after closing the window.
 
--   Under **Authentication** , select **Add a platform** . In the **Add a platform** window, select
-    **Web** . The **Redirect URLs** should be filled right here. We will get **Redirect URLs** from
-    the Splunk SOAR asset we create below in the section titled **Splunk SOAR Graph Asset** .
+- Under **Authentication** , select **Add a platform** . In the **Add a platform** window, select
+  **Web** . The **Redirect URLs** should be filled right here. We will get **Redirect URLs** from
+  the Splunk SOAR asset we create below in the section titled **Splunk SOAR Graph Asset** .
 
--   Under **API Permissions** Click on **Add a permission** .
+- Under **API Permissions** Click on **Add a permission** .
 
--   Under the **Microsoft API** section, select **Microsoft Graph** .
+- Under the **Microsoft API** section, select **Microsoft Graph** .
 
--   Provide the following Application permissions to the app:
+- Provide the following Application permissions to the app:
+
+    
+
+  - Mail.Read (https://graph.microsoft.com/Mail.Read)
+
+  - Mail.ReadWrite (https://graph.microsoft.com/Mail.ReadWrite)
+
+  - User.Read.All (https://graph.microsoft.com/User.Read.All)
 
       
 
-    -   Mail.Read (https://graph.microsoft.com/Mail.Read)
+    - For non-admin access, use User.Read (Delegated permission) instead
+      (https://graph.microsoft.com/User.Read)
 
-    -   Mail.ReadWrite (https://graph.microsoft.com/Mail.ReadWrite)
+  - Mail.Send (https://graph.microsoft.com/Mail.Send) - It is required only if you want to run the
+    **send email** action.
 
-    -   User.Read.All (https://graph.microsoft.com/User.Read.All)
+  - Group.Read.All (https://graph.microsoft.com/Group.Read.All) - It is required only if you want to
+    run the **list events** action for the group's calendar and for the **list groups** and the
+    **list group members** action.
 
-          
+  - Calendar.Read (https://graph.microsoft.com/Calendars.Read) - It is required only if you want to
+    run the **list events** action for the user's calendar.
 
-        -   For non-admin access, use User.Read (Delegated permission) instead
-            (https://graph.microsoft.com/User.Read)
+  - Calendars.ReadWrite (https://graph.microsoft.com/Calendars.ReadWrite) - It is required only if
+    you want to run the **delete event** action from the user's calendar.
 
-    -   Mail.Send (https://graph.microsoft.com/Mail.Send) - It is required only if you want to run
-        the **send email** action.
-
-    -   Group.Read.All (https://graph.microsoft.com/Group.Read.All) - It is required only if you
-        want to run the **list events** action for the group's calendar and for the **list groups**
-        and the **list group members** action.
-
-    -   Calendar.Read (https://graph.microsoft.com/Calendars.Read) - It is required only if you want
-        to run the **list events** action for the user's calendar.
-
-    -   Calendars.ReadWrite (https://graph.microsoft.com/Calendars.ReadWrite) - It is required only
-        if you want to run the **delete event** action from the user's calendar.
-
-    -   MailboxSettings.Read (https://graph.microsoft.com/MailboxSettings.Read) - It is required
-        only if you want to run the **oof status** action.
+  - MailboxSettings.Read (https://graph.microsoft.com/MailboxSettings.Read) - It is required only if
+    you want to run the **oof status** action.
 
 After making these changes, click **Add permissions** , then select **Grant admin consent for
-\<your_organization_name_as_on_azure_portal>** at the bottom of the screen.
+\<your_organization_name_as_on_azure_portal\>** at the bottom of the screen.
 
 ## Splunk SOAR Graph Asset
 
@@ -101,7 +101,7 @@ URLs** field mentioned in the previous step. To this URL, add **/result** . Afte
 should look something like:  
   
 
-https://\<splunk_soar_host>/rest/handler/msgraphforoffice365_0a0a4087-10e8-4c96-9872-b740ff26d8bb/\<asset_name>/result
+https://\<splunk_soar_host\>/rest/handler/msgraphforoffice365_0a0a4087-10e8-4c96-9872-b740ff26d8bb/\<asset_name\>/result
 
   
 Once again, click SAVE at the bottom of the screen.  
@@ -119,59 +119,58 @@ listed under **Select a user on behalf of which automated actions can be execute
 the user will be **automation** , but this user can be changed by clicking **EDIT** at the bottom of
 the window. To give this user permission to view assets, follow these steps:
 
--   In the main drop-down menu, select **Administration** , then select the **User Management** ,
-    and under that tab, select **Roles & Permissions** . Finally, click **+ ROLE** .
--   In the **Add Role** wizard, give the role a name (e.g **Asset Viewer** ), and provide a
-    description. Subsequently, under the **Users tab** , click **ADD USERS** to add the user
-    assigned to the asset viewed earlier. Then click the **Permissions** tab.
--   In the permission tab, under **Basic Permissions** , give the role the **View Assets**
-    privilege. Then click **SAVE** .
+- In the main drop-down menu, select **Administration** , then select the **User Management** , and
+  under that tab, select **Roles & Permissions** . Finally, click **+ ROLE** .
+- In the **Add Role** wizard, give the role a name (e.g **Asset Viewer** ), and provide a
+  description. Subsequently, under the **Users tab** , click **ADD USERS** to add the user assigned
+  to the asset viewed earlier. Then click the **Permissions** tab.
+- In the permission tab, under **Basic Permissions** , give the role the **View Assets** privilege.
+  Then click **SAVE** .
 
 ### Test connectivity
 
 #### Admin User Workflow
 
--   Configure the asset with required details while keeping the **Admin Access Required** as
-    checked.
--   While configuring the asset for the first time, keep **Admin Consent Already Provided** as
-    unchecked.
--   The **Redirect URLs** must be configured before executing test connectivity. To configure
-    **Redirect URLs** , checkout the section titled **Splunk SOAR Graph Asset** above.
--   After setting up the asset and user, click the **TEST CONNECTIVITY** button.
--   A window should pop up and display a URL. You will be asked to open the link in a new tab. Open
-    the link in the same browser so that you are logged into Splunk SOAR for the redirect. If you
-    wish to use a different browser, log in to the Splunk SOAR first, and then open the provided
-    link. This new tab will redirect to the Microsoft login page.
--   Log in to the Microsoft account with the admin user.
--   You will be prompted to agree to the permissions requested by the App.
--   Review the requested permissions listed, then click **Accept** .
--   If all goes well the browser should instruct you to close the tab.
--   Now go back and check the message on the Test Connectivity dialog box, it should say **Test
-    Connectivity Passed** .
--   For subsequent test connectivity or action runs, you can keep **Admin Consent Already Provided**
-    config parameter as checked. This will skip the interactive flow and use the client credentials
-    for generating tokens.
+- Configure the asset with required details while keeping the **Admin Access Required** as checked.
+- While configuring the asset for the first time, keep **Admin Consent Already Provided** as
+  unchecked.
+- The **Redirect URLs** must be configured before executing test connectivity. To configure
+  **Redirect URLs** , checkout the section titled **Splunk SOAR Graph Asset** above.
+- After setting up the asset and user, click the **TEST CONNECTIVITY** button.
+- A window should pop up and display a URL. You will be asked to open the link in a new tab. Open
+  the link in the same browser so that you are logged into Splunk SOAR for the redirect. If you wish
+  to use a different browser, log in to the Splunk SOAR first, and then open the provided link. This
+  new tab will redirect to the Microsoft login page.
+- Log in to the Microsoft account with the admin user.
+- You will be prompted to agree to the permissions requested by the App.
+- Review the requested permissions listed, then click **Accept** .
+- If all goes well the browser should instruct you to close the tab.
+- Now go back and check the message on the Test Connectivity dialog box, it should say **Test
+  Connectivity Passed** .
+- For subsequent test connectivity or action runs, you can keep **Admin Consent Already Provided**
+  config parameter as checked. This will skip the interactive flow and use the client credentials
+  for generating tokens.
 
 #### Non-Admin User Workflow
 
--   Configure the asset with required details while keeping the **Admin Access Required** as
-    unchecked. **Admin Consent Already Provided** config parameter will be ignored in the non-admin
-    workflow.
--   Provide **Access Scope** parameter in the asset configuration. All the actions will get executed
-    according to the scopes provided in the **Access Scope** config parameter.
--   The **Redirect URLs** must be configured before executing test connectivity. To configure
-    **Redirect URLs** , checkout the section titled **Splunk SOAR Graph Asset** above.
--   After setting up the asset and user, click the **TEST CONNECTIVITY** button.
--   A window should pop up and display a URL. You will be asked to open the link in a new tab. Open
-    the link in the same browser so that you are logged into Splunk SOAR for the redirect. If you
-    wish to use a different browser, log in to the Splunk SOAR first, and then open the provided
-    link. This new tab will redirect to the Microsoft login page.
--   Log in to the Microsoft account.
--   You will be prompted to agree to the permissions requested by the App.
--   Review the requested permissions listed, then click **Accept** .
--   If all goes well the browser should instruct you to close the tab.
--   Now go back and check the message on the Test Connectivity dialog box, it should say **Test
-    Connectivity Passed** .
+- Configure the asset with required details while keeping the **Admin Access Required** as
+  unchecked. **Admin Consent Already Provided** config parameter will be ignored in the non-admin
+  workflow.
+- Provide **Access Scope** parameter in the asset configuration. All the actions will get executed
+  according to the scopes provided in the **Access Scope** config parameter.
+- The **Redirect URLs** must be configured before executing test connectivity. To configure
+  **Redirect URLs** , checkout the section titled **Splunk SOAR Graph Asset** above.
+- After setting up the asset and user, click the **TEST CONNECTIVITY** button.
+- A window should pop up and display a URL. You will be asked to open the link in a new tab. Open
+  the link in the same browser so that you are logged into Splunk SOAR for the redirect. If you wish
+  to use a different browser, log in to the Splunk SOAR first, and then open the provided link. This
+  new tab will redirect to the Microsoft login page.
+- Log in to the Microsoft account.
+- You will be prompted to agree to the permissions requested by the App.
+- Review the requested permissions listed, then click **Accept** .
+- If all goes well the browser should instruct you to close the tab.
+- Now go back and check the message on the Test Connectivity dialog box, it should say **Test
+  Connectivity Passed** .
 
   
   
@@ -181,23 +180,23 @@ The app should now be ready to be used.
 
 **Configuration:**  
 
--   email_address - Ingest from the provided email address.
--   folder - To fetch the emails from the given folder name (must be provided if running ingestion)
--   get_folder_id - Retrieve the folder ID for the provided folder name/folder path automatically
-    and replace the folder parameter value.
--   first_run_max_emails - Maximum containers to poll for the first scheduled polling (default -
-    1000).
--   max_containers - Maximum containers to poll after the first scheduled poll completes (default -
-    100).
--   extract_attachments - Extract all the attachments included in emails.
--   extract_urls - Extracts the URLs present in the emails.
--   extract_ips - Extracts the IP addresses present in the emails.
--   extract_domains - Extract the domain names present in the emails.
--   extract_hashes - Extract the hashes present in the emails (MD5).
--   ingest_eml - Fetch the EML file content for the 'item attachment' and ingest it into the vault.
-    This will only ingest the first level 'item attachment' as an EML file. The nested item
-    attachments will not be ingested into the vault. If the extract_attachments flag is set to
-    false, then the application will also skip the EML file ingestion regardless of this flag value.
+- email_address - Ingest from the provided email address.
+- folder - To fetch the emails from the given folder name (must be provided if running ingestion)
+- get_folder_id - Retrieve the folder ID for the provided folder name/folder path automatically and
+  replace the folder parameter value.
+- first_run_max_emails - Maximum containers to poll for the first scheduled polling (default -
+  1000).
+- max_containers - Maximum containers to poll after the first scheduled poll completes (default -
+  100).
+- extract_attachments - Extract all the attachments included in emails.
+- extract_urls - Extracts the URLs present in the emails.
+- extract_ips - Extracts the IP addresses present in the emails.
+- extract_domains - Extract the domain names present in the emails.
+- extract_hashes - Extract the hashes present in the emails (MD5).
+- ingest_eml - Fetch the EML file content for the 'item attachment' and ingest it into the vault.
+  This will only ingest the first level 'item attachment' as an EML file. The nested item
+  attachments will not be ingested into the vault. If the extract_attachments flag is set to false,
+  then the application will also skip the EML file ingestion regardless of this flag value.
 
 If extract_attachments is set to true, only fileAttachment will be ingested. If both ingest_eml and
 extract_attachments are set to true, then both fileAttachment and itemAttachment will be ingested.
@@ -206,19 +205,20 @@ extract_attachments are set to true, then both fileAttachment and itemAttachment
 
 This is applicable to 'on poll', 'copy email', 'move email', and 'run query' actions.
 
--   The **get_folder_id** parameter should be enabled only when you have specified folder
-    name/folder path in the **folder** parameter.
--   If you provide folder ID in the **folder** parameter and set **get_folder_id** parameter to
-    true, it will throw an error of folder ID not found for given folder name (because the action
-    considers folder parameter value as folder name/folder path).
--   The **folder** parameter must be either a (case sensitive) well-known name (
-    <https://docs.microsoft.com/en-us/graph/api/resources/mailfolder?view=graph-rest-1.0> ) or the
-    internal o365 folder ID.
--   The folder parameter supports nested folder paths. To specify the complete folder path using the
-    **'/'** (forward slash) as the separator.  
-    e.g. to specify a folder named *phishing* which is nested within (is a child of) *Inbox* , set
-    the value as **Inbox/phishing** . If a folder name has a literal forward slash('/') in the name
-    escape it with a backslash('\\\\') to differentiate.
+- The **get_folder_id** parameter should be enabled only when you have specified folder name/folder
+  path in the **folder** parameter.
+- If you provide folder ID in the **folder** parameter and set **get_folder_id** parameter to true,
+  it will throw an error of folder ID not found for given folder name (because the action considers
+  folder parameter value as folder name/folder path).
+- The **folder** parameter must be either a (case sensitive) well-known name (
+  <a href="https://docs.microsoft.com/en-us/graph/api/resources/mailfolder?view=graph-rest-1.0"
+  target="_blank">https://docs.microsoft.com/en-us/graph/api/resources/mailfolder?view=graph-rest-1.0</a>
+  ) or the internal o365 folder ID.
+- The folder parameter supports nested folder paths. To specify the complete folder path using the
+  **'/'** (forward slash) as the separator.  
+  e.g. to specify a folder named *phishing* which is nested within (is a child of) *Inbox* , set the
+  value as **Inbox/phishing** . If a folder name has a literal forward slash('/') in the name escape
+  it with a backslash('\\') to differentiate.
 
 ## State file permissions
 
@@ -226,45 +226,45 @@ Please check the permissions for the state file as mentioned below.
 
 #### State file path
 
--   For Non-NRI instance: /opt/phantom/local_data/app_states/\<appid>/\<asset_id>\_state.json
--   For NRI instance:
-    /\<PHANTOM_HOME_DIRECTORY>/local_data/app_states/\<appid>/\<asset_id>\_state.json
+- For Non-NRI instance: /opt/phantom/local_data/app_states/\<appid\>/\<asset_id\>\_state.json
+- For NRI instance:
+  /\<PHANTOM_HOME_DIRECTORY\>/local_data/app_states/\<appid\>/\<asset_id\>\_state.json
 
 #### State file permissions
 
--   File rights: rw-rw-r-- (664) (The Splunk SOAR user should have read and write access for the
-    state file)
--   File owner: Appropriate Splunk SOAR user
+- File rights: rw-rw-r-- (664) (The Splunk SOAR user should have read and write access for the state
+  file)
+- File owner: Appropriate Splunk SOAR user
 
 ### Note
 
--   An optional parameter **Admin Access Required** has been added to this app. In most cases, this
-    should remain checked, as admin access is required for email use cases. If the desired
-    integration is to integrate with only one user's calendar, you may consider unchecking this box.
-    If unchecked, it allows a non-admin user to provide access to a specific account. This
-    functionality will ONLY work with the **list events** functionality. If unchecked, the **Access
-    scope** *must* be used. The default scope will work for listing calendar events. Additional
-    information on scope can be found
-    [here.](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-permissions-and-consent#openid-connect-scopes)
--   As per the Microsoft known issues for **Group.Read.All** permission (
-    [here](https://docs.microsoft.com/en-us/graph/known-issues#groups) ), if you want to run the
-    **list events** for fetching group's calendar events, you have to uncheck an optional parameter
-    **Admin Access Required** and provide **Group.Read.All
-    (https://graph.microsoft.com/Group.Read.All)** permission into the scope parameter in the asset
-    configuration parameters. If an asset parameter **Admin Access Required** checked and configured
-    the app with above mentioned all the application permissions (which includes **Group.Read.All**
-    application permission), it throws an error like **Access is denied** while running **list
-    events** action for fetching group's calendar events. Because of the known issue of
-    **Group.Read.All** application permission, this permission required admin consent (on behalf of
-    the user permission) to fetch the group's calendar events.
--   If the parameter **Admin Access Required** is unchecked, you have to provide a **scope**
-    parameter in the asset configuration. All the actions will get executed according to the scopes
-    provided in the **scope** config parameter. The actions will throw an appropriate error if the
-    scope of the corresponding permission is not provided by the end-user.
--   There is an API limitation that will affect run_query action when providing Unicode values in
-    the subject or in the body as parameters and if the result count exceeds 999, the action will
-    fail.
--   The sensitive values are stored encrypted in the state file.
+- An optional parameter **Admin Access Required** has been added to this app. In most cases, this
+  should remain checked, as admin access is required for email use cases. If the desired integration
+  is to integrate with only one user's calendar, you may consider unchecking this box. If unchecked,
+  it allows a non-admin user to provide access to a specific account. This functionality will ONLY
+  work with the **list events** functionality. If unchecked, the **Access scope** *must* be used.
+  The default scope will work for listing calendar events. Additional information on scope can be
+  found <a
+  href="https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-permissions-and-consent#openid-connect-scopes"
+  target="_blank">here.</a>
+- As per the Microsoft known issues for **Group.Read.All** permission (
+  <a href="https://docs.microsoft.com/en-us/graph/known-issues#groups" target="_blank">here</a> ),
+  if you want to run the **list events** for fetching group's calendar events, you have to uncheck
+  an optional parameter **Admin Access Required** and provide **Group.Read.All
+  (https://graph.microsoft.com/Group.Read.All)** permission into the scope parameter in the asset
+  configuration parameters. If an asset parameter **Admin Access Required** checked and configured
+  the app with above mentioned all the application permissions (which includes **Group.Read.All**
+  application permission), it throws an error like **Access is denied** while running **list
+  events** action for fetching group's calendar events. Because of the known issue of
+  **Group.Read.All** application permission, this permission required admin consent (on behalf of
+  the user permission) to fetch the group's calendar events.
+- If the parameter **Admin Access Required** is unchecked, you have to provide a **scope** parameter
+  in the asset configuration. All the actions will get executed according to the scopes provided in
+  the **scope** config parameter. The actions will throw an appropriate error if the scope of the
+  corresponding permission is not provided by the end-user.
+- There is an API limitation that will affect run_query action when providing Unicode values in the
+  subject or in the body as parameters and if the result count exceeds 999, the action will fail.
+- The sensitive values are stored encrypted in the state file.
 
   
 
@@ -277,7 +277,8 @@ The steps are as follows:
 2.  Change that value of the **client_max_body_size** variable as per your needs.
 3.  Save the configuration file.
 4.  Reload nginx service using **service nginx reload** or try restarting the nginx server from SOAR
-    platform: Go to **Administrator->System Health-> System Health** then restart the nginx server.
+    platform: Go to **Administrator-\>System Health-\> System Health** then restart the nginx
+    server.
 
 ## Port Details
 
@@ -434,18 +435,11 @@ action_result.data.\*.attendees.\*.emailAddress.name | string |  |   H-test
 action_result.data.\*.attendees.\*.status.response | string |  |   none 
 action_result.data.\*.attendees.\*.status.time | string |  |   0001-01-01T00:00:00Z 
 action_result.data.\*.attendees.\*.type | string |  |   required 
-action_result.data.\*.body.content | string |  |   <html><head><meta name="Generator" content="Test Server">
-<!-- converted from text -->
-<style><!-- .EmailQuote { margin-left: 1pt; padding-left: 4pt; border-left: #800000 2px solid; } --></style></head>
-<body>
-<font size="2"><span style="font-size:11pt;"><div class="PlainText">&nbsp;</div></span></font>
-</body>
-</html>
- 
+action_result.data.\*.body.content | string |  |   <html><head><meta name="Generator" content="Test Server">\\r\\n<!-- converted from text -->\\r\\n<style><!-- .EmailQuote { margin-left: 1pt; padding-left: 4pt; border-left: #800000 2px solid; } --></style></head>\\r\\n<body>\\r\\n<font size="2"><span style="font-size:11pt;"><div class="PlainText">&nbsp;</div></span></font>\\r\\n</body>\\r\\n</html>\\r\\n 
 action_result.data.\*.body.contentType | string |  |   html 
 action_result.data.\*.bodyPreview | string |  |  
-action_result.data.\*.calendar@odata.associationLink | string |  `url`  |   https://test.abc.com/v1.0/users('ggfe645f-df19-47a1-8e8c-fcd234cb5f6f')/calendars('AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQBGAAADeDDJKaEf4EihMWU6SZgKbAcA07XhOkNngkCkqoNfY_k-jQAAAgEGAAAA07XhOkNngkCkqoNfY_k-jQAAAhTzBBAA')/$ref 
-action_result.data.\*.calendar@odata.navigationLink | string |  `url`  |   https://test.abc.com/v1.0/users('ffb3645f-df20-47a1-8e9c-fcd234cb5f6f')/calendars('AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQBGAAADeDDJKaEf4EihMWU6SZgKbAcA07XhOkNngkCkqoNfY_k-jQAAAgEGAAAA07XhOkNngkCkqoNfY_k-jQAAAhTzABBB') 
+action_result.data.\*.calendar@odata.associationLink | string |  `url`  |   https://test.abc.com/v1.0/users('ggfe645f-df19-47a1-8e8c-fcd234cb5f6f')/calendars('AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQBGAAADeDDJKaEf4EihMWU6SZgKbAcA07XhOkNngkCkqoNfY_k-jQAAAgEGAAAA07XhOkNngkCkqoNfY_k-jQAAAhTzBBAA')/$ref  # pragma: allowlist secret
+action_result.data.\*.calendar@odata.navigationLink | string |  `url`  |   https://test.abc.com/v1.0/users('ffb3645f-df20-47a1-8e9c-fcd234cb5f6f')/calendars('AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQBGAAADeDDJKaEf4EihMWU6SZgKbAcA07XhOkNngkCkqoNfY_k-jQAAAgEGAAAA07XhOkNngkCkqoNfY_k-jQAAAhTzABBB')  # pragma: allowlist secret
 action_result.data.\*.categories.\*.name | string |  |  
 action_result.data.\*.changeKey | string |  |   b1MzKFCcdkuJ24Mc2VsdjwABAdhQhg== 
 action_result.data.\*.createdDateTime | string |  |   2019-10-03T09:03:42.4958512Z 
@@ -773,8 +767,7 @@ action_result.data.\*.@odata.etag | string |  |   W/"CQAAABYAAABBKXVvwEWISZupmqX
 action_result.data.\*.@odata.type | string |  |   #test.abc.message 
 action_result.data.\*.bccRecipients.email | string |  `email`  |   test@testdomain.abc.com 
 action_result.data.\*.bccRecipients.name | string |  |   Test Name 
-action_result.data.\*.body.content | string |  |   plain text?
- 
+action_result.data.\*.body.content | string |  |   plain text?\\r\\n 
 action_result.data.\*.body.contentType | string |  |   text 
 action_result.data.\*.bodyPreview | string |  |   plain text? 
 action_result.data.\*.categories | string |  |  
@@ -841,8 +834,7 @@ action_result.data.\*.@odata.etag | string |  |   W/"CQAAABYAAABBKXVvwEWISZupmqX
 action_result.data.\*.@odata.type | string |  |   #test.abc.message 
 action_result.data.\*.bccRecipients.email | string |  `email`  |   test@testdomain.abc.com 
 action_result.data.\*.bccRecipients.name | string |  |   Test User 
-action_result.data.\*.body.content | string |  |   plain text?
- 
+action_result.data.\*.body.content | string |  |   plain text?\\r\\n 
 action_result.data.\*.body.contentType | string |  |   text 
 action_result.data.\*.bodyPreview | string |  |   plain text? 
 action_result.data.\*.categories | string |  |  
@@ -975,8 +967,7 @@ action_result.data.\*.attachments.\*.size | numeric |  |   355
 action_result.data.\*.attachments.\*.vaultId | string |  `sha1`  `vault id`  |   719dbf72d7c0bc89d7e34306c08a0b66191902b9 
 action_result.data.\*.bccRecipients.email | string |  `email`  |   test@testdomain.abc.com 
 action_result.data.\*.bccRecipients.name | string |  |   Test Name 
-action_result.data.\*.body.content | string |  |   Have a good time with these.
- 
+action_result.data.\*.body.content | string |  |   Have a good time with these.\\r\\n 
 action_result.data.\*.body.contentType | string |  |   text 
 action_result.data.\*.bodyPreview | string |  |   Have a good time with these. 
 action_result.data.\*.categories | string |  |   Green category 
@@ -995,12 +986,11 @@ action_result.data.\*.event.attendees.\*.emailAddress.name | string |  |   Test 
 action_result.data.\*.event.attendees.\*.status.response | string |  |   none 
 action_result.data.\*.event.attendees.\*.status.time | string |  |   0001-01-01T00:00:00Z 
 action_result.data.\*.event.attendees.\*.type | string |  |   required 
-action_result.data.\*.event.body.content | string |  |   plain text?
- 
+action_result.data.\*.event.body.content | string |  |   plain text?\\r\\n 
 action_result.data.\*.event.body.contentType | string |  |   text 
 action_result.data.\*.event.bodyPreview | string |  |   plain text? 
-action_result.data.\*.event.calendar@odata.associationLink | string |  `url`  |   https://test.abc.com/v1.0/users('test@user.abc.com')/calendars('AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQAuAAADeDDJKaEf4EihMWU6SZgKbAEA07XhOkNngkCkqoNfY_k-jQAAAgENAAAA')/$ref 
-action_result.data.\*.event.calendar@odata.navigationLink | string |  `url`  |   https://test.abc.com/v1.0/users('test@user.abc.com')/calendars('AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQAuAAADeDDJKaEf4EihMWU6SZgKbAEA07XhOkNngkCkqoNfY_k-jQAAAgENAAAA') 
+action_result.data.\*.event.calendar@odata.associationLink | string |  `url`  |   https://test.abc.com/v1.0/users('test@user.abc.com')/calendars('AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQAuAAADeDDJKaEf4EihMWU6SZgKbAEA07XhOkNngkCkqoNfY_k-jQAAAgENAAAA')/$ref  # pragma: allowlist secret
+action_result.data.\*.event.calendar@odata.navigationLink | string |  `url`  |   https://test.abc.com/v1.0/users('test@user.abc.com')/calendars('AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQAuAAADeDDJKaEf4EihMWU6SZgKbAEA07XhOkNngkCkqoNfY_k-jQAAAgENAAAA')  # pragma: allowlist secret
 action_result.data.\*.event.changeKey | string |  |   CQAAABYAAABBKXVvwEWISZupmqX4mJS3AAFQwHj9 
 action_result.data.\*.event.createdDateTime | string |  |   0001-01-01T00:00:00Z 
 action_result.data.\*.event.end.dateTime | string |  |   0001-01-01T00:00:00.0000000 
@@ -1195,8 +1185,7 @@ action_result.parameter.id | string |  `msgoffice365 message id`  |   AQMkADU3ND
 action_result.parameter.properties_list | string |  |   subject,receivedDateTime 
 action_result.data.\*.@odata.context | string |  `url`  |   https://test.abc.com/v1.0/$metadata#users('user%40.abc.com')/messages(internetMessageHeaders,body,uniqueBody,sender,subject)/$entity 
 action_result.data.\*.@odata.etag | string |  |   W/"CQAAABYAAABBKXVvwEWISZupmqX4mJS3AAO8DBJl" 
-action_result.data.\*.body.content | string |  |   <html><head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta content="text/html; charset=utf-8"></head><body><h2>HTML heading</h2>HTML body.</body></html> 
+action_result.data.\*.body.content | string |  |   <html><head>\\r\\n<meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta content="text/html; charset=utf-8"></head><body><h2>HTML heading</h2>HTML body.</body></html> 
 action_result.data.\*.body.contentType | string |  |   html 
 action_result.data.\*.id | string |  |   AQMkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQBGAAADyW3X5P7Hb0_MMHKonvdoWQcAQSl1b8BFiEmbqZql_JiUtwAAAgEMAAAAQSl1b8BFiEmbqZql_JiUtwADu9Tv8QAAAA== 
 action_result.data.\*.internetMessageHeaders.Accept-Language | string |  |   en-US 
@@ -1262,12 +1251,7 @@ action_result.data.\*.receivedDateTime | string |  |   2020-06-18T09:11:31Z
 action_result.data.\*.sender.emailAddress.address | string |  `email`  |   notifications@testdomain.com 
 action_result.data.\*.sender.emailAddress.name | string |  `email`  |   notifications@testdomain.com 
 action_result.data.\*.subject | string |  |   test html 
-action_result.data.\*.uniqueBody.content | string |  |   <html><body><div>
-<div>
-<h2>HTML heading</h2>
-HTML body.</div>
-</div>
-</body></html> 
+action_result.data.\*.uniqueBody.content | string |  |   <html><body><div>\\r\\n<div>\\r\\n<h2>HTML heading</h2>\\r\\nHTML body.</div>\\r\\n</div>\\r\\n</body></html> 
 action_result.data.\*.uniqueBody.contentType | string |  |   html 
 action_result.summary | string |  |  
 action_result.message | string |  |   Successfully fetched email 
@@ -1317,25 +1301,7 @@ action_result.data.\*.bccRecipients.\*.emailAddress.address | string |  |   test
 action_result.data.\*.bccRecipients.\*.emailAddress.name | string |  |   test3.test@gmail.com 
 action_result.data.\*.bccRecipients.email | string |  `email`  |   test@testdomain.abc.com 
 action_result.data.\*.bccRecipients.name | string |  |   Test Name 
-action_result.data.\*.body.content | string |  |   <html>
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<meta content="text/html; charset=iso-8859-1">
-<style type="text/css" style="display:none">
-<!--
-p
-	{margin-top:0;
-	margin-bottom:0}
--->
-</style>
-</head>
-<body dir="ltr">
-<div style="font-family:Calibri,Arial,Helvetica,sans-serif; font-size:12pt; color:rgb(0,0,0)">
-Test<br>
-</div>
-</body>
-</html>
- 
+action_result.data.\*.body.content | string |  |   <html>\\r\\n<head>\\r\\n<meta http-equiv="Content-Type" content="text/html; charset=utf-8">\\r\\n<meta content="text/html; charset=iso-8859-1">\\r\\n<style type="text/css" style="display:none">\\r\\n<!--\\r\\np\\r\\n	{margin-top:0;\\r\\n	margin-bottom:0}\\r\\n-->\\r\\n</style>\\r\\n</head>\\r\\n<body dir="ltr">\\r\\n<div style="font-family:Calibri,Arial,Helvetica,sans-serif; font-size:12pt; color:rgb(0,0,0)">\\r\\nTest<br>\\r\\n</div>\\r\\n</body>\\r\\n</html>\\r\\n 
 action_result.data.\*.body.contentType | string |  |   text 
 action_result.data.\*.bodyPreview | string |  |   How are you doing this fine evening? 
 action_result.data.\*.categories | string |  |  
@@ -1481,13 +1447,13 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 **subject** |  required  | Message Subject | string | 
 **headers** |  optional  | Serialized json dictionary. Additional email headers to be added to the message | string | 
 **body** |  required  | Html rendering of message | string | 
-**attachment_vault_id** |  optional  | List of vault ids of files to attach to the email. Vault id is used as content id | string | 
+**attachments** |  optional  | List of vault ids of files to attach to the email. Vault id is used as content id | string |  `sha1`  
 
 #### Action Output
 DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
 --------- | ---- | -------- | --------------
 action_result.status | string |  |   success  failed 
-action_result.parameter.attachment_vault_id | string |  |   da39a3ee5e6b4b0d3255bfef95601890afd80709 
+action_result.parameter.attachments | string |  `sha1`  |   da39a3ee5e6b4b0d3255bfef95601890afd80709 
 action_result.parameter.bcc | string |  `email`  |   test@testdomain.abc.com 
 action_result.parameter.body | string |  |   <html><body><p>Example body</p></body></html> 
 action_result.parameter.cc | string |  `email`  |   test@testdomain.abc.com 
@@ -1497,14 +1463,35 @@ action_result.parameter.subject | string |  |   Example subject
 action_result.parameter.to | string |  `email`  |   test@testdomain.abc.com 
 action_result.data.\*.@odata.context | string |  `url`  |   https://test.abc.com/v1.0/$metadata#users('user%40.abc.com')/messages(internetMessageHeaders,body,uniqueBody,sender,subject)/$entity 
 action_result.data.\*.@odata.etag | string |  |   W/"CQAAABYAAABBKXVvwEWISZupmqX4mJS3AAO8DBJl" 
-action_result.data.\*.body.content | string |  |   <html><head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta content="text/html; charset=utf-8"></head><body><h2>HTML heading</h2>HTML body.</body></html> 
+action_result.data.\*.body.content | string |  |   <html><head>\\r\\n<meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta content="text/html; charset=utf-8"></head><body><h2>HTML heading</h2>HTML body.</body></html> 
 action_result.data.\*.body.contentType | string |  |   html 
 action_result.data.\*.id | string |  |   AQMkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQBGAAADyW3X5P7Hb0_MMHKonvdoWQcAQSl1b8BFiEmbqZql_JiUtwAAAgEMAAAAQSl1b8BFiEmbqZql_JiUtwADu9Tv8QAAAA== 
 action_result.data.\*.receivedDateTime | string |  |   2020-06-18T09:11:31Z 
 action_result.data.\*.sender.emailAddress.address | string |  `email`  |   notifications@testdomain.com 
 action_result.data.\*.sender.emailAddress.name | string |  `email`  |   notifications@testdomain.com 
 action_result.data.\*.subject | string |  |   test html 
+action_result.data.\*.flag.flagStatus | string |  |   notFlagged 
+action_result.data.\*.from.emailAddress.name | string |  |   Herman Edwards 
+action_result.data.\*.from.emailAddress.address | string |  |   herman@phantomengineering2.onmicrosoft.com 
+action_result.data.\*.isRead | boolean |  |   True  False 
+action_result.data.\*.isDraft | boolean |  |   True  False 
+action_result.data.\*.webLink | string |  |   https://outlook.office365.com/owa/?ItemID=AAkALgAAAAAAHYQDEapmEc2byACqAC%2FEWg0A07XhOkNngkCkqoNfY%2Bk%2FjQAGNNQOowAA&exvsurl=1&viewmodel=ReadMessageItem 
+action_result.data.\*.changeKey | string |  |   CQAAABYAAADTteE6Q2eCQKSqg19j6T+NAAYzSv5R 
+action_result.data.\*.importance | string |  |   normal 
+action_result.data.\*.bodyPreview | string |  |   12123123 
+action_result.data.\*.sentDateTime | string |  |   2023-06-19T10:09:58Z 
+action_result.data.\*.toRecipients.\*.emailAddress.name | string |  |   Herman Edwards 
+action_result.data.\*.toRecipients.\*.emailAddress.address | string |  |   herman@phantomengineering2.onmicrosoft.com 
+action_result.data.\*.conversationId | string |  |   AAQkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQAQAORC3aOpHnZMsHD4-7L40sY= 
+action_result.data.\*.hasAttachments | boolean |  |   True  False 
+action_result.data.\*.parentFolderId | string |  |   AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQAuAAADeDDJKaEf4EihMWU6SZgKbAEA07XhOkNngkCkqoNfY_k-jQAAAgEPAAAA 
+action_result.data.\*.createdDateTime | string |  |   2023-06-19T10:09:58Z 
+action_result.data.\*.conversationIndex | string |  |   AQHZopYz5ELdo6kedkywcPj/svjSxg== 
+action_result.data.\*.internetMessageId | string |  |   <PH7PR11MB690810916B33B92C7EF5E558D95FA@PH7PR11MB6908.namprd11.prod.outlook.com> 
+action_result.data.\*.lastModifiedDateTime | string |  |   2023-06-19T10:09:58Z 
+action_result.data.\*.isReadReceiptRequested | boolean |  |   True  False 
+action_result.data.\*.inferenceClassification | string |  |   focused 
+action_result.data.\*.isDeliveryReceiptRequested | boolean |  |   True  False 
 action_result.summary | string |  |  
 action_result.message | string |  |  
 summary.total_objects | numeric |  |   1 
