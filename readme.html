@@ -117,6 +117,14 @@ The app should now be ready to be used.
       <li>extract_domains - Extract the domain names present in the emails.</li>
       <li>extract_hashes - Extract the hashes present in the emails (MD5).</li>
       <li>ingest_eml - Fetch the EML file content for the 'item attachment' and ingest it into the vault. This will only ingest the first level 'item attachment' as an EML file. The nested item attachments will not be ingested into the vault. If the extract_attachments flag is set to false, then the application will also skip the EML file ingestion regardless of this flag value.</li>
+      <li>extract_eml
+        <ul>
+          <li>When polling is on and extract_eml is enabled, it will add the eml files of the root email in the vault.</li>
+          <li>
+            If the extract_attachments flag is set to false, then the application will also skip the itemAttachment and eml file ingestion regardless of the ingest_eml and extract_eml flag value.
+          </li>
+        </ul>
+      </li>
     </ul>
     <p>If extract_attachments is set to true, only fileAttachment will be ingested. If both ingest_eml and extract_attachments are set to true, then both fileAttachment and itemAttachment will be ingested.</p>
 <h2>Guidelines to provide folder parameter value</h2>
@@ -141,8 +149,7 @@ The app should now be ready to be used.
     Please check the permissions for the state file as mentioned below.
     <h4>State file path</h4>
     <ul>
-      <li>For Non-NRI instance: /opt/phantom/local_data/app_states/&lt;appid&gt;/&lt;asset_id&gt;_state.json</li>
-      <li>For NRI instance: /&lt;PHANTOM_HOME_DIRECTORY&gt;/local_data/app_states/&lt;appid&gt;/&lt;asset_id&gt;_state.json</li>
+      <li>For unprivileged instance: /&lt;PHANTOM_HOME_DIRECTORY&gt;/local_data/app_states/&lt;appid&gt;/&lt;asset_id&gt;_state.json</li>
     </ul>
     <h4>State file permissions</h4>
     <ul>
