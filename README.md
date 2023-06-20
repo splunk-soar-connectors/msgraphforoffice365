@@ -345,7 +345,7 @@ VARIABLE | REQUIRED | TYPE | DESCRIPTION
 [create folder](#action-create-folder) - Create a new folder  
 [get folder id](#action-get-folder-id) - Get the API ID of the folder  
 [send email](#action-send-email) - Sends an email with optional text rendering. Attachments are allowed a Content-ID tag for reference within the html  
-[on poll](#action-on-poll) - Ingest emails from Office 365 using Graph API. When polling is on and extract_eml is enabled, the emails fill be ingested as .eml file in the vault  
+[on poll](#action-on-poll) - Ingest emails from Office 365 using Graph API  
 
 ## action: 'test connectivity'
 Use supplied credentials to generate a token with MS Graph
@@ -1502,7 +1502,7 @@ summary.total_objects | numeric |  |   1
 summary.total_objects_successful | numeric |  |   1   
 
 ## action: 'on poll'
-Ingest emails from Office 365 using Graph API. When polling is on and extract_eml is enabled, the emails fill be ingested as .eml file in the vault
+Ingest emails from Office 365 using Graph API
 
 Type: **ingest**  
 Read only: **True**
