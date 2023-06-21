@@ -3120,14 +3120,37 @@ class Office365Connector(BaseConnector):
         upload_url = response['uploadUrl']
 
         with open(vault_info['path'], mode='rb') as file:
-            for start_position in range(0, file_size, MSGOFFICE365_UPLOAD_SESSION_CUTOFF):
-                file_content = file.read(MSGOFFICE365_UPLOAD_SESSION_CUTOFF)
+            for start_position in range(0, file_size, MSGOFFICE365_UPLOAD_LARGE_FILE_CUTOFF):
+                file_content = file.read(MSGOFFICE365_UPLOAD_LARGE_FILE_CUTOFF)
                 end_position = start_position + len(file_content) - 1
                 headers = {
                     'Content-Type': 'application/octet-stream',
                     'Content-Range': "bytes {}-{}/{}".format(start_position, end_position, file_size)
                 }
-                response = requests.put(upload_url, headers=headers, data=file_content)
+                flag = True
+                loop_counter = 0
+                while flag:
+                    loop_counter = loop_counter+1
+                    response = requests.put(upload_url, headers=headers, data=file_content)
+
+                    if response.status_code == 429 and response.headers['Retry-After']:
+                        retry_time = int(response.headers['Retry-After'])
+
+                        if retry_time > 300:  # throw error if wait time greater than 300 seconds
+                            self.debug_print("Retry is canceled as retry time is greater than 300 seconds")
+                            return action_result.set_status(
+                                phantom.APP_ERROR, "Error occured : {}, {}".format(response.status_code, str(response.text))
+                            ), None
+                        self.debug_print("Retrying after {} seconds".format(retry_time))
+                        time.sleep(retry_time + 1)
+                    elif response.status_code >= 400:
+                        return action_result.set_status(
+                            phantom.APP_ERROR, "Error occured : {}, {}".format(response.status_code, str(response.text))
+                        ), None
+                    else:
+                        flag = False
+                self.debug_print("response outside loop : {}".format(response.text))
+
                 if not response.ok:
                     return action_result.set_status(phantom.APP_ERROR, "Failed to upload {}".format(headers["Content-Range"])), None
 

@@ -1158,21 +1158,21 @@
                         "email"
                     ],
                     "example_values": [
-                        "herman@phantomengineering2.onmicrosoft.com"
+                        "cisco@phantomengineering2.onmicrosoft.com"
                     ]
                 },
                 {
                     "data_path": "action_result.data.*.conditions_fromAddresses_0_emailAddress_name",
                     "data_type": "string",
                     "example_values": [
-                        "Herman Edwards"
+                        "Ryan Edwards"
                     ]
                 },
                 {
                     "data_path": "action_result.data.*.displayName",
                     "data_type": "string",
                     "example_values": [
-                        "Move all messages from Herman Edwards to hardik-msgoffice365-test"
+                        "Move all messages from Casey Edwards to test-msgoffice365-test"
                     ]
                 },
                 {
@@ -1346,7 +1346,7 @@
                     "data_path": "action_result.data.*.conditions.fromAddresses.*.emailAddress.address",
                     "data_type": "string",
                     "example_values": [
-                        "herman@phantomengineering2.onmicrosoft.com"
+                        "cisco@phantomengineering2.onmicrosoft.com"
                     ],
                     "contains": [
                         "email"
@@ -1356,7 +1356,7 @@
                     "data_path": "action_result.data.*.conditions.fromAddresses.*.emailAddress.name",
                     "data_type": "string",
                     "example_values": [
-                        "Herman Edwards"
+                        "Ryan Edwards"
                     ]
                 },
                 {
@@ -6682,7 +6682,8 @@
                     "order": 7,
                     "allow_list": true,
                     "contains": [
-                        "sha1"
+                        "sha1",
+                        "vault id"
                     ],
                     "primary": true
                 }
@@ -6700,7 +6701,8 @@
                     "data_path": "action_result.parameter.attachments",
                     "data_type": "string",
                     "contains": [
-                        "sha1"
+                        "sha1",
+                        "vault id"
                     ],
                     "example_values": [
                         "da39a3ee5e6b4b0d3255bfef95601890afd80709"
@@ -6720,7 +6722,7 @@
                     "data_path": "action_result.parameter.body",
                     "data_type": "string",
                     "example_values": [
-                        "<html><body><p>Example body</p></body></html>"
+                        "<html><body><p>Have a good time with these.</p></body></html>"
                     ]
                 },
                 {
@@ -6788,7 +6790,7 @@
                     "data_path": "action_result.data.*.body.content",
                     "data_type": "string",
                     "example_values": [
-                        "`<html><head>\\r\\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"><meta content=\"text/html; charset=utf-8\"></head><body><h2>HTML heading</h2>HTML body.</body></html>`"
+                        "`Have a good time with these.\\r\\n`"
                     ]
                 },
                 {
@@ -6802,7 +6804,7 @@
                     "data_path": "action_result.data.*.bodyPreview",
                     "data_type": "string",
                     "example_values": [
-                        "12123123"
+                        "Have a good time with these."
                     ],
                     "column_name": "Body Preview",
                     "column_order": 2
@@ -6846,14 +6848,17 @@
                     "data_path": "action_result.data.*.from.emailAddress.address",
                     "data_type": "string",
                     "example_values": [
-                        "herman@phantomengineering2.onmicrosoft.com"
+                        "cisco@phantomengineering2.onmicrosoft.com"
+                    ],
+                    "contains":[
+                        "email"
                     ]
                 },
                 {
                     "data_path": "action_result.data.*.from.emailAddress.name",
                     "data_type": "string",
                     "example_values": [
-                        "Herman Edwards"
+                        "Ryan Edwards"
                     ]
                 },
                 {
@@ -6871,6 +6876,9 @@
                     "data_type": "string",
                     "example_values": [
                         "AQMkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQBGAAADyW3X5P7Hb0_MMHKonvdoWQcAQSl1b8BFiEmbqZql_JiUtwAAAgEMAAAAQSl1b8BFiEmbqZql_JiUtwADu9Tv8QAAAA=="
+                    ],
+                    "contains":[
+                        "msgoffice365 message id"
                     ],
                     "column_name": "Message ID",
                     "column_order": 0
@@ -6895,8 +6903,9 @@
                     "example_values": [
                         "<PH7PR11MB690810916B33B92C7EF5E558D95FA@PH7PR11MB6908.namprd11.prod.outlook.com>"
                     ],
-                    "column_name": "Internet Message ID",
-                    "column_order": 4
+                    "contains":[
+                        "msgoffice365 internet message id"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.isDeliveryReceiptRequested",
@@ -6942,6 +6951,9 @@
                     "data_type": "string",
                     "example_values": [
                         "AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQAuAAADeDDJKaEf4EihMWU6SZgKbAEA07XhOkNngkCkqoNfY_k-jQAAAgEPAAAA"
+                    ],
+                    "contains":[
+                        "msgoffice365 folder id"
                     ]
                 },
                 {
@@ -6991,14 +7003,18 @@
                     "data_path": "action_result.data.*.toRecipients.*.emailAddress.address",
                     "data_type": "string",
                     "example_values": [
-                        "herman@phantomengineering2.onmicrosoft.com"
+                        "cisco@phantomengineering2.onmicrosoft.com"
+                    ],
+                    "contains":[
+                        "email"
                     ]
+
                 },
                 {
                     "data_path": "action_result.data.*.toRecipients.*.emailAddress.name",
                     "data_type": "string",
                     "example_values": [
-                        "Herman Edwards"
+                        "Ryan Edwards"
                     ]
                 },
                 {
