@@ -534,9 +534,9 @@ action_result.parameter.user_id | string |  `msgoffice365 user id`  `msgoffice36
 action_result.data.\*.@odata.context | string |  |   https://graph.microsoft.com/v1.0/$metadata#users('eeb3645f-df19-47a1-8e8c-fcd234cb5f6f')/mailFolders('inbox')/messageRules/$entity 
 action_result.data.\*.actions_copyToFolder | string |  |   AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQAuAAADeDDJKaEf4EihMWU6SZgKbAEA07XhOkNngkCkqoNfY_k-jQAF6qrTswAAAA== 
 action_result.data.\*.actions_stopProcessingRules | boolean |  |   True  False 
-action_result.data.\*.conditions_fromAddresses_0_emailAddress_address | string |  `email`  |   herman@phantomengineering2.onmicrosoft.com 
-action_result.data.\*.conditions_fromAddresses_0_emailAddress_name | string |  |   Herman Edwards 
-action_result.data.\*.displayName | string |  |   Move all messages from Herman Edwards to hardik-msgoffice365-test 
+action_result.data.\*.conditions_fromAddresses_0_emailAddress_address | string |  `email`  |   cisco@phantomengineering2.onmicrosoft.com 
+action_result.data.\*.conditions_fromAddresses_0_emailAddress_name | string |  |   Ryan Edwards 
+action_result.data.\*.displayName | string |  |   Move all messages from Casey Edwards to test-msgoffice365-test 
 action_result.data.\*.hasError | boolean |  |   True  False 
 action_result.data.\*.id | string |  |   AQAABgFGL8A= 
 action_result.data.\*.isEnabled | boolean |  |   True  False 
@@ -569,8 +569,8 @@ action_result.data.\*.actions.delete | boolean |  |   True  False
 action_result.data.\*.actions.markAsRead | boolean |  |   True  False 
 action_result.data.\*.actions.moveToFolder | string |  `msgoffice365 folder id`  |   AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQAuAAADeDDJKaEf4EihMWU6SZgKbAEA07XhOkNngkCkqoNfY_k-jQAF6qrTtAAAAA== 
 action_result.data.\*.actions.stopProcessingRules | boolean |  |   True  False 
-action_result.data.\*.conditions.fromAddresses.\*.emailAddress.address | string |  `email`  |   herman@phantomengineering2.onmicrosoft.com 
-action_result.data.\*.conditions.fromAddresses.\*.emailAddress.name | string |  |   Herman Edwards 
+action_result.data.\*.conditions.fromAddresses.\*.emailAddress.address | string |  `email`  |   cisco@phantomengineering2.onmicrosoft.com 
+action_result.data.\*.conditions.fromAddresses.\*.emailAddress.name | string |  |   Ryan Edwards 
 action_result.data.\*.displayName | string |  |   Emails to Trash 
 action_result.data.\*.hasError | boolean |  |   True  False 
 action_result.data.\*.id | string |  `msgoffice365 rule id`  |   AQAABiQdmB8= 
@@ -1451,15 +1451,15 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 **subject** |  required  | Message Subject | string | 
 **headers** |  optional  | Serialized json dictionary. Additional email headers to be added to the message | string | 
 **body** |  required  | Html rendering of message | string | 
-**attachments** |  optional  | List of vault ids of files to attach to the email. Vault id is used as content id | string |  `sha1` 
+**attachments** |  optional  | List of vault ids of files to attach to the email. Vault id is used as content id | string |  `sha1`  `vault id` 
 
 #### Action Output
 DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
 --------- | ---- | -------- | --------------
 action_result.status | string |  |   success  failed 
-action_result.parameter.attachments | string |  `sha1`  |   da39a3ee5e6b4b0d3255bfef95601890afd80709 
+action_result.parameter.attachments | string |  `sha1`  `vault id`  |   da39a3ee5e6b4b0d3255bfef95601890afd80709 
 action_result.parameter.bcc | string |  `email`  |   test@testdomain.abc.com 
-action_result.parameter.body | string |  |   <html><body><p>Example body</p></body></html> 
+action_result.parameter.body | string |  |   <html><body><p>Have a good time with these.</p></body></html> 
 action_result.parameter.cc | string |  `email`  |   test@testdomain.abc.com 
 action_result.parameter.from | string |  `email`  |   test@testdomain.abc.com 
 action_result.parameter.headers | string |  |   {"x-custom-header":"Custom value"} 
@@ -1467,34 +1467,34 @@ action_result.parameter.subject | string |  |   Example subject
 action_result.parameter.to | string |  `email`  |   test@testdomain.abc.com 
 action_result.data.\*.@odata.context | string |  `url`  |   https://test.abc.com/v1.0/$metadata#users('user%40.abc.com')/messages(internetMessageHeaders,body,uniqueBody,sender,subject)/$entity 
 action_result.data.\*.@odata.etag | string |  |   W/"CQAAABYAAABBKXVvwEWISZupmqX4mJS3AAO8DBJl" 
-action_result.data.\*.body.content | string |  |   `<html><head>\\r\\n<meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta content="text/html; charset=utf-8"></head><body><h2>HTML heading</h2>HTML body.</body></html>` 
+action_result.data.\*.body.content | string |  |   `Have a good time with these.\\r\\n` 
 action_result.data.\*.body.contentType | string |  |   html 
-action_result.data.\*.bodyPreview | string |  |   12123123 
+action_result.data.\*.bodyPreview | string |  |   Have a good time with these. 
 action_result.data.\*.changeKey | string |  |   CQAAABYAAADTteE6Q2eCQKSqg19j6T+NAAYzSv5R 
 action_result.data.\*.conversationId | string |  |   AAQkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQAQAORC3aOpHnZMsHD4-7L40sY= 
 action_result.data.\*.conversationIndex | string |  |   AQHZopYz5ELdo6kedkywcPj/svjSxg== 
 action_result.data.\*.createdDateTime | string |  |   2023-06-19T10:09:58Z 
 action_result.data.\*.flag.flagStatus | string |  |   notFlagged 
-action_result.data.\*.from.emailAddress.address | string |  |   herman@phantomengineering2.onmicrosoft.com 
-action_result.data.\*.from.emailAddress.name | string |  |   Herman Edwards 
+action_result.data.\*.from.emailAddress.address | string |  `email`  |   cisco@phantomengineering2.onmicrosoft.com 
+action_result.data.\*.from.emailAddress.name | string |  |   Ryan Edwards 
 action_result.data.\*.hasAttachments | boolean |  |   True  False 
-action_result.data.\*.id | string |  |   AQMkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQBGAAADyW3X5P7Hb0_MMHKonvdoWQcAQSl1b8BFiEmbqZql_JiUtwAAAgEMAAAAQSl1b8BFiEmbqZql_JiUtwADu9Tv8QAAAA== 
+action_result.data.\*.id | string |  `msgoffice365 message id`  |   AQMkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQBGAAADyW3X5P7Hb0_MMHKonvdoWQcAQSl1b8BFiEmbqZql_JiUtwAAAgEMAAAAQSl1b8BFiEmbqZql_JiUtwADu9Tv8QAAAA== 
 action_result.data.\*.importance | string |  |   normal 
 action_result.data.\*.inferenceClassification | string |  |   focused 
-action_result.data.\*.internetMessageId | string |  |   <PH7PR11MB690810916B33B92C7EF5E558D95FA@PH7PR11MB6908.namprd11.prod.outlook.com> 
+action_result.data.\*.internetMessageId | string |  `msgoffice365 internet message id`  |   <PH7PR11MB690810916B33B92C7EF5E558D95FA@PH7PR11MB6908.namprd11.prod.outlook.com> 
 action_result.data.\*.isDeliveryReceiptRequested | boolean |  |   True  False 
 action_result.data.\*.isDraft | boolean |  |   True  False 
 action_result.data.\*.isRead | boolean |  |   True  False 
 action_result.data.\*.isReadReceiptRequested | boolean |  |   True  False 
 action_result.data.\*.lastModifiedDateTime | string |  |   2023-06-19T10:09:58Z 
-action_result.data.\*.parentFolderId | string |  |   AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQAuAAADeDDJKaEf4EihMWU6SZgKbAEA07XhOkNngkCkqoNfY_k-jQAAAgEPAAAA 
+action_result.data.\*.parentFolderId | string |  `msgoffice365 folder id`  |   AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQAuAAADeDDJKaEf4EihMWU6SZgKbAEA07XhOkNngkCkqoNfY_k-jQAAAgEPAAAA 
 action_result.data.\*.receivedDateTime | string |  |   2020-06-18T09:11:31Z 
 action_result.data.\*.sender.emailAddress.address | string |  `email`  |   notifications@testdomain.com 
 action_result.data.\*.sender.emailAddress.name | string |  `email`  |   notifications@testdomain.com 
 action_result.data.\*.sentDateTime | string |  |   2023-06-19T10:09:58Z 
 action_result.data.\*.subject | string |  |   test html 
-action_result.data.\*.toRecipients.\*.emailAddress.address | string |  |   herman@phantomengineering2.onmicrosoft.com 
-action_result.data.\*.toRecipients.\*.emailAddress.name | string |  |   Herman Edwards 
+action_result.data.\*.toRecipients.\*.emailAddress.address | string |  `email`  |   cisco@phantomengineering2.onmicrosoft.com 
+action_result.data.\*.toRecipients.\*.emailAddress.name | string |  |   Ryan Edwards 
 action_result.data.\*.webLink | string |  |   https://outlook.office365.com/owa/?ItemID=AAkALgAAAAAAHYQDEapmEc2byACqAC%2FEWg0A07XhOkNngkCkqoNfY%2Bk%2FjQAGNNQOowAA&exvsurl=1&viewmodel=ReadMessageItem 
 action_result.summary | string |  |  
 action_result.message | string |  |   Successfully sent email 
