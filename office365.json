@@ -7144,10 +7144,6 @@
             {
                 "module": "sqlparse",
                 "input_file": "wheels/py3/sqlparse-0.4.4-py3-none-any.whl"
-            },
-            {
-                "module": "typing_extensions",
-                "input_file": "wheels/py3/typing_extensions-4.6.3-py3-none-any.whl"
             }
         ]
     }
