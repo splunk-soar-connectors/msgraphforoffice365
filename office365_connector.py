@@ -3131,9 +3131,7 @@ class Office365Connector(BaseConnector):
                     'Content-Range': "bytes {}-{}/{}".format(start_position, end_position, file_size)
                 }
                 flag = True
-                loop_counter = 0
                 while flag:
-                    loop_counter = loop_counter+1
                     response = requests.put(upload_url, headers=headers, data=file_content)
 
                     if response.status_code == 429 and response.headers['Retry-After']:
