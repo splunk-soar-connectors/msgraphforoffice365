@@ -1271,9 +1271,7 @@ class ProcessEmail(object):
             cef_artifact.update({'fileName': file_name})
 
         if vault_id:
-            cef_artifact.update({'vaultId': vault_id,
-                                 'cs6': vault_id,
-                                 'cs6Label': 'Vault ID'})
+            cef_artifact.update({'vaultId': vault_id})
 
             # now get the rest of the hashes and add them to the cef artifact
             self._add_vault_hashes_to_dictionary(cef_artifact, vault_id)
@@ -1288,7 +1286,7 @@ class ProcessEmail(object):
         artifact['cef'] = cef_artifact
         artifact['run_automation'] = run_automation
         if contains:
-            artifact['cef_types'] = {'vaultId': contains, 'cs6': contains}
+            artifact['cef_types'] = {'vaultId': contains}
         self._set_sdi(artifact)
 
         if 'parentGuid' in cef_artifact:

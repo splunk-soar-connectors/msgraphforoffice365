@@ -1406,13 +1406,11 @@ class Office365Connector(BaseConnector):
 
             artifact_cef = {
                 "filename": "{}.eml".format(email_message["name"]),
-                'cs6Label': 'Vault ID'
             }
 
             if email_message["vaultId"]:
                 artifact_cef.update({
-                    "vaultId": email_message["vaultId"],
-                    "cs6": email_message["vaultId"]
+                    "vaultId": email_message["vaultId"]
                 })
             artifact_json["cef"] = artifact_cef
             attachment_artifacts.append(artifact_json)
@@ -3150,14 +3148,13 @@ class Office365Connector(BaseConnector):
                         ), None
                     else:
                         flag = False
-                self.debug_print("response outside loop : {}".format(response.text))
 
                 if not response.ok:
                     return action_result.set_status(phantom.APP_ERROR, "Failed to upload {}".format(headers["Content-Range"])), None
 
         result_location = response.headers.get('Location', 'no_location_found')
         match = re.search(r"Attachments\('(?P<attachment_id>[^']+)'\)", result_location)
-        if match is None:
+        if not match:
             return action_result.set_status(phantom.APP_ERROR, "Unable to extract attachment id from url {}".format(result_location)), None
         attachment_id = match.group('attachment_id')
         return phantom.APP_SUCCESS, attachment_id

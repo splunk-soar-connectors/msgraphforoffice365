@@ -15,7 +15,7 @@
 TC_STATUS_SLEEP = 2
 MSGOFFICE365_PER_PAGE_COUNT = 999
 MSGOFFICE365_UPLOAD_SESSION_CUTOFF = 3145728  # 3MB
-MSGOFFICE365_UPLOAD_LARGE_FILE_CUTOFF = 52428800
+MSGOFFICE365_UPLOAD_LARGE_FILE_CUTOFF = 52428800  # 52MB
 SPLUNK_SOAR_SYS_INFO_URL = "{url}rest/system_info"
 SPLUNK_SOAR_ASSET_INFO_URL = "{url}rest/asset/{asset_id}"
 SPLUNK_SOAR_CONTAINER_INFO_URL = "{url}rest/container/{container_id}"
@@ -41,7 +41,6 @@ MSGOFFICE365_INVALID_PERMISSION_ERROR += " Please check the owner, owner group, 
 MSGOFFICE365_INVALID_PERMISSION_ERROR += "user should have the correct access rights and ownership for the corresponding state file "\
     "(refer to readme file for more information)."
 MSGOFFICE365_NO_DATA_FOUND = "No data found"
-
 MSGOFFICE365_DUPLICATE_CONTAINER_FOUND_MSG = "duplicate container found"
 MSGOFFICE365_ERROR_EMPTY_RESPONSE = "Status Code {code}. Empty response and no information in the header."
 
