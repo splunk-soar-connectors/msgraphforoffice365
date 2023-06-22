@@ -597,7 +597,7 @@ class Office365Connector(BaseConnector):
 
         # You should process the error returned in the json
 
-        msg = "Error from server. Status Code: {0} Data from server: {1}".format(
+        msg = "Error : Status Code: {0} Data from server: {1}".format(
             r.status_code, error_text)
 
         return RetVal(action_result.set_status(phantom.APP_ERROR, msg), None)
@@ -688,14 +688,6 @@ class Office365Connector(BaseConnector):
                 break
             self.debug_print("Received 502 status code from the server")
             time.sleep(self._retry_wait_time)
-
-        if r.status_code >= 400 and r.status_code <= 509:
-            resp = json.loads(r.text)
-            return RetVal(action_result.set_status(phantom.APP_ERROR, "Error Code: {0}, ERROR : {1}, MESSAGE : {2}".format(
-                r.status_code,
-                resp.get('error', '').get('code'),
-                resp.get('error', '').get('message')
-            )), None)
 
         if download:
             if 200 <= r.status_code < 399:
@@ -844,9 +836,6 @@ class Office365Connector(BaseConnector):
         })
 
         ret_val, resp_json = self._make_rest_call(action_result, url, verify, headers, params, data, method, download=download)
-
-        if phantom.is_fail(ret_val):
-            return action_result.get_status(), None
 
         # If token is expired, generate a new token
         msg = action_result.get_message()
@@ -3138,19 +3127,17 @@ class Office365Connector(BaseConnector):
                         if retry_time > 300:  # throw error if wait time greater than 300 seconds
                             self.debug_print("Retry is canceled as retry time is greater than 300 seconds")
                             return action_result.set_status(
-                                phantom.APP_ERROR, "Error occured : {}, {}".format(response.status_code, str(response.text))
+                                phantom.APP_ERROR, "Error occurred : {}, {} . Please retry after {} \
+                                    seconds".format(response.status_code, str(response.text), retry_time)
                             ), None
                         self.debug_print("Retrying after {} seconds".format(retry_time))
                         time.sleep(retry_time + 1)
-                    elif response.status_code >= 400:
+                    elif not response.ok:
                         return action_result.set_status(
-                            phantom.APP_ERROR, "Error occured : {}, {}".format(response.status_code, str(response.text))
+                            phantom.APP_ERROR, "Failed to upload file, Error occurred : {}, {}".format(response.status_code, str(response.text))
                         ), None
                     else:
                         flag = False
-
-                if not response.ok:
-                    return action_result.set_status(phantom.APP_ERROR, "Failed to upload {}".format(headers["Content-Range"])), None
 
         result_location = response.headers.get('Location', 'no_location_found')
         match = re.search(r"Attachments\('(?P<attachment_id>[^']+)'\)", result_location)
