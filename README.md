@@ -82,7 +82,7 @@ Once the app is created, follow the below-mentioned steps:
         if you want to run the **delete event** action from the user's calendar.
 
     -   MailboxSettings.Read (https://graph.microsoft.com/MailboxSettings.Read) - It is required
-        only if you want to run the **oof status** action.
+        only if you want to run the **oof status** , **list rules** and **get rule** actions.
 
 After making these changes, click **Add permissions** , then select **Grant admin consent for
 \<your_organization_name_as_on_azure_portal>** at the bottom of the screen.
@@ -198,12 +198,8 @@ The app should now be ready to be used.
     This will only ingest the first level 'item attachment' as an EML file. The nested item
     attachments will not be ingested into the vault. If the extract_attachments flag is set to
     false, then the application will also skip the EML file ingestion regardless of this flag value.
--   extract_eml
-    -   When polling is on and extract_eml is enabled, it will add the eml files of the root email
-        in the vault.
-    -   If the extract_attachments flag is set to false, then the application will also skip the
-        itemAttachment and eml file ingestion regardless of the ingest_eml and extract_eml flag
-        value.
+-   extract_eml - When polling is on and extract_eml is enabled, it will add the eml files of the
+    root email in the vault.
 
 If extract_attachments is set to true, only fileAttachment will be ingested. If both ingest_eml and
 extract_attachments are set to true, then both fileAttachment and itemAttachment will be ingested.
