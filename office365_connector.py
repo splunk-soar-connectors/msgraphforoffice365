@@ -597,7 +597,7 @@ class Office365Connector(BaseConnector):
 
         # You should process the error returned in the json
 
-        msg = "Error : Status Code: {0} Data from server: {1}".format(
+        msg = "Error: Status Code: {0} Data from server: {1}".format(
             r.status_code, error_text)
 
         return RetVal(action_result.set_status(phantom.APP_ERROR, msg), None)
@@ -3126,9 +3126,10 @@ class Office365Connector(BaseConnector):
 
                         if retry_time > 300:  # throw error if wait time greater than 300 seconds
                             self.debug_print("Retry is canceled as retry time is greater than 300 seconds")
+                            self._process_response(response, action_result)
                             return action_result.set_status(
-                                phantom.APP_ERROR, "Error occurred : {}, {} . Please retry after {} \
-                                    seconds".format(response.status_code, str(response.text), retry_time)
+                                phantom.APP_ERROR, "Failed to upload file, {} Please retry after \
+                                    {} seconds".format(action_result.get_message(), retry_time )
                             ), None
                         self.debug_print("Retrying after {} seconds".format(retry_time))
                         time.sleep(retry_time + 1)

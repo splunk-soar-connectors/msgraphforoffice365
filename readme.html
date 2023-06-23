@@ -44,7 +44,7 @@ Once the app is created, follow the below-mentioned steps:
         <li>Group.Read.All (https://graph.microsoft.com/Group.Read.All) - It is required only if you want to run the <b>list events</b> action for the group's calendar and for the <b>list groups</b> and the <b>list group members</b> action.</li>
         <li>Calendar.Read (https://graph.microsoft.com/Calendars.Read) - It is required only if you want to run the <b>list events</b> action for the user's calendar.</li>
         <li>Calendars.ReadWrite (https://graph.microsoft.com/Calendars.ReadWrite) - It is required only if you want to run the <b>delete event</b> action from the user's calendar.</li></li>
-        <li>MailboxSettings.Read (https://graph.microsoft.com/MailboxSettings.Read) - It is required only if you want to run the <b>oof status</b> action.</li>
+        <li>MailboxSettings.Read (https://graph.microsoft.com/MailboxSettings.Read) - It is required only if you want to run the <b>oof status</b>, <b>list rules</b> and <b>get rule</b> actions.</li>
     </ul>
 </ul>
 After making these changes, click <b>Add permissions</b>, then select <b>Grant admin consent for &lt;your_organization_name_as_on_azure_portal&gt;</b> at the bottom of the screen.
@@ -117,14 +117,7 @@ The app should now be ready to be used.
       <li>extract_domains - Extract the domain names present in the emails.</li>
       <li>extract_hashes - Extract the hashes present in the emails (MD5).</li>
       <li>ingest_eml - Fetch the EML file content for the 'item attachment' and ingest it into the vault. This will only ingest the first level 'item attachment' as an EML file. The nested item attachments will not be ingested into the vault. If the extract_attachments flag is set to false, then the application will also skip the EML file ingestion regardless of this flag value.</li>
-      <li>extract_eml
-        <ul>
-          <li>When polling is on and extract_eml is enabled, it will add the eml files of the root email in the vault.</li>
-          <li>
-            If the extract_attachments flag is set to false, then the application will also skip the itemAttachment and eml file ingestion regardless of the ingest_eml and extract_eml flag value.
-          </li>
-        </ul>
-      </li>
+      <li>extract_eml - When polling is on and extract_eml is enabled, it will add the eml files of the root email in the vault.</li>
     </ul>
     <p>If extract_attachments is set to true, only fileAttachment will be ingested. If both ingest_eml and extract_attachments are set to true, then both fileAttachment and itemAttachment will be ingested.</p>
 <h2>Guidelines to provide folder parameter value</h2>
