@@ -6850,7 +6850,7 @@
                     "example_values": [
                         "cisco@phantomengineering2.onmicrosoft.com"
                     ],
-                    "contains":[
+                    "contains": [
                         "email"
                     ]
                 },
@@ -6877,7 +6877,7 @@
                     "example_values": [
                         "AQMkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQBGAAADyW3X5P7Hb0_MMHKonvdoWQcAQSl1b8BFiEmbqZql_JiUtwAAAgEMAAAAQSl1b8BFiEmbqZql_JiUtwADu9Tv8QAAAA=="
                     ],
-                    "contains":[
+                    "contains": [
                         "msgoffice365 message id"
                     ],
                     "column_name": "Message ID",
@@ -6903,7 +6903,7 @@
                     "example_values": [
                         "<PH7PR11MB690810916B33B92C7EF5E558D95FA@PH7PR11MB6908.namprd11.prod.outlook.com>"
                     ],
-                    "contains":[
+                    "contains": [
                         "msgoffice365 internet message id"
                     ]
                 },
@@ -6952,7 +6952,7 @@
                     "example_values": [
                         "AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQAuAAADeDDJKaEf4EihMWU6SZgKbAEA07XhOkNngkCkqoNfY_k-jQAAAgEPAAAA"
                     ],
-                    "contains":[
+                    "contains": [
                         "msgoffice365 folder id"
                     ]
                 },
@@ -7005,10 +7005,9 @@
                     "example_values": [
                         "cisco@phantomengineering2.onmicrosoft.com"
                     ],
-                    "contains":[
+                    "contains": [
                         "email"
                     ]
-
                 },
                 {
                     "data_path": "action_result.data.*.toRecipients.*.emailAddress.name",
@@ -7099,7 +7098,7 @@
         "wheel": [
             {
                 "module": "Django",
-                "input_file": "wheels/py3/Django-3.2.16-py3-none-any.whl"
+                "input_file": "wheels/py3/Django-3.2.19-py3-none-any.whl"
             },
             {
                 "module": "asgiref",
@@ -7135,7 +7134,7 @@
         "wheel": [
             {
                 "module": "Django",
-                "input_file": "wheels/py3/Django-3.2.16-py3-none-any.whl"
+                "input_file": "wheels/py3/Django-3.2.19-py3-none-any.whl"
             },
             {
                 "module": "asgiref",
