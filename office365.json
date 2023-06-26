@@ -1422,7 +1422,7 @@
                     "data_path": "action_result.message",
                     "data_type": "string",
                     "example_values": [
-                        "Successfully retrieved inbox rules"
+                        "Successfully retrieved 7 rules"
                     ]
                 },
                 {
