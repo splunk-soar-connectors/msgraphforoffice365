@@ -2001,7 +2001,10 @@ class Office365Connector(BaseConnector):
         action_result.update_summary({"total_rules_returned": num_rules})
 
         return action_result.set_status(
-            phantom.APP_SUCCESS, "Successfully retrieved inbox rules"
+            phantom.APP_SUCCESS,
+            "Successfully retrieved {} rule {}".format(
+                num_rules, "" if num_rules == 1 else "s"
+            ),
         )
 
     def flatten_json(self, y):
