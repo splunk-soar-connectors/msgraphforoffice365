@@ -574,7 +574,7 @@ action_result.data.\*.isEnabled | boolean |  |   True  False
 action_result.data.\*.isReadOnly | boolean |  |   True  False 
 action_result.data.\*.sequence | numeric |  |   1 
 action_result.summary.total_rules_returned | numeric |  |   14 
-action_result.message | string |  |   Successfully retrieved inbox rules 
+action_result.message | string |  |   Successfully retrieved 7 rules 
 summary.total_objects | numeric |  |   1 
 summary.total_objects_successful | numeric |  |   1   
 
