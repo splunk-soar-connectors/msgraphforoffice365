@@ -1342,7 +1342,7 @@ class ProcessEmail(object):
 
         fips_enabled = self._base_connector._get_fips_enabled()
         if not fips_enabled:
-            return hashlib.md5(UnicodeDammit(input_dict_str).unicode_markup.encode('utf-8')).hexdigest()
+            return hashlib.md5(UnicodeDammit(input_dict_str).unicode_markup.encode('utf-8')).hexdigest()  # nosemgrep
 
         return hashlib.sha256(UnicodeDammit(input_dict_str).unicode_markup.encode('utf-8')).hexdigest()
 
