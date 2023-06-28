@@ -1,6 +1,6 @@
 # File: office365_view.py
 #
-# Copyright (c) 2017-2022 Splunk Inc.
+# Copyright (c) 2017-2023 Splunk Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
 # either express or implied. See the License for the specific language governing permissions
 # and limitations under the License.
 def get_ctx_result(provides, result):
-    """ Function that parses data.
+    """Function that parses data.
 
     :param result: result
     :param provides: action name
@@ -31,24 +31,24 @@ def get_ctx_result(provides, result):
     summary = result.get_summary()
     data = result.get_data()
 
-    ctx_result['param'] = param
+    ctx_result["param"] = param
 
     if summary:
-        ctx_result['summary'] = summary
-    ctx_result['action'] = provides
+        ctx_result["summary"] = summary
+    ctx_result["action"] = provides
     if not data:
-        ctx_result['data'] = {}
+        ctx_result["data"] = {}
         return ctx_result
 
     if provides == "get email":
         for result in data:
-            attachments = result.get('attachments', [])
+            attachments = result.get("attachments", [])
 
             if not attachments:
                 break
 
             for attachment in attachments:
-                attachment_type = attachment.get('attachmentType', '')
+                attachment_type = attachment.get("attachmentType", "")
                 if attachment_type == "#microsoft.graph.fileAttachment":
                     file_attachment.append(attachment)
                 elif attachment_type == "#microsoft.graph.itemAttachment":
@@ -59,21 +59,21 @@ def get_ctx_result(provides, result):
                     other_attachment.append(attachment)
 
             attachment_data = {
-                'file_attachment': file_attachment,
-                'item_attachment': item_attachment,
-                'reference_attachment': reference_attachment,
-                'other_attachment': other_attachment
+                "file_attachment": file_attachment,
+                "item_attachment": item_attachment,
+                "reference_attachment": reference_attachment,
+                "other_attachment": other_attachment,
             }
 
-            result.update({'attachment_data': attachment_data})
+            result.update({"attachment_data": attachment_data})
 
-    ctx_result['data'] = data
+    ctx_result["data"] = data
 
     return ctx_result
 
 
 def display_view(provides, all_app_runs, context):
-    """ Function that displays view.
+    """Function that displays view.
 
     :param provides: action name
     :param context: context
@@ -81,7 +81,7 @@ def display_view(provides, all_app_runs, context):
     :return: html page
     """
 
-    context['results'] = results = []
+    context["results"] = results = []
     for summary, action_results in all_app_runs:
         for result in action_results:
 
@@ -98,5 +98,11 @@ def display_view(provides, all_app_runs, context):
 
     if provides == "run query":
         return_page = "office365_run_query.html"
+
+    if provides == "get rule":
+        return_page = "office365_get_rule.html"
+
+    if provides == "list rules":
+        return_page = "office365_list_rules.html"
 
     return return_page
