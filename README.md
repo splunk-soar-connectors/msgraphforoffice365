@@ -438,8 +438,8 @@ action_result.data.\*.attendees.\*.type | string |  |   required
 action_result.data.\*.body.content | string |  |   `<html><head><meta name="Generator" content="Test Server">\\r\\n<!-- converted from text -->\\r\\n<style><!-- .EmailQuote { margin-left: 1pt; padding-left: 4pt; border-left: #800000 2px solid; } --></style></head>\\r\\n<body>\\r\\n<font size="2"><span style="font-size:11pt;"><div class="PlainText">&nbsp;</div></span></font>\\r\\n</body>\\r\\n</html>\\r\\n` 
 action_result.data.\*.body.contentType | string |  |   html 
 action_result.data.\*.bodyPreview | string |  |  
-action_result.data.\*.calendar@odata.associationLink | string |  `url`  |   https://test.abc.com/v1.0/users('ggfe645f-df19-47a1-8e8c-fcd234cb5f6f')/calendars('AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQBGAAADeDDJKaEf4EihMWU6SZgKbAcA07XhOkNngkCkqoNfY_k-jQAAAgEGAAAA07XhOkNngkCkqoNfY_k-jQAAAhTzBBAA')/$ref 
-action_result.data.\*.calendar@odata.navigationLink | string |  `url`  |   https://test.abc.com/v1.0/users('ffb3645f-df20-47a1-8e9c-fcd234cb5f6f')/calendars('AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQBGAAADeDDJKaEf4EihMWU6SZgKbAcA07XhOkNngkCkqoNfY_k-jQAAAgEGAAAA07XhOkNngkCkqoNfY_k-jQAAAhTzABBB') 
+action_result.data.\*.calendar@odata.associationLink | string |  `url`  |   https://test.abc.com/v1.0/users('ggfe645f-df19-47a1-8e8c-fcd234cb5f6f')/calendars('AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQBGAAADeDDJKaEf4EihMWU6SZgKbAcA07XhOkNngkCkqoNfY_k-jQAAAgEGAAAA07XhOkNngkCkqoNfY_k-jQAAAhTzBBAA')/$ref  # pragma: allowlist secret
+action_result.data.\*.calendar@odata.navigationLink | string |  `url`  |   https://test.abc.com/v1.0/users('ffb3645f-df20-47a1-8e9c-fcd234cb5f6f')/calendars('AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQBGAAADeDDJKaEf4EihMWU6SZgKbAcA07XhOkNngkCkqoNfY_k-jQAAAgEGAAAA07XhOkNngkCkqoNfY_k-jQAAAhTzABBB')  # pragma: allowlist secret
 action_result.data.\*.categories.\*.name | string |  |  
 action_result.data.\*.changeKey | string |  |   b1MzKFCcdkuJ24Mc2VsdjwABAdhQhg== 
 action_result.data.\*.createdDateTime | string |  |   2019-10-03T09:03:42.4958512Z 
@@ -989,8 +989,8 @@ action_result.data.\*.event.attendees.\*.type | string |  |   required
 action_result.data.\*.event.body.content | string |  |   `plain text?\\r\\n` 
 action_result.data.\*.event.body.contentType | string |  |   text 
 action_result.data.\*.event.bodyPreview | string |  |   plain text? 
-action_result.data.\*.event.calendar@odata.associationLink | string |  `url`  |   https://test.abc.com/v1.0/users('test@user.abc.com')/calendars('AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQAuAAADeDDJKaEf4EihMWU6SZgKbAEA07XhOkNngkCkqoNfY_k-jQAAAgENAAAA')/$ref 
-action_result.data.\*.event.calendar@odata.navigationLink | string |  `url`  |   https://test.abc.com/v1.0/users('test@user.abc.com')/calendars('AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQAuAAADeDDJKaEf4EihMWU6SZgKbAEA07XhOkNngkCkqoNfY_k-jQAAAgENAAAA') 
+action_result.data.\*.event.calendar@odata.associationLink | string |  `url`  |   https://test.abc.com/v1.0/users('test@user.abc.com')/calendars('AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQAuAAADeDDJKaEf4EihMWU6SZgKbAEA07XhOkNngkCkqoNfY_k-jQAAAgENAAAA')/$ref  # pragma: allowlist secret
+action_result.data.\*.event.calendar@odata.navigationLink | string |  `url`  |   https://test.abc.com/v1.0/users('test@user.abc.com')/calendars('AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQAuAAADeDDJKaEf4EihMWU6SZgKbAEA07XhOkNngkCkqoNfY_k-jQAAAgENAAAA')  # pragma: allowlist secret
 action_result.data.\*.event.changeKey | string |  |   CQAAABYAAABBKXVvwEWISZupmqX4mJS3AAFQwHj9 
 action_result.data.\*.event.createdDateTime | string |  |   0001-01-01T00:00:00Z 
 action_result.data.\*.event.end.dateTime | string |  |   0001-01-01T00:00:00.0000000 
