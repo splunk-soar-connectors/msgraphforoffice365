@@ -2,7 +2,6 @@
 # MS Graph for Office 365
 
 Publisher: Splunk  
-
 Connector Version: 2.8.0  
 Product Vendor: Microsoft  
 Product Name: Office 365 (MS Graph)  
