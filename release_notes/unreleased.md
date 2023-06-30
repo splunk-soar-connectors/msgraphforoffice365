@@ -1,10 +1,1 @@
 **Unreleased**
-* Added three new actions: send email, list rules and get rule
-* Bug fix for the extraction of custom email headers [PAPP-26852]
-* Fixed URL extraction issues [PAPP-27955]
-* Added 'raw_email' field in container data [PAPP-28338]
-* Bug fix for better handling of NULL values [PAPP-29842]
-* Added 'extract_eml' configuration parameter to add root email to vault [PAPP-31038]
-* Escaped few special characters from the file name [PAPP-31058]
-* Updated app documentation
-* Removed django and requests dependencies in order to use platform packages [PAPP-31087, PAPP-31082, PAPP-31096, PAPP-30822]
