@@ -9,7 +9,7 @@
 
 {% block widget_content %} <!-- Main Start Block -->
 
-<!-- File: office365_list_events.html
+<!-- File: office365_list_rules.html
   Copyright (c) 2017-2023 Splunk Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -83,73 +83,39 @@ and limitations under the License.
             <h4 class="wf-h4-style">No data found</h4>
         {% else %}
             <div class="info">
-                <h4 class="wf-h4-style">Info</h4>
-                <table class="wf-table-vertical">
-                    {% if result.param.user_id %}
-                    <tr>
-                        <td>User ID</td>
-                        <td><a href="javascript:;" onclick="context_menu(this, [{'contains': ['msgoffice365 user id','msgoffice365 user principle name','email'],
-                            'value': '{{ result.param.user_id }}' }], 0, {{ container.id }}, null, false);">
-                        {{ result.param.user_id }}
-                        &nbsp;
-                        <span class="fa fa-caret-down" style="font-size: smaller;"></span>
-                        </a></td>
-                    </tr>
-                    {% endif %}
-                    {% if result.param.group_id %}
-                    <tr>
-                        <td>Group ID</td>
-                        <td><a href="javascript:;" onclick="context_menu(this, [{'contains': ['msgoffice365 group id'],
-                            'value': '{{ result.param.group_id }}' }], 0, {{ container.id }}, null, false);">
-                        {{ result.param.group_id }}
-                        &nbsp;
-                        <span class="fa fa-caret-down" style="font-size: smaller;"></span>
-                        </a></td>
-                    </tr>
-                    {% endif %}
-                    {% if result.param.limit %}
-                        <tr>
-                            <td>Limit</td>
-                            <td>{{ result.param.limit }}</td>
-                        </tr>
-                    {% endif %}
-                    {% if result.param.filter %}
-                        <tr>
-                            <td>Filter</td>
-                            <td>{{ result.param.filter }}</td>
-                        </tr>
-                    {% endif %}
-                </table>
-            </div>
-
-            <div class="data">
-                <h4 class="wf-h4-style">Data</h4>
+                <h4 class="wf-h4-style">Rules List</h4>
                 <table class="phantom-table dataTable">
                     <thead>
-                        <th class="widget-th">Event ID</th>
-                        <th class="widget-th">Subject</th>
-                        <th class="widget-th">Start Time</th>
-                        <th class="widget-th">End Time</th>
-                        <th class="widget-th">Attendee(s)</th>
+                        <th class="widget-th">RULE ID</th>
+                        <th class="widget-th">RULE NAME</th>
+                        <th class="widget-th">DELETE EMAIL ENABLED</th>
+                        <th class="widget-th">ACTION</th>
                     </thead>
                     {% for data in result.data %}
                         <tr>
-                            {% if data.id %}
-                                <td>
-                                    <a href="javascript:;" onclick="context_menu(this, [{'contains': ['msgoffice365 event id'],
-                                        'value': '{{ data.id }}' }], 0, {{ container.id }}, null, false);">
-                                    {{ data.id }}
-                                    &nbsp;
-                                    <span class="fa fa-caret-down" style="font-size: smaller;"></span>
-                                    </a>
-                                </td>
+                            <td>
+                                <a href="javascript:;" onclick="context_menu(this, [{'contains': ['msgoffice365 rule id'],
+                                    'value': '{{ data.id }}' }], 0, {{ container.id }}, null, false);">
+                                {{ data.id }}
+                                &nbsp;
+                                <span class="fa fa-caret-down" style="font-size: smaller;"></span>
+                                </a>
+                            </td>
+                            <td>
+                                {{ data.displayName }}
+                            </td>
+                            {% if data.actions.delete %}
+                            <td>
+                                {{ data.actions.delete }}
+                            </td>
                             {% else %}
-                                <td>None</td>
+                            <td>
+                                None
+                            </td>
                             {% endif %}
-                            <td>{{ data.subject }}</td>
-                            <td>{{ data.start.dateTime }}</td>
-                            <td>{{ data.end.dateTime }}</td>
-                            <td>{{ data.attendee_list }}</td>
+                            <td>
+                                {{ data.actions }}
+                            </td>
                         </tr>
                     {% endfor %}
                 </table>
@@ -161,11 +127,12 @@ and limitations under the License.
 $.extend(true, $.fn.dataTable.defaults, {
     "searching": true,
     "bLengthChange": false,
+    "ordering": true,
     "language": {
-      "paginate": {
+    "paginate": {
         "previous": "<i class='fa fa-angle-left fa-lg'></i>",
         "next": "<i class='fa fa-angle-right fa-lg'></i>"
-      },
+    },
       "emptyTable": "No data available"
     },
     "dom": '<"top">rt<"bottom"p><"clear">',
@@ -174,8 +141,6 @@ $.extend(true, $.fn.dataTable.defaults, {
       pagination.toggle(this.api().page.info().pages > 1);
     }
   });
-  $('.dataTable').DataTable();
-
+  $('.dataTable').DataTable({order : []});
 </script>
-
 {% endblock %}

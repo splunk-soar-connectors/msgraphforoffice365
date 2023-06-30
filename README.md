@@ -2,16 +2,17 @@
 # MS Graph for Office 365
 
 Publisher: Splunk  
-Connector Version: 2.7.1  
+
+Connector Version: 2.8.0  
 Product Vendor: Microsoft  
 Product Name: Office 365 (MS Graph)  
 Product Version Supported (regex): ".\*"  
-Minimum Product Version: 5.3.0  
+Minimum Product Version: 6.0.0  
 
 This app connects to Office 365 using the MS Graph API to support investigate and generic actions related to the email messages and calendar events
 
 [comment]: # " File: README.md"
-[comment]: # "  Copyright (c) 2017-2022 Splunk Inc."
+[comment]: # "  Copyright (c) 2017-2023 Splunk Inc."
 [comment]: # ""
 [comment]: # "Licensed under the Apache License, Version 2.0 (the 'License');"
 [comment]: # "you may not use this file except in compliance with the License."
@@ -68,6 +69,9 @@ Once the app is created, follow the below-mentioned steps:
         -   For non-admin access, use User.Read (Delegated permission) instead
             (https://graph.microsoft.com/User.Read)
 
+    -   Mail.Send (https://graph.microsoft.com/Mail.Send) - It is required only if you want to run
+        the **send email** action.
+
     -   Group.Read.All (https://graph.microsoft.com/Group.Read.All) - It is required only if you
         want to run the **list events** action for the group's calendar and for the **list groups**
         and the **list group members** action.
@@ -79,7 +83,7 @@ Once the app is created, follow the below-mentioned steps:
         if you want to run the **delete event** action from the user's calendar.
 
     -   MailboxSettings.Read (https://graph.microsoft.com/MailboxSettings.Read) - It is required
-        only if you want to run the **oof status** action.
+        only if you want to run the **oof status** , **list rules** and **get rule** actions.
 
 After making these changes, click **Add permissions** , then select **Grant admin consent for
 \<your_organization_name_as_on_azure_portal>** at the bottom of the screen.
@@ -195,6 +199,8 @@ The app should now be ready to be used.
     This will only ingest the first level 'item attachment' as an EML file. The nested item
     attachments will not be ingested into the vault. If the extract_attachments flag is set to
     false, then the application will also skip the EML file ingestion regardless of this flag value.
+-   extract_eml - When polling is on and extract_eml is enabled, it will add the eml files of the
+    root email in the vault.
 
 If extract_attachments is set to true, only fileAttachment will be ingested. If both ingest_eml and
 extract_attachments are set to true, then both fileAttachment and itemAttachment will be ingested.
@@ -223,8 +229,7 @@ Please check the permissions for the state file as mentioned below.
 
 #### State file path
 
--   For Non-NRI instance: /opt/phantom/local_data/app_states/\<appid>/\<asset_id>\_state.json
--   For NRI instance:
+-   For unprivileged instance:
     /\<PHANTOM_HOME_DIRECTORY>/local_data/app_states/\<appid>/\<asset_id>\_state.json
 
 #### State file permissions
@@ -265,6 +270,17 @@ Please check the permissions for the state file as mentioned below.
 
   
 
+## Increase the maximum limit for ingestion
+
+The steps are as follows:
+
+1.  Open the **/opt/phantom/usr/nginx/conf/conf.d/phantom-nginx-server.conf** file on the SOAR
+    instance.
+2.  Change that value of the **client_max_body_size** variable as per your needs.
+3.  Save the configuration file.
+4.  Reload nginx service using **service nginx reload** or try restarting the nginx server from SOAR
+    platform: Go to **Administrator->System Health-> System Health** then restart the nginx server.
+
 ## Port Details
 
 The app uses HTTP/ HTTPS protocol for communicating with the Office365 server. Below are the default
@@ -303,12 +319,15 @@ VARIABLE | REQUIRED | TYPE | DESCRIPTION
 **ingest_manner** |  optional  | string | How to Ingest (during ingestion, should the app get the latest emails or the oldest)
 **retry_count** |  optional  | numeric | Maximum attempts to retry the API call (Default: 3)
 **retry_wait_time** |  optional  | numeric | Delay in seconds between retries (Default: 60)
+**extract_eml** |  optional  | boolean | Extract root (primary) email as Vault
 
 ### Supported Actions  
 [test connectivity](#action-test-connectivity) - Use supplied credentials to generate a token with MS Graph  
 [generate token](#action-generate-token) - Generate a token  
 [oof check](#action-oof-check) - Get user's out of office status  
 [list events](#action-list-events) - List events from user or group calendar  
+[get rule](#action-get-rule) - Get the properties and relationships of a messageRule object  
+[list rules](#action-list-rules) - Get all the messageRule objects defined for the user's inbox  
 [list users](#action-list-users) - Retrieve a list of users  
 [list groups](#action-list-groups) - List all the groups in an organization, including but not limited to Office 365 groups  
 [list group members](#action-list-group-members) - List all the members in group  
@@ -322,6 +341,7 @@ VARIABLE | REQUIRED | TYPE | DESCRIPTION
 [run query](#action-run-query) - Search emails  
 [create folder](#action-create-folder) - Create a new folder  
 [get folder id](#action-get-folder-id) - Get the API ID of the folder  
+[send email](#action-send-email) - Sends an email with optional text rendering. Attachments are allowed a Content-ID tag for reference within the html  
 [on poll](#action-on-poll) - Ingest emails from Office 365 using Graph API  
 
 ## action: 'test connectivity'
@@ -416,14 +436,7 @@ action_result.data.\*.attendees.\*.emailAddress.name | string |  |   H-test
 action_result.data.\*.attendees.\*.status.response | string |  |   none 
 action_result.data.\*.attendees.\*.status.time | string |  |   0001-01-01T00:00:00Z 
 action_result.data.\*.attendees.\*.type | string |  |   required 
-action_result.data.\*.body.content | string |  |   <html><head><meta name="Generator" content="Test Server">
-<!-- converted from text -->
-<style><!-- .EmailQuote { margin-left: 1pt; padding-left: 4pt; border-left: #800000 2px solid; } --></style></head>
-<body>
-<font size="2"><span style="font-size:11pt;"><div class="PlainText">&nbsp;</div></span></font>
-</body>
-</html>
- 
+action_result.data.\*.body.content | string |  |   `<html><head><meta name="Generator" content="Test Server">\\r\\n<!-- converted from text -->\\r\\n<style><!-- .EmailQuote { margin-left: 1pt; padding-left: 4pt; border-left: #800000 2px solid; } --></style></head>\\r\\n<body>\\r\\n<font size="2"><span style="font-size:11pt;"><div class="PlainText">&nbsp;</div></span></font>\\r\\n</body>\\r\\n</html>\\r\\n` 
 action_result.data.\*.body.contentType | string |  |   html 
 action_result.data.\*.bodyPreview | string |  |  
 action_result.data.\*.calendar@odata.associationLink | string |  `url`  |   https://test.abc.com/v1.0/users('ggfe645f-df19-47a1-8e8c-fcd234cb5f6f')/calendars('AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQBGAAADeDDJKaEf4EihMWU6SZgKbAcA07XhOkNngkCkqoNfY_k-jQAAAgEGAAAA07XhOkNngkCkqoNfY_k-jQAAAhTzBBAA')/$ref 
@@ -494,6 +507,75 @@ action_result.data.\*.webLink | string |  `url`  |   https://outlook.office365.c
 action_result.data.locations.\*.displayName | string |  |  
 action_result.summary.events_matched | numeric |  |   8 
 action_result.message | string |  |   Successfully retrieved 8 events 
+summary.total_objects | numeric |  |   1 
+summary.total_objects_successful | numeric |  |   1   
+
+## action: 'get rule'
+Get the properties and relationships of a messageRule object
+
+Type: **investigate**  
+Read only: **True**
+
+#### Action Parameters
+PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
+--------- | -------- | ----------- | ---- | --------
+**user_id** |  required  | User ID/Principal name | string |  `msgoffice365 user id`  `msgoffice365 user principal name`  `email` 
+**rule_id** |  required  | Inbox rule ID | string |  `msgoffice365 rule id` 
+
+#### Action Output
+DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
+--------- | ---- | -------- | --------------
+action_result.status | string |  |   success  failed 
+action_result.parameter.rule_id | string |  `msgoffice365 rule id`  |   AQAABgFGMAc= 
+action_result.parameter.user_id | string |  `msgoffice365 user id`  `msgoffice365 user principal name`  `email`  |   test@testdomain.abc.com 
+action_result.data.\*.@odata.context | string |  |   https://graph.microsoft.com/v1.0/$metadata#users('eeb3645f-df19-47a1-8e8c-fcd234cb5f6f')/mailFolders('inbox')/messageRules/$entity 
+action_result.data.\*.actions_copyToFolder | string |  |   AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQAuAAADeDDJKaEf4EihMWU6SZgKbAEA07XhOkNngkCkqoNfY_k-jQAF6qrTswAAAA== 
+action_result.data.\*.actions_stopProcessingRules | boolean |  |   True  False 
+action_result.data.\*.conditions_fromAddresses_0_emailAddress_address | string |  `email`  |   test@test.com 
+action_result.data.\*.conditions_fromAddresses_0_emailAddress_name | string |  |   Ryan Edwards 
+action_result.data.\*.displayName | string |  |   Move all messages from Casey Edwards to test-msgoffice365-test 
+action_result.data.\*.hasError | boolean |  |   True  False 
+action_result.data.\*.id | string |  |   AQAABgFGL8A= 
+action_result.data.\*.isEnabled | boolean |  |   True  False 
+action_result.data.\*.isReadOnly | boolean |  |   True  False 
+action_result.data.\*.sequence | numeric |  |   2 
+action_result.summary | string |  |  
+action_result.message | string |  |   Successfully retrieved specified inbox rule 
+action_result.message | string |  |   Successfully retrieved specified inbox rule 
+summary.total_objects | numeric |  |   1 
+summary.total_objects_successful | numeric |  |   1   
+
+## action: 'list rules'
+Get all the messageRule objects defined for the user's inbox
+
+Type: **investigate**  
+Read only: **True**
+
+#### Action Parameters
+PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
+--------- | -------- | ----------- | ---- | --------
+**user_id** |  required  | User ID/Principal name | string |  `msgoffice365 user id`  `msgoffice365 user principal name`  `email` 
+
+#### Action Output
+DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
+--------- | ---- | -------- | --------------
+action_result.status | string |  |   success  failed 
+action_result.parameter.user_id | string |  `msgoffice365 user id`  `msgoffice365 user principal name`  `email`  |   test@testdomain.abc.com 
+action_result.data.\*.actions.copyToFolder | string |  `msgoffice365 folder id`  |   AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQAuAAADeDDJKaEf4EihMWU6SZgKbAEA07XhOkNngkCkqoNfY_k-jQAF6qrTswAAAA== 
+action_result.data.\*.actions.delete | boolean |  |   True  False 
+action_result.data.\*.actions.markAsRead | boolean |  |   True  False 
+action_result.data.\*.actions.moveToFolder | string |  `msgoffice365 folder id`  |   AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQAuAAADeDDJKaEf4EihMWU6SZgKbAEA07XhOkNngkCkqoNfY_k-jQAF6qrTtAAAAA== 
+action_result.data.\*.actions.stopProcessingRules | boolean |  |   True  False 
+action_result.data.\*.conditions.fromAddresses.\*.emailAddress.address | string |  `email`  |   test@abc.com 
+action_result.data.\*.conditions.fromAddresses.\*.emailAddress.name | string |  |   Ryan Edwards 
+action_result.data.\*.displayName | string |  |   Emails to Trash 
+action_result.data.\*.hasError | boolean |  |   True  False 
+action_result.data.\*.id | string |  `msgoffice365 rule id`  |   AQAABiQdmB8= 
+action_result.data.\*.isEnabled | boolean |  |   True  False 
+action_result.data.\*.isReadOnly | boolean |  |   True  False 
+action_result.data.\*.sequence | numeric |  |   1 
+action_result.summary.total_rules_returned | numeric |  |   14 
+action_result.message | string |  |   Successfully retrieved 7 rules 
 summary.total_objects | numeric |  |   1 
 summary.total_objects_successful | numeric |  |   1   
 
@@ -686,8 +768,7 @@ action_result.data.\*.@odata.etag | string |  |   W/"CQAAABYAAABBKXVvwEWISZupmqX
 action_result.data.\*.@odata.type | string |  |   #test.abc.message 
 action_result.data.\*.bccRecipients.email | string |  `email`  |   test@testdomain.abc.com 
 action_result.data.\*.bccRecipients.name | string |  |   Test Name 
-action_result.data.\*.body.content | string |  |   plain text?
- 
+action_result.data.\*.body.content | string |  |   `plain text?\\r\\n` 
 action_result.data.\*.body.contentType | string |  |   text 
 action_result.data.\*.bodyPreview | string |  |   plain text? 
 action_result.data.\*.categories | string |  |  
@@ -754,8 +835,7 @@ action_result.data.\*.@odata.etag | string |  |   W/"CQAAABYAAABBKXVvwEWISZupmqX
 action_result.data.\*.@odata.type | string |  |   #test.abc.message 
 action_result.data.\*.bccRecipients.email | string |  `email`  |   test@testdomain.abc.com 
 action_result.data.\*.bccRecipients.name | string |  |   Test User 
-action_result.data.\*.body.content | string |  |   plain text?
- 
+action_result.data.\*.body.content | string |  |   `plain text?\\r\\n` 
 action_result.data.\*.body.contentType | string |  |   text 
 action_result.data.\*.bodyPreview | string |  |   plain text? 
 action_result.data.\*.categories | string |  |  
@@ -876,7 +956,7 @@ action_result.data.\*.allowNewTimeProposals | string |  |
 action_result.data.\*.attachments.\*.@odata.mediaContentType | string |  |   application/octet-stream 
 action_result.data.\*.attachments.\*.@odata.type | string |  |   #test.abc.fileAttachment 
 action_result.data.\*.attachments.\*.attachmentType | string |  |   #test.abc.fileAttachment 
-action_result.data.\*.attachments.\*.contentId | string |  `email`  |   F5832F4CF6EFEC41B9CBC6DED238A234@namprd18.prod.outlook.com 
+action_result.data.\*.attachments.\*.contentId | string |  `email`  |   F5832F4CF6EFEC41B9CBC6DED238A234@namprd18.prod.test.com 
 action_result.data.\*.attachments.\*.contentLocation | string |  |  
 action_result.data.\*.attachments.\*.contentType | string |  |   text/plain 
 action_result.data.\*.attachments.\*.id | string |  |   AQMkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQBGAAADyW3X5P7Hb0_MMHKonvdoWQcAQSl1b8BFiEmbqZql_JiUtwAAAgEMAAAAQSl1b8BFiEmbqZql_JiUtwABS2DpfAAAAAESABAA0EuDIoiFb0ifXM0ETmQMVw== 
@@ -888,8 +968,7 @@ action_result.data.\*.attachments.\*.size | numeric |  |   355
 action_result.data.\*.attachments.\*.vaultId | string |  `sha1`  `vault id`  |   719dbf72d7c0bc89d7e34306c08a0b66191902b9 
 action_result.data.\*.bccRecipients.email | string |  `email`  |   test@testdomain.abc.com 
 action_result.data.\*.bccRecipients.name | string |  |   Test Name 
-action_result.data.\*.body.content | string |  |   Have a good time with these.
- 
+action_result.data.\*.body.content | string |  |   `Have a good time with these.\\r\\n` 
 action_result.data.\*.body.contentType | string |  |   text 
 action_result.data.\*.bodyPreview | string |  |   Have a good time with these. 
 action_result.data.\*.categories | string |  |   Green category 
@@ -908,8 +987,7 @@ action_result.data.\*.event.attendees.\*.emailAddress.name | string |  |   Test 
 action_result.data.\*.event.attendees.\*.status.response | string |  |   none 
 action_result.data.\*.event.attendees.\*.status.time | string |  |   0001-01-01T00:00:00Z 
 action_result.data.\*.event.attendees.\*.type | string |  |   required 
-action_result.data.\*.event.body.content | string |  |   plain text?
- 
+action_result.data.\*.event.body.content | string |  |   `plain text?\\r\\n` 
 action_result.data.\*.event.body.contentType | string |  |   text 
 action_result.data.\*.event.bodyPreview | string |  |   plain text? 
 action_result.data.\*.event.calendar@odata.associationLink | string |  `url`  |   https://test.abc.com/v1.0/users('test@user.abc.com')/calendars('AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQAuAAADeDDJKaEf4EihMWU6SZgKbAEA07XhOkNngkCkqoNfY_k-jQAAAgENAAAA')/$ref 
@@ -974,12 +1052,12 @@ action_result.data.\*.internetMessageHeaders.Content-Type | string |  |   multip
 action_result.data.\*.internetMessageHeaders.DKIM-Signature | string |  |   v=1; a=rsa-sha256; c=relaxed/relaxed;        d=testdomain.com.20150623.gappssmtp.com; s=20150623;        h=message-id:date:mime-version:from:to:subject;        bh=tlTaRbacq4aWozhUPvcWg8i8flbpYQGZNs27nncn83I=;        b=avAAeJ8jF08K4oIBhxTirRmyB+SXHwdU0zdxv7eqs/zWaWWcgmT0007KP560TTgo5u         oD4nb6TvKxpRyWW4QwmkbuMIwHsMvehd2l1gispV3AawyGJjpmN7ErVYfLtIkz2Tap3V         YxmluV+SqeyyxTU8pFAEZ7+2C2lOb1DO5TC7xCMv+dyzevSscJdbeN0dFkG+C93zCqkg         w2fxubx2HDD7b/U6m2wXllYhH608wKJ/qYzyvQyqxYqNiQOtPRg2gw4sZ2UgN3+UQyVq         8ubO39ZuqakJpzEzYMw10d6E7SQhvHDJH7mFwhBlzhvOpb2gLJDN8n8dJaZo05BozQqq         MsvA== 
 action_result.data.\*.internetMessageHeaders.Date | string |  |   Thu, 18 Jun 2020 02:11:26 -0700 
 action_result.data.\*.internetMessageHeaders.From | string |  |   "Test" <test@abc.def.com> 
-action_result.data.\*.internetMessageHeaders.In-Reply-To | string |  |   <DM6QE11MB40266715C3C22ACE4E45D182D9730@DM6PR11MB4026.namprd11.prod.outlook.com> 
+action_result.data.\*.internetMessageHeaders.In-Reply-To | string |  |   <DM6QE11MB40266715C3C22ACE4E45D182D9730@DM6PR11MB4026.namprd11.prod.test.com> 
 action_result.data.\*.internetMessageHeaders.MIME-Version | string |  |   1.0 
 action_result.data.\*.internetMessageHeaders.Message-ID | string |  |   <5eeb2fbe.1c69fb81.22b4b.676a@mx.test.com> 
 action_result.data.\*.internetMessageHeaders.Received | string |  |   from localhost.localdomain (host-240.test.com. [204.107.141.240])        by test.abc.com with UTF8SMTPSA id ng12sm1923252pjb.15.2020.06.18.02.11.26        for <test@abc.com>        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);        Thu, 18 Jun 2020 02:11:26 -0700 (PDT) 
 action_result.data.\*.internetMessageHeaders.Received-SPF | string |  |   Pass (protection.test.com: domain of testdomain.com designates 209.85.210.171 as permitted sender) receiver=protection.test.com; client-ip=209.85.210.171; helo=mail-pf1-f171.test.com; 
-action_result.data.\*.internetMessageHeaders.References | string |  |   <DM6PR11MB40266715C3C33BCE4E45D182D9730@DM6PR11MB4026.namprd11.prod.outlook.com> 
+action_result.data.\*.internetMessageHeaders.References | string |  |   <DM6PR11MB40266715C3C33BCE4E45D182D9730@DM6PR11MB4026.namprd11.prod.test.com> 
 action_result.data.\*.internetMessageHeaders.Return-Path | string |  `email`  |   notifications@testdomain.com 
 action_result.data.\*.internetMessageHeaders.Subject | string |  |   Fw: Email having different attachments 
 action_result.data.\*.internetMessageHeaders.Thread-Index | string |  |   AQDEZLqyXR4k4Sc6skyFCMPITcMsbKpGS7At 
@@ -996,7 +1074,7 @@ action_result.data.\*.internetMessageHeaders.X-MS-Exchange-AntiSpam-MessageData 
 action_result.data.\*.internetMessageHeaders.X-MS-Exchange-AntiSpam-MessageData-Original-0 | string |  |   SC/7FB9jcHrfqMtL+8C1Sp2MBDl48qjRn/ZzFJk8+2yWs9kmQwzxXC8TA3HuU0EMts58S8uTyFbx12+qQUJ45/B5QFEfP5j1o7B5kj1Q0C9S+LAg6YptTwxi29Ei1T4mf+CpfzIeA73NzXB7pWjnmycYYlL3TAn0xJATthWspUZ+g4jZoDzNSIdAZWqoc1j4+dHA6WR+U9zZi0vODxRmplSWq2FeO8uMKqD43StpvYk6chxcaGGc5+rNRxP6RLF7OLirJ0MQ1FfZNRdNfUKBvGAF2r6HLp62apGZg0d5gJ5M7zg/1V4ygWW19cuGXyAr5b9bow1MPIOBfrDrMS3CBk2F9DfATTZ/oFwOv/hCUVs2MkWSdr/upJfPt0xoAYtXk1UjxKpV/nHgTTfQy/ijlxEsYn/HY9O6tfqvn/BRvehvPjjoouvxcZteyP1glEcajum7Op67/kV9p4Wv+U+A+31/kyrb3Tjt4GJGpTIBfLi/VjIiHUDFrpAcBz3rFqxyfKQcCqDsOMjD5CrxBj3ow7uMlQiaQoU0Dxwc4eDggbe9Af/F3YqZuvqpj2H0U0hm7+7j56WjFxewVKHLJBwkCXG6a8UdEmKBtA685mUbfpICdYaoLatC4LYOMeqsx6CeEr75vyfdqTdKOZrBKkhTluMbR0s1pvh0kID7B+HL/LKqFSnpgQidfIugk5FUSh42vsBUjrxq6LWYDSHWwYweeuZi/6vVgKQl1XS5X7JUhwNxZSzSF76pNeCIq6KGlCmfIrAnAAhfd0a0xMGy/gOJiqM8JcWjnCMA25UrRL2XrMLC4mnLpi71rATOU62rcgNyczpKI74uHEQAGtQBHfoJjuAqK1JNAK5+j1kIT9gr1F0CC2iJ+68DOI+dveK2lkGqyNYx+eKeTjJSKO4bfzQiM0oBg9eIwqtU3Wn+sSQEg74MzrMjEfaorXh7X+LdO4DwA7dNyEurnYEgmjvjJoNbcxgjhbLSkTe3LFAX7iUia79VIqgD80bxgwoCWyKiSiCKARb/krBWOCOOuF1I6v6azxPHpwsQxC6AvFlOWW7BXsFY9NcCeGvV7l+9ZnLuRjdbjrgdk1b7PRv6aaRzmVk1I3KPBCPvFasP2XhNJXGgYmv7hxiyOci1Eoq4QcXEfr9VsrOEkcl0z4HI8yHx354Lc7Peck8XFvGCe9ElyhxmEtu/ySFQ3BOakjPikOOIA4XlUj3GsUk8qfwnePHVPBnKKm0jtaqjK6tA8uZyKG8jTNgICFZ9wKmsijFMPXVY2lt5zuPnw1V31D//IYjdXpcU1cMfXgZ06vld4anBSEv3WL3zCZaIJsRhxkB7ixumw4h5yieKNJFIVhbV6Ty4Yog9JFmQbAbRfKh1b8ltoym804+hOH8n7oWVqSbtzuylg7DPCIVOcWdUNraXYgmgtXDM6vq0SsDK1j2diz4ywM2BlBSsnCyAdt1NN5gZyMfOufZ3a8SKdwTaRH3bFh6BmfLEZ8NgYbeJQX7GrVbBU5kHT9+k2g3Klchapmqv8mzl0uKvX1av2hW6ce5xo+owa9Qk/Gza4j4o74bVl8tJ/iYClX4kpHY6kek/TOA/Sxj/IvWb1QZvpgmj0LNNCrLdrLUiTDG3lodE9j+Lr8qhmgL8S78= 
 action_result.data.\*.internetMessageHeaders.X-MS-Exchange-AntiSpam-MessageData-Original-ChunkCount | string |  |   1 
 action_result.data.\*.internetMessageHeaders.X-MS-Exchange-CrossTenant-AuthAs | string |  |   Internal 
-action_result.data.\*.internetMessageHeaders.X-MS-Exchange-CrossTenant-AuthSource | string |  |   SJ0PR22MB4941.namprd11.prod.outlook.com 
+action_result.data.\*.internetMessageHeaders.X-MS-Exchange-CrossTenant-AuthSource | string |  |   SJ0PR22MB4941.namprd11.prod.test.com 
 action_result.data.\*.internetMessageHeaders.X-MS-Exchange-CrossTenant-FromEntityHeader | string |  |   Internet 
 action_result.data.\*.internetMessageHeaders.X-MS-Exchange-CrossTenant-Id | string |  |   a417c578-c7ee-480d-a225-d48057e74df5 
 action_result.data.\*.internetMessageHeaders.X-MS-Exchange-CrossTenant-MailboxType | string |  |   HOSTED 
@@ -1005,7 +1083,7 @@ action_result.data.\*.internetMessageHeaders.X-MS-Exchange-CrossTenant-OriginalA
 action_result.data.\*.internetMessageHeaders.X-MS-Exchange-CrossTenant-UserPrincipalName | string |  |   bs91VnpEPjrqCnvlIeymwO6ye5P9rggHggVNUPUbV/tC9uuFPVFOYg7e/Cd0MeGmSqT4AlLW0Nn4ZeEqNieSf/D1gp5iLz/YkwjXhYUSJnLRb/csQN4sRMMZsX3LUkKkwVpifaeJzoukLu8qSWn7og== 
 action_result.data.\*.internetMessageHeaders.X-MS-Exchange-Organization-AuthAs | string |  |   Anonymous 
 action_result.data.\*.internetMessageHeaders.X-MS-Exchange-Organization-AuthMechanism | string |  |   04 
-action_result.data.\*.internetMessageHeaders.X-MS-Exchange-Organization-AuthSource | string |  |   DM6NAM11FT055.eop-nam11.prod.protection.outlook.com 
+action_result.data.\*.internetMessageHeaders.X-MS-Exchange-Organization-AuthSource | string |  |   DM6NAM11FT055.eop-nam11.prod.protection.test.com 
 action_result.data.\*.internetMessageHeaders.X-MS-Exchange-Organization-ExpirationInterval | string |  |   1:00:00:00.0000000 
 action_result.data.\*.internetMessageHeaders.X-MS-Exchange-Organization-ExpirationIntervalReason | string |  |   OriginalSubmit 
 action_result.data.\*.internetMessageHeaders.X-MS-Exchange-Organization-ExpirationStartTime | string |  |   18 Jun 2020 09:11:28.2531 (UTC) 
@@ -1014,16 +1092,16 @@ action_result.data.\*.internetMessageHeaders.X-MS-Exchange-Organization-MessageD
 action_result.data.\*.internetMessageHeaders.X-MS-Exchange-Organization-Network-Message-Id | string |  |   4b1ef179-4fe7-4248-7ec0-08d81367956e 
 action_result.data.\*.internetMessageHeaders.X-MS-Exchange-Organization-SCL | string |  |   -1 
 action_result.data.\*.internetMessageHeaders.X-MS-Exchange-Processed-By-BccFoldering | string |  |   15.20.3109.017 
-action_result.data.\*.internetMessageHeaders.X-MS-Exchange-Transport-CrossTenantHeadersPromoted | string |  |   DM6NAM11FT064.eop-nam11.prod.protection.outlook.com 
+action_result.data.\*.internetMessageHeaders.X-MS-Exchange-Transport-CrossTenantHeadersPromoted | string |  |   DM6NAM11FT064.eop-nam11.prod.protection.test.com 
 action_result.data.\*.internetMessageHeaders.X-MS-Exchange-Transport-CrossTenantHeadersStamped | string |  |   BN6PR18MB1492 
-action_result.data.\*.internetMessageHeaders.X-MS-Exchange-Transport-CrossTenantHeadersStripped | string |  |   DM6NAM11FT064.eop-nam11.prod.protection.outlook.com 
+action_result.data.\*.internetMessageHeaders.X-MS-Exchange-Transport-CrossTenantHeadersStripped | string |  |   DM6NAM11FT064.eop-nam11.prod.protection.test.com 
 action_result.data.\*.internetMessageHeaders.X-MS-Exchange-Transport-EndToEndLatency | string |  |   00:00:02.7417647 
 action_result.data.\*.internetMessageHeaders.X-MS-Has-Attach | string |  |   yes 
 action_result.data.\*.internetMessageHeaders.X-MS-Office365-Filtering-Correlation-Id | string |  |   4b1ef179-4fe7-4248-7ec0-08d81367956e 
 action_result.data.\*.internetMessageHeaders.X-MS-Office365-Filtering-Correlation-Id-Prvs | string |  |   0c3038e5-2c60-453b-188f-08da6ed1ea0c 
 action_result.data.\*.internetMessageHeaders.X-MS-Oob-TLC-OOBClassifiers | string |  |   OLM:1728; 
 action_result.data.\*.internetMessageHeaders.X-MS-PublicTrafficType | string |  |   Email 
-action_result.data.\*.internetMessageHeaders.X-MS-TNEF-Correlator | string |  |   <SJ0PR11CD49418BDA1BB4215EB8B890AED9B59@SJ0PR11MB4941.namprd11.prod.outlook.com> 
+action_result.data.\*.internetMessageHeaders.X-MS-TNEF-Correlator | string |  |   <SJ0PR11CD49418BDA1BB4215EB8B890AED9B59@SJ0PR11MB4941.namprd11.prod.test.com> 
 action_result.data.\*.internetMessageHeaders.X-MS-TrafficTypeDiagnostic | string |  |   BN6PR18MB1492: 
 action_result.data.\*.internetMessageHeaders.X-Microsoft-Antispam | string |  |   BCL:0; 
 action_result.data.\*.internetMessageHeaders.X-Microsoft-Antispam-Mailbox-Delivery | string |  |   wl:1;pcwl:1;ucf:0;jmr:0;auth:0;dest:I;ENG:(750128)(520011016)(520004050)(702028)(944506458)(944626604); 
@@ -1050,10 +1128,10 @@ action_result.data.\*.meetingMessageType | string |  |   meetingRequest
 action_result.data.\*.meetingRequestType | string |  |   newMeetingRequest 
 action_result.data.\*.parentFolderId | string |  `msgoffice365 folder id`  |   AQMkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQAuAAADyW3X5P7Hb0_MMHKonvdoWQEAQSl1b8BFiEmbqZql_JiUtwAAAgEMAAAA 
 action_result.data.\*.previousEndDateTime | string |  |  
-action_result.data.\*.previousLocation | string |  |  
-action_result.data.\*.previousStartDateTime | string |  |  
 action_result.data.\*.previousEndDateTime.dateTime | string |  |   2022-05-09T13:30:00.0000000 
 action_result.data.\*.previousEndDateTime.timeZone | string |  |   UTC 
+action_result.data.\*.previousLocation | string |  |  
+action_result.data.\*.previousStartDateTime | string |  |  
 action_result.data.\*.previousStartDateTime.dateTime | string |  |   2022-05-09T13:00:00.0000000 
 action_result.data.\*.previousStartDateTime.timeZone | string |  |   UTC 
 action_result.data.\*.receivedDateTime | string |  |   2017-10-26T01:31:43Z 
@@ -1108,8 +1186,7 @@ action_result.parameter.id | string |  `msgoffice365 message id`  |   AQMkADU3ND
 action_result.parameter.properties_list | string |  |   subject,receivedDateTime 
 action_result.data.\*.@odata.context | string |  `url`  |   https://test.abc.com/v1.0/$metadata#users('user%40.abc.com')/messages(internetMessageHeaders,body,uniqueBody,sender,subject)/$entity 
 action_result.data.\*.@odata.etag | string |  |   W/"CQAAABYAAABBKXVvwEWISZupmqX4mJS3AAO8DBJl" 
-action_result.data.\*.body.content | string |  |   <html><head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta content="text/html; charset=utf-8"></head><body><h2>HTML heading</h2>HTML body.</body></html> 
+action_result.data.\*.body.content | string |  |   `<html><head>\\r\\n<meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta content="text/html; charset=utf-8"></head><body><h2>HTML heading</h2>HTML body.</body></html>` 
 action_result.data.\*.body.contentType | string |  |   html 
 action_result.data.\*.id | string |  |   AQMkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQBGAAADyW3X5P7Hb0_MMHKonvdoWQcAQSl1b8BFiEmbqZql_JiUtwAAAgEMAAAAQSl1b8BFiEmbqZql_JiUtwADu9Tv8QAAAA== 
 action_result.data.\*.internetMessageHeaders.Accept-Language | string |  |   en-US 
@@ -1120,12 +1197,12 @@ action_result.data.\*.internetMessageHeaders.Content-Type | string |  |   multip
 action_result.data.\*.internetMessageHeaders.DKIM-Signature | string |  |   v=1; a=rsa-sha256; c=relaxed/relaxed;        d=testdomain.com.20150623.gappssmtp.com; s=20150623;        h=message-id:date:mime-version:from:to:subject;        bh=tlTaRbacq4aWozhUPvcWg8i8flbpYQGZNs27nncn83I=;        b=avAAeJ8jF08K4oIBhxTirRmyB+SXHwdU0zdxv7eqs/zWaWWcgmT0007KP560TTgo5u         oD4nb6TvKxpRyWW4QwmkbuMIwHsMvehd2l1gispV3AawyGJjpmN7ErVYfLtIkz2Tap3V         YxmluV+SqeyyxTU8pFAEZ7+2C2lOb1DO5TC7xCMv+dyzevSscJdbeN0dFkG+C93zCqkg         w2fxubx2HDD7b/U6m2wXllYhH608wKJ/qYzyvQyqxYqNiQOtPRg2gw4sZ2UgN3+UQyVq         8ubO39ZuqakJpzEzYMw10d6E7SQhvHDJH7mFwhBlzhvOpb2gLJDN8n8dJaZo05BozQqq         MsvA== 
 action_result.data.\*.internetMessageHeaders.Date | string |  |   Thu, 18 Jun 2020 02:11:26 -0700 
 action_result.data.\*.internetMessageHeaders.From | string |  |   "Test" <test@abc.def.com> 
-action_result.data.\*.internetMessageHeaders.In-Reply-To | string |  |   <DM6QX11MB40266715C3C22ACE4E45D182D9730@DM6PR11MB4026.namprd11.prod.outlook.com> 
+action_result.data.\*.internetMessageHeaders.In-Reply-To | string |  |   <DM6QX11MB40266715C3C22ACE4E45D182D9730@DM6PR11MB4026.namprd11.prod.test.com> 
 action_result.data.\*.internetMessageHeaders.MIME-Version | string |  |   1.0 
 action_result.data.\*.internetMessageHeaders.Message-ID | string |  |   <5eeb2fbe.1c69fb81.22b4b.676a@mx.test.com> 
 action_result.data.\*.internetMessageHeaders.Received | string |  |   from localhost.localdomain (host-240.test.com. [204.107.141.240])        by tset.abc.com with UTF8SMTPSA id ng12sm1923252pjb.15.2020.06.18.02.11.26        for <user@test.com>        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);        Thu, 18 Jun 2020 02:11:26 -0700 (PDT) 
 action_result.data.\*.internetMessageHeaders.Received-SPF | string |  |   Pass (protection.test.com: domain of testdomain.com designates 209.85.210.171 as permitted sender) receiver=protection.test.com; client-ip=209.85.210.171; helo=mail-pf1-f171.test.com; 
-action_result.data.\*.internetMessageHeaders.References | string |  |   <DM6PR11MB40266715C3C22ACE4E45D182D9730@DM6PR11MB4034.namprd11.prod.outlook.com> 
+action_result.data.\*.internetMessageHeaders.References | string |  |   <DM6PR11MB40266715C3C22ACE4E45D182D9730@DM6PR11MB4034.namprd11.prod.test.com> 
 action_result.data.\*.internetMessageHeaders.Return-Path | string |  `email`  |   notifications@testdomain.com 
 action_result.data.\*.internetMessageHeaders.Subject | string |  |   Fw: Email having different attachments 
 action_result.data.\*.internetMessageHeaders.Thread-Index | string |  |   AQHWZLqyXR4k4Sc6skyFCMPITcMsbKpGS7Bm 
@@ -1139,7 +1216,7 @@ action_result.data.\*.internetMessageHeaders.X-Google-DKIM-Signature | string | 
 action_result.data.\*.internetMessageHeaders.X-Google-Smtp-Source | string |  |   ABdhPJxrYC7raBubCCIOmauxmxryzS9KsihTN6XCRgaNp2rDrG71TVxryzYCtelFOZ2Xj1LzcYIiMA== 
 action_result.data.\*.internetMessageHeaders.X-MS-Exchange-AntiSpam-MessageData | string |  |   VSM9HTzub/OH3NCwKXEQqkkzjnhdw5kXsgd9WM0SRgZ0qRdPg5D9/o3LA7lf8ziXc5k0mm9M5mHvFoYePXNXs/MGhGdBGxa/qUQ+FVHA2mDgfPkamJCEZxz//OX/uruTDo+zF4p9D1dQJpnIpx1M75OhuvrHX/BxWWzyAh78DXfF214YHdyFBCYepwl56CS7+fSGQL/r3p+OvWIBnIkISC+HJljSro2k47pPPAkspMhoUkb+zklyENFjez+JcEHYlih2FiNeUO8kb9b7qvlm3zPK98HLspzDh4BojpQ6Ff330iy7nfIK726tCMByxjOdnEQSB9Ua2sbE5gxSeeWL8MB5DHcQSSsXg+sR8w4gXrXLO3meE0lNQKRoAv2b1U0Q+yM0QBqeQWlymZG21bKeuH4gtAFQvfXNjoCtIbBQK1n7ZnL7fI21FJZRcMcKEneus6gLYUqD4PdLEq9FEGbfgiLmVYeUAL2A0Q/gectvL1OVudtHVR5gFMJKt65F1OtS04CPulfLLFSl1F4AzpjjtBSyQcK9R7bOsjoHxQXPMd9fMCzMSIq5f551pO0klKqWY7l11Un2Noj6CA7EtXiD1bTv8JmYQEKR+0HTZagNd+79GeTvKjxTvt9MkyO8k3aqWyNqT331ITnVICtksN1TVMCp8GVeDudNMr2PLSW0alOduR5unuEgTWrqHoaTGOovQx0PVjudNlpZ80ANK9hqaC/ZhLLOtNpJ3fZnjs06PzrPLGhE/IeccY1n8sYDvGm1QA9TN6JaaGPl1Pj6ecy16k0XuF/PKGHTL0M4LCpxSS6T87oFFH1zHkKtmbJp3aAI4bt3ihbQmwFb29JyMgL7ZOy+zrIwXGILh1KQGWQQv1uXXnAuqQy29HeFXs6D2hDHxHlBk5ZQ+vgRtsvRvGnq58vJ3CapjntfL3pOINUj1avLyAZxjasBWMTwaZs9JQ4ZIMekzkIk05lh9XfDSeULk2yKaH8YSCC6ENUHxSWa6pPHJfOdp9kXwOtlp09/VTTAikKy862k9ybN4bRWZB45B9Pv5scna8IX3rthIXUih8c= 
 action_result.data.\*.internetMessageHeaders.X-MS-Exchange-CrossTenant-AuthAs | string |  |   Internal 
-action_result.data.\*.internetMessageHeaders.X-MS-Exchange-CrossTenant-AuthSource | string |  |   SJ0QA11MB4941.namprd11.prod.outlook.com 
+action_result.data.\*.internetMessageHeaders.X-MS-Exchange-CrossTenant-AuthSource | string |  |   SJ0QA11MB4941.namprd11.prod.test.com 
 action_result.data.\*.internetMessageHeaders.X-MS-Exchange-CrossTenant-FromEntityHeader | string |  |   Internet 
 action_result.data.\*.internetMessageHeaders.X-MS-Exchange-CrossTenant-Id | string |  |   a417c578-c7ee-480d-a225-d48057e74df5 
 action_result.data.\*.internetMessageHeaders.X-MS-Exchange-CrossTenant-MailboxType | string |  |   HOSTED 
@@ -1148,7 +1225,7 @@ action_result.data.\*.internetMessageHeaders.X-MS-Exchange-CrossTenant-OriginalA
 action_result.data.\*.internetMessageHeaders.X-MS-Exchange-CrossTenant-UserPrincipalName | string |  |   bs91VnpEPjrqCnvlIeymwO6ye4Q8rggHggVNUPUbV/tC9uuFPVFOYg7e/Cd0MeGmSqT4AlLW0Nn4ZeEqNieSf/D1gp5iLz/YkwjXhYUSJnLRb/csQN4sRMMZsX3LUkKkwVpifaeJzoukLu8qSWn7og== 
 action_result.data.\*.internetMessageHeaders.X-MS-Exchange-Organization-AuthAs | string |  |   Anonymous 
 action_result.data.\*.internetMessageHeaders.X-MS-Exchange-Organization-AuthMechanism | string |  |   04 
-action_result.data.\*.internetMessageHeaders.X-MS-Exchange-Organization-AuthSource | string |  |   DM6NAM11FT055.eop-nam11.prod.protection.outlook.com 
+action_result.data.\*.internetMessageHeaders.X-MS-Exchange-Organization-AuthSource | string |  |   DM6NAM11FT055.eop-nam11.prod.protection.test.com 
 action_result.data.\*.internetMessageHeaders.X-MS-Exchange-Organization-ExpirationInterval | string |  |   1:00:00:00.0000000 
 action_result.data.\*.internetMessageHeaders.X-MS-Exchange-Organization-ExpirationIntervalReason | string |  |   OriginalSubmit 
 action_result.data.\*.internetMessageHeaders.X-MS-Exchange-Organization-ExpirationStartTime | string |  |   18 Jun 2020 09:11:28.2531 (UTC) 
@@ -1163,7 +1240,7 @@ action_result.data.\*.internetMessageHeaders.X-MS-Has-Attach | string |  |   yes
 action_result.data.\*.internetMessageHeaders.X-MS-Office365-Filtering-Correlation-Id | string |  |   4b1ef179-4fe7-4248-7ec0-08d81367956e 
 action_result.data.\*.internetMessageHeaders.X-MS-Oob-TLC-OOBClassifiers | string |  |   OLM:1728; 
 action_result.data.\*.internetMessageHeaders.X-MS-PublicTrafficType | string |  |   Email 
-action_result.data.\*.internetMessageHeaders.X-MS-TNEF-Correlator | string |  |   <SJ0QM11MB49418BDA1BB4215EB8B890AED9B59@SJ0PR11MB4941.namprd11.prod.outlook.com> 
+action_result.data.\*.internetMessageHeaders.X-MS-TNEF-Correlator | string |  |   <SJ0QM11MB49418BDA1BB4215EB8B890AED9B59@SJ0PR11MB4941.namprd11.prod.test.com> 
 action_result.data.\*.internetMessageHeaders.X-MS-TrafficTypeDiagnostic | string |  |   BN6PR18MB1492: 
 action_result.data.\*.internetMessageHeaders.X-Microsoft-Antispam | string |  |   BCL:0; 
 action_result.data.\*.internetMessageHeaders.X-Microsoft-Antispam-Mailbox-Delivery | string |  |   wl:1;pcwl:1;ucf:0;jmr:0;auth:0;dest:I;ENG:(750128)(520011016)(520004050)(702028)(944506458)(944626604); 
@@ -1175,12 +1252,7 @@ action_result.data.\*.receivedDateTime | string |  |   2020-06-18T09:11:31Z
 action_result.data.\*.sender.emailAddress.address | string |  `email`  |   notifications@testdomain.com 
 action_result.data.\*.sender.emailAddress.name | string |  `email`  |   notifications@testdomain.com 
 action_result.data.\*.subject | string |  |   test html 
-action_result.data.\*.uniqueBody.content | string |  |   <html><body><div>
-<div>
-<h2>HTML heading</h2>
-HTML body.</div>
-</div>
-</body></html> 
+action_result.data.\*.uniqueBody.content | string |  |   <html><body><div>\\r\\n<div>\\r\\n<h2>HTML heading</h2>\\r\\nHTML body.</div>\\r\\n</div>\\r\\n</body></html> 
 action_result.data.\*.uniqueBody.contentType | string |  |   html 
 action_result.summary | string |  |  
 action_result.message | string |  |   Successfully fetched email 
@@ -1217,7 +1289,7 @@ action_result.parameter.body | string |  |   How are you doing this fine evening
 action_result.parameter.email_address | string |  `email`  |   test@testdomain.abc.com 
 action_result.parameter.folder | string |  `msgoffice365 mail folder`  `msgoffice365 mail folder path`  `msgoffice365 folder id`  |   Archive 
 action_result.parameter.get_folder_id | boolean |  |   True  False 
-action_result.parameter.internet_message_id | string |  `msgoffice365 internet message id`  |   <CAGUkOupas2JehJhTVYEK4qdwfLHOrGTHWAgAUZUoMfo5M7BZ_5N_w@mail.gmail.com> 
+action_result.parameter.internet_message_id | string |  `msgoffice365 internet message id`  |   <CAGUkOupas2JehJhTVYEK4qdwfLHOrGTHWAgAUZUoMfo5M7BZ_5N_w@mail.test.com> 
 action_result.parameter.limit | numeric |  |   5 
 action_result.parameter.query | string |  |   $filter=contains(subject,'Urgent') 
 action_result.parameter.search_well_known_folders | boolean |  |   True  False 
@@ -1226,34 +1298,16 @@ action_result.parameter.subject | string |  `msgoffice365 subject`  |   Just wan
 action_result.data.\*.@odata.etag | string |  |   W/"CQAAABYAAABBKXVvwEWISZupmqX4mJS3AAFOpxtE" 
 action_result.data.\*.@odata.type | string |  |   #test.abc.eventMessageRequests 
 action_result.data.\*.allowNewTimeProposals | string |  |  
-action_result.data.\*.bccRecipients.\*.emailAddress.address | string |  |   test3.test@gmail.com 
-action_result.data.\*.bccRecipients.\*.emailAddress.name | string |  |   test3.test@gmail.com 
+action_result.data.\*.bccRecipients.\*.emailAddress.address | string |  |   test3.test@test.com 
+action_result.data.\*.bccRecipients.\*.emailAddress.name | string |  |   test3.test@test.com 
 action_result.data.\*.bccRecipients.email | string |  `email`  |   test@testdomain.abc.com 
 action_result.data.\*.bccRecipients.name | string |  |   Test Name 
-action_result.data.\*.body.content | string |  |   <html>
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<meta content="text/html; charset=iso-8859-1">
-<style type="text/css" style="display:none">
-<!--
-p
-	{margin-top:0;
-	margin-bottom:0}
--->
-</style>
-</head>
-<body dir="ltr">
-<div style="font-family:Calibri,Arial,Helvetica,sans-serif; font-size:12pt; color:rgb(0,0,0)">
-Test<br>
-</div>
-</body>
-</html>
- 
+action_result.data.\*.body.content | string |  |   `<html>\\r\\n<head>\\r\\n<meta http-equiv="Content-Type" content="text/html; charset=utf-8">\\r\\n<meta content="text/html; charset=iso-8859-1">\\r\\n<style type="text/css" style="display:none">\\r\\n<!--\\r\\np\\r\\n	{margin-top:0;\\r\\n	margin-bottom:0}\\r\\n-->\\r\\n</style>\\r\\n</head>\\r\\n<body dir="ltr">\\r\\n<div style="font-family:Calibri,Arial,Helvetica,sans-serif; font-size:12pt; color:rgb(0,0,0)">\\r\\nTest<br>\\r\\n</div>\\r\\n</body>\\r\\n</html>\\r\\n` 
 action_result.data.\*.body.contentType | string |  |   text 
 action_result.data.\*.bodyPreview | string |  |   How are you doing this fine evening? 
 action_result.data.\*.categories | string |  |  
-action_result.data.\*.ccRecipients.\*.emailAddress.address | string |  |   test3.test@gmail.com 
-action_result.data.\*.ccRecipients.\*.emailAddress.name | string |  |   test3.test@gmail.com 
+action_result.data.\*.ccRecipients.\*.emailAddress.address | string |  |   test3.test@test.com 
+action_result.data.\*.ccRecipients.\*.emailAddress.name | string |  |   test3.test@test.com 
 action_result.data.\*.ccRecipients.email | string |  `email`  |   test@testdomain.abc.com 
 action_result.data.\*.ccRecipients.name | string |  |   Test Name 
 action_result.data.\*.changeKey | string |  |   CQAAABYAAABBKXVvwEWISZupmqX4mJS3AAFOpxtE 
@@ -1291,8 +1345,8 @@ action_result.data.\*.previousStartDateTime.timeZone | string |  |   UTC
 action_result.data.\*.receivedDateTime | string |  |   2017-10-30T22:32:42Z 
 action_result.data.\*.recurrence | string |  |  
 action_result.data.\*.replyTo | string |  |  
-action_result.data.\*.replyTo.\*.emailAddress.address | string |  |   hellohi@okta.com 
-action_result.data.\*.replyTo.\*.emailAddress.name | string |  |   hellohi@okta.com 
+action_result.data.\*.replyTo.\*.emailAddress.address | string |  |   hellohi@test.com 
+action_result.data.\*.replyTo.\*.emailAddress.name | string |  |   hellohi@test.com 
 action_result.data.\*.responseRequested | boolean |  |   True  False 
 action_result.data.\*.sender.emailAddress.address | string |  `email`  |   test@testdomain.abc.com 
 action_result.data.\*.sender.emailAddress.name | string |  |   Test Name 
@@ -1373,6 +1427,74 @@ action_result.data.\*.folder_id | string |  `msgoffice365 folder id`  |   AAMkAG
 action_result.data.\*.path | string |  `msgoffice365 mail folder`  `msgoffice365 mail folder path`  |  
 action_result.summary.folder_id | string |  `msgoffice365 folder id`  |   AAMkAGFmNTRhODA4LWIxMjQtNDJjYy05NDM2LWQ5MzY1MGFhMTkzYwAuAAAAAADRlY7ewL4xToKRDciQog5UAQBvUzMoUJx2S4nbgxzZWx2PAAEApxCTAAA= 
 action_result.message | string |  |   Folder id: AAMkAGFmNTRhODA4LWIxMjQtNDJjYy05NDM2LWQ5MzY1MGFhMTkzYwAuAAAAAADRlY7ewL4xToKRDciQog5UAQBvUzMoUJx2S4nbgxzZWx2PAAEApxCTAAA= 
+summary.total_objects | numeric |  |   1 
+summary.total_objects_successful | numeric |  |   1   
+
+## action: 'send email'
+Sends an email with optional text rendering. Attachments are allowed a Content-ID tag for reference within the html
+
+Type: **generic**  
+Read only: **False**
+
+<div><div>Notes</div><ul><li>If the <b>from</b> parameter is not provided, then the action will consider the <b>username</b> parameter provided in the asset configuration as the sender's email address.</li><li>The send email action is executed in two stages. Before sending an email it creates a draft of the email. Once the  draft is successfully saved, the email is sent.</li></ul></div>
+
+#### Action Parameters
+PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
+--------- | -------- | ----------- | ---- | --------
+**from** |  optional  | From field | string |  `email` 
+**to** |  required  | List of recipients email addresses | string |  `email` 
+**cc** |  optional  | List of recipients email addresses to include on cc line | string |  `email` 
+**bcc** |  optional  | List of recipients email addresses to include on bcc line | string |  `email` 
+**subject** |  required  | Message Subject | string | 
+**headers** |  optional  | Serialized json dictionary. Additional email headers to be added to the message | string | 
+**body** |  required  | Html rendering of message | string | 
+**attachments** |  optional  | List of vault ids of files to attach to the email. Vault id is used as content id | string |  `sha1`  `vault id` 
+
+#### Action Output
+DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
+--------- | ---- | -------- | --------------
+action_result.status | string |  |   success  failed 
+action_result.parameter.attachments | string |  `sha1`  `vault id`  |   da39a3ee5e6b4b0d3255bfef95601890afd80709 
+action_result.parameter.bcc | string |  `email`  |   test@testdomain.abc.com 
+action_result.parameter.body | string |  |   <html><body><p>Have a good time with these.</p></body></html> 
+action_result.parameter.cc | string |  `email`  |   test@testdomain.abc.com 
+action_result.parameter.from | string |  `email`  |   test@testdomain.abc.com 
+action_result.parameter.headers | string |  |   {"x-custom-header":"Custom value"} 
+action_result.parameter.subject | string |  |   Example subject 
+action_result.parameter.to | string |  `email`  |   test@testdomain.abc.com 
+action_result.data.\*.@odata.context | string |  `url`  |   https://test.abc.com/v1.0/$metadata#users('user%40.abc.com')/messages(internetMessageHeaders,body,uniqueBody,sender,subject)/$entity 
+action_result.data.\*.@odata.etag | string |  |   W/"CQAAABYAAABBKXVvwEWISZupmqX4mJS3AAO8DBJl" 
+action_result.data.\*.body.content | string |  |   `Have a good time with these.\\r\\n` 
+action_result.data.\*.body.contentType | string |  |   html 
+action_result.data.\*.bodyPreview | string |  |   Have a good time with these. 
+action_result.data.\*.changeKey | string |  |   CQAAABYAAADTteE6Q2eCQKSqg19j6T+NAAYzSv5R 
+action_result.data.\*.conversationId | string |  |   AAQkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQAQAORC3aOpHnZMsHD4-7L40sY= 
+action_result.data.\*.conversationIndex | string |  |   AQHZopYz5ELdo6kedkywcPj/svjSxg== 
+action_result.data.\*.createdDateTime | string |  |   2023-06-19T10:09:58Z 
+action_result.data.\*.flag.flagStatus | string |  |   notFlagged 
+action_result.data.\*.from.emailAddress.address | string |  `email`  |   test@test.com 
+action_result.data.\*.from.emailAddress.name | string |  |   Ryan Edwards 
+action_result.data.\*.hasAttachments | boolean |  |   True  False 
+action_result.data.\*.id | string |  `msgoffice365 message id`  |   AQMkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQBGAAADyW3X5P7Hb0_MMHKonvdoWQcAQSl1b8BFiEmbqZql_JiUtwAAAgEMAAAAQSl1b8BFiEmbqZql_JiUtwADu9Tv8QAAAA== 
+action_result.data.\*.importance | string |  |   normal 
+action_result.data.\*.inferenceClassification | string |  |   focused 
+action_result.data.\*.internetMessageId | string |  `msgoffice365 internet message id`  |   <PH7PR11MB690810916B33B92C7EF5E558D95FA@PH7PR11MB6908.namprd11.prod.test.com> 
+action_result.data.\*.isDeliveryReceiptRequested | boolean |  |   True  False 
+action_result.data.\*.isDraft | boolean |  |   True  False 
+action_result.data.\*.isRead | boolean |  |   True  False 
+action_result.data.\*.isReadReceiptRequested | boolean |  |   True  False 
+action_result.data.\*.lastModifiedDateTime | string |  |   2023-06-19T10:09:58Z 
+action_result.data.\*.parentFolderId | string |  `msgoffice365 folder id`  |   AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQAuAAADeDDJKaEf4EihMWU6SZgKbAEA07XhOkNngkCkqoNfY_k-jQAAAgEPAAAA 
+action_result.data.\*.receivedDateTime | string |  |   2020-06-18T09:11:31Z 
+action_result.data.\*.sender.emailAddress.address | string |  `email`  |   notifications@testdomain.com 
+action_result.data.\*.sender.emailAddress.name | string |  `email`  |   notifications@testdomain.com 
+action_result.data.\*.sentDateTime | string |  |   2023-06-19T10:09:58Z 
+action_result.data.\*.subject | string |  |   test html 
+action_result.data.\*.toRecipients.\*.emailAddress.address | string |  `email`  |   test@test.com 
+action_result.data.\*.toRecipients.\*.emailAddress.name | string |  |   Ryan Edwards 
+action_result.data.\*.webLink | string |  |   https://outlook.office365.com/owa/?ItemID=AAkALgAAAAAAHYQDEapmEc2byACqAC%2FEWg0A07XhOkNngkCkqoNfY%2Bk%2FjQAGNNQOowAA&exvsurl=1&viewmodel=ReadMessageItem 
+action_result.summary | string |  |  
+action_result.message | string |  |   Successfully sent email 
 summary.total_objects | numeric |  |   1 
 summary.total_objects_successful | numeric |  |   1   
 
