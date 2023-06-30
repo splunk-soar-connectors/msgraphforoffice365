@@ -1158,7 +1158,7 @@
                         "email"
                     ],
                     "example_values": [
-                        "cisco@phantomengineering2.onmicrosoft.com"
+                        "test@test.com"
                     ]
                 },
                 {
@@ -1346,7 +1346,7 @@
                     "data_path": "action_result.data.*.conditions.fromAddresses.*.emailAddress.address",
                     "data_type": "string",
                     "example_values": [
-                        "cisco@phantomengineering2.onmicrosoft.com"
+                        "test@abc.com"
                     ],
                     "contains": [
                         "email"
@@ -3495,7 +3495,7 @@
                     "data_path": "action_result.data.*.attachments.*.contentId",
                     "data_type": "string",
                     "example_values": [
-                        "F5832F4CF6EFEC41B9CBC6DED238A234@namprd18.prod.outlook.com"
+                        "F5832F4CF6EFEC41B9CBC6DED238A234@namprd18.prod.test.com"
                     ],
                     "contains": [
                         "email"
@@ -4204,7 +4204,7 @@
                     "data_path": "action_result.data.*.internetMessageHeaders.In-Reply-To",
                     "data_type": "string",
                     "example_values": [
-                        "<DM6QE11MB40266715C3C22ACE4E45D182D9730@DM6PR11MB4026.namprd11.prod.outlook.com>"
+                        "<DM6QE11MB40266715C3C22ACE4E45D182D9730@DM6PR11MB4026.namprd11.prod.test.com>"
                     ]
                 },
                 {
@@ -4239,7 +4239,7 @@
                     "data_path": "action_result.data.*.internetMessageHeaders.References",
                     "data_type": "string",
                     "example_values": [
-                        "<DM6PR11MB40266715C3C33BCE4E45D182D9730@DM6PR11MB4026.namprd11.prod.outlook.com>"
+                        "<DM6PR11MB40266715C3C33BCE4E45D182D9730@DM6PR11MB4026.namprd11.prod.test.com>"
                     ]
                 },
                 {
@@ -4361,7 +4361,7 @@
                     "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-CrossTenant-AuthSource",
                     "data_type": "string",
                     "example_values": [
-                        "SJ0PR22MB4941.namprd11.prod.outlook.com"
+                        "SJ0PR22MB4941.namprd11.prod.test.com"
                     ]
                 },
                 {
@@ -4424,7 +4424,7 @@
                     "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-Organization-AuthSource",
                     "data_type": "string",
                     "example_values": [
-                        "DM6NAM11FT055.eop-nam11.prod.protection.outlook.com"
+                        "DM6NAM11FT055.eop-nam11.prod.protection.test.com"
                     ]
                 },
                 {
@@ -4487,7 +4487,7 @@
                     "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-Transport-CrossTenantHeadersPromoted",
                     "data_type": "string",
                     "example_values": [
-                        "DM6NAM11FT064.eop-nam11.prod.protection.outlook.com"
+                        "DM6NAM11FT064.eop-nam11.prod.protection.test.com"
                     ]
                 },
                 {
@@ -4501,7 +4501,7 @@
                     "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-Transport-CrossTenantHeadersStripped",
                     "data_type": "string",
                     "example_values": [
-                        "DM6NAM11FT064.eop-nam11.prod.protection.outlook.com"
+                        "DM6NAM11FT064.eop-nam11.prod.protection.test.com"
                     ]
                 },
                 {
@@ -4550,7 +4550,7 @@
                     "data_path": "action_result.data.*.internetMessageHeaders.X-MS-TNEF-Correlator",
                     "data_type": "string",
                     "example_values": [
-                        "<SJ0PR11CD49418BDA1BB4215EB8B890AED9B59@SJ0PR11MB4941.namprd11.prod.outlook.com>"
+                        "<SJ0PR11CD49418BDA1BB4215EB8B890AED9B59@SJ0PR11MB4941.namprd11.prod.test.com>"
                     ]
                 },
                 {
@@ -5151,7 +5151,7 @@
                     "data_path": "action_result.data.*.internetMessageHeaders.In-Reply-To",
                     "data_type": "string",
                     "example_values": [
-                        "<DM6QX11MB40266715C3C22ACE4E45D182D9730@DM6PR11MB4026.namprd11.prod.outlook.com>"
+                        "<DM6QX11MB40266715C3C22ACE4E45D182D9730@DM6PR11MB4026.namprd11.prod.test.com>"
                     ]
                 },
                 {
@@ -5186,7 +5186,7 @@
                     "data_path": "action_result.data.*.internetMessageHeaders.References",
                     "data_type": "string",
                     "example_values": [
-                        "<DM6PR11MB40266715C3C22ACE4E45D182D9730@DM6PR11MB4034.namprd11.prod.outlook.com>"
+                        "<DM6PR11MB40266715C3C22ACE4E45D182D9730@DM6PR11MB4034.namprd11.prod.test.com>"
                     ]
                 },
                 {
@@ -5287,7 +5287,7 @@
                     "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-CrossTenant-AuthSource",
                     "data_type": "string",
                     "example_values": [
-                        "SJ0QA11MB4941.namprd11.prod.outlook.com"
+                        "SJ0QA11MB4941.namprd11.prod.test.com"
                     ]
                 },
                 {
@@ -5350,7 +5350,7 @@
                     "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-Organization-AuthSource",
                     "data_type": "string",
                     "example_values": [
-                        "DM6NAM11FT055.eop-nam11.prod.protection.outlook.com"
+                        "DM6NAM11FT055.eop-nam11.prod.protection.test.com"
                     ]
                 },
                 {
@@ -5455,7 +5455,7 @@
                     "data_path": "action_result.data.*.internetMessageHeaders.X-MS-TNEF-Correlator",
                     "data_type": "string",
                     "example_values": [
-                        "<SJ0QM11MB49418BDA1BB4215EB8B890AED9B59@SJ0PR11MB4941.namprd11.prod.outlook.com>"
+                        "<SJ0QM11MB49418BDA1BB4215EB8B890AED9B59@SJ0PR11MB4941.namprd11.prod.test.com>"
                     ]
                 },
                 {
@@ -5723,7 +5723,7 @@
                         "msgoffice365 internet message id"
                     ],
                     "example_values": [
-                        "<CAGUkOupas2JehJhTVYEK4qdwfLHOrGTHWAgAUZUoMfo5M7BZ_5N_w@mail.gmail.com>"
+                        "<CAGUkOupas2JehJhTVYEK4qdwfLHOrGTHWAgAUZUoMfo5M7BZ_5N_w@mail.test.com>"
                     ]
                 },
                 {
@@ -5790,14 +5790,14 @@
                     "data_path": "action_result.data.*.bccRecipients.*.emailAddress.address",
                     "data_type": "string",
                     "example_values": [
-                        "test3.test@gmail.com"
+                        "test3.test@test.com"
                     ]
                 },
                 {
                     "data_path": "action_result.data.*.bccRecipients.*.emailAddress.name",
                     "data_type": "string",
                     "example_values": [
-                        "test3.test@gmail.com"
+                        "test3.test@test.com"
                     ]
                 },
                 {
@@ -5846,14 +5846,14 @@
                     "data_path": "action_result.data.*.ccRecipients.*.emailAddress.address",
                     "data_type": "string",
                     "example_values": [
-                        "test3.test@gmail.com"
+                        "test3.test@test.com"
                     ]
                 },
                 {
                     "data_path": "action_result.data.*.ccRecipients.*.emailAddress.name",
                     "data_type": "string",
                     "example_values": [
-                        "test3.test@gmail.com"
+                        "test3.test@test.com"
                     ]
                 },
                 {
@@ -6127,14 +6127,14 @@
                     "data_path": "action_result.data.*.replyTo.*.emailAddress.address",
                     "data_type": "string",
                     "example_values": [
-                        "hellohi@okta.com"
+                        "hellohi@test.com"
                     ]
                 },
                 {
                     "data_path": "action_result.data.*.replyTo.*.emailAddress.name",
                     "data_type": "string",
                     "example_values": [
-                        "hellohi@okta.com"
+                        "hellohi@test.com"
                     ]
                 },
                 {
@@ -6848,7 +6848,7 @@
                     "data_path": "action_result.data.*.from.emailAddress.address",
                     "data_type": "string",
                     "example_values": [
-                        "cisco@phantomengineering2.onmicrosoft.com"
+                        "test@test.com"
                     ],
                     "contains": [
                         "email"
@@ -6901,7 +6901,7 @@
                     "data_path": "action_result.data.*.internetMessageId",
                     "data_type": "string",
                     "example_values": [
-                        "<PH7PR11MB690810916B33B92C7EF5E558D95FA@PH7PR11MB6908.namprd11.prod.outlook.com>"
+                        "<PH7PR11MB690810916B33B92C7EF5E558D95FA@PH7PR11MB6908.namprd11.prod.test.com>"
                     ],
                     "contains": [
                         "msgoffice365 internet message id"
@@ -7003,7 +7003,7 @@
                     "data_path": "action_result.data.*.toRecipients.*.emailAddress.address",
                     "data_type": "string",
                     "example_values": [
-                        "cisco@phantomengineering2.onmicrosoft.com"
+                        "test@test.com"
                     ],
                     "contains": [
                         "email"
