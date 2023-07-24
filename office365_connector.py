@@ -1943,7 +1943,8 @@ class Office365Connector(BaseConnector):
         try:
             group_id = group_query[0]['id']
         except (IndexError, KeyError):
-            return action_result.set_status(phantom.APP_ERROR, "There is no such {} group name, Please check the correct spelling or existence".format(group_email))
+            return action_result.set_status(phantom.APP_ERROR, "There is no such {} group name, Please check the correct "
+                                                               "spelling or existence".format(group_email))
         except:
             import traceback
             return action_result.set_status(phantom.APP_ERROR, "Occured unexpected problem: {}".format(traceback.format_exc()))
