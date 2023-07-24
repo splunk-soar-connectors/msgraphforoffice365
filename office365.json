@@ -12,16 +12,22 @@
     "contributors": [
         {
             "name": "Alan Shaikh"
+        },
+        {
+            "name": "Chris Hutto"
+        },
+        {
+            "name": "Mathieu A. Cormier"
         }
     ],
-    "license": "Copyright (c) 2017-2022 Splunk Inc.",
-    "app_version": "2.7.2-name",
+    "license": "Copyright (c) 2017-2023 Splunk Inc.",
+    "app_version": "2.8.0",
     "utctime_updated": "2022-02-04T01:20:46.000000Z",
     "package_name": "phantom_msgraphoffice365",
     "main_module": "office365_connector.py",
-    "min_phantom_version": "5.3.0",
+    "min_phantom_version": "6.0.0",
     "latest_tested_versions": [
-        "Cloud 3 August, 2022"
+        "Cloud 12 April, 2023"
     ],
     "app_wizard_version": "1.0.0",
     "python_version": "3",
@@ -161,6 +167,12 @@
             "data_type": "numeric",
             "default": 60,
             "order": 22
+        },
+        "extract_eml": {
+            "data_type": "boolean",
+            "description": "Extract root (primary) email as Vault",
+            "order": 23,
+            "default": false
         }
     },
     "actions": [
@@ -524,7 +536,7 @@
                     "data_path": "action_result.data.*.body.content",
                     "data_type": "string",
                     "example_values": [
-                        "<html><head><meta name=\"Generator\" content=\"Test Server\">\r\n<!-- converted from text -->\r\n<style><!-- .EmailQuote { margin-left: 1pt; padding-left: 4pt; border-left: #800000 2px solid; } --></style></head>\r\n<body>\r\n<font size=\"2\"><span style=\"font-size:11pt;\"><div class=\"PlainText\">&nbsp;</div></span></font>\r\n</body>\r\n</html>\r\n"
+                        "`<html><head><meta name=\"Generator\" content=\"Test Server\">\\r\\n<!-- converted from text -->\\r\\n<style><!-- .EmailQuote { margin-left: 1pt; padding-left: 4pt; border-left: #800000 2px solid; } --></style></head>\\r\\n<body>\\r\\n<font size=\"2\"><span style=\"font-size:11pt;\"><div class=\"PlainText\">&nbsp;</div></span></font>\\r\\n</body>\\r\\n</html>\\r\\n`"
                     ]
                 },
                 {
@@ -1052,6 +1064,385 @@
                 "title": "Calendar Events",
                 "type": "custom",
                 "height": 5,
+                "view": "office365_view.display_view"
+            },
+            "versions": "EQ(*)"
+        },
+        {
+            "action": "get rule",
+            "identifier": "get_rule",
+            "description": "Get the properties and relationships of a messageRule object",
+            "type": "investigate",
+            "read_only": true,
+            "parameters": {
+                "user_id": {
+                    "description": "User ID/Principal name",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": true,
+                    "order": 0,
+                    "contains": [
+                        "msgoffice365 user id",
+                        "msgoffice365 user principal name",
+                        "email"
+                    ]
+                },
+                "rule_id": {
+                    "description": "Inbox rule ID",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": true,
+                    "order": 1,
+                    "contains": [
+                        "msgoffice365 rule id"
+                    ]
+                }
+            },
+            "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.rule_id",
+                    "data_type": "string",
+                    "example_values": [
+                        "AQAABgFGMAc="
+                    ],
+                    "contains": [
+                        "msgoffice365 rule id"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.user_id",
+                    "data_type": "string",
+                    "example_values": [
+                        "test@testdomain.abc.com"
+                    ],
+                    "contains": [
+                        "msgoffice365 user id",
+                        "msgoffice365 user principal name",
+                        "email"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.@odata.context",
+                    "data_type": "string",
+                    "example_values": [
+                        "https://graph.microsoft.com/v1.0/$metadata#users('eeb3645f-df19-47a1-8e8c-fcd234cb5f6f')/mailFolders('inbox')/messageRules/$entity"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.actions_copyToFolder",
+                    "data_type": "string",
+                    "example_values": [
+                        "AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQAuAAADeDDJKaEf4EihMWU6SZgKbAEA07XhOkNngkCkqoNfY_k-jQAF6qrTswAAAA=="
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.actions_stopProcessingRules",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.conditions_fromAddresses_0_emailAddress_address",
+                    "data_type": "string",
+                    "contains": [
+                        "email"
+                    ],
+                    "example_values": [
+                        "test@test.com"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.conditions_fromAddresses_0_emailAddress_name",
+                    "data_type": "string",
+                    "example_values": [
+                        "Ryan Edwards"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.displayName",
+                    "data_type": "string",
+                    "example_values": [
+                        "Move all messages from Casey Edwards to test-msgoffice365-test"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.hasError",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.id",
+                    "data_type": "string",
+                    "example_values": [
+                        "AQAABgFGL8A="
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.isEnabled",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.isReadOnly",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.sequence",
+                    "data_type": "numeric",
+                    "example_values": [
+                        2
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "Successfully retrieved specified inbox rule"
+                    ]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "Successfully retrieved specified inbox rule"
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                }
+            ],
+            "render": {
+                "width": 12,
+                "title": "get rule",
+                "type": "custom",
+                "height": 5,
+                "view": "office365_view.display_view"
+            },
+            "versions": "EQ(*)"
+        },
+        {
+            "action": "list rules",
+            "identifier": "list_rules",
+            "description": "Get all the messageRule objects defined for the user's inbox",
+            "type": "investigate",
+            "read_only": true,
+            "parameters": {
+                "user_id": {
+                    "description": "User ID/Principal name",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": true,
+                    "order": 0,
+                    "contains": [
+                        "msgoffice365 user id",
+                        "msgoffice365 user principal name",
+                        "email"
+                    ]
+                }
+            },
+            "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.user_id",
+                    "data_type": "string",
+                    "example_values": [
+                        "test@testdomain.abc.com"
+                    ],
+                    "contains": [
+                        "msgoffice365 user id",
+                        "msgoffice365 user principal name",
+                        "email"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.actions.copyToFolder",
+                    "data_type": "string",
+                    "contains": [
+                        "msgoffice365 folder id"
+                    ],
+                    "example_values": [
+                        "AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQAuAAADeDDJKaEf4EihMWU6SZgKbAEA07XhOkNngkCkqoNfY_k-jQAF6qrTswAAAA=="
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.actions.delete",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ],
+                    "column_name": "Delete Email Enabled",
+                    "column_order": 2
+                },
+                {
+                    "data_path": "action_result.data.*.actions.markAsRead",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.actions.moveToFolder",
+                    "data_type": "string",
+                    "contains": [
+                        "msgoffice365 folder id"
+                    ],
+                    "example_values": [
+                        "AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQAuAAADeDDJKaEf4EihMWU6SZgKbAEA07XhOkNngkCkqoNfY_k-jQAF6qrTtAAAAA=="
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.actions.stopProcessingRules",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.conditions.fromAddresses.*.emailAddress.address",
+                    "data_type": "string",
+                    "example_values": [
+                        "test@abc.com"
+                    ],
+                    "contains": [
+                        "email"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.conditions.fromAddresses.*.emailAddress.name",
+                    "data_type": "string",
+                    "example_values": [
+                        "Ryan Edwards"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.displayName",
+                    "data_type": "string",
+                    "example_values": [
+                        "Emails to Trash"
+                    ],
+                    "column_name": "Rule Name",
+                    "column_order": 0
+                },
+                {
+                    "data_path": "action_result.data.*.hasError",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.id",
+                    "data_type": "string",
+                    "column_name": "Rule ID",
+                    "example_values": [
+                        "AQAABiQdmB8="
+                    ],
+                    "contains": [
+                        "msgoffice365 rule id"
+                    ],
+                    "column_order": 1
+                },
+                {
+                    "data_path": "action_result.data.*.isEnabled",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.isReadOnly",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.sequence",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary.total_rules_returned",
+                    "data_type": "numeric",
+                    "example_values": [
+                        14
+                    ]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "Successfully retrieved 7 rules"
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                }
+            ],
+            "render": {
+                "title": "list rules",
+                "type": "custom",
                 "view": "office365_view.display_view"
             },
             "versions": "EQ(*)"
@@ -2215,7 +2606,7 @@
                     "data_path": "action_result.data.*.body.content",
                     "data_type": "string",
                     "example_values": [
-                        "plain text?\r\n"
+                        "`plain text?\\r\\n`"
                     ]
                 },
                 {
@@ -2651,7 +3042,7 @@
                     "data_path": "action_result.data.*.body.content",
                     "data_type": "string",
                     "example_values": [
-                        "plain text?\r\n"
+                        "`plain text?\\r\\n`"
                     ]
                 },
                 {
@@ -3308,7 +3699,7 @@
                     "data_path": "action_result.data.*.attachments.*.contentId",
                     "data_type": "string",
                     "example_values": [
-                        "F5832F4CF6EFEC41B9CBC6DED238A234@namprd18.prod.outlook.com"
+                        "F5832F4CF6EFEC41B9CBC6DED238A234@namprd18.prod.test.com"
                     ],
                     "contains": [
                         "email"
@@ -3400,7 +3791,7 @@
                     "data_path": "action_result.data.*.body.content",
                     "data_type": "string",
                     "example_values": [
-                        "Have a good time with these.\r\n"
+                        "`Have a good time with these.\\r\\n`"
                     ]
                 },
                 {
@@ -3540,7 +3931,7 @@
                     "data_path": "action_result.data.*.event.body.content",
                     "data_type": "string",
                     "example_values": [
-                        "plain text?\r\n"
+                        "`plain text?\\r\\n`"
                     ]
                 },
                 {
@@ -4017,7 +4408,7 @@
                     "data_path": "action_result.data.*.internetMessageHeaders.In-Reply-To",
                     "data_type": "string",
                     "example_values": [
-                        "<DM6QE11MB40266715C3C22ACE4E45D182D9730@DM6PR11MB4026.namprd11.prod.outlook.com>"
+                        "<DM6QE11MB40266715C3C22ACE4E45D182D9730@DM6PR11MB4026.namprd11.prod.test.com>"
                     ]
                 },
                 {
@@ -4052,7 +4443,7 @@
                     "data_path": "action_result.data.*.internetMessageHeaders.References",
                     "data_type": "string",
                     "example_values": [
-                        "<DM6PR11MB40266715C3C33BCE4E45D182D9730@DM6PR11MB4026.namprd11.prod.outlook.com>"
+                        "<DM6PR11MB40266715C3C33BCE4E45D182D9730@DM6PR11MB4026.namprd11.prod.test.com>"
                     ]
                 },
                 {
@@ -4174,7 +4565,7 @@
                     "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-CrossTenant-AuthSource",
                     "data_type": "string",
                     "example_values": [
-                        "SJ0PR22MB4941.namprd11.prod.outlook.com"
+                        "SJ0PR22MB4941.namprd11.prod.test.com"
                     ]
                 },
                 {
@@ -4237,7 +4628,7 @@
                     "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-Organization-AuthSource",
                     "data_type": "string",
                     "example_values": [
-                        "DM6NAM11FT055.eop-nam11.prod.protection.outlook.com"
+                        "DM6NAM11FT055.eop-nam11.prod.protection.test.com"
                     ]
                 },
                 {
@@ -4300,7 +4691,7 @@
                     "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-Transport-CrossTenantHeadersPromoted",
                     "data_type": "string",
                     "example_values": [
-                        "DM6NAM11FT064.eop-nam11.prod.protection.outlook.com"
+                        "DM6NAM11FT064.eop-nam11.prod.protection.test.com"
                     ]
                 },
                 {
@@ -4314,7 +4705,7 @@
                     "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-Transport-CrossTenantHeadersStripped",
                     "data_type": "string",
                     "example_values": [
-                        "DM6NAM11FT064.eop-nam11.prod.protection.outlook.com"
+                        "DM6NAM11FT064.eop-nam11.prod.protection.test.com"
                     ]
                 },
                 {
@@ -4363,7 +4754,7 @@
                     "data_path": "action_result.data.*.internetMessageHeaders.X-MS-TNEF-Correlator",
                     "data_type": "string",
                     "example_values": [
-                        "<SJ0PR11CD49418BDA1BB4215EB8B890AED9B59@SJ0PR11MB4941.namprd11.prod.outlook.com>"
+                        "<SJ0PR11CD49418BDA1BB4215EB8B890AED9B59@SJ0PR11MB4941.namprd11.prod.test.com>"
                     ]
                 },
                 {
@@ -4559,14 +4950,6 @@
                     "data_type": "string"
                 },
                 {
-                    "data_path": "action_result.data.*.previousLocation",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.data.*.previousStartDateTime",
-                    "data_type": "string"
-                },
-                {
                     "data_path": "action_result.data.*.previousEndDateTime.dateTime",
                     "data_type": "string",
                     "example_values": [
@@ -4579,6 +4962,14 @@
                     "example_values": [
                         "UTC"
                     ]
+                },
+                {
+                    "data_path": "action_result.data.*.previousLocation",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.previousStartDateTime",
+                    "data_type": "string"
                 },
                 {
                     "data_path": "action_result.data.*.previousStartDateTime.dateTime",
@@ -4887,7 +5278,7 @@
                     "data_path": "action_result.data.*.body.content",
                     "data_type": "string",
                     "example_values": [
-                        "<html><head>\r\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"><meta content=\"text/html; charset=utf-8\"></head><body><h2>HTML heading</h2>HTML body.</body></html>"
+                        "`<html><head>\\r\\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"><meta content=\"text/html; charset=utf-8\"></head><body><h2>HTML heading</h2>HTML body.</body></html>`"
                     ]
                 },
                 {
@@ -4964,7 +5355,7 @@
                     "data_path": "action_result.data.*.internetMessageHeaders.In-Reply-To",
                     "data_type": "string",
                     "example_values": [
-                        "<DM6QX11MB40266715C3C22ACE4E45D182D9730@DM6PR11MB4026.namprd11.prod.outlook.com>"
+                        "<DM6QX11MB40266715C3C22ACE4E45D182D9730@DM6PR11MB4026.namprd11.prod.test.com>"
                     ]
                 },
                 {
@@ -4999,7 +5390,7 @@
                     "data_path": "action_result.data.*.internetMessageHeaders.References",
                     "data_type": "string",
                     "example_values": [
-                        "<DM6PR11MB40266715C3C22ACE4E45D182D9730@DM6PR11MB4034.namprd11.prod.outlook.com>"
+                        "<DM6PR11MB40266715C3C22ACE4E45D182D9730@DM6PR11MB4034.namprd11.prod.test.com>"
                     ]
                 },
                 {
@@ -5100,7 +5491,7 @@
                     "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-CrossTenant-AuthSource",
                     "data_type": "string",
                     "example_values": [
-                        "SJ0QA11MB4941.namprd11.prod.outlook.com"
+                        "SJ0QA11MB4941.namprd11.prod.test.com"
                     ]
                 },
                 {
@@ -5163,7 +5554,7 @@
                     "data_path": "action_result.data.*.internetMessageHeaders.X-MS-Exchange-Organization-AuthSource",
                     "data_type": "string",
                     "example_values": [
-                        "DM6NAM11FT055.eop-nam11.prod.protection.outlook.com"
+                        "DM6NAM11FT055.eop-nam11.prod.protection.test.com"
                     ]
                 },
                 {
@@ -5268,7 +5659,7 @@
                     "data_path": "action_result.data.*.internetMessageHeaders.X-MS-TNEF-Correlator",
                     "data_type": "string",
                     "example_values": [
-                        "<SJ0QM11MB49418BDA1BB4215EB8B890AED9B59@SJ0PR11MB4941.namprd11.prod.outlook.com>"
+                        "<SJ0QM11MB49418BDA1BB4215EB8B890AED9B59@SJ0PR11MB4941.namprd11.prod.test.com>"
                     ]
                 },
                 {
@@ -5358,7 +5749,7 @@
                     "data_path": "action_result.data.*.uniqueBody.content",
                     "data_type": "string",
                     "example_values": [
-                        "<html><body><div>\r\n<div>\r\n<h2>HTML heading</h2>\r\nHTML body.</div>\r\n</div>\r\n</body></html>"
+                        "<html><body><div>\\r\\n<div>\\r\\n<h2>HTML heading</h2>\\r\\nHTML body.</div>\\r\\n</div>\\r\\n</body></html>"
                     ]
                 },
                 {
@@ -5536,7 +5927,7 @@
                         "msgoffice365 internet message id"
                     ],
                     "example_values": [
-                        "<CAGUkOupas2JehJhTVYEK4qdwfLHOrGTHWAgAUZUoMfo5M7BZ_5N_w@mail.gmail.com>"
+                        "<CAGUkOupas2JehJhTVYEK4qdwfLHOrGTHWAgAUZUoMfo5M7BZ_5N_w@mail.test.com>"
                     ]
                 },
                 {
@@ -5603,14 +5994,14 @@
                     "data_path": "action_result.data.*.bccRecipients.*.emailAddress.address",
                     "data_type": "string",
                     "example_values": [
-                        "test3.test@gmail.com"
+                        "test3.test@test.com"
                     ]
                 },
                 {
                     "data_path": "action_result.data.*.bccRecipients.*.emailAddress.name",
                     "data_type": "string",
                     "example_values": [
-                        "test3.test@gmail.com"
+                        "test3.test@test.com"
                     ]
                 },
                 {
@@ -5634,7 +6025,7 @@
                     "data_path": "action_result.data.*.body.content",
                     "data_type": "string",
                     "example_values": [
-                        "<html>\r\n<head>\r\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">\r\n<meta content=\"text/html; charset=iso-8859-1\">\r\n<style type=\"text/css\" style=\"display:none\">\r\n<!--\r\np\r\n\t{margin-top:0;\r\n\tmargin-bottom:0}\r\n-->\r\n</style>\r\n</head>\r\n<body dir=\"ltr\">\r\n<div style=\"font-family:Calibri,Arial,Helvetica,sans-serif; font-size:12pt; color:rgb(0,0,0)\">\r\nTest<br>\r\n</div>\r\n</body>\r\n</html>\r\n"
+                        "`<html>\\r\\n<head>\\r\\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">\\r\\n<meta content=\"text/html; charset=iso-8859-1\">\\r\\n<style type=\"text/css\" style=\"display:none\">\\r\\n<!--\\r\\np\\r\\n\t{margin-top:0;\\r\\n\tmargin-bottom:0}\\r\\n-->\\r\\n</style>\\r\\n</head>\\r\\n<body dir=\"ltr\">\\r\\n<div style=\"font-family:Calibri,Arial,Helvetica,sans-serif; font-size:12pt; color:rgb(0,0,0)\">\\r\\nTest<br>\\r\\n</div>\\r\\n</body>\\r\\n</html>\\r\\n`"
                     ]
                 },
                 {
@@ -5659,14 +6050,14 @@
                     "data_path": "action_result.data.*.ccRecipients.*.emailAddress.address",
                     "data_type": "string",
                     "example_values": [
-                        "test3.test@gmail.com"
+                        "test3.test@test.com"
                     ]
                 },
                 {
                     "data_path": "action_result.data.*.ccRecipients.*.emailAddress.name",
                     "data_type": "string",
                     "example_values": [
-                        "test3.test@gmail.com"
+                        "test3.test@test.com"
                     ]
                 },
                 {
@@ -5940,14 +6331,14 @@
                     "data_path": "action_result.data.*.replyTo.*.emailAddress.address",
                     "data_type": "string",
                     "example_values": [
-                        "hellohi@okta.com"
+                        "hellohi@test.com"
                     ]
                 },
                 {
                     "data_path": "action_result.data.*.replyTo.*.emailAddress.name",
                     "data_type": "string",
                     "example_values": [
-                        "hellohi@okta.com"
+                        "hellohi@test.com"
                     ]
                 },
                 {
@@ -6425,6 +6816,449 @@
             "versions": "EQ(*)"
         },
         {
+            "action": "send email",
+            "identifier": "send_email",
+            "description": "Sends an email with optional text rendering. Attachments are allowed a Content-ID tag for reference within the html",
+            "verbose": "<div><div>Notes</div><ul><li>If the <b>from</b> parameter is not provided, then the action will consider the <b>username</b> parameter provided in the asset configuration as the sender's email address.</li><li>The send email action is executed in two stages. Before sending an email it creates a draft of the email. Once the  draft is successfully saved, the email is sent.</li></ul></div>",
+            "type": "generic",
+            "read_only": false,
+            "parameters": {
+                "from": {
+                    "description": "From field",
+                    "data_type": "string",
+                    "order": 0,
+                    "primary": true,
+                    "contains": [
+                        "email"
+                    ]
+                },
+                "to": {
+                    "description": "List of recipients email addresses",
+                    "data_type": "string",
+                    "order": 1,
+                    "required": true,
+                    "primary": true,
+                    "contains": [
+                        "email"
+                    ],
+                    "allow_list": true
+                },
+                "cc": {
+                    "description": "List of recipients email addresses to include on cc line",
+                    "data_type": "string",
+                    "order": 2,
+                    "primary": true,
+                    "contains": [
+                        "email"
+                    ],
+                    "allow_list": true
+                },
+                "bcc": {
+                    "description": "List of recipients email addresses to include on bcc line",
+                    "data_type": "string",
+                    "order": 3,
+                    "contains": [
+                        "email"
+                    ],
+                    "allow_list": true,
+                    "primary": true
+                },
+                "subject": {
+                    "description": "Message Subject",
+                    "data_type": "string",
+                    "order": 4,
+                    "required": true
+                },
+                "headers": {
+                    "description": "Serialized json dictionary. Additional email headers to be added to the message",
+                    "data_type": "string",
+                    "order": 5
+                },
+                "body": {
+                    "description": "Html rendering of message",
+                    "data_type": "string",
+                    "order": 6,
+                    "required": true
+                },
+                "attachments": {
+                    "description": "List of vault ids of files to attach to the email. Vault id is used as content id",
+                    "data_type": "string",
+                    "order": 7,
+                    "allow_list": true,
+                    "contains": [
+                        "sha1",
+                        "vault id"
+                    ],
+                    "primary": true
+                }
+            },
+            "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.attachments",
+                    "data_type": "string",
+                    "contains": [
+                        "sha1",
+                        "vault id"
+                    ],
+                    "example_values": [
+                        "da39a3ee5e6b4b0d3255bfef95601890afd80709"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.bcc",
+                    "data_type": "string",
+                    "contains": [
+                        "email"
+                    ],
+                    "example_values": [
+                        "test@testdomain.abc.com"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.body",
+                    "data_type": "string",
+                    "example_values": [
+                        "<html><body><p>Have a good time with these.</p></body></html>"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.cc",
+                    "data_type": "string",
+                    "contains": [
+                        "email"
+                    ],
+                    "example_values": [
+                        "test@testdomain.abc.com"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.from",
+                    "data_type": "string",
+                    "contains": [
+                        "email"
+                    ],
+                    "example_values": [
+                        "test@testdomain.abc.com"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.headers",
+                    "data_type": "string",
+                    "example_values": [
+                        "{\"x-custom-header\":\"Custom value\"}"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.subject",
+                    "data_type": "string",
+                    "example_values": [
+                        "Example subject"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.to",
+                    "data_type": "string",
+                    "contains": [
+                        "email"
+                    ],
+                    "example_values": [
+                        "test@testdomain.abc.com"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.@odata.context",
+                    "data_type": "string",
+                    "example_values": [
+                        "https://test.abc.com/v1.0/$metadata#users('user%40.abc.com')/messages(internetMessageHeaders,body,uniqueBody,sender,subject)/$entity"
+                    ],
+                    "contains": [
+                        "url"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.@odata.etag",
+                    "data_type": "string",
+                    "example_values": [
+                        "W/\"CQAAABYAAABBKXVvwEWISZupmqX4mJS3AAO8DBJl\""
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.body.content",
+                    "data_type": "string",
+                    "example_values": [
+                        "`Have a good time with these.\\r\\n`"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.body.contentType",
+                    "data_type": "string",
+                    "example_values": [
+                        "html"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.bodyPreview",
+                    "data_type": "string",
+                    "example_values": [
+                        "Have a good time with these."
+                    ],
+                    "column_name": "Body Preview",
+                    "column_order": 2
+                },
+                {
+                    "data_path": "action_result.data.*.changeKey",
+                    "data_type": "string",
+                    "example_values": [
+                        "CQAAABYAAADTteE6Q2eCQKSqg19j6T+NAAYzSv5R"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.conversationId",
+                    "data_type": "string",
+                    "example_values": [
+                        "AAQkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQAQAORC3aOpHnZMsHD4-7L40sY="
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.conversationIndex",
+                    "data_type": "string",
+                    "example_values": [
+                        "AQHZopYz5ELdo6kedkywcPj/svjSxg=="
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.createdDateTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "2023-06-19T10:09:58Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.flag.flagStatus",
+                    "data_type": "string",
+                    "example_values": [
+                        "notFlagged"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.from.emailAddress.address",
+                    "data_type": "string",
+                    "example_values": [
+                        "test@test.com"
+                    ],
+                    "contains": [
+                        "email"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.from.emailAddress.name",
+                    "data_type": "string",
+                    "example_values": [
+                        "Ryan Edwards"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.hasAttachments",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ],
+                    "column_name": "Has Attachments",
+                    "column_order": 3
+                },
+                {
+                    "data_path": "action_result.data.*.id",
+                    "data_type": "string",
+                    "example_values": [
+                        "AQMkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQBGAAADyW3X5P7Hb0_MMHKonvdoWQcAQSl1b8BFiEmbqZql_JiUtwAAAgEMAAAAQSl1b8BFiEmbqZql_JiUtwADu9Tv8QAAAA=="
+                    ],
+                    "contains": [
+                        "msgoffice365 message id"
+                    ],
+                    "column_name": "Message ID",
+                    "column_order": 0
+                },
+                {
+                    "data_path": "action_result.data.*.importance",
+                    "data_type": "string",
+                    "example_values": [
+                        "normal"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.inferenceClassification",
+                    "data_type": "string",
+                    "example_values": [
+                        "focused"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageId",
+                    "data_type": "string",
+                    "example_values": [
+                        "<PH7PR11MB690810916B33B92C7EF5E558D95FA@PH7PR11MB6908.namprd11.prod.test.com>"
+                    ],
+                    "contains": [
+                        "msgoffice365 internet message id"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.isDeliveryReceiptRequested",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.isDraft",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.isRead",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.isReadReceiptRequested",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.lastModifiedDateTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "2023-06-19T10:09:58Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.parentFolderId",
+                    "data_type": "string",
+                    "example_values": [
+                        "AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQAuAAADeDDJKaEf4EihMWU6SZgKbAEA07XhOkNngkCkqoNfY_k-jQAAAgEPAAAA"
+                    ],
+                    "contains": [
+                        "msgoffice365 folder id"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.receivedDateTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "2020-06-18T09:11:31Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.sender.emailAddress.address",
+                    "data_type": "string",
+                    "example_values": [
+                        "notifications@testdomain.com"
+                    ],
+                    "contains": [
+                        "email"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.sender.emailAddress.name",
+                    "data_type": "string",
+                    "example_values": [
+                        "notifications@testdomain.com"
+                    ],
+                    "contains": [
+                        "email"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.sentDateTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "2023-06-19T10:09:58Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.subject",
+                    "data_type": "string",
+                    "example_values": [
+                        "test html"
+                    ],
+                    "column_name": "Subject",
+                    "column_order": 1
+                },
+                {
+                    "data_path": "action_result.data.*.toRecipients.*.emailAddress.address",
+                    "data_type": "string",
+                    "example_values": [
+                        "test@test.com"
+                    ],
+                    "contains": [
+                        "email"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.toRecipients.*.emailAddress.name",
+                    "data_type": "string",
+                    "example_values": [
+                        "Ryan Edwards"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.webLink",
+                    "data_type": "string",
+                    "example_values": [
+                        "https://outlook.office365.com/owa/?ItemID=AAkALgAAAAAAHYQDEapmEc2byACqAC%2FEWg0A07XhOkNngkCkqoNfY%2Bk%2FjQAGNNQOowAA&exvsurl=1&viewmodel=ReadMessageItem"
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "Successfully sent email"
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                }
+            ],
+            "render": {
+                "type": "table"
+            },
+            "versions": "EQ(*)"
+        },
+        {
             "action": "on poll",
             "description": "Ingest emails from Office 365 using Graph API",
             "type": "ingest",
@@ -6467,108 +7301,32 @@
     "pip_dependencies": {
         "wheel": [
             {
-                "module": "Django",
-                "input_file": "wheels/py3/Django-3.2.15-py3-none-any.whl"
-            },
-            {
-                "module": "asgiref",
-                "input_file": "wheels/py3/asgiref-3.4.1-py3-none-any.whl"
-            },
-            {
                 "module": "beautifulsoup4",
                 "input_file": "wheels/py3/beautifulsoup4-4.9.1-py3-none-any.whl"
-            },
-            {
-                "module": "certifi",
-                "input_file": "wheels/py3/certifi-2022.6.15-py3-none-any.whl"
-            },
-            {
-                "module": "chardet",
-                "input_file": "wheels/shared/chardet-3.0.4-py2.py3-none-any.whl"
-            },
-            {
-                "module": "idna",
-                "input_file": "wheels/shared/idna-2.10-py2.py3-none-any.whl"
             },
             {
                 "module": "python_magic",
                 "input_file": "wheels/shared/python_magic-0.4.18-py2.py3-none-any.whl"
             },
             {
-                "module": "pytz",
-                "input_file": "wheels/shared/pytz-2022.2.1-py2.py3-none-any.whl"
-            },
-            {
-                "module": "requests",
-                "input_file": "wheels/shared/requests-2.25.0-py2.py3-none-any.whl"
-            },
-            {
                 "module": "soupsieve",
                 "input_file": "wheels/py3/soupsieve-2.3.2.post1-py3-none-any.whl"
-            },
-            {
-                "module": "sqlparse",
-                "input_file": "wheels/py3/sqlparse-0.4.2-py3-none-any.whl"
-            },
-            {
-                "module": "typing_extensions",
-                "input_file": "wheels/py3/typing_extensions-4.1.1-py3-none-any.whl"
-            },
-            {
-                "module": "urllib3",
-                "input_file": "wheels/shared/urllib3-1.26.12-py2.py3-none-any.whl"
             }
         ]
     },
     "pip39_dependencies": {
         "wheel": [
             {
-                "module": "Django",
-                "input_file": "wheels/py3/Django-3.2.15-py3-none-any.whl"
-            },
-            {
-                "module": "asgiref",
-                "input_file": "wheels/py3/asgiref-3.5.2-py3-none-any.whl"
-            },
-            {
                 "module": "beautifulsoup4",
                 "input_file": "wheels/py3/beautifulsoup4-4.9.1-py3-none-any.whl"
-            },
-            {
-                "module": "certifi",
-                "input_file": "wheels/py3/certifi-2022.6.15-py3-none-any.whl"
-            },
-            {
-                "module": "chardet",
-                "input_file": "wheels/shared/chardet-3.0.4-py2.py3-none-any.whl"
-            },
-            {
-                "module": "idna",
-                "input_file": "wheels/shared/idna-2.10-py2.py3-none-any.whl"
             },
             {
                 "module": "python_magic",
                 "input_file": "wheels/shared/python_magic-0.4.18-py2.py3-none-any.whl"
             },
             {
-                "module": "pytz",
-                "input_file": "wheels/shared/pytz-2022.2.1-py2.py3-none-any.whl"
-            },
-            {
-                "module": "requests",
-                "input_file": "wheels/shared/requests-2.25.0-py2.py3-none-any.whl"
-            },
-            {
                 "module": "soupsieve",
-                "input_file": "wheels/py3/soupsieve-2.3.2.post1-py3-none-any.whl"
-            },
-            {
-                "module": "sqlparse",
-                "input_file": "wheels/py3/sqlparse-0.4.2-py3-none-any.whl"
-            },
-            {
-                "module": "urllib3",
-                "input_file": "wheels/shared/urllib3-1.26.12-py2.py3-none-any.whl"
+                "input_file": "wheels/py3/soupsieve-2.4.1-py3-none-any.whl"
             }
         ]
     }
