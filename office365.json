@@ -21,7 +21,7 @@
         }
     ],
     "license": "Copyright (c) 2017-2023 Splunk Inc.",
-    "app_version": "2.7.0",
+    "app_version": "3.0.0",
     "utctime_updated": "2022-02-04T01:20:46.000000Z",
     "package_name": "phantom_msgraphoffice365",
     "main_module": "office365_connector.py",
@@ -1881,7 +1881,7 @@
             "versions": "EQ(*)"
         },
         {
-            "action": "list group members by ID",
+            "action": "list group members by id",
             "identifier": "list_group_members_by_id",
             "description": "List all the members in group by ID",
             "type": "investigate",
@@ -2078,14 +2078,14 @@
             ],
             "render": {
                 "width": 12,
-                "title": "List Group Members",
+                "title": "List Group Members By ID",
                 "type": "table",
                 "height": 5
             },
             "versions": "EQ(*)"
         },
         {
-            "action": "list members by group e-mail address",
+            "action": "list group members by group e-mail address",
             "identifier": "list_group_members_by_email",
             "description": "List all the members in group by group e-mail address",
             "type": "investigate",
@@ -2097,7 +2097,8 @@
                     "required": true,
                     "primary": true,
                     "contains": [
-                        "msgoffice365 group e-mail address"
+                        "msgoffice365 group e-mail address",
+                        "email"
                     ],
                     "order": 0
                 },
@@ -2143,14 +2144,17 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.parameter.group_id",
+                    "data_path": "action_result.parameter.group_email",
                     "data_type": "string",
                     "contains": [
-                        "msgoffice365 group id"
+                        "msgoffice365 group e-mail address",
+                        "email"
                     ],
                     "example_values": [
-                        "11907d21-7631-4ea7-97b2-1328d1c5b901"
-                    ]
+                        "example@test.com"
+                    ],
+                    "column_name": "Group Mail",
+                    "column_order": 0
                 },
                 {
                     "data_path": "action_result.parameter.limit",
@@ -2201,7 +2205,7 @@
                         "msgoffice365 user id"
                     ],
                     "column_name": "User ID",
-                    "column_order": 0
+                    "column_order": 1
                 },
                 {
                     "data_path": "action_result.data.*.jobTitle",
@@ -2282,7 +2286,7 @@
             ],
             "render": {
                 "width": 12,
-                "title": "List Group Members",
+                "title": "List Group Members By Email",
                 "type": "table",
                 "height": 5
             },
