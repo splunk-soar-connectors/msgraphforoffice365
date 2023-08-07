@@ -329,8 +329,7 @@ VARIABLE | REQUIRED | TYPE | DESCRIPTION
 [list rules](#action-list-rules) - Get all the messageRule objects defined for the user's inbox  
 [list users](#action-list-users) - Retrieve a list of users  
 [list groups](#action-list-groups) - List all the groups in an organization, including but not limited to Office 365 groups  
-[list group members by ID](#action-list-group-members-by-id) - List all the members in group by group ID  
-[list group members by e-mail address](#action-list-group-members-by-e-mail-address) - List all the members in group by group e-mail address  
+[list group members](#action-list-group-members) - List all the members in group by group ID or group e-mail address
 [list folders](#action-list-folders) - Retrieve a list of mail folders  
 [copy email](#action-copy-email) - Copy an email to a folder  
 [move email](#action-move-email) - Move an email to a folder  
@@ -667,7 +666,7 @@ action_result.message | string |  |   Successfully retrieved 9 groups
 summary.total_objects | numeric |  |   1 
 summary.total_objects_successful | numeric |  |   1   
 
-## action: 'list group members by ID'
+## action: 'list group members'
 List all the members in group by ID
 
 Type: **investigate**  
@@ -676,7 +675,8 @@ Read only: **True**
 #### Action Parameters
 PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 --------- | -------- | ----------- | ---- | --------
-**group_id** |  required  | Group ID | string |  `msgoffice365 group id` 
+**method** |  required  | Method by which user want to list group members | string |  `ID`  `E-mail` 
+**identificator** |  required  | Group ID or Group e-mail address | string |  `msgoffice365 group id` `msgoffice365 group e-mail`  `email` 
 **get_transitive_members** |  optional  | Get a list of the group's members. A group can have users, devices, organizational contacts, and other groups as members. This operation is transitive and returns a flat list of all nested members | boolean | 
 **filter** |  optional  | Search for specific results | string | 
 **limit** |  optional  | Maximum number of members to return | numeric | 
@@ -705,45 +705,6 @@ action_result.summary.total_members_returned | numeric |  |   9
 action_result.message | string |  |   Successfully retrieved 9 groups 
 summary.total_objects | numeric |  |   1 
 summary.total_objects_successful | numeric |  |   1   
-
-## action: 'list group members by e-mail address'
-List all the members in group by e-mail address
-
-Type: **investigate**  
-Read only: **True**
-
-#### Action Parameters
-PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
---------- | -------- | ----------- | ---- | --------
-**group\_email** |  required  | Group e-mail address if user do not know Group ID value | string | `msgoffice365 group e-mail address` 
-**get\_transitive\_members** |  optional  | Get a list of the group's members\. A group can have users, devices, organizational contacts, and other groups as members\. This operation is transitive and returns a flat list of all nested members | boolean | 
-**filter** |  optional  | Search for specific results | string | 
-**limit** |  optional  | Maximum number of members to return | numeric | 
-
-#### Action Output
-DATA PATH | TYPE | CONTAINS
---------- | ---- | --------
-action\_result\.status | string | 
-action\_result\.parameter\.filter | string | 
-action\_result\.parameter\.get\_transitive\_members | boolean | 
-action\_result\.parameter\.group\_id | string |  `msgoffice365 group id` 
-action\_result\.parameter\.limit | numeric | 
-action\_result\.data\.\*\.\@odata\.type | string | 
-action\_result\.data\.\*\.businessPhones | string | 
-action\_result\.data\.\*\.displayName | string | 
-action\_result\.data\.\*\.givenName | string | 
-action\_result\.data\.\*\.id | string |  `msgoffice365 user id` 
-action\_result\.data\.\*\.jobTitle | string | 
-action\_result\.data\.\*\.mail | string |  `email` 
-action\_result\.data\.\*\.mobilePhone | string | 
-action\_result\.data\.\*\.officeLocation | string | 
-action\_result\.data\.\*\.preferredLanguage | string | 
-action\_result\.data\.\*\.surname | string | 
-action\_result\.data\.\*\.userPrincipalName | string |  `msgoffice365 user principal name`  `email` 
-action\_result\.summary\.total\_members\_returned | numeric | 
-action\_result\.message | string | 
-summary\.total\_objects | numeric | 
-summary\.total\_objects\_successful | numeric |   
 
 ## action: 'list folders'
 Retrieve a list of mail folders
