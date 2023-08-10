@@ -21,7 +21,7 @@
         }
     ],
     "license": "Copyright (c) 2017-2023 Splunk Inc.",
-    "app_version": "3.0.0-fdse",
+    "app_version": "3.0.0",
     "utctime_updated": "2022-02-04T01:20:46.000000Z",
     "package_name": "phantom_msgraphoffice365",
     "main_module": "office365_connector.py",
@@ -1727,7 +1727,8 @@
                         "Test-test-site@testdomain.abc.com"
                     ],
                     "contains": [
-                        "email"
+                        "email",
+                        "msgoffice365 group e-mail address"
                     ],
                     "column_name": "Group Mail ID",
                     "column_order": 1
@@ -1883,24 +1884,24 @@
         {
             "action": "list group members",
             "identifier": "list_group_members",
-            "description": "List all the members in group by ID or e-mail address",
+            "description": "List all the members in group by group ID or group e-mail address",
             "type": "investigate",
             "read_only": true,
             "parameters": {
                 "method": {
-                    "description": "Method by which user want to list group members",
+                    "description": "Method by which user wants to list group members",
                     "data_type": "string",
                     "required": true,
                     "primary": true,
                     "value_list": [
-                        "ID",
-                        "E-mail"
+                        "Group ID",
+                        "Group e-mail"
                     ],
-                    "default": "ID",
+                    "default": "Group ID",
                     "order": 0
                 },
                 "identificator": {
-                    "description": "Group ID or group E-mail address, depending on previous selection",
+                    "description": "Group ID or group e-mail address, depending on method selected",
                     "data_type": "string",
                     "required": true,
                     "primary": true,
@@ -1952,14 +1953,26 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.parameter.group_id",
+                    "data_path": "action_result.parameter.method",
+                    "data_type": "string",
+                    "example_values": [
+                        "Group ID",
+                        "Group e-mail"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.identificator",
                     "data_type": "string",
                     "contains": [
-                        "msgoffice365 group id"
+                        "msgoffice365 group id",
+                        "msgoffice365 group e-mail address"
                     ],
                     "example_values": [
-                        "11907d21-7631-4ea7-97b2-1328d1c5b901"
-                    ]
+                        "TEST7d21-7631-4ea7-97b2-1328d1c5b901",
+                        "example@test.com"
+                    ],
+                    "column_name": "Group ID or Group e-mail",
+                    "column_order": 0
                 },
                 {
                     "data_path": "action_result.parameter.limit",
@@ -1989,7 +2002,7 @@
                         "Test Admin"
                     ],
                     "column_name": "Display Name",
-                    "column_order": 2
+                    "column_order": 3
                 },
                 {
                     "data_path": "action_result.data.*.givenName",
@@ -1998,7 +2011,7 @@
                         "Test"
                     ],
                     "column_name": "Given Name",
-                    "column_order": 3
+                    "column_order": 4
                 },
                 {
                     "data_path": "action_result.data.*.id",
@@ -2010,7 +2023,7 @@
                         "msgoffice365 user id"
                     ],
                     "column_name": "User ID",
-                    "column_order": 0
+                    "column_order": 1
                 },
                 {
                     "data_path": "action_result.data.*.jobTitle",
@@ -2045,7 +2058,7 @@
                         "Globaltest"
                     ],
                     "column_name": "Surname",
-                    "column_order": 4
+                    "column_order": 5
                 },
                 {
                     "data_path": "action_result.data.*.userPrincipalName",
@@ -2058,7 +2071,7 @@
                         "email"
                     ],
                     "column_name": "User Principal Name",
-                    "column_order": 1
+                    "column_order": 2
                 },
                 {
                     "data_path": "action_result.summary.total_members_returned",

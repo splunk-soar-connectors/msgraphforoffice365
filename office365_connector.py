@@ -29,6 +29,7 @@ from datetime import datetime
 import encryption_helper
 import phantom.app as phantom
 import phantom.rules as ph_rules
+import phantom.utils as util
 import phantom.vault as phantom_vault
 import requests
 from bs4 import BeautifulSoup, UnicodeDammit
@@ -1912,16 +1913,15 @@ class Office365Connector(BaseConnector):
         ret_val, limit = _validate_integer(action_result, limit, "'limit' action")
         if phantom.is_fail(ret_val):
             return action_result.get_status()
-        
-        method = param['method']
-        identificator = param['identificator']
+
+        method = param.get('method', 'Group ID')
+        group_id = identificator = param['identificator']
         query = param.get('filter') if param.get('filter') else None
 
-        if method.lower() == 'e-mail':
-            if not '@' in identificator:
-                return action_result.set_status(
-                    phantom.APP_ERROR, "The method is not compatible with the selected method")
-            
+        if method.lower() == 'group e-mail':
+            if not util.is_email(identificator):
+                return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_EMAIL)
+
             name_filtering = "mail eq '{0}'".format(identificator)
             ret_val, group = self._paginator(action_result, "/groups", limit, query=name_filtering)
 
@@ -1931,13 +1931,9 @@ class Office365Connector(BaseConnector):
             if not group:
                 return action_result.set_status(
                     phantom.APP_ERROR, "There is no such {} group name, Please check the correct "
-                                    "spelling or existence".format(identificator))
-
+                                       "spelling or existence".format(identificator))
             group_id = group[0]['id']
-        
-        else:
-            group_id = identificator
-        
+
         transitive_members = param.get('get_transitive_members', True)
         endpoint = '/groups/{0}/members'.format(group_id)
         if transitive_members:

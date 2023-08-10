@@ -1,3 +1,3 @@
 **Unreleased**
-* Added 'list group member by e-email address' action support
-* Updated 'list group member' action name with 'list group member by id'
+* Removed 'group id' parameter from 'list group members' action
+* Added two new parameters 'method' and 'identificator' in 'list group members' action to list group members by group id or group e-mail

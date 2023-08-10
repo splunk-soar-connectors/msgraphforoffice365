@@ -17,8 +17,16 @@ and limitations under the License.
 <p>
   <ul>
     <li>
-        In v3.0.0, 'list group members' action name has been renamed with 'list group members by id', Hence it is requested to the end-user to please update their existing
-        playbooks by re-inserting | modifying | deleting the corresponding action blocks to ensure the correct functioning of the playbooks created
+        In v3.0.0, 'group id' parameter has been removed and Added below two new parameters.
+        <ul>
+            <li>
+                <b>method</b> - Method(By Group ID or Group e-mail) you want to list group members, by default it is <b>Group ID</b>.
+            </li>
+            <li>
+                <b>identificator</b> - Value of group id or group e-mail depending on <b>method</b> selected.
+            </li>
+        </ul>
+        Hence, it is requested to the end-user to please update their existing playbooks by re-inserting | modifying | deleting the corresponding action blocks to ensure the correct functioning of the playbooks created
         on the earlier versions of the app.
     </li>
   </ul>
