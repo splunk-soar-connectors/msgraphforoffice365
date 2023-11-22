@@ -37,6 +37,7 @@ from django.http import HttpResponse
 from phantom.action_result import ActionResult
 from phantom.base_connector import BaseConnector
 from phantom.vault import Vault
+from phantom_common import paths
 
 from office365_consts import *
 from process_email import ProcessEmail
@@ -883,7 +884,7 @@ class Office365Connector(BaseConnector):
         if hasattr(Vault, "get_vault_tmp_dir"):
             fd, tmp_file_path = tempfile.mkstemp(dir=Vault.get_vault_tmp_dir())
         else:
-            fd, tmp_file_path = tempfile.mkstemp(dir="/opt/phantom/vault/tmp")
+            fd, tmp_file_path = tempfile.mkstemp(dir=os.path.join(paths.PHANTOM_VAULT, "tmp"))
         os.close(fd)
         file_mode = "wb" if isinstance(file_data, bytes) else "w"
         with open(tmp_file_path, file_mode) as f:
