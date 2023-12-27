@@ -1909,6 +1909,8 @@ class Office365Connector(BaseConnector):
         action_result = self.add_action_result(ActionResult(dict(param)))
 
         limit = param.get("limit")
+        query = None
+        is_advance_query = False
 
         # Integer validation for 'limit' action parameter
         ret_val, limit = _validate_integer(action_result, limit, "'limit' action")
@@ -1917,7 +1919,9 @@ class Office365Connector(BaseConnector):
 
         method = param.get('method', 'Group ID')
         group_id = identificator = param['identificator']
-        query = param.get('filter') if param.get('filter') else None
+        if param.get('filter'):
+            query = param.get('filter')
+            is_advance_query = True
 
         if method.lower() == 'group e-mail':
             if not util.is_email(identificator):
@@ -1940,7 +1944,7 @@ class Office365Connector(BaseConnector):
         if transitive_members:
             endpoint = '/groups/{0}/transitiveMembers'.format(group_id)
 
-        ret_val, members = self._paginator(action_result, endpoint, limit, query=query)
+        ret_val, members = self._paginator(action_result, endpoint, limit, query=query, is_advance_query=is_advance_query)
 
         if phantom.is_fail(ret_val):
             return action_result.get_status()
@@ -3246,7 +3250,7 @@ class Office365Connector(BaseConnector):
         action_result.add_data(message_details)
         return action_result.set_status(phantom.APP_SUCCESS, "Successfully sent email")
 
-    def _paginator(self, action_result, endpoint, limit=None, params=None, query=None):
+    def _paginator(self, action_result, endpoint, limit=None, params=None, query=None, is_advance_query=False):
         """
         This action is used to create an iterator that will paginate through responses from called methods.
 
@@ -3257,6 +3261,7 @@ class Office365Connector(BaseConnector):
 
         list_items = list()
         next_link = None
+        headers = {}
 
         # maximum page size
         page_size = MSGOFFICE365_PER_PAGE_COUNT
@@ -3270,17 +3275,16 @@ class Office365Connector(BaseConnector):
             params = {"$top": page_size}
 
         if query:
-            params.update({"$filter": query})
+            params.update({'$filter': query})
+
+        if is_advance_query:
+            params['$count'] = 'true'
+            headers['ConsistencyLevel'] = 'eventual'
 
         while True:
-            if next_link:
-                ret_val, response = self._make_rest_call_helper(
-                    action_result, endpoint, nextLink=next_link, params=params
-                )
-            else:
-                ret_val, response = self._make_rest_call_helper(
-                    action_result, endpoint, params=params
-                )
+            ret_val, response = self._make_rest_call_helper(
+                action_result, endpoint, nextLink=next_link, params=params, headers=headers
+            )
 
             if phantom.is_fail(ret_val):
                 return action_result.get_status(), None
