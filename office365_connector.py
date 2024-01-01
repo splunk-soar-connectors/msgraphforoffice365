@@ -838,12 +838,11 @@ class Office365Connector(BaseConnector):
         ret_val, resp_json = self._make_rest_call(action_result, url, verify, headers, params, data, method, download=download)
 
         # If token is expired, generate a new token
-        for error_msg in AUTH_FAILURE_MSG:
-            if error_msg in action_result.get_message():
+        msg = action_result.get_message()
+        if msg and ('token' in msg and 'expired' in msg):
+            if msg in action_result.get_message():
                 self.debug_print("MSGRAPH",
-                                 f"Error '{error_msg}' found in API response. Requesting new access token using refresh token")
-                self.save_progress(
-                    f"Error message '{error_msg}' found in API response. Requesting new access token using refresh token")
+                                 f"Error '{msg}' found in API response. Requesting new access token using refresh token")
                 ret_val = self._get_token(action_result)
                 if phantom.is_fail(ret_val):
                     return action_result.get_status(), None
