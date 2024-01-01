@@ -32,7 +32,7 @@
             "name": "Anton Neledov"
         }
     ],
-    "license": "Copyright (c) 2017-2023 Splunk Inc.",
+    "license": "Copyright (c) 2017-2024 Splunk Inc.",
     "app_version": "2.8.1",
     "utctime_updated": "2023-10-12T11:20:32.000000Z",
     "package_name": "phantom_msgraphoffice365",
