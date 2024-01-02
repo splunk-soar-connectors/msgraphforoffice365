@@ -64,6 +64,15 @@ MSGOFFICE365_VALID_INT_MSG = "Please provide a valid integer value in the {param
 MSGOFFICE365_NON_NEG_NON_ZERO_INT_MSG = (
     "Please provide a valid non-zero positive integer value in the {param} parameter"
 )
+AUTH_FAILURE_MSG = [
+    "token is invalid",
+    "Access token has expired",
+    "ExpiredAuthenticationToken",
+    "AuthenticationFailed",
+    "TokenExpired",
+    "InvalidAuthenticationToken",
+    "Lifetime validation failed, the token is expired."
+]
 MSGOFFICE365_NON_NEG_INT_MSG = "Please provide a valid non-negative integer value in the {param} parameter"
 MSGOFFICE365_ENCRYPTION_ERROR = "Error occurred while encrypting the state file"
 MSGOFFICE365_DECRYPTION_ERROR = "Error occurred while decrypting the state file"
