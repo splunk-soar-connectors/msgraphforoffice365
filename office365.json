@@ -20,14 +20,14 @@
             "name": "Mathieu A. Cormier"
         }
     ],
-    "license": "Copyright (c) 2017-2023 Splunk Inc.",
+    "license": "Copyright (c) 2017-2024 Splunk Inc.",
     "app_version": "3.0.0",
     "utctime_updated": "2022-02-04T01:20:46.000000Z",
     "package_name": "phantom_msgraphoffice365",
     "main_module": "office365_connector.py",
-    "min_phantom_version": "6.0.2",
+    "min_phantom_version": "6.1.1",
     "latest_tested_versions": [
-        "Cloud 12 April, 2023"
+        "Cloud 9 January, 2024"
     ],
     "app_wizard_version": "1.0.0",
     "python_version": "3",
@@ -288,7 +288,7 @@
                     "data_path": "action_result.data.*.@odata.context",
                     "data_type": "string",
                     "example_values": [
-                        "https://test.abc.com/v1.0/$metadata#users('eeb3645f-df19-47a1-8e8c-fcd234cb5f6f')/mailboxSettings/automaticRepliesSetting"
+                        "https://test.abc.com/v1.0/$metadata#users('EXAMPLEUSERID')/mailboxSettings/automaticRepliesSetting"
                     ],
                     "contains": [
                         "url"
@@ -554,7 +554,7 @@
                     "data_path": "action_result.data.*.calendar@odata.associationLink",
                     "data_type": "string",
                     "example_values": [
-                        "https://test.abc.com/v1.0/users('ggfe645f-df19-47a1-8e8c-fcd234cb5f6f')/calendars('AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQBGAAADeDDJKaEf4EihMWU6SZgKbAcA07XhOkNngkCkqoNfY_k-jQAAAgEGAAAA07XhOkNngkCkqoNfY_k-jQAAAhTzBBAA')/$ref"
+                        "https://test.abc.com/v1.0/users('EXAMPLEUSERID')/calendars('EXAMPLECALENDERID')/$ref"
                     ],
                     "contains": [
                         "url"
@@ -564,7 +564,7 @@
                     "data_path": "action_result.data.*.calendar@odata.navigationLink",
                     "data_type": "string",
                     "example_values": [
-                        "https://test.abc.com/v1.0/users('ffb3645f-df20-47a1-8e9c-fcd234cb5f6f')/calendars('AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQBGAAADeDDJKaEf4EihMWU6SZgKbAcA07XhOkNngkCkqoNfY_k-jQAAAgEGAAAA07XhOkNngkCkqoNfY_k-jQAAAhTzABBB')"
+                        "https://test.abc.com/v1.0/users('EXAMPLEUSERID')/calendars('EXAMPLECALENDERID')"
                     ],
                     "contains": [
                         "url"
@@ -3774,7 +3774,7 @@
                     "data_path": "action_result.data.*.event.calendar@odata.associationLink",
                     "data_type": "string",
                     "example_values": [
-                        "https://test.abc.com/v1.0/users('test@user.abc.com')/calendars('AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQAuAAADeDDJKaEf4EihMWU6SZgKbAEA07XhOkNngkCkqoNfY_k-jQAAAgENAAAA')/$ref"
+                        "https://test.abc.com/v1.0/users('test@user.abc.com')/calendars('EXAMPLECALENDERID')/$ref"
                     ],
                     "contains": [
                         "url"
@@ -3784,7 +3784,7 @@
                     "data_path": "action_result.data.*.event.calendar@odata.navigationLink",
                     "data_type": "string",
                     "example_values": [
-                        "https://test.abc.com/v1.0/users('test@user.abc.com')/calendars('AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQAuAAADeDDJKaEf4EihMWU6SZgKbAEA07XhOkNngkCkqoNfY_k-jQAAAgENAAAA')"
+                        "https://test.abc.com/v1.0/users('test@user.abc.com')/calendars('EXAMPLECALENDERID')"
                     ],
                     "contains": [
                         "url"

@@ -2,11 +2,11 @@
 # MS Graph for Office 365
 
 Publisher: Splunk  
-Connector Version: 2.8.0  
+Connector Version: 3.0.0  
 Product Vendor: Microsoft  
 Product Name: Office 365 (MS Graph)  
 Product Version Supported (regex): ".\*"  
-Minimum Product Version: 6.0.0  
+Minimum Product Version: 6.1.1  
 
 This app connects to Office 365 using the MS Graph API to support investigate and generic actions related to the email messages and calendar events
 
@@ -25,6 +25,15 @@ This app connects to Office 365 using the MS Graph API to support investigate an
 [comment]: # "and limitations under the License."
 [comment]: # ""
 ## Playbook Backward Compatibility
+
+- In v3.0.0, 'group id' parameter has been removed and Added below two new parameters.
+  - **method** - Method(By Group ID or Group e-mail) you want to list group members, by default it
+    is **Group ID** .
+  - **identificator** - Value of group id or group e-mail depending on **method** selected.
+
+  Hence, it is requested to the end-user to please update their existing playbooks by re-inserting
+  | modifying | deleting the corresponding action blocks to ensure the correct functioning of the
+  playbooks created on the earlier versions of the app.
 
 -   The 'id' field of email artifact has been renamed to 'messageId'. Hence, it is requested to the
     end-user to please update their existing playbooks by re-inserting | modifying | deleting the
@@ -329,7 +338,7 @@ VARIABLE | REQUIRED | TYPE | DESCRIPTION
 [list rules](#action-list-rules) - Get all the messageRule objects defined for the user's inbox  
 [list users](#action-list-users) - Retrieve a list of users  
 [list groups](#action-list-groups) - List all the groups in an organization, including but not limited to Office 365 groups  
-[list group members](#action-list-group-members) - List all the members in group by group ID or group e-mail address
+[list group members](#action-list-group-members) - List all the members in group by group ID or group e-mail address  
 [list folders](#action-list-folders) - Retrieve a list of mail folders  
 [copy email](#action-copy-email) - Copy an email to a folder  
 [move email](#action-move-email) - Move an email to a folder  
@@ -390,7 +399,7 @@ DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
 --------- | ---- | -------- | --------------
 action_result.status | string |  |   success  failed 
 action_result.parameter.user_id | string |  `msgoffice365 user id`  `msgoffice365 user principal name`  `email`  |   eeb3645f-df19-58a1-0e9c-ghi234cb5f6f 
-action_result.data.\*.@odata.context | string |  `url`  |   https://test.abc.com/v1.0/$metadata#users('eeb3645f-df19-47a1-8e8c-fcd234cb5f6f')/mailboxSettings/automaticRepliesSetting 
+action_result.data.\*.@odata.context | string |  `url`  |   https://test.abc.com/v1.0/$metadata#users('EXAMPLEUSERID')/mailboxSettings/automaticRepliesSetting 
 action_result.data.\*.@odata.etag | string |  |  
 action_result.data.\*.externalAudience | string |  |   all 
 action_result.data.\*.externalReplyMessage | string |  |  
@@ -438,8 +447,8 @@ action_result.data.\*.attendees.\*.type | string |  |   required
 action_result.data.\*.body.content | string |  |   `<html><head><meta name="Generator" content="Test Server">\\r\\n<!-- converted from text -->\\r\\n<style><!-- .EmailQuote { margin-left: 1pt; padding-left: 4pt; border-left: #800000 2px solid; } --></style></head>\\r\\n<body>\\r\\n<font size="2"><span style="font-size:11pt;"><div class="PlainText">&nbsp;</div></span></font>\\r\\n</body>\\r\\n</html>\\r\\n` 
 action_result.data.\*.body.contentType | string |  |   html 
 action_result.data.\*.bodyPreview | string |  |  
-action_result.data.\*.calendar@odata.associationLink | string |  `url`  |   https://test.abc.com/v1.0/users('ggfe645f-df19-47a1-8e8c-fcd234cb5f6f')/calendars('AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQBGAAADeDDJKaEf4EihMWU6SZgKbAcA07XhOkNngkCkqoNfY_k-jQAAAgEGAAAA07XhOkNngkCkqoNfY_k-jQAAAhTzBBAA')/$ref 
-action_result.data.\*.calendar@odata.navigationLink | string |  `url`  |   https://test.abc.com/v1.0/users('ffb3645f-df20-47a1-8e9c-fcd234cb5f6f')/calendars('AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQBGAAADeDDJKaEf4EihMWU6SZgKbAcA07XhOkNngkCkqoNfY_k-jQAAAgEGAAAA07XhOkNngkCkqoNfY_k-jQAAAhTzABBB') 
+action_result.data.\*.calendar@odata.associationLink | string |  `url`  |   https://test.abc.com/v1.0/users('EXAMPLEUSERID')/calendars('EXAMPLECALENDERID')/$ref 
+action_result.data.\*.calendar@odata.navigationLink | string |  `url`  |   https://test.abc.com/v1.0/users('EXAMPLEUSERID')/calendars('EXAMPLECALENDERID') 
 action_result.data.\*.categories.\*.name | string |  |  
 action_result.data.\*.changeKey | string |  |   b1MzKFCcdkuJ24Mc2VsdjwABAdhQhg== 
 action_result.data.\*.createdDateTime | string |  |   2019-10-03T09:03:42.4958512Z 
@@ -640,7 +649,7 @@ action_result.data.\*.expirationDateTime | string |  |
 action_result.data.\*.groupTypes | string |  |   Unified 
 action_result.data.\*.id | string |  `msgoffice365 group id`  |   2a201c95-101b-42d9-a7af-9a2fdf8193f1 
 action_result.data.\*.isAssignableToRole | string |  |  
-action_result.data.\*.mail | string |  `email`  |   Test-test-site@testdomain.abc.com 
+action_result.data.\*.mail | string |  `email`  `msgoffice365 group e-mail address`  |   Test-test-site@testdomain.abc.com 
 action_result.data.\*.mailEnabled | boolean |  |   True  False 
 action_result.data.\*.mailNickname | string |  |   Test-test-site 
 action_result.data.\*.membershipRule | string |  |  
@@ -667,7 +676,7 @@ summary.total_objects | numeric |  |   1
 summary.total_objects_successful | numeric |  |   1   
 
 ## action: 'list group members'
-List all the members in group by ID
+List all the members in group by group ID or group e-mail address
 
 Type: **investigate**  
 Read only: **True**
@@ -675,8 +684,8 @@ Read only: **True**
 #### Action Parameters
 PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 --------- | -------- | ----------- | ---- | --------
-**method** |  required  | Method by which user want to list group members | string |  `ID`  `E-mail` 
-**identificator** |  required  | Group ID or Group e-mail address | string |  `msgoffice365 group id` `msgoffice365 group e-mail`  `email` 
+**method** |  required  | Method by which user wants to list group members | string | 
+**identificator** |  required  | Group ID or group e-mail address, depending on method selected | string |  `msgoffice365 group id`  `msgoffice365 group e-mail address` 
 **get_transitive_members** |  optional  | Get a list of the group's members. A group can have users, devices, organizational contacts, and other groups as members. This operation is transitive and returns a flat list of all nested members | boolean | 
 **filter** |  optional  | Search for specific results | string | 
 **limit** |  optional  | Maximum number of members to return | numeric | 
@@ -687,7 +696,8 @@ DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
 action_result.status | string |  |   success  failed 
 action_result.parameter.filter | string |  |   displayName eq 'Group Name' 
 action_result.parameter.get_transitive_members | boolean |  |   True  False 
-action_result.parameter.group_id | string |  `msgoffice365 group id`  |   11907d21-7631-4ea7-97b2-1328d1c5b901 
+action_result.parameter.method | string |  |   Group ID  Group e-mail 
+action_result.parameter.identificator | string |  `msgoffice365 group id`  `msgoffice365 group e-mail address`  |   TEST7d21-7631-4ea7-97b2-1328d1c5b901  example@test.com 
 action_result.parameter.limit | numeric |  |   20 
 action_result.data.\*.@odata.type | string |  |   #test.abc.user 
 action_result.data.\*.businessPhones | string |  |   2056120271 
@@ -990,8 +1000,8 @@ action_result.data.\*.event.attendees.\*.type | string |  |   required
 action_result.data.\*.event.body.content | string |  |   `plain text?\\r\\n` 
 action_result.data.\*.event.body.contentType | string |  |   text 
 action_result.data.\*.event.bodyPreview | string |  |   plain text? 
-action_result.data.\*.event.calendar@odata.associationLink | string |  `url`  |   https://test.abc.com/v1.0/users('test@user.abc.com')/calendars('AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQAuAAADeDDJKaEf4EihMWU6SZgKbAEA07XhOkNngkCkqoNfY_k-jQAAAgENAAAA')/$ref 
-action_result.data.\*.event.calendar@odata.navigationLink | string |  `url`  |   https://test.abc.com/v1.0/users('test@user.abc.com')/calendars('AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQAuAAADeDDJKaEf4EihMWU6SZgKbAEA07XhOkNngkCkqoNfY_k-jQAAAgENAAAA') 
+action_result.data.\*.event.calendar@odata.associationLink | string |  `url`  |   https://test.abc.com/v1.0/users('test@user.abc.com')/calendars('EXAMPLECALENDERID')/$ref 
+action_result.data.\*.event.calendar@odata.navigationLink | string |  `url`  |   https://test.abc.com/v1.0/users('test@user.abc.com')/calendars('EXAMPLECALENDERID') 
 action_result.data.\*.event.changeKey | string |  |   CQAAABYAAABBKXVvwEWISZupmqX4mJS3AAFQwHj9 
 action_result.data.\*.event.createdDateTime | string |  |   0001-01-01T00:00:00Z 
 action_result.data.\*.event.end.dateTime | string |  |   0001-01-01T00:00:00.0000000 
