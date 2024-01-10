@@ -11,7 +11,7 @@ Minimum Product Version: 6.1.1
 This app connects to Office 365 using the MS Graph API to support investigate and generic actions related to the email messages and calendar events
 
 [comment]: # " File: README.md"
-[comment]: # "  Copyright (c) 2017-2023 Splunk Inc."
+[comment]: # "  Copyright (c) 2017-2024 Splunk Inc."
 [comment]: # ""
 [comment]: # "Licensed under the Apache License, Version 2.0 (the 'License');"
 [comment]: # "you may not use this file except in compliance with the License."
