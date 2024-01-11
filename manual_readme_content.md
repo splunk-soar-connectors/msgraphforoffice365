@@ -14,12 +14,11 @@
 [comment]: # ""
 ## Playbook Backward Compatibility
 
-- In v3.0.0, 'group id' parameter has been removed and Added below two new parameters.
-  - **method** - Method(By Group ID or Group e-mail) you want to list group members, by default it
-    is **Group ID** .
+- With version 3.0.0 of the connector, the 'group_id' parameter of the 'list group members' action has been removed and two new parameters are added in the same action as follows:
+  - **method** - Method(Group ID or Group e-mail) using which you want to list group members, by default it is **Group ID**.
   - **identificator** - Value of group id or group e-mail depending on **method** selected.
 
-  Hence, it is requested to the end-user to please update their existing playbooks by re-inserting
+  Hence, it is requested to please update the existing playbooks by re-inserting
   | modifying | deleting the corresponding action blocks to ensure the correct functioning of the
   playbooks created on the earlier versions of the app.
 

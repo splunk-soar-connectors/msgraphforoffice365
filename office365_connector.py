@@ -3528,13 +3528,12 @@ class Office365Connector(BaseConnector):
         admin_consent = self._state.get("admin_consent")
 
         # if it was not and the current action is not test connectivity then it's an error
-        if self._admin_access:
-            if not admin_consent and action_id != "test_connectivity":
-                return self.set_status(
-                    phantom.APP_ERROR, MSGOFFICE365_RUN_CONNECTIVITY_MSG
-                )
+        if self._admin_access and not admin_consent:
+            return self.set_status(
+                phantom.APP_ERROR, MSGOFFICE365_RUN_CONNECTIVITY_MSG
+            )
 
-        if (not self._admin_access and action_id != "test_connectivity" and (not self._access_token or not self._refresh_token)):
+        if not self._admin_access and (not self._access_token or not self._refresh_token):
             ret_val = self._get_token(action_result)
 
             if phantom.is_fail(ret_val):

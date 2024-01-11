@@ -1889,7 +1889,7 @@
             "read_only": true,
             "parameters": {
                 "method": {
-                    "description": "Method by which user wants to list group members",
+                    "description": "Method to use to list group members",
                     "data_type": "string",
                     "required": true,
                     "primary": true,
@@ -1901,7 +1901,7 @@
                     "order": 0
                 },
                 "identificator": {
-                    "description": "Group ID or group e-mail address, depending on method selected",
+                    "description": "Group ID or group e-mail address, based on the selected method",
                     "data_type": "string",
                     "required": true,
                     "primary": true,
