@@ -70,7 +70,8 @@ AUTH_FAILURE_MSG = [
     "ExpiredAuthenticationToken",
     "AuthenticationFailed",
     "TokenExpired",
-    "InvalidAuthenticationToken"
+    "InvalidAuthenticationToken",
+    "Lifetime validation failed, the token is expired."
 ]
 MSGOFFICE365_NON_NEG_INT_MSG = "Please provide a valid non-negative integer value in the {param} parameter"
 MSGOFFICE365_ENCRYPTION_ERROR = "Error occurred while encrypting the state file"

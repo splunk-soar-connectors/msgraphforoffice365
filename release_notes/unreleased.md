@@ -1,3 +1,4 @@
 **Unreleased**
 * Removed 'group id' parameter from 'list group members' action
 * Added two new parameters 'method' and 'identificator' in 'list group members' action to list group members by group id or group e-mail
+* Fix for authentication token expire issue
