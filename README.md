@@ -28,7 +28,7 @@ This app connects to Office 365 using the MS Graph API to support investigate an
 
 - With version 3.0.0 of the connector, the 'group_id' parameter of the 'list group members' action has been removed and two new parameters are added in the same action as follows:
   - **method** - Method(Group ID or Group e-mail) using which you want to list group members, by default it is **Group ID**.
-  - **identificator** - Value of group id or group e-mail depending on **method** selected.
+  - **identificator** - Value of group id or group e-mail based on the **method** selected.
 
   Hence, it is requested to please update the existing playbooks by re-inserting
   | modifying | deleting the corresponding action blocks to ensure the correct functioning of the
