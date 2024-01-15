@@ -1925,6 +1925,9 @@ class Office365Connector(BaseConnector):
             query = param.get('filter')
             is_advance_query = True
 
+        if method not in ('Group ID', 'Group e-mail'):
+            return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_METHOD)
+
         if method.lower() == 'group e-mail':
             if not util.is_email(identificator):
                 return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_EMAIL)
