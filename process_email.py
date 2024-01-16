@@ -34,7 +34,6 @@ import phantom.utils as ph_utils
 from bs4 import BeautifulSoup, UnicodeDammit
 from django.core.validators import URLValidator
 from phantom.vault import Vault
-from phantom_common import paths
 from requests.structures import CaseInsensitiveDict
 
 from office365_consts import ERROR_MSG_UNAVAILABLE
@@ -684,10 +683,7 @@ class ProcessEmail(object):
 
     def write_with_new_filename(self, data, dict_to_fill, file_name, as_byte=False):
         try:
-            if hasattr(Vault, 'get_vault_tmp_dir'):
-                fd, full_path = tempfile.mkstemp(dir=Vault.get_vault_tmp_dir())
-            else:
-                fd, full_path = tempfile.mkstemp(dir=os.path.join(paths.PHANTOM_VAULT, "tmp"))
+            fd, full_path = tempfile.mkstemp(dir=Vault.get_vault_tmp_dir())
             os.close(fd)
 
             with open(full_path, 'wb') as f:    # noqa

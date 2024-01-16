@@ -37,7 +37,6 @@ from django.http import HttpResponse
 from phantom.action_result import ActionResult
 from phantom.base_connector import BaseConnector
 from phantom.vault import Vault
-from phantom_common import paths
 
 from office365_consts import *
 from process_email import ProcessEmail
@@ -441,6 +440,39 @@ class Office365Connector(BaseConnector):
         """
         return super().save_state(self._encrypt_state(state, self._asset_id))
 
+    def update_state_fields(self, state, salt, helper_function, error_message):
+        if state.get("non_admin_auth", {}).get("access_token"):
+            try:
+                state["non_admin_auth"]["access_token"] = helper_function(
+                    state["non_admin_auth"]["access_token"], salt
+                )
+            except Exception as ex:
+                self.debug_print("{}: {}".format(error_message,
+                                                              _get_error_msg_from_exception(ex, self)))
+                state["non_admin_auth"]["access_token"] = None
+
+        if state.get("non_admin_auth", {}).get("refresh_token"):
+            try:
+                state["non_admin_auth"]["refresh_token"] = helper_function(
+                    state["non_admin_auth"]["refresh_token"], salt
+                )
+            except Exception as ex:
+                self.debug_print("{}: {}".format(error_message,
+                                                              _get_error_msg_from_exception(ex, self)))
+                state["non_admin_auth"]["refresh_token"] = None
+
+        if state.get("admin_auth", {}).get("access_token"):
+            try:
+                state["admin_auth"]["access_token"] = helper_function(
+                    state["admin_auth"]["access_token"], salt
+                )
+            except Exception as ex:
+                self.debug_print("{}: {}".format(error_message,
+                                                              _get_error_msg_from_exception(ex, self)))
+                state["admin_auth"]["access_token"] = None
+
+        return state
+
     def _decrypt_state(self, state, salt):
         """
         Decrypts the state.
@@ -452,37 +484,7 @@ class Office365Connector(BaseConnector):
         if not state.get("is_encrypted"):
             return state
 
-        if state.get("non_admin_auth", {}).get("access_token"):
-            try:
-                state["non_admin_auth"]["access_token"] = encryption_helper.decrypt(
-                    state["non_admin_auth"]["access_token"], salt
-                )
-            except Exception as ex:
-                self.debug_print("{}: {}".format(MSGOFFICE365_DECRYPTION_ERROR,
-                                                              _get_error_msg_from_exception(ex, self)))
-                state["non_admin_auth"]["access_token"] = None
-
-        if state.get("non_admin_auth", {}).get("refresh_token"):
-            try:
-                state["non_admin_auth"]["refresh_token"] = encryption_helper.decrypt(
-                    state["non_admin_auth"]["refresh_token"], salt
-                )
-            except Exception as ex:
-                self.debug_print("{}: {}".format(MSGOFFICE365_DECRYPTION_ERROR,
-                                                              _get_error_msg_from_exception(ex, self)))
-                state["non_admin_auth"]["refresh_token"] = None
-
-        if state.get("admin_auth", {}).get("access_token"):
-            try:
-                state["admin_auth"]["access_token"] = encryption_helper.decrypt(
-                    state["admin_auth"]["access_token"], salt
-                )
-            except Exception as ex:
-                self.debug_print("{}: {}".format(MSGOFFICE365_DECRYPTION_ERROR,
-                                                              _get_error_msg_from_exception(ex, self)))
-                state["admin_auth"]["access_token"] = None
-
-        return state
+        return self.update_state_fields(state, salt, encryption_helper.decrypt, MSGOFFICE365_DECRYPTION_ERROR)
 
     def _encrypt_state(self, state, salt):
         """
@@ -493,36 +495,7 @@ class Office365Connector(BaseConnector):
         :return: encrypted state
         """
 
-        if state.get("non_admin_auth", {}).get("access_token"):
-            try:
-                state["non_admin_auth"]["access_token"] = encryption_helper.encrypt(
-                    state["non_admin_auth"]["access_token"], salt
-                )
-            except Exception as ex:
-                self.debug_print("{}: {}".format(MSGOFFICE365_ENCRYPTION_ERROR,
-                                                 _get_error_msg_from_exception(ex, self)))
-                state["non_admin_auth"]["access_token"] = None
-
-        if state.get("non_admin_auth", {}).get("refresh_token"):
-            try:
-                state["non_admin_auth"]["refresh_token"] = encryption_helper.encrypt(
-                    state["non_admin_auth"]["refresh_token"], salt
-                )
-            except Exception as ex:
-                self.debug_print("{}: {}".format(MSGOFFICE365_ENCRYPTION_ERROR,
-                                                 _get_error_msg_from_exception(ex, self)))
-                state["non_admin_auth"]["refresh_token"] = None
-
-        if state.get("admin_auth", {}).get("access_token"):
-            try:
-                state["admin_auth"]["access_token"] = encryption_helper.encrypt(
-                    state["admin_auth"]["access_token"], salt
-                )
-            except Exception as ex:
-                self.debug_print("{}: {}".format(MSGOFFICE365_ENCRYPTION_ERROR,
-                                                 _get_error_msg_from_exception(ex, self)))
-                state["admin_auth"]["access_token"] = None
-
+        state = self.update_state_fields(state, salt, encryption_helper.encrypt, MSGOFFICE365_ENCRYPTION_ERROR)
         state["is_encrypted"] = True
 
         return state
@@ -883,10 +856,7 @@ class Office365Connector(BaseConnector):
         return re.sub('[,"\']', '', file_name)
 
     def _add_attachment_to_vault(self, attachment, container_id, file_data):
-        if hasattr(Vault, "get_vault_tmp_dir"):
-            fd, tmp_file_path = tempfile.mkstemp(dir=Vault.get_vault_tmp_dir())
-        else:
-            fd, tmp_file_path = tempfile.mkstemp(dir=os.path.join(paths.PHANTOM_VAULT, "tmp"))
+        fd, tmp_file_path = tempfile.mkstemp(dir=Vault.get_vault_tmp_dir())
         os.close(fd)
         file_mode = "wb" if isinstance(file_data, bytes) else "w"
         with open(tmp_file_path, file_mode) as f:
