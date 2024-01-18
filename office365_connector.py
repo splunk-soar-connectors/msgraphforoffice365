@@ -429,7 +429,7 @@ class Office365Connector(BaseConnector):
                 "app_version": self.get_app_json().get('app_version')
             }
             return state
-        return self._decrypt_state(state, self._asset_id)
+        return self._decrypt_state(state)
 
     def save_state(self, state):
         """
@@ -438,64 +438,50 @@ class Office365Connector(BaseConnector):
         :param state: state dictionary
         :return: status
         """
-        return super().save_state(self._encrypt_state(state, self._asset_id))
+        return super().save_state(self._encrypt_state(state))
 
-    def update_state_fields(self, state, salt, helper_function, error_message):
-        if state.get("non_admin_auth", {}).get("access_token"):
-            try:
-                state["non_admin_auth"]["access_token"] = helper_function(
-                    state["non_admin_auth"]["access_token"], salt
-                )
-            except Exception as ex:
-                self.debug_print("{}: {}".format(error_message,
-                                                              _get_error_msg_from_exception(ex, self)))
-                state["non_admin_auth"]["access_token"] = None
+    def update_state_fields(self, value, helper_function, error_message):
+        try:
+            return helper_function(value, self._asset_id)
+        except Exception as ex:
+            self.debug_print("{}: {}".format(error_message,
+                                                          _get_error_msg_from_exception(ex, self)))
+        return None
 
-        if state.get("non_admin_auth", {}).get("refresh_token"):
-            try:
-                state["non_admin_auth"]["refresh_token"] = helper_function(
-                    state["non_admin_auth"]["refresh_token"], salt
-                )
-            except Exception as ex:
-                self.debug_print("{}: {}".format(error_message,
-                                                              _get_error_msg_from_exception(ex, self)))
-                state["non_admin_auth"]["refresh_token"] = None
-
-        if state.get("admin_auth", {}).get("access_token"):
-            try:
-                state["admin_auth"]["access_token"] = helper_function(
-                    state["admin_auth"]["access_token"], salt
-                )
-            except Exception as ex:
-                self.debug_print("{}: {}".format(error_message,
-                                                              _get_error_msg_from_exception(ex, self)))
-                state["admin_auth"]["access_token"] = None
-
+    def check_state_fields(self, state, helper_function, error_message):
+        access_token = state.get("non_admin_auth", {}).get("access_token")
+        if access_token:
+            state["non_admin_auth"]["access_token"] = self.update_state_fields(access_token,
+                                                                            helper_function, error_message)
+        refresh_token = state.get("non_admin_auth", {}).get("refresh_token")
+        if refresh_token:
+            state["non_admin_auth"]["refresh_token"] = self.update_state_fields(refresh_token,
+                                                                                helper_function, error_message)
+        access_token = state.get("admin_auth", {}).get("access_token")
+        if access_token:
+            state["admin_auth"]["access_token"] = self.update_state_fields(access_token, helper_function, error_message)
         return state
 
-    def _decrypt_state(self, state, salt):
+    def _decrypt_state(self, state):
         """
         Decrypts the state.
 
         :param state: state dictionary
-        :param salt: salt used for decryption
         :return: decrypted state
         """
         if not state.get("is_encrypted"):
             return state
+        return self.check_state_fields(state, encryption_helper.decrypt, MSGOFFICE365_DECRYPTION_ERROR)
 
-        return self.update_state_fields(state, salt, encryption_helper.decrypt, MSGOFFICE365_DECRYPTION_ERROR)
-
-    def _encrypt_state(self, state, salt):
+    def _encrypt_state(self, state):
         """
         Encrypts the state.
 
         :param state: state dictionary
-        :param salt: salt used for encryption
         :return: encrypted state
         """
 
-        state = self.update_state_fields(state, salt, encryption_helper.encrypt, MSGOFFICE365_ENCRYPTION_ERROR)
+        state = self.check_state_fields(state, encryption_helper.encrypt, MSGOFFICE365_ENCRYPTION_ERROR)
         state["is_encrypted"] = True
 
         return state
@@ -826,8 +812,7 @@ class Office365Connector(BaseConnector):
 
         # If token is expired, generate a new token
         msg = action_result.get_message()
-        if msg and (('token' in msg and 'expired' in msg) or msg in AUTH_FAILURE_MSG):
-
+        if msg and (('token' in msg and 'expired' in msg) or any(failure_msg in msg for failure_msg in AUTH_FAILURE_MSG)):
             self.debug_print("MSGRAPH",
                                 f"Error '{msg}' found in API response. Requesting new access token using refresh token")
             ret_val = self._get_token(action_result)
