@@ -1,6 +1,6 @@
 # File: office365_connector.py
 #
-# Copyright (c) 2017-2023 Splunk Inc.
+# Copyright (c) 2017-2024 Splunk Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ import base64
 import grp
 import json
 import os
+import pathlib
 import pwd
 import re
 import sys
@@ -28,6 +29,7 @@ from datetime import datetime
 import encryption_helper
 import phantom.app as phantom
 import phantom.rules as ph_rules
+import phantom.utils as util
 import phantom.vault as phantom_vault
 import requests
 from bs4 import BeautifulSoup, UnicodeDammit
@@ -83,23 +85,25 @@ def _load_app_state(asset_id, app_connector=None):
             state = json.loads(state_file_data)
     except Exception as e:
         if app_connector:
-            error_msg = _get_error_msg_from_exception(e)
+            error_msg = _get_error_msg_from_exception(e, app_connector)
             app_connector.debug_print('In _load_app_state: {0}'.format(error_msg))
 
     if app_connector:
         app_connector.debug_print("Loaded state: ", state)
 
     try:
-        state = _decrypt_state(state, asset_id)
+        if "code" in state:
+            state["code"] = encryption_helper.decrypt(state["code"], asset_id)
     except Exception as e:
         if app_connector:
-            app_connector.debug_print("{}: {}".format(MSGOFFICE365_DECRYPTION_ERROR, str(e)))
+            error_msg = _get_error_msg_from_exception(e, app_connector)
+            app_connector.debug_print("{}: {}".format(MSGOFFICE365_DECRYPTION_ERROR, error_msg))
         state = {}
 
     return state
 
 
-def _save_app_state(state, asset_id, app_connector):
+def _save_app_state(state, asset_id, app_connector=None):
     """This function is used to save current state in file.
 
     :param state: Dictionary which contains data to write in state file
@@ -124,12 +128,12 @@ def _save_app_state(state, asset_id, app_connector):
         return {}
 
     try:
-        state = _encrypt_state(state, asset_id)
+        if "code" in state:
+            state["code"] = encryption_helper.encrypt(state["code"], asset_id)
     except Exception as e:
         if app_connector:
-            app_connector.debug_print("{}: {}".format(MSGOFFICE365_ENCRYPTION_ERROR, str(e)))
-
-        return phantom.APP_ERROR
+            error_msg = _get_error_msg_from_exception(e, app_connector)
+            app_connector.debug_print("{}: {}".format(MSGOFFICE365_ENCRYPTION_ERROR, error_msg))
 
     if app_connector:
         app_connector.debug_print("Saving state: ", state)
@@ -138,7 +142,7 @@ def _save_app_state(state, asset_id, app_connector):
         with open(real_state_file_path, "w+") as state_file_obj:
             state_file_obj.write(json.dumps(state))
     except Exception as e:
-        error_msg = _get_error_msg_from_exception(e)
+        error_msg = _get_error_msg_from_exception(e, app_connector)
         if app_connector:
             app_connector.debug_print(
                 "Unable to save state file: {0}".format(error_msg)
@@ -158,7 +162,7 @@ def _get_error_msg_from_exception(e, app_connector=None):
     error_code = None
     error_msg = ERROR_MSG_UNAVAILABLE
     if app_connector:
-        app_connector.error_print("Error occurred:", e)
+        app_connector.error_print("Error occurred.", dump_object=e)
 
     try:
         if hasattr(e, "args"):
@@ -267,7 +271,7 @@ def _handle_oauth_result(request, path_parts):
             admin_consent = False
 
         state["admin_consent"] = admin_consent
-        _save_app_state(state, asset_id, None)
+        _save_app_state(state, asset_id)
 
         # If admin_consent is True
         if admin_consent:
@@ -283,7 +287,7 @@ def _handle_oauth_result(request, path_parts):
 
     # If value of admin_consent is not available, value of code is available
     state["code"] = code
-    _save_app_state(state, asset_id, None)
+    _save_app_state(state, asset_id)
 
     return HttpResponse(
         "Code received. Please close this window, the action will continue to get new token.",
@@ -387,73 +391,6 @@ def _get_dir_name_from_app_name(app_name):
     return app_name
 
 
-def _decrypt_state(state, salt):
-    """
-    Decrypts the state.
-
-    :param state: state dictionary
-    :param salt: salt used for decryption
-    :return: decrypted state
-    """
-    if not state.get("is_encrypted"):
-        return state
-
-    if "non_admin_auth" in state:
-        if state.get("non_admin_auth").get("access_token"):
-            state["non_admin_auth"]["access_token"] = encryption_helper.decrypt(
-                state["non_admin_auth"]["access_token"], salt
-            )
-
-        if state.get("non_admin_auth").get("refresh_token"):
-            state["non_admin_auth"]["refresh_token"] = encryption_helper.decrypt(
-                state["non_admin_auth"]["refresh_token"], salt
-            )
-
-    if "admin_auth" in state:
-        if state.get("admin_auth").get("access_token"):
-            state["admin_auth"]["access_token"] = encryption_helper.decrypt(
-                state["admin_auth"]["access_token"], salt
-            )
-
-    if "code" in state:
-        state["code"] = encryption_helper.decrypt(state["code"], salt)
-
-    return state
-
-
-def _encrypt_state(state, salt):
-    """
-    Encrypts the state.
-
-    :param state: state dictionary
-    :param salt: salt used for encryption
-    :return: encrypted state
-    """
-    if "non_admin_auth" in state:
-        if state.get("non_admin_auth").get("access_token"):
-            state["non_admin_auth"]["access_token"] = encryption_helper.encrypt(
-                state["non_admin_auth"]["access_token"], salt
-            )
-
-        if state.get("non_admin_auth").get("refresh_token"):
-            state["non_admin_auth"]["refresh_token"] = encryption_helper.encrypt(
-                state["non_admin_auth"]["refresh_token"], salt
-            )
-
-    if "admin_auth" in state:
-        if state.get("admin_auth").get("access_token"):
-            state["admin_auth"]["access_token"] = encryption_helper.encrypt(
-                state["admin_auth"]["access_token"], salt
-            )
-
-    if "code" in state:
-        state["code"] = encryption_helper.encrypt(state["code"], salt)
-
-    state["is_encrypted"] = True
-
-    return state
-
-
 class Office365Connector(BaseConnector):
     def __init__(self):
 
@@ -486,30 +423,68 @@ class Office365Connector(BaseConnector):
         :return: loaded state
         """
         state = super().load_state()
-        try:
-            state = _decrypt_state(state, self._asset_id)
-        except Exception as e:
-            self._dump_error_log(e)
-            self.debug_print("{}: {}".format(MSGOFFICE365_DECRYPTION_ERROR, str(e)))
-            state = None
-
-        return state
+        if not isinstance(state, dict):
+            self.debug_print("Resetting the state file with the default format")
+            state = {
+                "app_version": self.get_app_json().get('app_version')
+            }
+            return state
+        return self._decrypt_state(state)
 
     def save_state(self, state):
         """
-        Encrypt and save the current state dictionary to the the state file.
+        Encrypt and save the current state dictionary to the state file.
 
         :param state: state dictionary
         :return: status
         """
-        try:
-            state = _encrypt_state(state, self._asset_id)
-        except Exception as e:
-            self._dump_error_log(e)
-            self.debug_print("{}: {}".format(MSGOFFICE365_ENCRYPTION_ERROR, str(e)))
-            return phantom.APP_ERROR
+        return super().save_state(self._encrypt_state(state))
 
-        return super().save_state(state)
+    def update_state_fields(self, value, helper_function, error_message):
+        try:
+            return helper_function(value, self._asset_id)
+        except Exception as ex:
+            self.debug_print("{}: {}".format(error_message,
+                                                          _get_error_msg_from_exception(ex, self)))
+        return None
+
+    def check_state_fields(self, state, helper_function, error_message):
+        access_token = state.get("non_admin_auth", {}).get("access_token")
+        if access_token:
+            state["non_admin_auth"]["access_token"] = self.update_state_fields(access_token,
+                                                                            helper_function, error_message)
+        refresh_token = state.get("non_admin_auth", {}).get("refresh_token")
+        if refresh_token:
+            state["non_admin_auth"]["refresh_token"] = self.update_state_fields(refresh_token,
+                                                                                helper_function, error_message)
+        access_token = state.get("admin_auth", {}).get("access_token")
+        if access_token:
+            state["admin_auth"]["access_token"] = self.update_state_fields(access_token, helper_function, error_message)
+        return state
+
+    def _decrypt_state(self, state):
+        """
+        Decrypts the state.
+
+        :param state: state dictionary
+        :return: decrypted state
+        """
+        if not state.get("is_encrypted"):
+            return state
+        return self.check_state_fields(state, encryption_helper.decrypt, MSGOFFICE365_DECRYPTION_ERROR)
+
+    def _encrypt_state(self, state):
+        """
+        Encrypts the state.
+
+        :param state: state dictionary
+        :return: encrypted state
+        """
+
+        state = self.check_state_fields(state, encryption_helper.encrypt, MSGOFFICE365_ENCRYPTION_ERROR)
+        state["is_encrypted"] = True
+
+        return state
 
     def _dump_error_log(self, error, msg="Exception occurred."):
         self.error_print(msg, dump_object=error)
@@ -680,8 +655,6 @@ class Office365Connector(BaseConnector):
             except Exception as e:
 
                 error_msg = _get_error_msg_from_exception(e, self)
-
-                self._dump_error_log(e)
                 return RetVal(action_result.set_status(phantom.APP_ERROR, "Error connecting to server. {0}".format(error_msg)), resp_json)
 
             if r.status_code != 502:
@@ -839,8 +812,9 @@ class Office365Connector(BaseConnector):
 
         # If token is expired, generate a new token
         msg = action_result.get_message()
-        if msg and any(failure_msg in msg for failure_msg in AUTH_FAILURE_MSG):
-            self.debug_print("Token is invalid/expired. Hence, generating a new token.")
+        if msg and (('token' in msg and 'expired' in msg) or any(failure_msg in msg for failure_msg in AUTH_FAILURE_MSG)):
+            self.debug_print("MSGRAPH",
+                                f"Error '{msg}' found in API response. Requesting new access token using refresh token")
             ret_val = self._get_token(action_result)
             if phantom.is_fail(ret_val):
                 return action_result.get_status(), None
@@ -867,10 +841,7 @@ class Office365Connector(BaseConnector):
         return re.sub('[,"\']', '', file_name)
 
     def _add_attachment_to_vault(self, attachment, container_id, file_data):
-        if hasattr(Vault, "get_vault_tmp_dir"):
-            fd, tmp_file_path = tempfile.mkstemp(dir=Vault.get_vault_tmp_dir())
-        else:
-            fd, tmp_file_path = tempfile.mkstemp(dir="/opt/phantom/vault/tmp")
+        fd, tmp_file_path = tempfile.mkstemp(dir=Vault.get_vault_tmp_dir())
         os.close(fd)
         file_mode = "wb" if isinstance(file_data, bytes) else "w"
         with open(tmp_file_path, file_mode) as f:
@@ -909,7 +880,6 @@ class Office365Connector(BaseConnector):
                 )
 
         except Exception as e:
-            self._dump_error_log(e)
             error_msg = _get_error_msg_from_exception(e, self)
             self.debug_print("Error saving file to vault: {0}".format(error_msg))
             return phantom.APP_ERROR
@@ -970,7 +940,6 @@ class Office365Connector(BaseConnector):
 
         except Exception as e:
             error_msg = _get_error_msg_from_exception(e, self)
-            self._dump_error_log(e)
             self.debug_print("Error saving file to vault: {0}".format(error_msg))
             return phantom.APP_ERROR
 
@@ -1282,7 +1251,6 @@ class Office365Connector(BaseConnector):
                         rfc822_email = UnicodeDammit(rfc822_email).unicode_markup
                     except Exception as e:
                         error_msg = _get_error_msg_from_exception(e, self)
-                        self._dump_error_log(e)
                         self.debug_print("Unable to decode Email Mime Content. {0}".format(error_msg))
                         return action_result.set_status(phantom.APP_ERROR, "Unable to decode Email Mime Content")
 
@@ -1574,6 +1542,12 @@ class Office365Connector(BaseConnector):
                         self.save_progress("Test Connectivity Failed")
                         return action_result.set_status(phantom.APP_ERROR)
 
+            # Deleting the local state file because of it replicates with actual state file while installing the app
+            current_file_path = pathlib.Path(__file__).resolve()
+            input_file = f'{self._asset_id}_state.json'
+            state_file_path = current_file_path.with_name(input_file)
+            state_file_path.unlink()
+
         self.save_progress("Getting the token")
         ret_val = self._get_token(action_result)
 
@@ -1633,7 +1607,6 @@ class Office365Connector(BaseConnector):
                 dir_id, error, _ = self._get_folder_id(action_result, folder, email_addr)
             except ReturnException as e:
                 self._dump_error_log(e)
-
                 return action_result.get_status()
 
             if dir_id:
@@ -1893,21 +1866,45 @@ class Office365Connector(BaseConnector):
         action_result = self.add_action_result(ActionResult(dict(param)))
 
         limit = param.get("limit")
+        query = None
+        is_advance_query = False
 
         # Integer validation for 'limit' action parameter
         ret_val, limit = _validate_integer(action_result, limit, "'limit' action")
         if phantom.is_fail(ret_val):
             return action_result.get_status()
 
-        query = param.get("filter") if param.get("filter") else None
-        group_id = param["group_id"]
-        transitive_members = param.get("get_transitive_members", True)
+        method = param.get('method', 'Group ID')
+        group_id = identificator = param['identificator']
+        if param.get('filter'):
+            query = param.get('filter')
+            is_advance_query = True
 
-        endpoint = "/groups/{0}/members".format(group_id)
+        if method.lower() not in ('group id', 'group e-mail'):
+            return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_METHOD)
+
+        if method.lower() == 'group e-mail':
+            if not util.is_email(identificator):
+                return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_EMAIL)
+
+            name_filtering = "mail eq '{0}'".format(identificator)
+            ret_val, group = self._paginator(action_result, "/groups", limit, query=name_filtering)
+
+            if phantom.is_fail(ret_val):
+                return action_result.get_status()
+
+            if not group:
+                return action_result.set_status(
+                    phantom.APP_ERROR, "There is no such {} group name, Please check the correct "
+                                       "spelling or existence".format(identificator))
+            group_id = group[0]['id']
+
+        transitive_members = param.get('get_transitive_members', True)
+        endpoint = '/groups/{0}/members'.format(group_id)
         if transitive_members:
-            endpoint = "/groups/{0}/transitiveMembers".format(group_id)
+            endpoint = '/groups/{0}/transitiveMembers'.format(group_id)
 
-        ret_val, members = self._paginator(action_result, endpoint, limit, query=query)
+        ret_val, members = self._paginator(action_result, endpoint, limit, query=query, is_advance_query=is_advance_query)
 
         if phantom.is_fail(ret_val):
             return action_result.get_status()
@@ -2518,7 +2515,6 @@ class Office365Connector(BaseConnector):
                 except Exception as e:
                     failed_email_ids += 1
                     error_msg = _get_error_msg_from_exception(e, self)
-                    self._dump_error_log(e)
                     self.debug_print(f"Exception occurred while processing email ID: {email.get('id')}. {error_msg}")
 
             if failed_email_ids == total_emails:
@@ -3214,7 +3210,7 @@ class Office365Connector(BaseConnector):
         action_result.add_data(message_details)
         return action_result.set_status(phantom.APP_SUCCESS, "Successfully sent email")
 
-    def _paginator(self, action_result, endpoint, limit=None, params=None, query=None):
+    def _paginator(self, action_result, endpoint, limit=None, params=None, query=None, is_advance_query=False):
         """
         This action is used to create an iterator that will paginate through responses from called methods.
 
@@ -3225,6 +3221,7 @@ class Office365Connector(BaseConnector):
 
         list_items = list()
         next_link = None
+        headers = {}
 
         # maximum page size
         page_size = MSGOFFICE365_PER_PAGE_COUNT
@@ -3238,17 +3235,16 @@ class Office365Connector(BaseConnector):
             params = {"$top": page_size}
 
         if query:
-            params.update({"$filter": query})
+            params.update({'$filter': query})
+
+        if is_advance_query:
+            params['$count'] = 'true'
+            headers['ConsistencyLevel'] = 'eventual'
 
         while True:
-            if next_link:
-                ret_val, response = self._make_rest_call_helper(
-                    action_result, endpoint, nextLink=next_link, params=params
-                )
-            else:
-                ret_val, response = self._make_rest_call_helper(
-                    action_result, endpoint, params=params
-                )
+            ret_val, response = self._make_rest_call_helper(
+                action_result, endpoint, nextLink=next_link, params=params, headers=headers
+            )
 
             if phantom.is_fail(ret_val):
                 return action_result.get_status(), None
@@ -3309,7 +3305,7 @@ class Office365Connector(BaseConnector):
         elif action_id == "list_groups":
             ret_val = self._handle_list_groups(param)
 
-        elif action_id == "list_group_members":
+        elif action_id == 'list_group_members':
             ret_val = self._handle_list_group_members(param)
 
         elif action_id == "list_users":
@@ -3358,13 +3354,16 @@ class Office365Connector(BaseConnector):
             data["scope"] = "https://graph.microsoft.com/.default"
 
         if not self._admin_access:
-            if self._refresh_token:
-                data["refresh_token"] = self._refresh_token
-                data["grant_type"] = "refresh_token"
-            elif self._state.get("code"):
+            if self._state.get("code"):
+                self.save_progress("Generating token using authorization code")
                 data["redirect_uri"] = self._state.get("redirect_uri")
                 data["code"] = self._state.get("code")
                 data["grant_type"] = "authorization_code"
+                self._state.pop("code")
+            elif self._refresh_token:
+                self.save_progress("Generating token using refresh token")
+                data["refresh_token"] = self._refresh_token
+                data["grant_type"] = "refresh_token"
             else:
                 return action_result.set_status(
                     phantom.APP_ERROR,
@@ -3437,11 +3436,6 @@ class Office365Connector(BaseConnector):
 
         # Load all the asset configuration in global variables
         self._state = self.load_state()
-        if not isinstance(self._state, dict):
-            self.debug_print(MSGOFFICE365_STATE_FILE_CORRUPT_ERROR)
-            self._reset_state_file()
-
-            return self.set_status(phantom.APP_ERROR, MSGOFFICE365_STATE_FILE_CORRUPT_ERROR)
 
         self._tenant = config['tenant']
         self._client_id = config['client_id']
@@ -3494,13 +3488,12 @@ class Office365Connector(BaseConnector):
         admin_consent = self._state.get("admin_consent")
 
         # if it was not and the current action is not test connectivity then it's an error
-        if self._admin_access:
-            if not admin_consent and action_id != "test_connectivity":
-                return self.set_status(
-                    phantom.APP_ERROR, MSGOFFICE365_RUN_CONNECTIVITY_MSG
-                )
+        if self._admin_access and not admin_consent:
+            return self.set_status(
+                phantom.APP_ERROR, MSGOFFICE365_RUN_CONNECTIVITY_MSG
+            )
 
-        if (not self._admin_access and action_id != "test_connectivity" and (not self._access_token or not self._refresh_token)):
+        if not self._admin_access and (not self._access_token or not self._refresh_token):
             ret_val = self._get_token(action_result)
 
             if phantom.is_fail(ret_val):

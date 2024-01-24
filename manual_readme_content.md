@@ -1,5 +1,5 @@
 [comment]: # " File: README.md"
-[comment]: # "  Copyright (c) 2017-2023 Splunk Inc."
+[comment]: # "  Copyright (c) 2017-2024 Splunk Inc."
 [comment]: # ""
 [comment]: # "Licensed under the Apache License, Version 2.0 (the 'License');"
 [comment]: # "you may not use this file except in compliance with the License."
@@ -13,6 +13,14 @@
 [comment]: # "and limitations under the License."
 [comment]: # ""
 ## Playbook Backward Compatibility
+
+- With version 3.0.0 of the connector, the 'group_id' parameter of the 'list group members' action has been removed and two new parameters are added in the same action as follows:
+  - **method** - Method(Group ID or Group e-mail) using which you want to list group members, by default it is **Group ID**.
+  - **identificator** - Value of group id or group e-mail based on the **method** selected.
+
+  Hence, it is requested to please update the existing playbooks by re-inserting
+  | modifying | deleting the corresponding action blocks to ensure the correct functioning of the
+  playbooks created on the earlier versions of the app.
 
 -   The 'id' field of email artifact has been renamed to 'messageId'. Hence, it is requested to the
     end-user to please update their existing playbooks by re-inserting | modifying | deleting the

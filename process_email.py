@@ -1,6 +1,6 @@
 # File: process_email.py
 #
-# Copyright (c) 2017-2023 Splunk Inc.
+# Copyright (c) 2017-2024 Splunk Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -683,10 +683,7 @@ class ProcessEmail(object):
 
     def write_with_new_filename(self, data, dict_to_fill, file_name, as_byte=False):
         try:
-            if hasattr(Vault, 'get_vault_tmp_dir'):
-                fd, full_path = tempfile.mkstemp(dir=Vault.get_vault_tmp_dir())
-            else:
-                fd, full_path = tempfile.mkstemp(dir='/opt/phantom/vault/tmp')
+            fd, full_path = tempfile.mkstemp(dir=Vault.get_vault_tmp_dir())
             os.close(fd)
 
             with open(full_path, 'wb') as f:    # noqa

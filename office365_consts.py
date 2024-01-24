@@ -1,6 +1,6 @@
 # File: office365_consts.py
 #
-# Copyright (c) 2017-2023 Splunk Inc.
+# Copyright (c) 2017-2024 Splunk Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -70,12 +70,15 @@ AUTH_FAILURE_MSG = [
     "ExpiredAuthenticationToken",
     "AuthenticationFailed",
     "TokenExpired",
-    "InvalidAuthenticationToken"
+    "InvalidAuthenticationToken",
+    "Lifetime validation failed, the token is expired."
 ]
 MSGOFFICE365_NON_NEG_INT_MSG = "Please provide a valid non-negative integer value in the {param} parameter"
 MSGOFFICE365_ENCRYPTION_ERROR = "Error occurred while encrypting the state file"
 MSGOFFICE365_DECRYPTION_ERROR = "Error occurred while decrypting the state file"
 MSGOFFICE365_UNEXPECTED_ACCESS_TOKEN_ERROR = "Found unexpected value of access token. Please run the test connectivity to generate a new token"
+MSGOFFICE365_INVALID_EMAIL = "Please provide a valid email-address in the 'identificator' parameter"
+MSGOFFICE365_INVALID_METHOD = "Please provide a valid method in the 'method' parameter"
 
 MSGOFFICE365_SELECT_PARAMETER_LIST = [
     "bccRecipients",
