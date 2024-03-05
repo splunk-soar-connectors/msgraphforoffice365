@@ -18,16 +18,28 @@
         },
         {
             "name": "Mathieu A. Cormier"
+        },
+        {
+            "name": "Dallan Wagner"
+        },
+        {
+            "name": "Mhike Funderburk"
+        },
+        {
+            "name": "Maciej Walendziuk"
+        },
+        {
+            "name": "Anton Neledov"
         }
     ],
-    "license": "Copyright (c) 2017-2023 Splunk Inc.",
-    "app_version": "2.8.0",
-    "utctime_updated": "2022-02-04T01:20:46.000000Z",
+    "license": "Copyright (c) 2017-2024 Splunk Inc.",
+    "app_version": "3.0.0",
+    "utctime_updated": "2023-10-12T11:20:32.000000Z",
     "package_name": "phantom_msgraphoffice365",
     "main_module": "office365_connector.py",
-    "min_phantom_version": "6.0.0",
+    "min_phantom_version": "6.1.1",
     "latest_tested_versions": [
-        "Cloud 12 April, 2023"
+        "Cloud 9 January, 2024"
     ],
     "app_wizard_version": "1.0.0",
     "python_version": "3",
@@ -288,7 +300,7 @@
                     "data_path": "action_result.data.*.@odata.context",
                     "data_type": "string",
                     "example_values": [
-                        "https://test.abc.com/v1.0/$metadata#users('eeb3645f-df19-47a1-8e8c-fcd234cb5f6f')/mailboxSettings/automaticRepliesSetting"
+                        "https://test.abc.com/v1.0/$metadata#users('EXAMPLEUSERID')/mailboxSettings/automaticRepliesSetting"
                     ],
                     "contains": [
                         "url"
@@ -554,7 +566,7 @@
                     "data_path": "action_result.data.*.calendar@odata.associationLink",
                     "data_type": "string",
                     "example_values": [
-                        "https://test.abc.com/v1.0/users('ggfe645f-df19-47a1-8e8c-fcd234cb5f6f')/calendars('AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQBGAAADeDDJKaEf4EihMWU6SZgKbAcA07XhOkNngkCkqoNfY_k-jQAAAgEGAAAA07XhOkNngkCkqoNfY_k-jQAAAhTzBBAA')/$ref"
+                        "https://test.abc.com/v1.0/users('EXAMPLEUSERID')/calendars('EXAMPLECALENDERID')/$ref"
                     ],
                     "contains": [
                         "url"
@@ -564,7 +576,7 @@
                     "data_path": "action_result.data.*.calendar@odata.navigationLink",
                     "data_type": "string",
                     "example_values": [
-                        "https://test.abc.com/v1.0/users('ffb3645f-df20-47a1-8e9c-fcd234cb5f6f')/calendars('AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQBGAAADeDDJKaEf4EihMWU6SZgKbAcA07XhOkNngkCkqoNfY_k-jQAAAgEGAAAA07XhOkNngkCkqoNfY_k-jQAAAhTzABBB')"
+                        "https://test.abc.com/v1.0/users('EXAMPLEUSERID')/calendars('EXAMPLECALENDERID')"
                     ],
                     "contains": [
                         "url"
@@ -1727,7 +1739,8 @@
                         "Test-test-site@testdomain.abc.com"
                     ],
                     "contains": [
-                        "email"
+                        "email",
+                        "msgoffice365 group e-mail address"
                     ],
                     "column_name": "Group Mail ID",
                     "column_order": 1
@@ -1883,35 +1896,48 @@
         {
             "action": "list group members",
             "identifier": "list_group_members",
-            "description": "List all the members in group",
+            "description": "List all the members in group by group ID or group e-mail address",
             "type": "investigate",
             "read_only": true,
             "parameters": {
-                "group_id": {
-                    "description": "Group ID",
+                "method": {
+                    "description": "Method to use to list group members",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": true,
+                    "value_list": [
+                        "Group ID",
+                        "Group e-mail"
+                    ],
+                    "default": "Group ID",
+                    "order": 0
+                },
+                "identificator": {
+                    "description": "Group ID or group e-mail address, based on the selected method",
                     "data_type": "string",
                     "required": true,
                     "primary": true,
                     "contains": [
-                        "msgoffice365 group id"
+                        "msgoffice365 group id",
+                        "msgoffice365 group e-mail address"
                     ],
-                    "order": 0
+                    "order": 1
                 },
                 "get_transitive_members": {
                     "description": "Get a list of the group's members. A group can have users, devices, organizational contacts, and other groups as members. This operation is transitive and returns a flat list of all nested members",
                     "data_type": "boolean",
                     "default": true,
-                    "order": 1
+                    "order": 2
                 },
                 "filter": {
                     "description": "Search for specific results",
                     "data_type": "string",
-                    "order": 2
+                    "order": 3
                 },
                 "limit": {
                     "description": "Maximum number of members to return",
                     "data_type": "numeric",
-                    "order": 3
+                    "order": 4
                 }
             },
             "output": [
@@ -1939,14 +1965,26 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.parameter.group_id",
+                    "data_path": "action_result.parameter.method",
+                    "data_type": "string",
+                    "example_values": [
+                        "Group ID",
+                        "Group e-mail"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.identificator",
                     "data_type": "string",
                     "contains": [
-                        "msgoffice365 group id"
+                        "msgoffice365 group id",
+                        "msgoffice365 group e-mail address"
                     ],
                     "example_values": [
-                        "11907d21-7631-4ea7-97b2-1328d1c5b901"
-                    ]
+                        "TEST7d21-7631-4ea7-97b2-1328d1c5b901",
+                        "example@test.com"
+                    ],
+                    "column_name": "Group ID or Group e-mail",
+                    "column_order": 0
                 },
                 {
                     "data_path": "action_result.parameter.limit",
@@ -1976,7 +2014,7 @@
                         "Test Admin"
                     ],
                     "column_name": "Display Name",
-                    "column_order": 2
+                    "column_order": 3
                 },
                 {
                     "data_path": "action_result.data.*.givenName",
@@ -1985,7 +2023,7 @@
                         "Test"
                     ],
                     "column_name": "Given Name",
-                    "column_order": 3
+                    "column_order": 4
                 },
                 {
                     "data_path": "action_result.data.*.id",
@@ -1997,7 +2035,7 @@
                         "msgoffice365 user id"
                     ],
                     "column_name": "User ID",
-                    "column_order": 0
+                    "column_order": 1
                 },
                 {
                     "data_path": "action_result.data.*.jobTitle",
@@ -2032,7 +2070,7 @@
                         "Globaltest"
                     ],
                     "column_name": "Surname",
-                    "column_order": 4
+                    "column_order": 5
                 },
                 {
                     "data_path": "action_result.data.*.userPrincipalName",
@@ -2045,7 +2083,7 @@
                         "email"
                     ],
                     "column_name": "User Principal Name",
-                    "column_order": 1
+                    "column_order": 2
                 },
                 {
                     "data_path": "action_result.summary.total_members_returned",
@@ -3748,7 +3786,7 @@
                     "data_path": "action_result.data.*.event.calendar@odata.associationLink",
                     "data_type": "string",
                     "example_values": [
-                        "https://test.abc.com/v1.0/users('test@user.abc.com')/calendars('AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQAuAAADeDDJKaEf4EihMWU6SZgKbAEA07XhOkNngkCkqoNfY_k-jQAAAgENAAAA')/$ref"
+                        "https://test.abc.com/v1.0/users('test@user.abc.com')/calendars('EXAMPLECALENDERID')/$ref"
                     ],
                     "contains": [
                         "url"
@@ -3758,7 +3796,7 @@
                     "data_path": "action_result.data.*.event.calendar@odata.navigationLink",
                     "data_type": "string",
                     "example_values": [
-                        "https://test.abc.com/v1.0/users('test@user.abc.com')/calendars('AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQAuAAADeDDJKaEf4EihMWU6SZgKbAEA07XhOkNngkCkqoNfY_k-jQAAAgENAAAA')"
+                        "https://test.abc.com/v1.0/users('test@user.abc.com')/calendars('EXAMPLECALENDERID')"
                     ],
                     "contains": [
                         "url"
@@ -7122,7 +7160,7 @@
             },
             {
                 "module": "soupsieve",
-                "input_file": "wheels/py3/soupsieve-2.4.1-py3-none-any.whl"
+                "input_file": "wheels/py3/soupsieve-2.5-py3-none-any.whl"
             }
         ]
     }
