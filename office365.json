@@ -33,13 +33,13 @@
         }
     ],
     "license": "Copyright (c) 2017-2024 Splunk Inc.",
-    "app_version": "3.0.0",
+    "app_version": "3.1.0",
     "utctime_updated": "2023-10-12T11:20:32.000000Z",
     "package_name": "phantom_msgraphoffice365",
     "main_module": "office365_connector.py",
-    "min_phantom_version": "6.1.1",
+    "min_phantom_version": "6.2.0",
     "latest_tested_versions": [
-        "Cloud 9 January, 2024"
+        "Cloud 20 May, 2024"
     ],
     "app_wizard_version": "1.0.0",
     "python_version": "3",
@@ -1740,7 +1740,7 @@
                     ],
                     "contains": [
                         "email",
-                        "msgoffice365 group e-mail address"
+                        "msgoffice365 group email address"
                     ],
                     "column_name": "Group Mail ID",
                     "column_order": 1
@@ -1919,7 +1919,7 @@
                     "primary": true,
                     "contains": [
                         "msgoffice365 group id",
-                        "msgoffice365 group e-mail address"
+                        "msgoffice365 group email address"
                     ],
                     "order": 1
                 },
@@ -1977,7 +1977,7 @@
                     "data_type": "string",
                     "contains": [
                         "msgoffice365 group id",
-                        "msgoffice365 group e-mail address"
+                        "msgoffice365 group email address"
                     ],
                     "example_values": [
                         "TEST7d21-7631-4ea7-97b2-1328d1c5b901",
@@ -7135,32 +7135,16 @@
     "pip_dependencies": {
         "wheel": [
             {
-                "module": "beautifulsoup4",
-                "input_file": "wheels/py3/beautifulsoup4-4.9.1-py3-none-any.whl"
-            },
-            {
                 "module": "python_magic",
                 "input_file": "wheels/shared/python_magic-0.4.18-py2.py3-none-any.whl"
-            },
-            {
-                "module": "soupsieve",
-                "input_file": "wheels/py3/soupsieve-2.3.2.post1-py3-none-any.whl"
             }
         ]
     },
     "pip39_dependencies": {
         "wheel": [
             {
-                "module": "beautifulsoup4",
-                "input_file": "wheels/py3/beautifulsoup4-4.9.1-py3-none-any.whl"
-            },
-            {
                 "module": "python_magic",
                 "input_file": "wheels/shared/python_magic-0.4.18-py2.py3-none-any.whl"
-            },
-            {
-                "module": "soupsieve",
-                "input_file": "wheels/py3/soupsieve-2.5-py3-none-any.whl"
             }
         ]
     }

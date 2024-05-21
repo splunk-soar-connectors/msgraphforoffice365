@@ -2646,25 +2646,9 @@ class Office365Connector(BaseConnector):
         if param.get("search_well_known_folders", False):
 
             endpoint += "/mailFolders"
-            folder_params = {
-                "$filter": "{}".format(MSGOFFICE365_WELL_KNOWN_FOLDERS_FILTER)
-            }
-            ret_val, response = self._paginator(
-                action_result, endpoint, params=folder_params
-            )
 
-            if phantom.is_fail(ret_val):
-                return action_result.set_status(phantom.APP_ERROR)
-
-            if not response:
-                return action_result.set_status(
-                    phantom.APP_SUCCESS, "No well known folders found"
-                )
-
-            folders = response
-
-            for folder in folders:
-                folder_ids.append(folder.get("id"))
+            for folder in MSGOFFICE365_WELL_KNOWN_FOLDERS_FILTER:
+                folder_ids.append(folder)
 
             endpoint += "/{folder_id}"
 
