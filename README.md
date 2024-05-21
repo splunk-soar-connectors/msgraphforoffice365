@@ -2,11 +2,11 @@
 # MS Graph for Office 365
 
 Publisher: Splunk  
-Connector Version: 3.0.0  
+Connector Version: 3.1.0  
 Product Vendor: Microsoft  
 Product Name: Office 365 (MS Graph)  
 Product Version Supported (regex): ".\*"  
-Minimum Product Version: 6.1.1  
+Minimum Product Version: 6.2.0  
 
 This app connects to Office 365 using the MS Graph API to support investigate and generic actions related to the email messages and calendar events
 
@@ -648,7 +648,7 @@ action_result.data.\*.expirationDateTime | string |  |
 action_result.data.\*.groupTypes | string |  |   Unified 
 action_result.data.\*.id | string |  `msgoffice365 group id`  |   2a201c95-101b-42d9-a7af-9a2fdf8193f1 
 action_result.data.\*.isAssignableToRole | string |  |  
-action_result.data.\*.mail | string |  `email`  `msgoffice365 group e-mail address`  |   Test-test-site@testdomain.abc.com 
+action_result.data.\*.mail | string |  `email`  `msgoffice365 group email address`  |   Test-test-site@testdomain.abc.com 
 action_result.data.\*.mailEnabled | boolean |  |   True  False 
 action_result.data.\*.mailNickname | string |  |   Test-test-site 
 action_result.data.\*.membershipRule | string |  |  
@@ -684,7 +684,7 @@ Read only: **True**
 PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 --------- | -------- | ----------- | ---- | --------
 **method** |  required  | Method to use to list group members | string | 
-**identificator** |  required  | Group ID or group e-mail address, based on the selected method | string |  `msgoffice365 group id`  `msgoffice365 group e-mail address` 
+**identificator** |  required  | Group ID or group e-mail address, based on the selected method | string |  `msgoffice365 group id`  `msgoffice365 group email address` 
 **get_transitive_members** |  optional  | Get a list of the group's members. A group can have users, devices, organizational contacts, and other groups as members. This operation is transitive and returns a flat list of all nested members | boolean | 
 **filter** |  optional  | Search for specific results | string | 
 **limit** |  optional  | Maximum number of members to return | numeric | 
@@ -696,7 +696,7 @@ action_result.status | string |  |   success  failed
 action_result.parameter.filter | string |  |   displayName eq 'Group Name' 
 action_result.parameter.get_transitive_members | boolean |  |   True  False 
 action_result.parameter.method | string |  |   Group ID  Group e-mail 
-action_result.parameter.identificator | string |  `msgoffice365 group id`  `msgoffice365 group e-mail address`  |   TEST7d21-7631-4ea7-97b2-1328d1c5b901  example@test.com 
+action_result.parameter.identificator | string |  `msgoffice365 group id`  `msgoffice365 group email address`  |   TEST7d21-7631-4ea7-97b2-1328d1c5b901  example@test.com 
 action_result.parameter.limit | numeric |  |   20 
 action_result.data.\*.@odata.type | string |  |   #test.abc.user 
 action_result.data.\*.businessPhones | string |  |   2056120271 
