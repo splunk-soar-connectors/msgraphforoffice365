@@ -6,7 +6,7 @@ Connector Version: 3.0.0
 Product Vendor: Microsoft  
 Product Name: Office 365 (MS Graph)  
 Product Version Supported (regex): ".\*"  
-Minimum Product Version: 6.1.1  
+Minimum Product Version: 6.2.1  
 
 This app connects to Office 365 using the MS Graph API to support investigate and generic actions related to the email messages and calendar events
 
