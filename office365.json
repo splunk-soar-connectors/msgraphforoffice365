@@ -7152,17 +7152,21 @@
                 "email_address": {
                     "description": "Email address of the mailbox owner",
                     "data_type": "string",
-                    "required": true,
                     "primary": true,
                     "contains": [
                         "email"
                     ],
                     "order": 1
                 },
+                "subject": {
+                    "description": "Subject to set",
+                    "data_type": "string",
+                    "order": 2
+                },
                 "category": {
                     "description": "Categories to set",
                     "data_type": "string",
-                    "order": 2,
+                    "order": 3,
                     "allow_list": true
                 }
             },
@@ -7186,7 +7190,7 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.parameter.email",
+                    "data_path": "action_result.parameter.email_address",
                     "data_type": "string",
                     "example_values": [
                         "test@sample.com"
@@ -7203,9 +7207,14 @@
                     ],
                     "contains": [
                         "msgoffice365 message id"
-                    ],
-                    "column_name": "Message ID",
-                    "column_order": 1
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.subject",
+                    "data_type": "string",
+                    "example_values": [
+                        "Both value are modified"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.@odata.context",
@@ -7460,6 +7469,10 @@
                     "example_values": [
                         "https://outlook.office365.com/owa/?ItemID=AAkALgAAAAAAHYQDEapmEc2byACqAC%2FEWg0A07XhOkNngkCkqoNfY%2Bk%2FjQAGNNQOowAA&exvsurl=1&viewmodel=ReadMessageItem"
                     ]
+                },
+                {
+                    "data_path": "action_result.summary",
+                    "data_type": "string"
                 },
                 {
                     "data_path": "action_result.message",

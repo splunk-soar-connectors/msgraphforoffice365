@@ -3267,15 +3267,29 @@ class Office365Connector(BaseConnector):
         self.save_progress("In action handler for: {}".format(self.get_action_identifier()))
         action_result = self.add_action_result(ActionResult(dict(param)))
 
-        email_addr = param["email_address"]
+        email_addr = param.get("email_address")
         message_id = param["id"]
-        category = param["category"]
-        category = [x.strip() for x in category.split(',')]
-        endpoint = "/users/{0}".format(email_addr)
+
+        if email_addr:
+            endpoint = "/users/{0}".format(email_addr)
+        else:
+            endpoint = "/me"
 
         endpoint += "/messages/{0}".format(message_id)
 
-        data = {'categories': category}
+        category = param.get('category')
+        subject = param.get('subject')
+
+        if subject is None and category is None:
+            return action_result.set_status(phantom.APP_ERROR, "Please specify one of the email properties to update")
+
+        data = {}
+        if category is not None:
+            category = [x.strip() for x in category.split(',')]
+            data['categories'] = category
+
+        if subject is not None:
+            data['subject'] = subject
 
         self.save_progress("Updating email")
         ret_val, _ = self._make_rest_call_helper(
