@@ -350,6 +350,7 @@ VARIABLE | REQUIRED | TYPE | DESCRIPTION
 [get folder id](#action-get-folder-id) - Get the API ID of the folder  
 [send email](#action-send-email) - Sends an email with optional text rendering. Attachments are allowed a Content-ID tag for reference within the html  
 [on poll](#action-on-poll) - Ingest emails from Office 365 using Graph API  
+[update email](#action-update-email) - Update an email on the server  
 
 ## action: 'test connectivity'
 Use supplied credentials to generate a token with MS Graph
@@ -1523,4 +1524,66 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 **artifact_count** |  optional  | Parameter Ignored in this app | numeric | 
 
 #### Action Output
-No Output
+No Output  
+
+## action: 'update email'
+Update an email on the server
+
+Type: **generic**  
+Read only: **False**
+
+Currently, this action only updates the category and subject of an email. To set multiple categories, please pass a comma-separated list to the <b>category</b> parameter.<br>NOTE: If the user tries to update the categories, then the existing categories of the email will be replaced with the new categories provided as input.
+
+#### Action Parameters
+PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
+--------- | -------- | ----------- | ---- | --------
+**id** |  required  | Message ID to delete | string |  `msgoffice365 message id` 
+**email_address** |  optional  | Email address of the mailbox owner | string |  `email` 
+**subject** |  optional  | Subject to set | string | 
+**category** |  optional  | Categories to set | string | 
+
+#### Action Output
+DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
+--------- | ---- | -------- | --------------
+action_result.status | string |  |   success  failed 
+action_result.parameter.category | string |  |   Yellow, Blue, Purple, red 
+action_result.parameter.email_address | string |  `email`  |   test@sample.com 
+action_result.parameter.id | string |  `msgoffice365 message id`  |   AAMkAGIyMTUxYTkzLWRjYjctNDFjMi04NTAxLTQzMDFkNDhlZmI5MQBGAAAAAACxQSnX8n2GS4cunBIQ2sV7BwCQhMsoV7EYSJF42ChR9SCxAAAAYCbsAACQhMsoV7EYSJF42ChR9SCxAAAAjh8bAAA= 
+action_result.parameter.subject | string |  |   Both value are modified 
+action_result.data.\*.@odata.context | string |  `url`  |   https://test.abc.com/v1.0/$metadata#users('user%40.abc.com')/messages(internetMessageHeaders,body,uniqueBody,sender,subject)/$entity 
+action_result.data.\*.@odata.etag | string |  |   W/"CQAAABYAAABBKXVvwEWISZupmqX4mJS3AAO8DBJl" 
+action_result.data.\*.body.content | string |  |   `Have a good time with these.\\r\\n` 
+action_result.data.\*.body.contentType | string |  |   html 
+action_result.data.\*.bodyPreview | string |  |   Have a good time with these. 
+action_result.data.\*.changeKey | string |  |   CQAAABYAAADTteE6Q2eCQKSqg19j6T+NAAYzSv5R 
+action_result.data.\*.conversationId | string |  |   AAQkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQAQAORC3aOpHnZMsHD4-7L40sY= 
+action_result.data.\*.conversationIndex | string |  |   AQHZopYz5ELdo6kedkywcPj/svjSxg== 
+action_result.data.\*.createdDateTime | string |  |   2023-06-19T10:09:58Z 
+action_result.data.\*.flag.flagStatus | string |  |   notFlagged 
+action_result.data.\*.from.emailAddress.address | string |  `email`  |   test@test.com 
+action_result.data.\*.from.emailAddress.name | string |  |   Ryan Edwards 
+action_result.data.\*.hasAttachments | boolean |  |   True  False 
+action_result.data.\*.id | string |  `msgoffice365 message id`  |   AQMkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQBGAAADyW3X5P7Hb0_MMHKonvdoWQcAQSl1b8BFiEmbqZql_JiUtwAAAgEMAAAAQSl1b8BFiEmbqZql_JiUtwADu9Tv8QAAAA== 
+action_result.data.\*.importance | string |  |   normal 
+action_result.data.\*.inferenceClassification | string |  |   focused 
+action_result.data.\*.internetMessageId | string |  `msgoffice365 internet message id`  |   <PH7PR11MB690810916B33B92C7EF5E558D95FA@PH7PR11MB6908.namprd11.prod.test.com> 
+action_result.data.\*.isDeliveryReceiptRequested | boolean |  |   True  False 
+action_result.data.\*.isDraft | boolean |  |   True  False 
+action_result.data.\*.isRead | boolean |  |   True  False 
+action_result.data.\*.isReadReceiptRequested | boolean |  |   True  False 
+action_result.data.\*.lastModifiedDateTime | string |  |   2023-06-19T10:09:58Z 
+action_result.data.\*.parentFolderId | string |  `msgoffice365 folder id`  |   AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQAuAAADeDDJKaEf4EihMWU6SZgKbAEA07XhOkNngkCkqoNfY_k-jQAAAgEPAAAA 
+action_result.data.\*.receivedDateTime | string |  |   2020-06-18T09:11:31Z 
+action_result.data.\*.sender.emailAddress.address | string |  `email`  |   notifications@testdomain.com 
+action_result.data.\*.sender.emailAddress.name | string |  `email`  |   notifications@testdomain.com 
+action_result.data.\*.sentDateTime | string |  |   2023-06-19T10:09:58Z 
+action_result.data.\*.subject | string |  |   test html 
+action_result.data.\*.toRecipients.\*.emailAddress.address | string |  `email`  |   test@test.com 
+action_result.data.\*.toRecipients.\*.emailAddress.name | string |  |   Ryan Edwards 
+action_result.data.\*.webLink | string |  |   https://outlook.office365.com/owa/?ItemID=AAkALgAAAAAAHYQDEapmEc2byACqAC%2FEWg0A07XhOkNngkCkqoNfY%2Bk%2FjQAGNNQOowAA&exvsurl=1&viewmodel=ReadMessageItem 
+action_result.summary | string |  |  
+action_result.message | string |  |   Create time: 2017-10-05T20:19:58Z
+Subject: Both value are modified
+Sent time: 2017-10-03T21:31:20Z 
+summary.total_objects | numeric |  |   1 
+summary.total_objects_successful | numeric |  |   1 
