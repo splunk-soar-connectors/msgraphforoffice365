@@ -3277,14 +3277,20 @@ class Office365Connector(BaseConnector):
 
         data = {'categories': category}
 
+        self.save_progress("Updating email")
         ret_val, _ = self._make_rest_call_helper(
             action_result, endpoint, method="patch", data=json.dumps(data)
         )
-
-        self.save_progress(str(ret_val))
-
         if phantom.is_fail(ret_val):
             return action_result.get_status()
+
+        self.save_progress("Getting sent email details with id: {}".format(message_id))
+        ret_val, message_details = self._get_message(action_result, email_addr, message_id)
+        if phantom.is_fail(ret_val):
+            return action_result
+        self.save_progress("Got sent email details.")
+
+        action_result.add_data(message_details)
 
         return action_result.set_status(phantom.APP_SUCCESS, "Successfully updated email")
 
