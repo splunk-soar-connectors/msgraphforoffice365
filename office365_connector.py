@@ -3263,6 +3263,31 @@ class Office365Connector(BaseConnector):
 
         return phantom.APP_SUCCESS, list_items
 
+    def _handle_update_email(self, param):
+        self.save_progress("In action handler for: {}".format(self.get_action_identifier()))
+        action_result = self.add_action_result(ActionResult(dict(param)))
+
+        email_addr = param["email_address"]
+        message_id = param["id"]
+        category = param["category"]
+        category = [x.strip() for x in category.split(',')]
+        endpoint = "/users/{0}".format(email_addr)
+
+        endpoint += "/messages/{0}".format(message_id)
+
+        data = {'categories': category}
+
+        ret_val, _ = self._make_rest_call_helper(
+            action_result, endpoint, method="patch", data=json.dumps(data)
+        )
+
+        self.save_progress(str(ret_val))
+
+        if phantom.is_fail(ret_val):
+            return action_result.get_status()
+
+        return action_result.set_status(phantom.APP_SUCCESS, "Successfully updated email")
+
     def handle_action(self, param):
 
         ret_val = phantom.APP_SUCCESS
@@ -3334,6 +3359,9 @@ class Office365Connector(BaseConnector):
 
         elif action_id == 'send_email':
             ret_val = self._handle_send_email(param)
+
+        elif action_id == 'update_email':
+            ret_val = self._handle_update_email(param)
 
         return ret_val
 

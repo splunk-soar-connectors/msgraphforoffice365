@@ -7130,6 +7130,563 @@
             },
             "output": [],
             "versions": "EQ(*)"
+        },
+        {
+            "action": "update email",
+            "description": "Update an email on the server",
+            "verbose": "Currently, this action only updates the category and subject of an email. To set multiple categories, please pass a comma-separated list to the <b>category</b> parameter.<br>NOTE: If the user tries to update the categories, then the existing categories of the email will be replaced with the new categories provided as input.",
+            "type": "generic",
+            "identifier": "update_email",
+            "read_only": false,
+            "parameters": {
+                "id": {
+                    "description": "Message ID to delete",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": true,
+                    "contains": [
+                        "msgoffice365 message id"
+                    ],
+                    "order": 0
+                },
+                "email_address": {
+                    "description": "Email address of the mailbox owner",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": true,
+                    "contains": [
+                        "email"
+                    ],
+                    "order": 1
+                },
+                "category": {
+                    "description": "Categories to set",
+                    "data_type": "string",
+                    "order": 2,
+                    "allow_list": true
+                }
+            },
+            "render": {
+                "type": "table"
+            },
+            "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.category",
+                    "data_type": "string",
+                    "example_values": [
+                        "Yellow, Blue, Purple, red"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.email",
+                    "data_type": "string",
+                    "example_values": [
+                        "test@sample.com"
+                    ],
+                    "contains": [
+                        "email"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.id",
+                    "data_type": "string",
+                    "example_values": [
+                        "AAMkAGIyMTUxYTkzLWRjYjctNDFjMi04NTAxLTQzMDFkNDhlZmI5MQBGAAAAAACxQSnX8n2GS4cunBIQ2sV7BwCQhMsoV7EYSJF42ChR9SCxAAAAYCbsAACQhMsoV7EYSJF42ChR9SCxAAAAjh8bAAA="
+                    ],
+                    "contains": [
+                        "msgoffice365 message id"
+                    ],
+                    "column_name": "Message ID",
+                    "column_order": 1
+                },
+                {
+                    "data_path": "action_result.parameter.subject",
+                    "data_type": "string",
+                    "example_values": [
+                        "Both value are modified"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.t_Attachments.t_FileAttachment.*.t_AttachmentId.@Id",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.t_Attachments.t_FileAttachment.*.t_ContentType",
+                    "data_type": "string",
+                    "example_value": "application/pdf"
+                },
+                {
+                    "data_path": "action_result.data.*.t_Attachments.t_FileAttachment.*.t_IsContactPhoto",
+                    "data_type": "string",
+                    "example_value": "false"
+                },
+                {
+                    "data_path": "action_result.data.*.t_Attachments.t_FileAttachment.*.t_IsInline",
+                    "data_type": "string",
+                    "example_value": "false"
+                },
+                {
+                    "data_path": "action_result.data.*.t_Attachments.t_FileAttachment.*.t_LastModifiedTime",
+                    "data_type": "string",
+                    "example_value": "2010-07-30T10:52:32"
+                },
+                {
+                    "data_path": "action_result.data.*.t_Attachments.t_FileAttachment.*.t_Name",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.t_Attachments.t_FileAttachment.*.t_Size",
+                    "data_type": "string",
+                    "example_value": "23433"
+                },
+                {
+                    "data_path": "action_result.data.*.t_Attachments.t_FileAttachment.t_AttachmentId.@Id",
+                    "data_type": "string",
+                    "example_values": [
+                        "AAMkAGIyMTUxYTkzLWRjYjctNDFjMi04NTAxLTQzMDFkNDhlZmI5MQBGAAAAAACxQSnX8n2GS4cunBIQ2sV7BwCQhMsoV7EYSJF42ChR9SCxAAAAYCbsAACQhMsoV7EYSJF42ChR9SCxAAAAjh8bAAABEgAQAHAXDtZM8ItNnDTtvcd6IAo="
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.t_Attachments.t_FileAttachment.t_ContentId",
+                    "data_type": "string",
+                    "example_values": [
+                        "7518226202D21C4397EE1CB1E2E540C7@sample.com"
+                    ],
+                    "contains": [
+                        "email"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.t_Attachments.t_FileAttachment.t_ContentType",
+                    "data_type": "string",
+                    "example_values": [
+                        "application/octet-stream"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.t_Attachments.t_FileAttachment.t_IsContactPhoto",
+                    "data_type": "string",
+                    "example_values": [
+                        "false"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.t_Attachments.t_FileAttachment.t_IsInline",
+                    "data_type": "string",
+                    "example_values": [
+                        "false"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.t_Attachments.t_FileAttachment.t_LastModifiedTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "2017-10-03T21:31:05"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.t_Attachments.t_FileAttachment.t_Name",
+                    "data_type": "string",
+                    "example_values": [
+                        "test.msg"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.t_Attachments.t_FileAttachment.t_Size",
+                    "data_type": "string",
+                    "example_values": [
+                        "55360"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.t_Attachments.t_ItemAttachment.t_AttachmentId.@Id",
+                    "data_type": "string",
+                    "example_values": [
+                        "AAMkAGFmNTRhODA4LWIxMjQtNDJjYy05NDM2LWQ5MzY1MGFhMTkzYwBGAAAAAADRlY7ewL4xToKRDciQog5UBwBvUzMoUJx2S4nbgxzZWx2PAAEHZktbAABvUzMoUJx2S4nbgxzZWx2PAAEnqxyTAAABEgAQAN3G1cBjf8hIhr55ziP1DBI="
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.t_Attachments.t_ItemAttachment.t_ContentId",
+                    "data_type": "string",
+                    "example_values": [
+                        "9C14EE4B699D7349B0403C3CDF3F8729@namprd17.prod.outlook.com"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.t_Attachments.t_ItemAttachment.t_ContentType",
+                    "data_type": "string",
+                    "example_values": [
+                        "message/rfc822"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.t_Attachments.t_ItemAttachment.t_IsInline",
+                    "data_type": "string",
+                    "example_values": [
+                        "false"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.t_Attachments.t_ItemAttachment.t_LastModifiedTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "2019-11-08T11:46:32"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.t_Attachments.t_ItemAttachment.t_Name",
+                    "data_type": "string",
+                    "example_values": [
+                        "Test user added you to the test-h1 group"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.t_Attachments.t_ItemAttachment.t_Size",
+                    "data_type": "string",
+                    "example_values": [
+                        "69852"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.t_Body.#text",
+                    "data_type": "string",
+                    "example_values": [
+                        "Attached .msg file. Hello"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.t_Body.@BodyType",
+                    "data_type": "string",
+                    "example_values": [
+                        "Text"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.t_Categories",
+                    "data_type": "string",
+                    "example_values": [
+                        "red"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.t_CcRecipients.t_Mailbox.t_EmailAddress",
+                    "data_type": "string",
+                    "example_value": "abc@xyz.com"
+                },
+                {
+                    "data_path": "action_result.data.*.t_CcRecipients.t_Mailbox.t_MailboxType",
+                    "data_type": "string",
+                    "example_value": "OneOff"
+                },
+                {
+                    "data_path": "action_result.data.*.t_CcRecipients.t_Mailbox.t_Name",
+                    "data_type": "string",
+                    "example_value": "abc@xyz.com"
+                },
+                {
+                    "data_path": "action_result.data.*.t_CcRecipients.t_Mailbox.t_RoutingType",
+                    "data_type": "string",
+                    "example_value": "SMTP"
+                },
+                {
+                    "data_path": "action_result.data.*.t_DateTimeCreated",
+                    "data_type": "string",
+                    "example_values": [
+                        "2017-10-05T20:19:58Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.t_DateTimeReceived",
+                    "data_type": "string",
+                    "example_values": [
+                        "2017-10-03T21:31:05Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.t_DateTimeSent",
+                    "data_type": "string",
+                    "example_values": [
+                        "2017-10-03T21:31:20Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.t_ExtendedProperty.t_ExtendedFieldURI.@PropertyTag",
+                    "data_type": "string",
+                    "example_values": [
+                        "0x7d"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.t_ExtendedProperty.t_ExtendedFieldURI.@PropertyType",
+                    "data_type": "string",
+                    "example_values": [
+                        "String"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.t_ExtendedProperty.t_Value",
+                    "data_type": "string",
+                    "example_values": [
+                        "MWHPR18MB1519.namprd18.prod.outlook.com"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.t_From.t_Mailbox.t_EmailAddress",
+                    "data_type": "string",
+                    "example_values": [
+                        "test@sample.com"
+                    ],
+                    "contains": [
+                        "email"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.t_From.t_Mailbox.t_MailboxType",
+                    "data_type": "string",
+                    "example_values": [
+                        "OneOff"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.t_From.t_Mailbox.t_Name",
+                    "data_type": "string",
+                    "example_values": [
+                        "Test"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.t_From.t_Mailbox.t_RoutingType",
+                    "data_type": "string",
+                    "example_values": [
+                        "SMTP"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.t_HasAttachments",
+                    "data_type": "string",
+                    "example_values": [
+                        "true"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.t_InternetMessageId",
+                    "data_type": "string",
+                    "example_values": [
+                        "<81c761fe-caa8-f924-f65d-079382c1ad0b@sample.com>"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.t_IsAssociated",
+                    "data_type": "string",
+                    "example_values": [
+                        "false"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.t_IsDeliveryReceiptRequested",
+                    "data_type": "string",
+                    "example_values": [
+                        "false"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.t_IsRead",
+                    "data_type": "string",
+                    "example_values": [
+                        "true"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.t_IsReadReceiptRequested",
+                    "data_type": "string",
+                    "example_values": [
+                        "false"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.t_ItemId.@ChangeKey",
+                    "data_type": "string",
+                    "example_values": [
+                        "CQAAABYAAACQhMsoV7EYSJF42ChR9SCxAAAAj9UU"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.t_ItemId.@Id",
+                    "data_type": "string",
+                    "example_values": [
+                        "AAMkAGIyMTUxYTkzLWRjYjctNDFjMi04NTAxLTQzMDFkNDhlZmI5MQBGAAAAAACxQSnX8n2GS4cunBIQ2sV7BwCQhMsoV7EYSJF42ChR9SCxAAAAYCbsAACQhMsoV7EYSJF42ChR9SCxAAAAjh8bAAA="
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.t_LastModifiedTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "2017-10-31T01:09:20Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.t_MimeContent.#text",
+                    "data_type": "string",
+                    "example_values": [
+                        "RnJvbTogUGhhbnRvbSBVc2VyIDxwaGFudG9t..."
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.t_MimeContent.@CharacterSet",
+                    "data_type": "string",
+                    "example_values": [
+                        "UTF-8"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.t_ResponseObjects.t_ForwardItem",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.t_ResponseObjects.t_ReplyAllToItem",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.t_ResponseObjects.t_ReplyToItem",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.t_Sender.t_Mailbox.t_EmailAddress",
+                    "data_type": "string",
+                    "example_values": [
+                        "test@sample.com"
+                    ],
+                    "contains": [
+                        "email"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.t_Sender.t_Mailbox.t_MailboxType",
+                    "data_type": "string",
+                    "example_values": [
+                        "OneOff"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.t_Sender.t_Mailbox.t_Name",
+                    "data_type": "string",
+                    "example_values": [
+                        "test"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.t_Sender.t_Mailbox.t_RoutingType",
+                    "data_type": "string",
+                    "example_values": [
+                        "SMTP"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.t_Sensitivity",
+                    "data_type": "string",
+                    "example_values": [
+                        "Normal"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.t_Size",
+                    "data_type": "string",
+                    "example_values": [
+                        "56353"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.t_Subject",
+                    "data_type": "string",
+                    "example_values": [
+                        "Both value are modified"
+                    ],
+                    "column_name": "Subject",
+                    "column_order": 0
+                },
+                {
+                    "data_path": "action_result.data.*.t_ToRecipients.t_Mailbox.*.t_EmailAddress",
+                    "data_type": "string",
+                    "example_values": [
+                        "test@sample.com"
+                    ],
+                    "contains": [
+                        "email"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.t_ToRecipients.t_Mailbox.*.t_MailboxType",
+                    "data_type": "string",
+                    "example_values": [
+                        "Mailbox"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.t_ToRecipients.t_Mailbox.*.t_Name",
+                    "data_type": "string",
+                    "example_values": [
+                        "Test User"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.t_ToRecipients.t_Mailbox.*.t_RoutingType",
+                    "data_type": "string",
+                    "example_values": [
+                        "SMTP"
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary.create_time",
+                    "data_type": "string",
+                    "example_values": [
+                        "2017-10-05T20:19:58Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary.sent_time",
+                    "data_type": "string",
+                    "example_values": [
+                        "2017-10-03T21:31:20Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary.subject",
+                    "data_type": "string",
+                    "example_values": [
+                        "Both value are modified"
+                    ]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "Create time: 2017-10-05T20:19:58Z\nSubject: Both value are modified\nSent time: 2017-10-03T21:31:20Z"
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                }
+            ],
+            "versions": "EQ(*)"
         }
     ],
     "pip_dependencies": {
