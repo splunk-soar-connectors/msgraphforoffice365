@@ -3264,14 +3264,13 @@ class Office365Connector(BaseConnector):
         return phantom.APP_SUCCESS, list_items
 
     def _handle_update_email(self, param):
-        self.save_progress("In action handler for: {}".format(self.get_action_identifier()))
+        self.save_progress(f"In action handler for: {self.get_action_identifier()}")
         action_result = self.add_action_result(ActionResult(dict(param)))
 
         email_addr = param["email_address"]
         message_id = param["id"]
 
-        endpoint = "/users/{0}".format(email_addr)
-        endpoint += "/messages/{0}".format(message_id)
+        endpoint = f"/users/{email_addr}/messages/{message_id}"
 
         category = param.get('category')
         subject = param.get('subject')
@@ -3279,17 +3278,17 @@ class Office365Connector(BaseConnector):
         if subject is None and category is None:
             return action_result.set_status(phantom.APP_ERROR, "Please specify one of the email properties to update")
 
-        data = {}
+        data_to_send = {}
         if category is not None:
             category = [x.strip() for x in category.split(',')]
-            data['categories'] = category
+            data_to_send['categories'] = category
 
         if subject is not None:
-            data['subject'] = subject
+            data_to_send['subject'] = subject
 
         self.save_progress("Updating email")
         ret_val, _ = self._make_rest_call_helper(
-            action_result, endpoint, method="patch", data=json.dumps(data)
+            action_result, endpoint, method="patch", data=json.dumps(data_to_send)
         )
         if phantom.is_fail(ret_val):
             return action_result.get_status()
