@@ -7164,7 +7164,7 @@
                     "data_type": "string",
                     "order": 2
                 },
-                "category": {
+                "categories": {
                     "description": "Categories to set",
                     "data_type": "string",
                     "order": 3,
@@ -7184,7 +7184,7 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.parameter.category",
+                    "data_path": "action_result.parameter.categories",
                     "data_type": "string",
                     "example_values": [
                         "Yellow, Blue, Purple, red"

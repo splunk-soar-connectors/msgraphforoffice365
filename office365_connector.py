@@ -3272,16 +3272,16 @@ class Office365Connector(BaseConnector):
 
         endpoint = f"/users/{email_addr}/messages/{message_id}"
 
-        category = param.get('category')
+        categories = param.get('categories')
         subject = param.get('subject')
 
-        if subject is None and category is None:
+        if subject is None and categories is None:
             return action_result.set_status(phantom.APP_ERROR, "Please specify one of the email properties to update")
 
         data_to_send = {}
-        if category is not None:
-            category = [x.strip() for x in category.split(',')]
-            data_to_send['categories'] = category
+        if categories is not None:
+            categories = [x.strip() for x in categories.split(',')]
+            data_to_send['categories'] = categories
 
         if subject is not None:
             data_to_send['subject'] = subject
@@ -3293,7 +3293,7 @@ class Office365Connector(BaseConnector):
         if phantom.is_fail(ret_val):
             return action_result.get_status()
 
-        self.save_progress("Getting sent email details with id: {}".format(message_id))
+        self.save_progress(f"Getting sent email details with id: {message_id}")
         ret_val, message_details = self._get_message(action_result, email_addr, message_id)
         if phantom.is_fail(ret_val):
             return action_result
