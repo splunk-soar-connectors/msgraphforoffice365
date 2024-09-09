@@ -1540,13 +1540,13 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 **id** |  required  | Message ID to delete | string |  `msgoffice365 message id` 
 **email_address** |  required  | Email address of the mailbox owner | string |  `email` 
 **subject** |  optional  | Subject to set | string | 
-**category** |  optional  | Categories to set | string | 
+**categories** |  optional  | Categories to set | string | 
 
 #### Action Output
 DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
 --------- | ---- | -------- | --------------
 action_result.status | string |  |   success  failed 
-action_result.parameter.category | string |  |   Yellow, Blue, Purple, red 
+action_result.parameter.categories | string |  |   Yellow, Blue, Purple, red 
 action_result.parameter.email_address | string |  `email`  |   test@sample.com 
 action_result.parameter.id | string |  `msgoffice365 message id`  |   AAMkAGIyMTUxYTkzLWRjYjctNDFjMi04NTAxLTQzMDFkNDhlZmI5MQBGAAAAAACxQSnX8n2GS4cunBIQ2sV7BwCQhMsoV7EYSJF42ChR9SCxAAAAYCbsAACQhMsoV7EYSJF42ChR9SCxAAAAjh8bAAA= 
 action_result.parameter.subject | string |  |   Both value are modified 
