@@ -1538,7 +1538,7 @@ Currently, this action only updates the category and subject of an email. To set
 PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 --------- | -------- | ----------- | ---- | --------
 **id** |  required  | Message ID to delete | string |  `msgoffice365 message id` 
-**email_address** |  optional  | Email address of the mailbox owner | string |  `email` 
+**email_address** |  required  | Email address of the mailbox owner | string |  `email` 
 **subject** |  optional  | Subject to set | string | 
 **category** |  optional  | Categories to set | string | 
 
