@@ -3267,14 +3267,10 @@ class Office365Connector(BaseConnector):
         self.save_progress("In action handler for: {}".format(self.get_action_identifier()))
         action_result = self.add_action_result(ActionResult(dict(param)))
 
-        email_addr = param.get("email_address")
+        email_addr = param["email_address"]
         message_id = param["id"]
 
-        if email_addr:
-            endpoint = "/users/{0}".format(email_addr)
-        else:
-            endpoint = "/me"
-
+        endpoint = "/users/{0}".format(email_addr)
         endpoint += "/messages/{0}".format(message_id)
 
         category = param.get('category')

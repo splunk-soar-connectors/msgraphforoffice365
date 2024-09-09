@@ -7152,6 +7152,7 @@
                 "email_address": {
                     "description": "Email address of the mailbox owner",
                     "data_type": "string",
+                    "required": true,
                     "primary": true,
                     "contains": [
                         "email"
