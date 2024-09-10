@@ -3265,7 +3265,7 @@ class Office365Connector(BaseConnector):
 
     def _handle_update_email(self, param):
         self.save_progress(f"In action handler for: {self.get_action_identifier()}")
-        action_result = self.add_action_result(ActionResult(dict(param)))
+        action_result = self.add_action_result(ActionResult(param))
 
         email_addr = param["email_address"]
         message_id = param["id"]
