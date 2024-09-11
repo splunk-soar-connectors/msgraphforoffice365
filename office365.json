@@ -37,7 +37,7 @@
     "utctime_updated": "2023-10-12T11:20:32.000000Z",
     "package_name": "phantom_msgraphoffice365",
     "main_module": "office365_connector.py",
-    "min_phantom_version": "6.1.1",
+    "min_phantom_version": "6.2.1",
     "latest_tested_versions": [
         "Cloud 9 January, 2024"
     ],
@@ -7129,6 +7129,374 @@
                 }
             },
             "output": [],
+            "versions": "EQ(*)"
+        },
+        {
+            "action": "update email",
+            "description": "Update an email on the server",
+            "verbose": "Currently, this action only updates the categories and subject of an email. To set multiple categories, please pass a comma-separated list to the <b>category</b> parameter.<br>NOTE: If the user tries to update the categories, then the existing categories of the email will be replaced with the new categories provided as input.",
+            "type": "generic",
+            "identifier": "update_email",
+            "read_only": false,
+            "parameters": {
+                "id": {
+                    "description": "Message ID to delete",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": true,
+                    "contains": [
+                        "msgoffice365 message id"
+                    ],
+                    "order": 0
+                },
+                "email_address": {
+                    "description": "Email address of the mailbox owner",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": true,
+                    "contains": [
+                        "email"
+                    ],
+                    "order": 1
+                },
+                "subject": {
+                    "description": "Subject to set",
+                    "data_type": "string",
+                    "order": 2
+                },
+                "categories": {
+                    "description": "Categories to set",
+                    "data_type": "string",
+                    "order": 3,
+                    "allow_list": true
+                }
+            },
+            "render": {
+                "type": "table"
+            },
+            "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.categories",
+                    "data_type": "string",
+                    "example_values": [
+                        "Yellow, Blue, Purple, red"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.email_address",
+                    "data_type": "string",
+                    "example_values": [
+                        "test@sample.com"
+                    ],
+                    "contains": [
+                        "email"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.id",
+                    "data_type": "string",
+                    "example_values": [
+                        "AAMkAGIyMTUxYTkzLWRjYjctNDFjMi04NTAxLTQzMDFkNDhlZmI5MQBGAAAAAACxQSnX8n2GS4cunBIQ2sV7BwCQhMsoV7EYSJF42ChR9SCxAAAAYCbsAACQhMsoV7EYSJF42ChR9SCxAAAAjh8bAAA="
+                    ],
+                    "contains": [
+                        "msgoffice365 message id"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.subject",
+                    "data_type": "string",
+                    "example_values": [
+                        "Both value are modified"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.@odata.context",
+                    "data_type": "string",
+                    "example_values": [
+                        "https://test.abc.com/v1.0/$metadata#users('user%40.abc.com')/messages(internetMessageHeaders,body,uniqueBody,sender,subject)/$entity"
+                    ],
+                    "contains": [
+                        "url"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.@odata.etag",
+                    "data_type": "string",
+                    "example_values": [
+                        "W/\"CQAAABYAAABBKXVvwEWISZupmqX4mJS3AAO8DBJl\""
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.body.content",
+                    "data_type": "string",
+                    "example_values": [
+                        "`Have a good time with these.\\r\\n`"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.body.contentType",
+                    "data_type": "string",
+                    "example_values": [
+                        "html"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.bodyPreview",
+                    "data_type": "string",
+                    "example_values": [
+                        "Have a good time with these."
+                    ],
+                    "column_name": "Body Preview",
+                    "column_order": 2
+                },
+                {
+                    "data_path": "action_result.data.*.changeKey",
+                    "data_type": "string",
+                    "example_values": [
+                        "CQAAABYAAADTteE6Q2eCQKSqg19j6T+NAAYzSv5R"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.conversationId",
+                    "data_type": "string",
+                    "example_values": [
+                        "AAQkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQAQAORC3aOpHnZMsHD4-7L40sY="
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.conversationIndex",
+                    "data_type": "string",
+                    "example_values": [
+                        "AQHZopYz5ELdo6kedkywcPj/svjSxg=="
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.createdDateTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "2023-06-19T10:09:58Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.flag.flagStatus",
+                    "data_type": "string",
+                    "example_values": [
+                        "notFlagged"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.from.emailAddress.address",
+                    "data_type": "string",
+                    "example_values": [
+                        "test@test.com"
+                    ],
+                    "contains": [
+                        "email"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.from.emailAddress.name",
+                    "data_type": "string",
+                    "example_values": [
+                        "Ryan Edwards"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.hasAttachments",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ],
+                    "column_name": "Has Attachments",
+                    "column_order": 3
+                },
+                {
+                    "data_path": "action_result.data.*.id",
+                    "data_type": "string",
+                    "example_values": [
+                        "AQMkADU3NDk3MzJlLTY3MDQtNDE2Ny1iZDk1LTc4YjEwYzhmZDc5YQBGAAADyW3X5P7Hb0_MMHKonvdoWQcAQSl1b8BFiEmbqZql_JiUtwAAAgEMAAAAQSl1b8BFiEmbqZql_JiUtwADu9Tv8QAAAA=="
+                    ],
+                    "contains": [
+                        "msgoffice365 message id"
+                    ],
+                    "column_name": "Message ID",
+                    "column_order": 0
+                },
+                {
+                    "data_path": "action_result.data.*.importance",
+                    "data_type": "string",
+                    "example_values": [
+                        "normal"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.inferenceClassification",
+                    "data_type": "string",
+                    "example_values": [
+                        "focused"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageId",
+                    "data_type": "string",
+                    "example_values": [
+                        "<PH7PR11MB690810916B33B92C7EF5E558D95FA@PH7PR11MB6908.namprd11.prod.test.com>"
+                    ],
+                    "contains": [
+                        "msgoffice365 internet message id"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.isDeliveryReceiptRequested",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.isDraft",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.isRead",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.isReadReceiptRequested",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.lastModifiedDateTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "2023-06-19T10:09:58Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.parentFolderId",
+                    "data_type": "string",
+                    "example_values": [
+                        "AQMkAGYxNGJmOWQyLTlhMjctNGRiOS1iODU0LTA1ZWE3ZmQ3NDU3MQAuAAADeDDJKaEf4EihMWU6SZgKbAEA07XhOkNngkCkqoNfY_k-jQAAAgEPAAAA"
+                    ],
+                    "contains": [
+                        "msgoffice365 folder id"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.receivedDateTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "2020-06-18T09:11:31Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.sender.emailAddress.address",
+                    "data_type": "string",
+                    "example_values": [
+                        "notifications@testdomain.com"
+                    ],
+                    "contains": [
+                        "email"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.sender.emailAddress.name",
+                    "data_type": "string",
+                    "example_values": [
+                        "notifications@testdomain.com"
+                    ],
+                    "contains": [
+                        "email"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.sentDateTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "2023-06-19T10:09:58Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.subject",
+                    "data_type": "string",
+                    "example_values": [
+                        "test html"
+                    ],
+                    "column_name": "Subject",
+                    "column_order": 1
+                },
+                {
+                    "data_path": "action_result.data.*.toRecipients.*.emailAddress.address",
+                    "data_type": "string",
+                    "example_values": [
+                        "test@test.com"
+                    ],
+                    "contains": [
+                        "email"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.toRecipients.*.emailAddress.name",
+                    "data_type": "string",
+                    "example_values": [
+                        "Ryan Edwards"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.webLink",
+                    "data_type": "string",
+                    "example_values": [
+                        "https://outlook.office365.com/owa/?ItemID=AAkALgAAAAAAHYQDEapmEc2byACqAC%2FEWg0A07XhOkNngkCkqoNfY%2Bk%2FjQAGNNQOowAA&exvsurl=1&viewmodel=ReadMessageItem"
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "Create time: 2017-10-05T20:19:58Z\nSubject: Both value are modified\nSent time: 2017-10-03T21:31:20Z"
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                }
+            ],
             "versions": "EQ(*)"
         }
     ],
