@@ -351,6 +351,8 @@ VARIABLE | REQUIRED | TYPE | DESCRIPTION
 [send email](#action-send-email) - Sends an email with optional text rendering. Attachments are allowed a Content-ID tag for reference within the html  
 [on poll](#action-on-poll) - Ingest emails from Office 365 using Graph API  
 [update email](#action-update-email) - Update an email on the server  
+[block sender](#action-block-sender) - Add the sender email into the block list  
+[unblock sender](#action-unblock-sender) - Remove the sender email from the block list  
 
 ## action: 'test connectivity'
 Use supplied credentials to generate a token with MS Graph
@@ -1586,4 +1588,50 @@ action_result.message | string |  |   Create time: 2017-10-05T20:19:58Z
 Subject: Both value are modified
 Sent time: 2017-10-03T21:31:20Z 
 summary.total_objects | numeric |  |   1 
-summary.total_objects_successful | numeric |  |   1 
+summary.total_objects_successful | numeric |  |   1   
+
+## action: 'block sender'
+Add the sender email into the block list
+
+Type: **contain**  
+Read only: **False**
+
+#### Action Parameters
+PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
+--------- | -------- | ----------- | ---- | --------
+**message_id** |  required  | Message ID to pick the sender of | string | 
+**user_id** |  required  | User ID to base the action of | string | 
+**move_to_junk_folder** |  optional  | Should the email be moved to the junk folder | boolean | 
+
+#### Action Output
+DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
+--------- | ---- | -------- | --------------
+action_result.parameter.id | string |  |  
+action_result.parameter.move_to_junk_folder | boolean |  |  
+action_result.status | string |  |  
+action_result.message | string |  |  
+summary.total_objects | numeric |  |  
+summary.total_objects_successful | numeric |  |    
+
+## action: 'unblock sender'
+Remove the sender email from the block list
+
+Type: **contain**  
+Read only: **False**
+
+#### Action Parameters
+PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
+--------- | -------- | ----------- | ---- | --------
+**message_id** |  required  | Message ID to pick the sender of | string | 
+**user_id** |  required  | User ID to base the action of | string | 
+**move_to_inbox** |  optional  | Should the email be moved to the inbox folder | boolean | 
+
+#### Action Output
+DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
+--------- | ---- | -------- | --------------
+action_result.parameter.id | string |  |  
+action_result.parameter.move_to_junk_folder | boolean |  |  
+action_result.status | string |  |  
+action_result.message | string |  |  
+summary.total_objects | numeric |  |  
+summary.total_objects_successful | numeric |  |  
