@@ -43,7 +43,7 @@ from process_email import ProcessEmail
 
 TC_FILE = "oauth_task.out"
 SERVER_TOKEN_URL = "https://login.microsoftonline.com/{0}/oauth2/v2.0/token"
-MSGRAPH_API_URL = "https://graph.microsoft.com/v1.0"
+MSGRAPH_API_URL = "https://graph.microsoft.com"
 MAX_END_OFFSET_VAL = 2147483646
 
 
@@ -792,12 +792,16 @@ class Office365Connector(BaseConnector):
         method="get",
         nextLink=None,
         download=False,
+        beta=False,
     ):
 
         if nextLink:
             url = nextLink
         else:
-            url = "{0}{1}".format(MSGRAPH_API_URL, endpoint)
+            if not beta:
+                url = f"{MSGRAPH_API_URL}/v1.0{endpoint}"
+            else:
+                url = f"{MSGRAPH_API_URL}/beta{endpoint}"
 
         if headers is None:
             headers = {}
@@ -3303,6 +3307,52 @@ class Office365Connector(BaseConnector):
 
         return action_result.set_status(phantom.APP_SUCCESS, "Successfully updated email")
 
+    def _handle_block_sender(self, param):
+        self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
+        action_result = self.add_action_result(ActionResult(dict(param)))
+
+        message = param['message_id']
+        user = param['user_id']
+        move_to_junk_folder = param.get('move_to_junk_folder', False)
+
+        endpoint = f'/users/{user}/messages/{message}/markAsJunk'
+        self.save_progress(f"endpoint {endpoint}")
+
+        ret_val, response = self._make_rest_call_helper(
+            action_result, endpoint, data=json.dumps({"moveToJunk": move_to_junk_folder}), method='post', beta=True
+        )
+
+        self.save_progress(f"Response gathered by query: {response}")
+
+        if phantom.is_fail(ret_val):
+            return action_result.set_status(phantom.APP_ERROR, f"Moving email  with id: {message} to junk folder failed")
+
+        action_result.add_data(response)
+        return action_result.set_status(phantom.APP_SUCCESS)
+
+    def _handle_unblock_sender(self, param):
+        self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
+        action_result = self.add_action_result(ActionResult(dict(param)))
+
+        message = param['message_id']
+        user = param['user_id']
+        move_to_inbox = param.get('move_to_inbox', False)
+
+        endpoint = f'/users/{user}/messages/{message}/markAsNotJunk'
+        self.save_progress(f"endpoint {endpoint}")
+
+        ret_val, response = self._make_rest_call_helper(
+            action_result, endpoint, data=json.dumps({"moveToInbox": move_to_inbox}), method='post', beta=True
+        )
+
+        self.save_progress(f"Response gathered by query: {response}")
+
+        if phantom.is_fail(ret_val):
+            return action_result.set_status(phantom.APP_ERROR, f"Moving email  with id: {message} to inbox folder failed")
+
+        action_result.add_data(response)
+        return action_result.set_status(phantom.APP_SUCCESS)
+
     def handle_action(self, param):
 
         ret_val = phantom.APP_SUCCESS
@@ -3311,6 +3361,12 @@ class Office365Connector(BaseConnector):
         action_id = self.get_action_identifier()
 
         self.debug_print("action_id", self.get_action_identifier())
+
+        if action_id == 'block_sender':
+            ret_val = self._handle_block_sender(param)
+
+        if action_id == 'unblock_sender':
+            ret_val = self._handle_unblock_sender(param)
 
         if action_id == "test_connectivity":
             ret_val = self._handle_test_connectivity(param)

@@ -7498,6 +7498,166 @@
                 }
             ],
             "versions": "EQ(*)"
+        },
+        {
+            "action": "block sender",
+            "identifier": "block_sender",
+            "description": "Add the sender email into the block list",
+            "verbose": "",
+            "type": "contain",
+            "read_only": false,
+            "parameters": {
+                "message_id": {
+                    "description": "Message ID to pick the sender of",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": true,
+                    "contains": [],
+                    "value_list": [],
+                    "default": "",
+                    "order": 0,
+                    "name": "message_id"
+                },
+                "user_id": {
+                    "description": "User ID to base the action of",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": true,
+                    "contains": [],
+                    "value_list": [],
+                    "default": "",
+                    "order": 1,
+                    "name": "user_id"
+                },
+                "move_to_junk_folder": {
+                    "description": "Should the email be moved to the junk folder",
+                    "data_type": "boolean",
+                    "required": false,
+                    "primary": false,
+                    "contains": [],
+                    "default": "",
+                    "order": 2,
+                    "name": "move_to_junk_folder"
+                }
+            },
+            "output": [
+                {
+                    "data_path": "action_result.parameter.id",
+                    "data_type": "string",
+                    "contains": [],
+                    "column_name": "id",
+                    "column_order": 0
+                },
+                {
+                    "data_path": "action_result.parameter.move_to_junk_folder",
+                    "data_type": "boolean",
+                    "contains": [],
+                    "column_name": "move_to_junk_folder",
+                    "column_order": 1
+                },
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "column_name": "status",
+                    "column_order": 2
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric"
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric"
+                }
+            ],
+            "render": {
+                "type": "table"
+            },
+            "versions": "EQ(*)"
+        },
+        {
+            "action": "unblock sender",
+            "identifier": "unblock_sender",
+            "description": "Remove the sender email from the block list",
+            "verbose": "",
+            "type": "contain",
+            "read_only": false,
+            "parameters": {
+                "message_id": {
+                    "description": "Message ID to pick the sender of",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": true,
+                    "contains": [],
+                    "value_list": [],
+                    "default": "",
+                    "order": 0,
+                    "name": "message_id"
+                },
+                "user_id": {
+                    "description": "User ID to base the action of",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": true,
+                    "contains": [],
+                    "value_list": [],
+                    "default": "",
+                    "order": 1,
+                    "name": "user_id"
+                },
+                "move_to_inbox": {
+                    "description": "Should the email be moved to the inbox folder",
+                    "data_type": "boolean",
+                    "required": false,
+                    "primary": false,
+                    "contains": [],
+                    "default": "",
+                    "order": 2,
+                    "name": "move_to_inbox"
+                }
+            },
+            "output": [
+                {
+                    "data_path": "action_result.parameter.id",
+                    "data_type": "string",
+                    "contains": [],
+                    "column_name": "id",
+                    "column_order": 0
+                },
+                {
+                    "data_path": "action_result.parameter.move_to_junk_folder",
+                    "data_type": "boolean",
+                    "contains": [],
+                    "column_name": "move_to_inbox",
+                    "column_order": 1
+                },
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "column_name": "status",
+                    "column_order": 2
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric"
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric"
+                }
+            ],
+            "render": {
+                "type": "table"
+            },
+            "versions": "EQ(*)"
         }
     ],
     "pip_dependencies": {
