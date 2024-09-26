@@ -3322,8 +3322,6 @@ class Office365Connector(BaseConnector):
             action_result, endpoint, data=json.dumps({"moveToJunk": move_to_junk_folder}), method='post', beta=True
         )
 
-        self.save_progress(f"Response gathered by query: {response}")
-
         if phantom.is_fail(ret_val):
             return action_result.set_status(phantom.APP_ERROR, f"Moving email  with id: {message} to junk folder failed")
 
@@ -3344,8 +3342,6 @@ class Office365Connector(BaseConnector):
         ret_val, response = self._make_rest_call_helper(
             action_result, endpoint, data=json.dumps({"moveToInbox": move_to_inbox}), method='post', beta=True
         )
-
-        self.save_progress(f"Response gathered by query: {response}")
 
         if phantom.is_fail(ret_val):
             return action_result.set_status(phantom.APP_ERROR, f"Moving email  with id: {message} to inbox folder failed")

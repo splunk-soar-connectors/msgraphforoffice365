@@ -7542,24 +7542,31 @@
             },
             "output": [
                 {
-                    "data_path": "action_result.parameter.id",
+                    "data_path": "action_result.parameter.message_id",
                     "data_type": "string",
                     "contains": [],
-                    "column_name": "id",
+                    "column_name": "message id",
                     "column_order": 0
                 },
                 {
                     "data_path": "action_result.parameter.move_to_junk_folder",
                     "data_type": "boolean",
                     "contains": [],
-                    "column_name": "move_to_junk_folder",
+                    "column_name": "move to junk folder",
                     "column_order": 1
+                },
+                {
+                    "data_path": "action_result.parameter.user_id",
+                    "data_type": "boolean",
+                    "contains": [],
+                    "column_name": "user id",
+                    "column_order": 2
                 },
                 {
                     "data_path": "action_result.status",
                     "data_type": "string",
                     "column_name": "status",
-                    "column_order": 2
+                    "column_order": 5
                 },
                 {
                     "data_path": "action_result.message",
@@ -7622,24 +7629,31 @@
             },
             "output": [
                 {
-                    "data_path": "action_result.parameter.id",
+                    "data_path": "action_result.parameter.message_id",
                     "data_type": "string",
                     "contains": [],
-                    "column_name": "id",
+                    "column_name": "message id",
                     "column_order": 0
                 },
                 {
-                    "data_path": "action_result.parameter.move_to_junk_folder",
+                    "data_path": "action_result.parameter.move_to_inbox",
                     "data_type": "boolean",
                     "contains": [],
-                    "column_name": "move_to_inbox",
+                    "column_name": "move to inbox folder",
                     "column_order": 1
+                },
+                {
+                    "data_path": "action_result.parameter.user_id",
+                    "data_type": "boolean",
+                    "contains": [],
+                    "column_name": "user id",
+                    "column_order": 2
                 },
                 {
                     "data_path": "action_result.status",
                     "data_type": "string",
                     "column_name": "status",
-                    "column_order": 2
+                    "column_order": 5
                 },
                 {
                     "data_path": "action_result.message",
@@ -7688,7 +7702,7 @@
             },
             {
                 "module": "soupsieve",
-                "input_file": "wheels/py3/soupsieve-2.5-py3-none-any.whl"
+                "input_file": "wheels/py3/soupsieve-2.6-py3-none-any.whl"
             }
         ]
     }
