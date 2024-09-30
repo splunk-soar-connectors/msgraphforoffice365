@@ -1606,8 +1606,9 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 #### Action Output
 DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
 --------- | ---- | -------- | --------------
-action_result.parameter.id | string |  |  
+action_result.parameter.message_id | string |  |  
 action_result.parameter.move_to_junk_folder | boolean |  |  
+action_result.parameter.user_id | boolean |  |  
 action_result.status | string |  |  
 action_result.message | string |  |  
 summary.total_objects | numeric |  |  
@@ -1629,8 +1630,9 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 #### Action Output
 DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
 --------- | ---- | -------- | --------------
-action_result.parameter.id | string |  |  
-action_result.parameter.move_to_junk_folder | boolean |  |  
+action_result.parameter.message_id | string |  |  
+action_result.parameter.move_to_inbox | boolean |  |  
+action_result.parameter.user_id | boolean |  |  
 action_result.status | string |  |  
 action_result.message | string |  |  
 summary.total_objects | numeric |  |  
