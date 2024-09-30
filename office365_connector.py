@@ -27,6 +27,7 @@ from copy import deepcopy
 from datetime import datetime
 
 import encryption_helper
+import msal
 import phantom.app as phantom
 import phantom.rules as ph_rules
 import phantom.utils as util
@@ -415,6 +416,9 @@ class Office365Connector(BaseConnector):
         )
         self._duplicate_count = 0
         self._asset_id = None
+        self._cba_auth = None
+        self._private_key = None
+        self._private_key_location = None
 
     def load_state(self):
         """
@@ -3380,56 +3384,80 @@ class Office365Connector(BaseConnector):
 
         return ret_val
 
+    def _generate_new_cba_access_token(self, action_result):
+
+        self.debug_print('CBA: Using Certificate Based Authentication')
+
+        authority = f"https://login.microsoftonline.com/{self._tenant}"
+        scope = ["https://graph.microsoft.com/.default"]
+
+        app = msal.ConfidentialClientApplication(
+            self._client_id, authority=authority,
+            client_credential={"thumbprint": self._thumbprint, "private_key": self._private_key},
+        )
+
+        self.debug_print("Requesting new token from AAD.")
+        result = app.acquire_token_for_client(scopes=scope)
+
+        return result
+
     def _get_token(self, action_result):
 
-        req_url = SERVER_TOKEN_URL.format(self._tenant)
-        headers = {"Content-Type": "application/x-www-form-urlencoded"}
+        if self._cba_auth is False:
+            req_url = SERVER_TOKEN_URL.format(self._tenant)
+            headers = {"Content-Type": "application/x-www-form-urlencoded"}
 
-        data = {
-            "client_id": self._client_id,
-            "client_secret": self._client_secret,
-            "grant_type": "client_credentials",
-        }
+            data = {
+                "client_id": self._client_id,
+                "client_secret": self._client_secret,
+                "grant_type": "client_credentials",
+            }
 
-        if not self._admin_access:
-            data["scope"] = "offline_access " + self._scope
-        else:
-            data["scope"] = "https://graph.microsoft.com/.default"
-
-        if not self._admin_access:
-            if self._state.get("code"):
-                self.save_progress("Generating token using authorization code")
-                data["redirect_uri"] = self._state.get("redirect_uri")
-                data["code"] = self._state.get("code")
-                data["grant_type"] = "authorization_code"
-                self._state.pop("code")
-            elif self._refresh_token:
-                self.save_progress("Generating token using refresh token")
-                data["refresh_token"] = self._refresh_token
-                data["grant_type"] = "refresh_token"
+            if not self._admin_access:
+                data["scope"] = "offline_access " + self._scope
             else:
-                return action_result.set_status(
-                    phantom.APP_ERROR,
-                    "Unexpected details retrieved from the state file.",
-                )
+                data["scope"] = "https://graph.microsoft.com/.default"
 
-        self.debug_print("Generating token...")
-        ret_val, resp_json = self._make_rest_call(
-            action_result, req_url, headers=headers, data=data, method="post"
-        )
-        if phantom.is_fail(ret_val):
-            return action_result.get_status()
-        # Save the response on the basis of admin_access
-        if self._admin_access:
-            # if admin consent already provided, save to state
-            if self._admin_consent:
-                self._state["admin_consent"] = True
-            self._state["admin_auth"] = resp_json
+            if not self._admin_access:
+                if self._state.get("code"):
+                    self.save_progress("Generating token using authorization code")
+                    data["redirect_uri"] = self._state.get("redirect_uri")
+                    data["code"] = self._state.get("code")
+                    data["grant_type"] = "authorization_code"
+                    self._state.pop("code")
+                elif self._refresh_token:
+                    self.save_progress("Generating token using refresh token")
+                    data["refresh_token"] = self._refresh_token
+                    data["grant_type"] = "refresh_token"
+                else:
+                    return action_result.set_status(
+                        phantom.APP_ERROR,
+                        "Unexpected details retrieved from the state file.",
+                    )
+
+            self.debug_print("Generating token...")
+            ret_val, resp_json = self._make_rest_call(
+                action_result, req_url, headers=headers, data=data, method="post"
+            )
+            if phantom.is_fail(ret_val):
+                return action_result.get_status()
+            # Save the response on the basis of admin_access
+            if self._admin_access:
+                # if admin consent already provided, save to state
+                if self._admin_consent:
+                    self._state["admin_consent"] = True
+                self._state["admin_auth"] = resp_json
+            else:
+                self._state["non_admin_auth"] = resp_json
+            # Fetching the access token and refresh token
+            self._access_token = resp_json.get("access_token")
+            self._refresh_token = resp_json.get("refresh_token")
         else:
-            self._state["non_admin_auth"] = resp_json
-        # Fetching the access token and refresh token
-        self._access_token = resp_json.get("access_token")
-        self._refresh_token = resp_json.get("refresh_token")
+            # If using Certificate Based Auth, call separate function to generate and return new access token
+            self.debug_print('Generating token using CBA')
+            token = self._generate_new_cba_access_token(action_result)
+            self._access_token = token.get("access_token")
+            self._state["admin_auth"] = token
 
         # Save state
         self.save_state(self._state)
@@ -3482,9 +3510,11 @@ class Office365Connector(BaseConnector):
 
         self._tenant = config['tenant']
         self._client_id = config['client_id']
-        self._client_secret = config['client_secret']
+        self._client_secret = config.get('client_secret')
         self._admin_access = config.get('admin_access')
         self._admin_consent = config.get('admin_consent')
+        self._thumbprint = config.get('certificate_thumbprint')
+        self._private_key_location = config.get('private_key_location')
         self._scope = config.get('scope') if config.get('scope') else None
 
         self._number_of_retries = config.get("retry_count", MSGOFFICE365_DEFAULT_NUMBER_OF_RETRIES)
@@ -3524,11 +3554,42 @@ class Office365Connector(BaseConnector):
                 "access_token", None
             )
 
-        if action_id == "test_connectivity":
+        admin_consent = self._state.get("admin_consent")
+
+        # Must either supply client_secret, or both thumbprint and private key
+        if self._client_secret is None:
+            if self._thumbprint is None or self._private_key_location is None:
+                return self.set_status(phantom.APP_ERROR, MSGOFFICE365_CBA_FIELDS_ERROR)
+
+        if self._client_secret is not None:
+            if self._thumbprint is not None or self._private_key_location is not None:
+                return self.set_status(phantom.APP_ERROR, MSGOFFICE365_FIELD_CONFLICT_ERROR)
+
+        if self._client_secret is not None:
+            self._cba_auth = False
+        else:
+            self._cba_auth = True
+            # Check non-interactive is enabled for CBA auth
+            if admin_consent is False:
+                return self.set_status(phantom.APP_ERROR, MSGOFFICE365_CBA_INTERACTIVE_ERROR)
+
+        if action_id == "test_connectivity" and not self._cba_auth:
             # User is trying to complete the authentication flow, so just return True from here so that test connectivity continues
             return phantom.APP_SUCCESS
 
-        admin_consent = self._state.get("admin_consent")
+        # Read private key if location provided
+        if self._private_key_location is not None:
+            try:
+                with open(self._private_key_location, 'r') as file:
+                    self._private_key = file.read()
+
+                    # Fix private key
+                    pem_prefix = '-----BEGIN RSA PRIVATE KEY-----'  # pragma: allowlist secret
+                    pem_suffix = '-----END RSA PRIVATE KEY-----'
+                    self._private_key = '\n'.join(self._private_key.replace(pem_prefix, '').replace(pem_suffix, '').strip().split())
+                    self._private_key = f'{pem_prefix}\n{self._private_key}\n{pem_suffix}'
+            except Exception:
+                return self.set_status(phantom.APP_ERROR, MSGOFFICE365_CBA_KEY_FILE_ERROR)
 
         # if it was not and the current action is not test connectivity then it's an error
         if self._admin_access and not admin_consent:
