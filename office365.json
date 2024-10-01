@@ -65,103 +65,115 @@
         "client_secret": {
             "description": "Application Secret",
             "data_type": "password",
-            "required": true,
+            "required": false,
             "order": 3
+        },
+        "certificate_thumbprint": {
+            "description": "Certificate Thumbprint",
+            "data_type": "password",
+            "required": false,
+            "order": 4
+        },
+        "private_key_location": {
+            "description": "Location of the certificate private key (.PEM) on the filesystem",
+            "data_type": "string",
+            "required": false,
+            "order": 5
         },
         "admin_access": {
             "description": "Admin Access Required",
             "data_type": "boolean",
             "default": true,
-            "order": 4
+            "order": 6
         },
         "admin_consent": {
             "description": "Admin Consent Already Provided",
             "data_type": "boolean",
             "default": false,
-            "order": 5
+            "order": 7
         },
         "scope": {
             "description": "Access Scope (for use with non-admin access; space-separated)",
             "data_type": "string",
             "default": "https://graph.microsoft.com/Calendars.Read https://graph.microsoft.com/User.Read",
-            "order": 6
+            "order": 8
         },
         "ph_2": {
             "data_type": "ph",
-            "order": 7
+            "order": 9
         },
         "email_address": {
             "description": "Email Address of the User (On Poll)",
             "data_type": "string",
-            "order": 8
+            "order": 10
         },
         "folder": {
             "description": "Mailbox folder name/folder path or the internal office365 folder ID to ingest (On Poll)",
             "data_type": "string",
-            "order": 9
+            "order": 11
         },
         "get_folder_id": {
             "description": "Retrieve the folder ID for the provided folder name/folder path automatically and replace the folder parameter value (On Poll)",
             "data_type": "boolean",
             "default": true,
-            "order": 10
+            "order": 12
         },
         "ph_3": {
             "data_type": "ph",
-            "order": 11
+            "order": 13
         },
         "first_run_max_emails": {
             "description": "Maximum Containers for scheduled polling first time",
             "data_type": "numeric",
             "default": 1000,
-            "order": 12
+            "order": 14
         },
         "max_containers": {
             "description": "Maximum Containers for scheduled polling",
             "data_type": "numeric",
             "default": 100,
-            "order": 13
+            "order": 15
         },
         "extract_attachments": {
             "description": "Extract Attachments",
             "data_type": "boolean",
             "default": false,
-            "order": 14
+            "order": 16
         },
         "extract_urls": {
             "description": "Extract URLs",
             "data_type": "boolean",
             "default": false,
-            "order": 15
+            "order": 17
         },
         "extract_ips": {
             "description": "Extract IPs",
             "data_type": "boolean",
             "default": false,
-            "order": 16
+            "order": 18
         },
         "extract_domains": {
             "description": "Extract Domain Names",
             "data_type": "boolean",
             "default": false,
-            "order": 17
+            "order": 19
         },
         "extract_hashes": {
             "description": "Extract Hashes",
             "data_type": "boolean",
             "default": false,
-            "order": 18
+            "order": 20
         },
         "ingest_eml": {
             "description": "Ingest EML file for the itemAttachment",
             "data_type": "boolean",
             "default": false,
-            "order": 19
+            "order": 21
         },
         "ingest_manner": {
             "data_type": "string",
             "description": "How to Ingest (during ingestion, should the app get the latest emails or the oldest)",
-            "order": 20,
+            "order": 22,
             "value_list": [
                 "oldest first",
                 "latest first"
@@ -172,18 +184,18 @@
             "description": "Maximum attempts to retry the API call (Default: 3)",
             "data_type": "numeric",
             "default": 3,
-            "order": 21
+            "order": 23
         },
         "retry_wait_time": {
             "description": "Delay in seconds between retries (Default: 60)",
             "data_type": "numeric",
             "default": 60,
-            "order": 22
+            "order": 24
         },
         "extract_eml": {
             "data_type": "boolean",
             "description": "Extract root (primary) email as Vault",
-            "order": 23,
+            "order": 25,
             "default": false
         }
     },
@@ -7513,6 +7525,10 @@
             {
                 "module": "soupsieve",
                 "input_file": "wheels/py3/soupsieve-2.3.2.post1-py3-none-any.whl"
+            },
+            {
+                "module": "msal",
+                "input_file": "wheels/py3/msal-1.28.0-py3-none-any.whl"
             }
         ]
     },
@@ -7529,6 +7545,10 @@
             {
                 "module": "soupsieve",
                 "input_file": "wheels/py3/soupsieve-2.5-py3-none-any.whl"
+            },
+            {
+                "module": "msal",
+                "input_file": "wheels/py3/msal-1.28.0-py3-none-any.whl"
             }
         ]
     }
