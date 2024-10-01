@@ -3023,6 +3023,40 @@ class Office365Connector(BaseConnector):
         action_result.add_data(response)
         return action_result.set_status(phantom.APP_SUCCESS)
 
+    def _handle_resolve_name(self, param):
+        self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
+        action_result = self.add_action_result(ActionResult(dict(param)))
+
+        email = param["email"]
+
+        endpoint = f"/users?$filter=startswith(displayName,'{email}') or startswith(mail,'{email}')"
+        endpoint_other_mails = f"{endpoint}&$select=mail,mailNickname,proxyAddresses,otherMails"
+        endpoint_other_address = f"{endpoint}&$select=city,state,street,postalCode"
+
+        ret_val, response = self._make_rest_call_helper(action_result, endpoint)
+        ret_val_proxy, response_proxy = self._make_rest_call_helper(action_result, endpoint_other_mails)
+        ret_val_address, response_address = self._make_rest_call_helper(action_result, endpoint_other_address)
+
+        endpoint_mailbox = f"/users/{response.get('value')[0].get('id')}/mailboxSettings"
+        ret_val_mailbox, response_mailbox = self._make_rest_call_helper(action_result, endpoint_mailbox)
+
+        self.save_progress(f"{ret_val} Got response {response}")
+        self.save_progress(f"{ret_val_proxy} Got response other mails {response_proxy}")
+        self.save_progress(f"{ret_val_address} Got response address {response_address}")
+        self.save_progress(f"{ret_val_mailbox} Got response mailbox {response_mailbox}")
+
+        if phantom.is_fail(ret_val):
+            return action_result.set_status(phantom.APP_ERROR, "Got invalid ret val")
+
+        action_result.add_data(response)
+        action_result.add_data(response_proxy)
+        action_result.add_data(response_address)
+        action_result.add_data(response_mailbox)
+
+        # summary = action_result.update_summary({})
+        # summary['num_data'] = len(action_result['data'])
+        return action_result.set_status(phantom.APP_SUCCESS)
+
     def handle_action(self, param):
 
         ret_val = phantom.APP_SUCCESS
@@ -3031,6 +3065,9 @@ class Office365Connector(BaseConnector):
         action_id = self.get_action_identifier()
 
         self.debug_print("action_id", self.get_action_identifier())
+
+        if action_id == "resolve_name":
+            ret_val = self._handle_resolve_name(param)
 
         if action_id == "block_sender":
             ret_val = self._handle_block_sender(param)
