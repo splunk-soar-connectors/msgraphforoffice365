@@ -3592,7 +3592,7 @@ class Office365Connector(BaseConnector):
                 return self.set_status(phantom.APP_ERROR, MSGOFFICE365_CBA_KEY_FILE_ERROR)
 
         # if it was not and the current action is not test connectivity then it's an error
-        if self._admin_access and not admin_consent:
+        if not self._cba_auth and self._admin_access and not admin_consent:
             return self.set_status(
                 phantom.APP_ERROR, MSGOFFICE365_RUN_CONNECTIVITY_MSG
             )
