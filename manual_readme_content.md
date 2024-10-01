@@ -37,9 +37,17 @@ On the next page, select **New registration** and give your app a name.
   
 Once the app is created, follow the below-mentioned steps:
 
--   Under **Certificates & secrets** select **New client secret** . Enter the **Description** and
-    select the desired duration in **Expires** . Click on **Add** . Note down this **value**
-    somewhere secure, as it cannot be retrieved after closing the window.
+-   For authentication using a client secret:
+
+    -   Under **Certificates & secrets** select **New client secret** . Enter the **Description** and
+        select the desired duration in **Expires** . Click on **Add** . Note down this **value**
+        somewhere secure, as it cannot be retrieved after closing the window.
+
+-  For authentication using certificate based authentication:
+
+    -   Under **Certificates & secrets** select **Certificates** then **Upload Certificate** . 
+        Select the public key file to upload (.crt) and enter the **Description** . Note down 
+        the **thumbprint** as this will be used to configure the asset.
 
 -   Under **Authentication** , select **Add a platform** . In the **Add a platform** window, select
     **Web** . The **Redirect URLs** should be filled right here. We will get **Redirect URLs** from
@@ -124,6 +132,15 @@ the window. To give this user permission to view assets, follow these steps:
     privilege. Then click **SAVE** .
 
 ### Test connectivity
+
+#### Certificate Based Authentication Workflow
+
+-   Configure the asset with **Tenant ID**, **Application ID**, **Certificate Thumbprint** and
+    the *Location of the the certificate private key (.PEM) on the SOAR server filesystem.
+-   Ensure **Admin Consent Already Provided** is checked.
+-   After setting up the asset and user, click the **TEST CONNECTIVITY** button.
+-   Check the message on the Test Connectivity dialog box, it should say **Test
+    Connectivity Passed** .
 
 #### Admin User Workflow
 
