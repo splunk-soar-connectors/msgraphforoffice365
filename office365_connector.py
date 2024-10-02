@@ -3027,31 +3027,33 @@ class Office365Connector(BaseConnector):
         self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
         action_result = self.add_action_result(ActionResult(dict(param)))
 
+        # id or userPrincipalName
         email = param["email"]
 
         endpoint = f"/users?$filter=startswith(displayName,'{email}') or startswith(mail,'{email}')"
-        endpoint_other_mails = f"{endpoint}&$select=mail,mailNickname,proxyAddresses,otherMails"
-        endpoint_other_address = f"{endpoint}&$select=city,state,street,postalCode"
-
-        ret_val, response = self._make_rest_call_helper(action_result, endpoint)
-        ret_val_proxy, response_proxy = self._make_rest_call_helper(action_result, endpoint_other_mails)
-        ret_val_address, response_address = self._make_rest_call_helper(action_result, endpoint_other_address)
-
-        endpoint_mailbox = f"/users/{response.get('value')[0].get('id')}/mailboxSettings"
-        ret_val_mailbox, response_mailbox = self._make_rest_call_helper(action_result, endpoint_mailbox)
-
-        self.save_progress(f"{ret_val} Got response {response}")
-        self.save_progress(f"{ret_val_proxy} Got response other mails {response_proxy}")
-        self.save_progress(f"{ret_val_address} Got response address {response_address}")
-        self.save_progress(f"{ret_val_mailbox} Got response mailbox {response_mailbox}")
+        ret_val, responses = self._make_rest_call_helper(action_result, endpoint)
 
         if phantom.is_fail(ret_val):
             return action_result.set_status(phantom.APP_ERROR, "Got invalid ret val")
 
-        action_result.add_data(response)
-        action_result.add_data(response_proxy)
-        action_result.add_data(response_address)
-        action_result.add_data(response_mailbox)
+        for response in responses.get("value"):
+
+            user_id = response.get("id")
+
+            endpoint_other_mails = f"/users/{user_id}?$select=mailNickname,proxyAddresses,otherMails"
+            endpoint_other_address = f"/users/{user_id}?$select=city,state,street,postalCode"
+            endpoint_mailbox = f"/users/{user_id}/mailboxSettings"
+
+            ret_val_proxy, response_proxy = self._make_rest_call_helper(action_result, endpoint_other_mails)
+            ret_val_address, response_address = self._make_rest_call_helper(action_result, endpoint_other_address)
+            ret_val_mailbox, response_mailbox = self._make_rest_call_helper(action_result, endpoint_mailbox)
+
+            self.save_progress(f"{ret_val} Got response {response}")
+            self.save_progress(f"{ret_val_proxy} Got response other mails {response_proxy}")
+            self.save_progress(f"{ret_val_address} Got response address {response_address}")
+            self.save_progress(f"{ret_val_mailbox} Got response mailbox {response_mailbox}")
+
+            action_result.add_data(response | response_proxy | response_address | (response_mailbox or {}))
 
         # summary = action_result.update_summary({})
         # summary['num_data'] = len(action_result['data'])
