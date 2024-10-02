@@ -353,6 +353,7 @@ VARIABLE | REQUIRED | TYPE | DESCRIPTION
 [update email](#action-update-email) - Update an email on the server  
 [block sender](#action-block-sender) - Add the sender email into the block list  
 [unblock sender](#action-unblock-sender) - Remove the sender email from the block list  
+[resolve name](#action-resolve-name) - Verify aliases and resolve display names to the appropriate mailbox user.  
 
 ## action: 'test connectivity'
 Use supplied credentials to generate a token with MS Graph
@@ -1633,6 +1634,28 @@ DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
 action_result.parameter.message_id | string |  |  
 action_result.parameter.move_to_inbox | boolean |  |  
 action_result.parameter.user_id | boolean |  |  
+action_result.status | string |  |  
+action_result.message | string |  |  
+summary.total_objects | numeric |  |  
+summary.total_objects_successful | numeric |  |    
+
+## action: 'resolve name'
+Verify aliases and resolve display names to the appropriate mailbox user.
+
+Type: **investigate**  
+Read only: **True**
+
+Resolve an Alias name or email address, into mailboxes.
+
+#### Action Parameters
+PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
+--------- | -------- | ----------- | ---- | --------
+**email** |  required  | Name to resolve | string | 
+
+#### Action Output
+DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
+--------- | ---- | -------- | --------------
+action_result.parameter.email | string |  |  
 action_result.status | string |  |  
 action_result.message | string |  |  
 summary.total_objects | numeric |  |  
