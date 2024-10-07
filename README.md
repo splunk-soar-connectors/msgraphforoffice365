@@ -1611,6 +1611,8 @@ action_result.parameter.message_id | string |  |
 action_result.parameter.move_to_junk_folder | boolean |  |  
 action_result.parameter.user_id | boolean |  |  
 action_result.status | string |  |  
+action_result.summary | string |  |  
+action_result.status | string |  |   success  failed 
 action_result.message | string |  |  
 summary.total_objects | numeric |  |  
 summary.total_objects_successful | numeric |  |    
@@ -1635,6 +1637,8 @@ action_result.parameter.message_id | string |  |
 action_result.parameter.move_to_inbox | boolean |  |  
 action_result.parameter.user_id | boolean |  |  
 action_result.status | string |  |  
+action_result.summary | string |  |  
+action_result.status | string |  |   success  failed 
 action_result.message | string |  |  
 summary.total_objects | numeric |  |  
 summary.total_objects_successful | numeric |  |    
@@ -1650,13 +1654,31 @@ Resolve an Alias name or email address, into mailboxes.
 #### Action Parameters
 PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 --------- | -------- | ----------- | ---- | --------
-**email** |  required  | Name to resolve | string | 
+**email** |  required  | Name to resolve | string |  `email`  `string` 
 
 #### Action Output
 DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
 --------- | ---- | -------- | --------------
-action_result.parameter.email | string |  |  
-action_result.status | string |  |  
+action_result.parameter.email | string |  `email`  `string`  |  
+action_result.data.\*.id | string |  `msgoffice365 id`  |  
+action_result.data.\*.userPrincipalName | string |  `msgoffice365 user principal name`  |  
+action_result.data.\*.givenName | string |  `msgoffice365 given name`  |  
+action_result.data.\*.surname | string |  `msgoffice365 surname`  |  
+action_result.data.\*.displayName | string |  `msgoffice365 display name`  |  
+action_result.data.\*.mailNickname | string |  `msgoffice365 mail nickname`  |  
+action_result.data.\*.mail | string |  `email`  |  
+action_result.data.\*.otherMails | string |  `email list`  |  
+action_result.data.\*.proxyAddresses | string |  `email list`  |  
+action_result.data.\*.jobTitle | string |  `msgoffice365 job title`  |  
+action_result.data.\*.officeLocation | string |  `msgoffice365 office location`  |  
+action_result.data.\*.value | string |  `msgoffice365 user purpose`  |  
+action_result.data.\*.mobilePhone | string |  `msgoffice365 mobile phone`  |  
+action_result.data.\*.businessPhones | string |  `msgoffice365 buisness phones`  |  
+action_result.data.\*.preferredLanguage | string |  `msgoffice365 preferred language`  |  
+action_result.data.\*.state | string |  `msgoffice365 state`  |  
+action_result.data.\*.postalCode | string |  `msgoffice365 postal code`  |  
+action_result.summary | string |  |  
+action_result.status | string |  |   success  failed 
 action_result.message | string |  |  
 summary.total_objects | numeric |  |  
 summary.total_objects_successful | numeric |  |  
