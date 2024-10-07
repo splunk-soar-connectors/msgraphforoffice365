@@ -353,7 +353,7 @@ VARIABLE | REQUIRED | TYPE | DESCRIPTION
 [update email](#action-update-email) - Update an email on the server  
 [block sender](#action-block-sender) - Add the sender email into the block list  
 [unblock sender](#action-unblock-sender) - Remove the sender email from the block list  
-[resolve name](#action-resolve-name) - Verify aliases and resolve display names to the appropriate mailbox user.  
+[resolve name](#action-resolve-name) - Verify aliases and resolve display names to the appropriate user  
 
 ## action: 'test connectivity'
 Use supplied credentials to generate a token with MS Graph
@@ -1640,7 +1640,7 @@ summary.total_objects | numeric |  |
 summary.total_objects_successful | numeric |  |    
 
 ## action: 'resolve name'
-Verify aliases and resolve display names to the appropriate mailbox user.
+Verify aliases and resolve display names to the appropriate user
 
 Type: **investigate**  
 Read only: **True**
