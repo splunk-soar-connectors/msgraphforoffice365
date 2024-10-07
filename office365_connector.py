@@ -3042,7 +3042,7 @@ class Office365Connector(BaseConnector):
 
             endpoint_other_mails = f"/users/{user_id}?$select=mailNickname,proxyAddresses,otherMails"
             endpoint_other_address = f"/users/{user_id}?$select=city,state,street,postalCode"
-            endpoint_mailbox = f"/users/{user_id}/mailboxSettings"
+            endpoint_mailbox = f"/users/{user_id}/mailboxSettings/userPurpose"
 
             ret_val_proxy, response_proxy = self._make_rest_call_helper(action_result, endpoint_other_mails)
             ret_val_address, response_address = self._make_rest_call_helper(action_result, endpoint_other_address)
@@ -3053,7 +3053,7 @@ class Office365Connector(BaseConnector):
             self.save_progress(f"{ret_val_address} Got response address {response_address}")
             self.save_progress(f"{ret_val_mailbox} Got response mailbox {response_mailbox}")
 
-            action_result.add_data(response | response_proxy | response_address | (response_mailbox or {}))
+            action_result.add_data(response | response_proxy | response_address | (response_mailbox or {"userPurpose": None}))
 
         # summary = action_result.update_summary({})
         # summary['num_data'] = len(action_result['data'])

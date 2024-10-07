@@ -7566,7 +7566,7 @@
                     "data_path": "action_result.status",
                     "data_type": "string",
                     "column_name": "status",
-                    "column_order": 5
+                    "column_order": 3
                 },
                 {
                     "data_path": "action_result.message",
@@ -7653,7 +7653,7 @@
                     "data_path": "action_result.status",
                     "data_type": "string",
                     "column_name": "status",
-                    "column_order": 5
+                    "column_order": 3
                 },
                 {
                     "data_path": "action_result.message",
@@ -7676,7 +7676,7 @@
         {
             "action": "resolve name",
             "identifier": "resolve_name",
-            "description": "Verify aliases and resolve display names to the appropriate mailbox user.",
+            "description": "Verify aliases and resolve display names to the appropriate user",
             "verbose": "Resolve an Alias name or email address, into mailboxes.",
             "type": "investigate",
             "read_only": true,
