@@ -7569,6 +7569,18 @@
                     "column_order": 3
                 },
                 {
+                    "data_path": "action_result.summary",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
+                {
                     "data_path": "action_result.message",
                     "data_type": "string"
                 },
@@ -7656,6 +7668,18 @@
                     "column_order": 3
                 },
                 {
+                    "data_path": "action_result.summary",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
+                {
                     "data_path": "action_result.message",
                     "data_type": "string"
                 },
@@ -7686,7 +7710,10 @@
                     "data_type": "string",
                     "required": true,
                     "primary": true,
-                    "contains": [],
+                    "contains": [
+                        "email",
+                        "string"
+                    ],
                     "value_list": [],
                     "default": "",
                     "order": 0,
@@ -7697,15 +7724,177 @@
                 {
                     "data_path": "action_result.parameter.email",
                     "data_type": "string",
-                    "contains": [],
+                    "contains": [
+                        "email",
+                        "string"
+                    ],
                     "column_name": "email",
                     "column_order": 0
                 },
                 {
+                    "data_path": "action_result.data.*.id",
+                    "data_type": "string",
+                    "contains": [
+                        "msgoffice365 id"
+                    ],
+                    "column_name": "id",
+                    "column_order": 1
+                },
+                {
+                    "data_path": "action_result.data.*.userPrincipalName",
+                    "data_type": "string",
+                    "contains": [
+                        "msgoffice365 user principal name"
+                    ],
+                    "column_name": "principal name",
+                    "column_order": 2
+                },
+                {
+                    "data_path": "action_result.data.*.givenName",
+                    "data_type": "string",
+                    "contains": [
+                        "msgoffice365 given name"
+                    ],
+                    "column_name": "given name",
+                    "column_order": 3
+                },
+                {
+                    "data_path": "action_result.data.*.surname",
+                    "data_type": "string",
+                    "contains": [
+                        "msgoffice365 surname"
+                    ],
+                    "column_name": "surname",
+                    "column_order": 4
+                },
+                {
+                    "data_path": "action_result.data.*.displayName",
+                    "data_type": "string",
+                    "contains": [
+                        "msgoffice365 display name"
+                    ],
+                    "column_name": "display name",
+                    "column_order": 5
+                },
+                {
+                    "data_path": "action_result.data.*.mailNickname",
+                    "data_type": "string",
+                    "contains": [
+                        "msgoffice365 mail nickname"
+                    ],
+                    "column_name": "mail nickname",
+                    "column_order": 6
+                },
+                {
+                    "data_path": "action_result.data.*.mail",
+                    "data_type": "string",
+                    "contains": [
+                        "email"
+                    ],
+                    "column_name": "mail",
+                    "column_order": 7
+                },
+                {
+                    "data_path": "action_result.data.*.otherMails",
+                    "data_type": "string",
+                    "contains": [
+                        "email list"
+                    ],
+                    "column_name": "other mails",
+                    "column_order": 8
+                },
+                {
+                    "data_path": "action_result.data.*.proxyAddresses",
+                    "data_type": "string",
+                    "contains": [
+                        "email list"
+                    ],
+                    "column_name": "proxy email addresses",
+                    "column_order": 9
+                },
+                {
+                    "data_path": "action_result.data.*.jobTitle",
+                    "data_type": "string",
+                    "contains": [
+                        "msgoffice365 job title"
+                    ],
+                    "column_name": "job title",
+                    "column_order": 10
+                },
+                {
+                    "data_path": "action_result.data.*.officeLocation",
+                    "data_type": "string",
+                    "contains": [
+                        "msgoffice365 office location"
+                    ],
+                    "column_name": "office location",
+                    "column_order": 11
+                },
+                {
+                    "data_path": "action_result.data.*.value",
+                    "data_type": "string",
+                    "contains": [
+                        "msgoffice365 user purpose"
+                    ],
+                    "column_name": "user purpose",
+                    "column_order": 12
+                },
+                {
+                    "data_path": "action_result.data.*.mobilePhone",
+                    "data_type": "string",
+                    "contains": [
+                        "msgoffice365 mobile phone"
+                    ],
+                    "column_name": "mobile phone",
+                    "column_order": 13
+                },
+                {
+                    "data_path": "action_result.data.*.businessPhones",
+                    "data_type": "string",
+                    "contains": [
+                        "msgoffice365 buisness phones"
+                    ],
+                    "column_name": "business phones",
+                    "column_order": 14
+                },
+                {
+                    "data_path": "action_result.data.*.preferredLanguage",
+                    "data_type": "string",
+                    "contains": [
+                        "msgoffice365 preferred language"
+                    ],
+                    "column_name": "preferred language",
+                    "column_order": 15
+                },
+                {
+                    "data_path": "action_result.data.*.state",
+                    "data_type": "string",
+                    "contains": [
+                        "msgoffice365 state"
+                    ],
+                    "column_name": "state",
+                    "column_order": 16
+                },
+                {
+                    "data_path": "action_result.data.*.postalCode",
+                    "data_type": "string",
+                    "contains": [
+                        "msgoffice365 postal code"
+                    ],
+                    "column_name": "postal code",
+                    "column_order": 17
+                },
+                {
+                    "data_path": "action_result.summary",
+                    "data_type": "string"
+                },
+                {
                     "data_path": "action_result.status",
                     "data_type": "string",
-                    "column_name": "status",
-                    "column_order": 1
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
                 },
                 {
                     "data_path": "action_result.message",
@@ -7721,7 +7910,11 @@
                 }
             ],
             "render": {
-                "type": "table"
+                "width": 12,
+                "title": "resolve name",
+                "type": "custom",
+                "height": 5,
+                "view": "office365_view.display_view"
             },
             "versions": "EQ(*)"
         }
