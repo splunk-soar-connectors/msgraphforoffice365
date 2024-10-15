@@ -3032,6 +3032,7 @@ class Office365Connector(BaseConnector):
 
         endpoint = f"/users?$filter=startswith(displayName,'{email}') or startswith(mail,'{email}')"
         ret_val, responses = self._make_rest_call_helper(action_result, endpoint)
+        self.save_progress(f"Fetching user ended witch {ret_val}")
 
         if phantom.is_fail(ret_val):
             return action_result.set_status(phantom.APP_ERROR, "Got invalid ret val")
@@ -3048,15 +3049,10 @@ class Office365Connector(BaseConnector):
             ret_val_address, response_address = self._make_rest_call_helper(action_result, endpoint_other_address)
             ret_val_mailbox, response_mailbox = self._make_rest_call_helper(action_result, endpoint_mailbox)
 
-            self.save_progress(f"{ret_val} Got response {response}")
-            self.save_progress(f"{ret_val_proxy} Got response other mails {response_proxy}")
-            self.save_progress(f"{ret_val_address} Got response address {response_address}")
-            self.save_progress(f"{ret_val_mailbox} Got response mailbox {response_mailbox}")
+            self.save_progress(f"Got statuses: mails: {ret_val_proxy}, address: {ret_val_address}, mailbox: {ret_val_mailbox}")
 
             action_result.add_data(response | response_proxy | response_address | (response_mailbox or {"userPurpose": None}))
 
-        # summary = action_result.update_summary({})
-        # summary['num_data'] = len(action_result['data'])
         return action_result.set_status(phantom.APP_SUCCESS)
 
     def handle_action(self, param):
