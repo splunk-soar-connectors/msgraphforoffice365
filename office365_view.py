@@ -105,4 +105,7 @@ def display_view(provides, all_app_runs, context):
     if provides == "list rules":
         return_page = "office365_list_rules.html"
 
+    if provides == "resolve name":
+        return_page = "office365_resolve_name.html"
+
     return return_page
