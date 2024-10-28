@@ -3055,6 +3055,46 @@ class Office365Connector(BaseConnector):
 
         return action_result.set_status(phantom.APP_SUCCESS)
 
+    def _handle_get_mailbox_messages(self, param):
+        self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
+        action_result = self.add_action_result(ActionResult(dict(param)))
+
+        email_address = param["email_address"]
+        folder = param.get("folder", MSGOFFICE365_DEFAULT_FOLDER)
+        limit = param.get("limit", MSGOFFICE365_DEFAULT_LIMIT)
+
+        ret_val, limit = _validate_integer(action_result, limit, "'limit' action")
+        if phantom.is_fail(ret_val):
+            return action_result.get_status()
+
+        endpoint = MSGOFFICE365_MAILBOX_MESSAGES_ENDPOINT.format(email_address, folder)
+        params = {"$top": limit, "$orderby": MSGOFFICE365_ORDERBY_RECEIVED_DESC, "$select": ",".join(MSGOFFICE365_SELECT_PARAMETER_LIST)}
+
+        # Add optional filters
+        date_filters = []
+        if param.get("start_date"):
+            date_filters.append(MSGOFFICE365_RECEIVED_DATE_FILTER.format(operator="ge", date=param.get("start_date")))
+        if param.get("end_date"):
+            date_filters.append(MSGOFFICE365_RECEIVED_DATE_FILTER.format(operator="le", date=param.get("end_date")))
+
+        if date_filters:
+            params["$filter"] = MSGOFFICE365_DATE_FILTER_AND.join(date_filters)
+
+        ret_val, messages = self._paginator(action_result, endpoint, limit=limit, params=params)
+
+        if phantom.is_fail(ret_val):
+            return action_result.get_status()
+
+        for message in messages:
+            action_result.add_data(message)
+
+        summary = action_result.update_summary({})
+        summary["total_messages"] = len(messages)
+
+        return action_result.set_status(
+            phantom.APP_SUCCESS, f"Successfully retrieved {len(messages)} messages from {email_address}'s {folder} folder"
+        )
+
     def handle_action(self, param):
 
         ret_val = phantom.APP_SUCCESS
@@ -3138,6 +3178,9 @@ class Office365Connector(BaseConnector):
 
         elif action_id == "update_email":
             ret_val = self._handle_update_email(param)
+
+        elif action_id == "get_mailbox_messages":
+            ret_val = self._handle_get_mailbox_messages(param)
 
         return ret_val
 

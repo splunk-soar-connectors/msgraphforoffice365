@@ -33,7 +33,7 @@
         }
     ],
     "license": "Copyright (c) 2017-2024 Splunk Inc.",
-    "app_version": "3.0.1",
+    "app_version": "3.1.1",
     "utctime_updated": "2024-09-11T08:34:15.000000Z",
     "package_name": "phantom_msgraphoffice365",
     "main_module": "office365_connector.py",
@@ -7915,6 +7915,264 @@
                 "type": "custom",
                 "height": 5,
                 "view": "office365_view.display_view"
+            },
+            "versions": "EQ(*)"
+        },
+        {
+            "action": "get mailbox messages",
+            "identifier": "get_mailbox_messages",
+            "description": "Retrieves messages from a specified mailbox folder",
+            "type": "investigate",
+            "read_only": true,
+            "parameters": {
+                "email_address": {
+                    "description": "Email address of the mailbox",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": true,
+                    "order": 0
+                },
+                "folder": {
+                    "description": "Folder to retrieve messages",
+                    "data_type": "string",
+                    "default": "inbox",
+                    "order": 1
+                },
+                "limit": {
+                    "description": "Maximum number of messages to retrieve",
+                    "data_type": "numeric",
+                    "default": 100,
+                    "order": 2
+                },
+                "start_date": {
+                    "description": "Start date for filtering messages (format: YYYY-MM-DD)",
+                    "data_type": "string",
+                    "order": 3
+                },
+                "end_date": {
+                    "description": "End date for filtering messages (format: YYYY-MM-DD)",
+                    "data_type": "string",
+                    "order": 4
+                }
+            },
+            "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": ["success", "failed"]
+                },
+                {
+                    "data_path": "action_result.parameter.email_address",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.parameter.folder",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.parameter.limit",
+                    "data_type": "numeric"
+                },
+                {
+                    "data_path": "action_result.parameter.start_date",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.parameter.end_date",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.id",
+                    "data_type": "string",
+                    "column_name": "ID",
+                    "column_order": 0
+                },
+                {
+                    "data_path": "action_result.data.*.body.content",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.body.contentType",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.flag.flagStatus",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.from.emailAddress.name",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.from.emailAddress.address",
+                    "data_type": "string",
+                    "column_name": "From",
+                    "column_order": 1
+                },
+                {
+                    "data_path": "action_result.data.*.isRead",
+                    "data_type": "boolean",
+                    "column_name": "Is Read",
+                    "column_order": 2
+                },
+                {
+                    "data_path": "action_result.data.*.sender.emailAddress.name",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.sender.emailAddress.address",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.isDraft",
+                    "data_type": "boolean"
+                },
+                {
+                    "data_path": "action_result.data.*.replyTo.*.emailAddress.address",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.replyTo.*.emailAddress.name",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.subject",
+                    "data_type": "string",
+                    "column_name": "Subject",
+                    "column_order": 3
+                },
+                {
+                    "data_path": "action_result.data.*.webLink",
+                    "data_type": "string",
+                    "contains": ["url"]
+                },
+                {
+                    "data_path": "action_result.data.*.changeKey",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.categories.*.name",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.importance",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.uniqueBody.content",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.uniqueBody.contentType",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.bodyPreview",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.ccRecipients.*.emailAddress.address",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.ccRecipients.*.emailAddress.name",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.sentDateTime",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.toRecipients.*.emailAddress.name",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.toRecipients.*.emailAddress.address",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.bccRecipients.*.emailAddress.address",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.bccRecipients.*.emailAddress.name",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.conversationId",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.hasAttachments",
+                    "data_type": "boolean",
+                    "column_name": "Has Attachments",
+                    "column_order": 4
+                },
+                {
+                    "data_path": "action_result.data.*.parentFolderId",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.createdDateTime",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.receivedDateTime",
+                    "data_type": "string",
+                    "column_name": "Received Time",
+                    "column_order": 5
+                },
+                {
+                    "data_path": "action_result.data.*.conversationIndex",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageId",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.lastModifiedDateTime",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.*.name",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.internetMessageHeaders.*.value",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.isReadReceiptRequested",
+                    "data_type": "boolean"
+                },
+                {
+                    "data_path": "action_result.data.*.inferenceClassification",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.isDeliveryReceiptRequested",
+                    "data_type": "boolean"
+                },
+                {
+                    "data_path": "action_result.summary.total_messages",
+                    "data_type": "numeric"
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric"
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric"
+                }
+            ],
+            "render": {
+                "type": "table"
             },
             "versions": "EQ(*)"
         }
