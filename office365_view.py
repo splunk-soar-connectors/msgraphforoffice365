@@ -90,22 +90,4 @@ def display_view(provides, all_app_runs, context):
                 continue
             results.append(ctx_result)
 
-    if provides == "list events":
-        return_page = "office365_list_events.html"
-
-    if provides == "get email":
-        return_page = "office365_get_email.html"
-
-    if provides == "run query":
-        return_page = "office365_run_query.html"
-
-    if provides == "get rule":
-        return_page = "office365_get_rule.html"
-
-    if provides == "list rules":
-        return_page = "office365_list_rules.html"
-
-    if provides == "resolve name":
-        return_page = "office365_resolve_name.html"
-
-    return return_page
+    return f"office365_{provides.replace(' ', '_')}.html"

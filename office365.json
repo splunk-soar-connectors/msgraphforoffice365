@@ -7500,6 +7500,53 @@
             "versions": "EQ(*)"
         },
         {
+            "action": "tmp",
+            "description": "Tmp method",
+            "verbose": "Tmp: used for testing eDiscovery.",
+            "type": "generic",
+            "identifier": "tmp",
+            "read_only": false,
+            "parameters": {
+
+            },
+            "render": {
+                "type": "table"
+            },
+            "output": [
+                 {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "column_name": "status",
+                    "column_order": 0
+                },
+                {
+                    "data_path": "action_result.summary",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric"
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric"
+                }
+            ],
+            "versions": "EQ(*)"
+        },
+        {
             "action": "block sender",
             "identifier": "block_sender",
             "description": "Add the sender email into the block list",

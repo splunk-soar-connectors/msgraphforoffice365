@@ -3055,6 +3055,26 @@ class Office365Connector(BaseConnector):
 
         return action_result.set_status(phantom.APP_SUCCESS)
 
+    def _handle_tmp(self, param):
+        self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
+        action_result = self.add_action_result(ActionResult(dict(param)))
+
+
+        # create case
+        endpoint = f"/compliance/ediscovery/cases"
+        self.save_progress(f"endpoint {endpoint}")
+
+        ret_val, response = self._make_rest_call_helper(
+            action_result, endpoint, data=json.dumps({"displayName": "testCase"}), method="post", beta=True
+        )
+
+        self.save_progress(f"Fetching user ended witch: {ret_val} | data gathered: {response}")
+
+        if phantom.is_fail(ret_val):
+            return action_result.set_status(phantom.APP_ERROR, f"something went wrong")
+
+        return action_result.set_status(phantom.APP_SUCCESS, "action is WIP")
+
     def handle_action(self, param):
 
         ret_val = phantom.APP_SUCCESS
@@ -3063,6 +3083,9 @@ class Office365Connector(BaseConnector):
         action_id = self.get_action_identifier()
 
         self.debug_print("action_id", self.get_action_identifier())
+
+        if action_id == "tmp":
+            ret_val = self._handle_tmp(param)
 
         if action_id == "resolve_name":
             ret_val = self._handle_resolve_name(param)
