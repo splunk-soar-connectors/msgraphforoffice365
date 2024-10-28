@@ -351,6 +351,7 @@ VARIABLE | REQUIRED | TYPE | DESCRIPTION
 [send email](#action-send-email) - Sends an email with optional text rendering. Attachments are allowed a Content-ID tag for reference within the html  
 [on poll](#action-on-poll) - Ingest emails from Office 365 using Graph API  
 [update email](#action-update-email) - Update an email on the server  
+[tmp](#action-tmp) - Tmp method  
 [block sender](#action-block-sender) - Add the sender email into the block list  
 [unblock sender](#action-unblock-sender) - Remove the sender email from the block list  
 [resolve name](#action-resolve-name) - Verify aliases and resolve display names to the appropriate user  
@@ -1590,6 +1591,27 @@ Subject: Both value are modified
 Sent time: 2017-10-03T21:31:20Z 
 summary.total_objects | numeric |  |   1 
 summary.total_objects_successful | numeric |  |   1   
+
+## action: 'tmp'
+Tmp method
+
+Type: **generic**  
+Read only: **False**
+
+Tmp: used for testing eDiscovery.
+
+#### Action Parameters
+No parameters are required for this action
+
+#### Action Output
+DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
+--------- | ---- | -------- | --------------
+action_result.status | string |  |  
+action_result.summary | string |  |  
+action_result.status | string |  |   success  failed 
+action_result.message | string |  |  
+summary.total_objects | numeric |  |  
+summary.total_objects_successful | numeric |  |    
 
 ## action: 'block sender'
 Add the sender email into the block list
