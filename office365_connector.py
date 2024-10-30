@@ -44,8 +44,10 @@ from process_email import ProcessEmail
 
 TC_FILE = "oauth_task.out"
 SERVER_TOKEN_URL = "https://login.microsoftonline.com/{0}/oauth2/v2.0/token"
+MSGOFFICE365_AUTHORITY_URL = "https://login.microsoftonline.com/{tenant}"
 MSGRAPH_API_URL = "https://graph.microsoft.com/v1.0"
 MAX_END_OFFSET_VAL = 2147483646
+MSGOFFICE365_DEFAULT_SCOPE = "https://graph.microsoft.com/.default"
 
 
 class ReturnException(Exception):
@@ -406,6 +408,7 @@ class Office365Connector(BaseConnector):
         self._base_url = None
         self._tenant = None
         self._client_id = None
+        self._auth_type = None
         self._client_secret = None
         self._admin_access = None
         self._scope = None
@@ -1423,146 +1426,27 @@ class Office365Connector(BaseConnector):
 
         action_result = self.add_action_result(ActionResult(param))
 
-        if not self._admin_access or not self._admin_consent:
-
-            self.save_progress("Getting App REST endpoint URL")
-
-            # Get the URL to the app's REST Endpoint, this is the url that the TC dialog
-            # box will ask the user to connect to
-            ret_val, app_rest_url = self._get_url_to_app_rest(action_result)
-            app_state = {}
+        if self._auth_type != 'cba' and self._client_secret and not (self._admin_access and self._admin_consent):
+            ret_val = self._get_consent(action_result)
             if phantom.is_fail(ret_val):
-                self.save_progress(
-                    "Unable to get the URL to the app's REST Endpoint. Error: {0}".format(
-                        action_result.get_message()
-                    )
-                )
-                return action_result.set_status(phantom.APP_ERROR)
-
-            # create the url that the oauth server should re-direct to after the auth is completed
-            # (success and failure), this is added to the state so that the request handler will access
-            # it later on
-            redirect_uri = "{0}/result".format(app_rest_url)
-            app_state["redirect_uri"] = redirect_uri
-
-            self.save_progress("Using OAuth Redirect URL as:")
-            self.save_progress(redirect_uri)
-
-            if self._admin_access:
-                # Create the url for fetching administrator consent
-                admin_consent_url = (
-                    "https://login.microsoftonline.com/{0}/adminconsent".format(
-                        self._tenant
-                    )
-                )
-                admin_consent_url += "?client_id={0}".format(self._client_id)
-                admin_consent_url += "&redirect_uri={0}".format(redirect_uri)
-                admin_consent_url += "&state={0}".format(self._asset_id)
-            else:
-                # Scope is required for non-admin access
-                if not self._scope:
-                    return action_result.set_status(
-                        phantom.APP_ERROR,
-                        "Please provide scope for non-admin access in the asset configuration",
-                    )
-                # Create the url authorization, this is the one pointing to the oauth server side
-                admin_consent_url = "https://login.microsoftonline.com/{0}/oauth2/v2.0/authorize".format(
-                    self._tenant
-                )
-                admin_consent_url += "?client_id={0}".format(self._client_id)
-                admin_consent_url += "&redirect_uri={0}".format(redirect_uri)
-                admin_consent_url += "&state={0}".format(self._asset_id)
-                admin_consent_url += "&scope={0}".format(self._scope)
-                admin_consent_url += "&response_type=code"
-
-            app_state["admin_consent_url"] = admin_consent_url
-
-            # The URL that the user should open in a different tab.
-            # This is pointing to a REST endpoint that points to the app
-            url_to_show = "{0}/start_oauth?asset_id={1}&".format(
-                app_rest_url, self._asset_id
-            )
-
-            # Save the state, will be used by the request handler
-            _save_app_state(app_state, self._asset_id, self)
-
-            self.save_progress(
-                "Please connect to the following URL from a different tab to continue the connectivity process"
-            )
-            self.save_progress(url_to_show)
-            self.save_progress(MSGOFFICE365_AUTHORIZE_TROUBLESHOOT_MSG)
-
-            time.sleep(5)
-
-            completed = False
-
-            app_dir = os.path.dirname(os.path.abspath(__file__))
-            auth_status_file_path = "{0}/{1}_{2}".format(
-                app_dir, self._asset_id, TC_FILE
-            )
-
-            if self._admin_access:
-                self.save_progress("Waiting for Admin Consent to complete")
-            else:
-                self.save_progress("Waiting for Authorization to complete")
-
-            for i in range(0, 40):
-
-                self.send_progress("{0}".format("." * (i % 10)))
-
-                if os.path.isfile(auth_status_file_path):
-                    completed = True
-                    os.unlink(auth_status_file_path)
-                    break
-
-                time.sleep(TC_STATUS_SLEEP)
-
-            if not completed:
-                self.save_progress(
-                    "Authentication process does not seem to be completed. Timing out"
-                )
-                return action_result.set_status(phantom.APP_ERROR)
-
-            self.send_progress("")
-
-            # Load the state again, since the http request handlers would have saved the result of the admin consent or authorization
-            self._state = _load_app_state(self._asset_id, self)
-
-            if not self._state:
-                self.save_progress("Authorization not received or not given")
-                self.save_progress("Test Connectivity Failed")
-                return action_result.set_status(phantom.APP_ERROR)
-            else:
-                if self._admin_access:
-                    if not self._state.get("admin_consent"):
-                        self.save_progress("Admin Consent not received or not given")
-                        self.save_progress("Test Connectivity Failed")
-                        return action_result.set_status(phantom.APP_ERROR)
+                if self._auth_type == "oauth":
+                    return action_result.get_status()
                 else:
-                    if not self._state.get("code"):
-                        self.save_progress(
-                            "Authorization code not received or not given"
-                        )
-                        self.save_progress("Test Connectivity Failed")
-                        return action_result.set_status(phantom.APP_ERROR)
-
-            # Deleting the local state file because of it replicates with actual state file while installing the app
-            current_file_path = pathlib.Path(__file__).resolve()
-            input_file = f'{self._asset_id}_state.json'
-            state_file_path = current_file_path.with_name(input_file)
-            state_file_path.unlink()
+                    self._auth_type = "cba"
+                    self.save_progress("Failed to getting consent")
 
         self.save_progress("Getting the token")
         ret_val = self._get_token(action_result)
 
         if phantom.is_fail(ret_val):
             self._remove_tokens(action_result)
+            self.save_progress("Test Connectivity Failed")
             return action_result.get_status()
 
         params = {'$top': '1'}
         message_failed = ""
 
-        if self._admin_access:
+        if self._admin_access or self._state["auth_type"] == "cba":
             message_failed = "API to fetch details of all the users failed"
             self.save_progress("Getting info about all users to verify token")
             ret_val, response = self._make_rest_call_helper(
@@ -3384,80 +3268,121 @@ class Office365Connector(BaseConnector):
 
         return ret_val
 
+    def _get_private_key(self, action_result):
+        try:
+            with open(self._private_key_location, 'r') as file:
+                private_key = file.read()
+
+                # Fix private key
+                if "BEGIN PRIVATE KEY" in private_key:
+                    pem_prefix = '-----BEGIN PRIVATE KEY-----'  # pragma: allowlist secret
+                    pem_suffix = '-----END PRIVATE KEY-----'
+                else:
+                    pem_prefix = '-----BEGIN RSA PRIVATE KEY-----'  # pragma: allowlist secret
+                    pem_suffix = '-----END RSA PRIVATE KEY-----'
+
+                private_key = '\n'.join(private_key.replace(pem_prefix, '').replace(pem_suffix, '').strip().split())
+
+                return phantom.APP_SUCCESS, f'{pem_prefix}\n{private_key}\n{pem_suffix}'
+        except Exception:
+            return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_CBA_KEY_FILE_ERROR), None
+
     def _generate_new_cba_access_token(self, action_result):
 
-        self.debug_print('CBA: Using Certificate Based Authentication')
+        self.save_progress('Generating token using Certificate Based Authentication...')
 
-        authority = f"https://login.microsoftonline.com/{self._tenant}"
-        scope = ["https://graph.microsoft.com/.default"]
+        # Check non-interactive is enabled for CBA auth
+        if not self._admin_consent:
+            self.save_progress(MSGOFFICE365_CBA_ADMIN_CONSENT_ERROR)
+            return self.set_status(phantom.APP_ERROR), None
+
+        ret_val, self._private_key = self._get_private_key(action_result)
+
+        if phantom.is_fail(ret_val):
+            return action_result.get_status(), None
 
         app = msal.ConfidentialClientApplication(
-            self._client_id, authority=authority,
+            self._client_id, authority=MSGOFFICE365_AUTHORITY_URL.format(tenant=self._tenant),
             client_credential={"thumbprint": self._thumbprint, "private_key": self._private_key},
         )
 
         self.debug_print("Requesting new token from AAD.")
-        result = app.acquire_token_for_client(scopes=scope)
+        res_json = app.acquire_token_for_client(scopes=[MSGOFFICE365_DEFAULT_SCOPE])
 
-        return result
+        if res_json.get("error"):
+            error_message = f"{res_json.get('error')}: {res_json.get('error_description')}"
+            return action_result.set_status(phantom.APP_ERROR, error_message), None
+
+        return phantom.APP_SUCCESS, res_json
+
+    def _generate_new_oauth_access_token(self, action_result):
+        self.save_progress('Generating token using OAuth Authentication...')
+        req_url = SERVER_TOKEN_URL.format(self._tenant)
+        headers = {"Content-Type": "application/x-www-form-urlencoded"}
+
+        data = {
+            "client_id": self._client_id,
+            "client_secret": self._client_secret,
+            "grant_type": "client_credentials",
+        }
+
+        if not self._admin_access:
+            data["scope"] = "offline_access " + self._scope
+        else:
+            data["scope"] = MSGOFFICE365_DEFAULT_SCOPE
+
+        if not self._admin_access:
+            if self._state.get("code"):
+                self.save_progress("Generating token using authorization code")
+                data["redirect_uri"] = self._state.get("redirect_uri")
+                data["code"] = self._state.get("code")
+                data["grant_type"] = "authorization_code"
+                self._state.pop("code")
+            elif self._refresh_token:
+                self.save_progress("Generating token using refresh token")
+                data["refresh_token"] = self._refresh_token
+                data["grant_type"] = "refresh_token"
+            else:
+                return action_result.set_status(
+                    phantom.APP_ERROR,
+                    "Unexpected details retrieved from the state file.",
+                )
+
+        self.debug_print("Generating token...")
+        return self._make_rest_call(action_result, req_url, headers=headers, data=data, method="post")
 
     def _get_token(self, action_result):
 
-        if self._cba_auth is False:
-            req_url = SERVER_TOKEN_URL.format(self._tenant)
-            headers = {"Content-Type": "application/x-www-form-urlencoded"}
+        # Determine the authentication type and function to generate the access token
+        auth_type, generate_token_func = (
+            ('cba', self._generate_new_cba_access_token)
+            if self._auth_type == "cba" or not self._client_secret
+            else ('oauth', self._generate_new_oauth_access_token)
+        )
 
-            data = {
-                "client_id": self._client_id,
-                "client_secret": self._client_secret,
-                "grant_type": "client_credentials",
-            }
+        # Attempt to generate the access token and check for failure
+        ret_val, resp_json = generate_token_func(action_result)
+        if phantom.is_fail(ret_val):
+            return action_result.get_status()
 
-            if not self._admin_access:
-                data["scope"] = "offline_access " + self._scope
-            else:
-                data["scope"] = "https://graph.microsoft.com/.default"
+        # Save the determined auth type
+        self._state["auth_type"] = auth_type
 
-            if not self._admin_access:
-                if self._state.get("code"):
-                    self.save_progress("Generating token using authorization code")
-                    data["redirect_uri"] = self._state.get("redirect_uri")
-                    data["code"] = self._state.get("code")
-                    data["grant_type"] = "authorization_code"
-                    self._state.pop("code")
-                elif self._refresh_token:
-                    self.save_progress("Generating token using refresh token")
-                    data["refresh_token"] = self._refresh_token
-                    data["grant_type"] = "refresh_token"
-                else:
-                    return action_result.set_status(
-                        phantom.APP_ERROR,
-                        "Unexpected details retrieved from the state file.",
-                    )
+        if auth_type == 'cba' and self._admin_consent:
+            self._state["admin_consent"] = True
 
-            self.debug_print("Generating token...")
-            ret_val, resp_json = self._make_rest_call(
-                action_result, req_url, headers=headers, data=data, method="post"
-            )
-            if phantom.is_fail(ret_val):
-                return action_result.get_status()
-            # Save the response on the basis of admin_access
-            if self._admin_access:
-                # if admin consent already provided, save to state
-                if self._admin_consent:
-                    self._state["admin_consent"] = True
-                self._state["admin_auth"] = resp_json
-            else:
-                self._state["non_admin_auth"] = resp_json
-            # Fetching the access token and refresh token
-            self._access_token = resp_json.get("access_token")
-            self._refresh_token = resp_json.get("refresh_token")
+        # Save the response on the basis of admin_access
+        if self._admin_access:
+            # if admin consent already provided, save to state
+            if self._admin_consent:
+                self._state["admin_consent"] = True
+            self._state["admin_auth"] = resp_json
         else:
-            # If using Certificate Based Auth, call separate function to generate and return new access token
-            self.debug_print('Generating token using CBA')
-            token = self._generate_new_cba_access_token(action_result)
-            self._access_token = token.get("access_token")
-            self._state["admin_auth"] = token
+            self._state["non_admin_auth"] = resp_json
+
+        # Fetching the access token and refresh token
+        self._access_token = resp_json.get("access_token")
+        self._refresh_token = resp_json.get("refresh_token")
 
         # Save state
         self.save_state(self._state)
@@ -3487,6 +3412,134 @@ class Office365Connector(BaseConnector):
         self.debug_print("Token generated successfully")
         return action_result.set_status(phantom.APP_SUCCESS)
 
+    def _get_consent(self, action_result):
+        self.save_progress("Getting App REST endpoint URL")
+
+        # Get the URL to the app's REST Endpoint, this is the url that the TC dialog
+        # box will ask the user to connect to
+        ret_val, app_rest_url = self._get_url_to_app_rest(action_result)
+        app_state = {}
+        if phantom.is_fail(ret_val):
+            self.save_progress(
+                "Unable to get the URL to the app's REST Endpoint. Error: {0}".format(
+                    action_result.get_message()
+                )
+            )
+            return action_result.set_status(phantom.APP_ERROR)
+
+        # create the url that the oauth server should re-direct to after the auth is completed
+        # (success and failure), this is added to the state so that the request handler will access
+        # it later on
+        redirect_uri = "{0}/result".format(app_rest_url)
+        app_state["redirect_uri"] = redirect_uri
+
+        self.save_progress("Using OAuth Redirect URL as:")
+        self.save_progress(redirect_uri)
+
+        if self._admin_access:
+            # Create the url for fetching administrator consent
+            admin_consent_url = (
+                "https://login.microsoftonline.com/{0}/adminconsent".format(
+                    self._tenant
+                )
+            )
+            admin_consent_url += "?client_id={0}".format(self._client_id)
+            admin_consent_url += "&redirect_uri={0}".format(redirect_uri)
+            admin_consent_url += "&state={0}".format(self._asset_id)
+        else:
+            # Scope is required for non-admin access
+            if not self._scope:
+                self.save_progress("Please provide scope for non-admin access in the asset configuration for OAuth authentication")
+                return action_result.set_status(phantom.APP_ERROR)
+            # Create the url authorization, this is the one pointing to the oauth server side
+            admin_consent_url = "https://login.microsoftonline.com/{0}/oauth2/v2.0/authorize".format(
+                self._tenant
+            )
+            admin_consent_url += "?client_id={0}".format(self._client_id)
+            admin_consent_url += "&redirect_uri={0}".format(redirect_uri)
+            admin_consent_url += "&state={0}".format(self._asset_id)
+            admin_consent_url += "&scope={0}".format(self._scope)
+            admin_consent_url += "&response_type=code"
+
+        app_state["admin_consent_url"] = admin_consent_url
+
+        # The URL that the user should open in a different tab.
+        # This is pointing to a REST endpoint that points to the app
+        url_to_show = "{0}/start_oauth?asset_id={1}&".format(
+            app_rest_url, self._asset_id
+        )
+
+        # Save the state, will be used by the request handler
+        _save_app_state(app_state, self._asset_id, self)
+
+        self.save_progress(
+            "Please connect to the following URL from a different tab to continue the connectivity process"
+        )
+        self.save_progress(url_to_show)
+        self.save_progress(MSGOFFICE365_AUTHORIZE_TROUBLESHOOT_MSG)
+
+        time.sleep(5)
+
+        completed = False
+
+        app_dir = os.path.dirname(os.path.abspath(__file__))
+        auth_status_file_path = "{0}/{1}_{2}".format(
+            app_dir, self._asset_id, TC_FILE
+        )
+
+        if self._admin_access:
+            self.save_progress("Waiting for Admin Consent to complete")
+        else:
+            self.save_progress("Waiting for Authorization to complete")
+
+        for i in range(0, 40):
+
+            self.send_progress("{0}".format("." * (i % 10)))
+
+            if os.path.isfile(auth_status_file_path):
+                completed = True
+                os.unlink(auth_status_file_path)
+                break
+
+            time.sleep(TC_STATUS_SLEEP)
+
+        if not completed:
+            self.save_progress(
+                "Authentication process does not seem to be completed. Timing out"
+            )
+            return action_result.set_status(phantom.APP_ERROR)
+
+        self.send_progress("")
+
+        # Load the state again, since the http request handlers would have saved the result of the admin consent or authorization
+        self._state = _load_app_state(self._asset_id, self)
+
+        if not self._state:
+            self.save_progress("Authorization not received or not given")
+            self.save_progress("Test Connectivity Failed")
+            return action_result.set_status(phantom.APP_ERROR)
+        else:
+            if self._admin_access:
+                if not self._state.get("admin_consent"):
+                    self.save_progress("Admin Consent not received or not given")
+                    self.save_progress("Test Connectivity Failed")
+                    return action_result.set_status(phantom.APP_ERROR)
+            else:
+                if not self._state.get("code"):
+                    self.save_progress(
+                        "Authorization code not received or not given"
+                    )
+                    self.save_progress("Test Connectivity Failed")
+                    return action_result.set_status(phantom.APP_ERROR)
+
+        # Deleting the local state file because of it replicates with actual state file while installing the app
+        current_file_path = pathlib.Path(__file__).resolve()
+        input_file = f'{self._asset_id}_state.json'
+        state_file_path = current_file_path.with_name(input_file)
+        state_file_path.unlink()
+
+        return action_result.set_status(phantom.APP_SUCCESS)
+
     def _reset_state_file(self):
         """
         This method resets the state file.
@@ -3510,6 +3563,7 @@ class Office365Connector(BaseConnector):
 
         self._tenant = config['tenant']
         self._client_id = config['client_id']
+        self._auth_type = MSGOFFICE365_AUTH_TYPES.get(config.get("auth_type", MSGOFFICE365_AUTH_AUTOMATIC))
         self._client_secret = config.get('client_secret')
         self._admin_access = config.get('admin_access')
         self._admin_consent = config.get('admin_consent')
@@ -3536,66 +3590,37 @@ class Office365Connector(BaseConnector):
             return self.get_status()
 
         if not self._admin_access:
-            if not self._scope:
-                return self.set_status(
-                    phantom.APP_ERROR,
-                    "Please provide scope for non-admin access in the asset configuration",
-                )
+            if not self._scope and self._auth_type == "oauth":
+                return self.set_status(phantom.APP_ERROR, "Please provide the OAuth scope for non-admin access in the asset configuration")
 
-            self._access_token = self._state.get("non_admin_auth", {}).get(
-                "access_token", None
-            )
-            self._refresh_token = self._state.get("non_admin_auth", {}).get(
-                "refresh_token", None
-            )
-
+            self._access_token = self._state.get("non_admin_auth", {}).get("access_token", None)
+            self._refresh_token = self._state.get("non_admin_auth", {}).get("refresh_token", None)
         else:
-            self._access_token = self._state.get("admin_auth", {}).get(
-                "access_token", None
-            )
+            self._access_token = self._state.get("admin_auth", {}).get("access_token", None)
 
-        admin_consent = self._state.get("admin_consent")
-
-        # Must either supply client_secret, or both thumbprint and private key
-        if self._client_secret is None:
-            if self._thumbprint is None or self._private_key_location is None:
-                return self.set_status(phantom.APP_ERROR, MSGOFFICE365_CBA_FIELDS_ERROR)
-
-        if self._client_secret is not None:
-            if self._thumbprint is not None or self._private_key_location is not None:
-                return self.set_status(phantom.APP_ERROR, MSGOFFICE365_FIELD_CONFLICT_ERROR)
-
-        if self._client_secret is not None:
-            self._cba_auth = False
-        else:
-            self._cba_auth = True
+        if self._auth_type == "cba":
+            if not (self._thumbprint and self._private_key_location):
+                return self.set_status(phantom.APP_ERROR, MSGOFFICE365_CBA_AUTH_ERROR)
             # Check non-interactive is enabled for CBA auth
-            if admin_consent is False:
-                return self.set_status(phantom.APP_ERROR, MSGOFFICE365_CBA_INTERACTIVE_ERROR)
+            if not self._admin_consent:
+                return self.set_status(phantom.APP_ERROR, MSGOFFICE365_CBA_ADMIN_CONSENT_ERROR)
+        elif self._auth_type == "oauth":
+            if not self._client_secret:
+                return self.set_status(phantom.APP_ERROR, MSGOFFICE365_OAUTH_AUTH_ERROR)
+        else:
+            # Must either supply client_secret, or both thumbprint and private key
+            if not self._client_secret and not (self._thumbprint and self._private_key_location):
+                return self.set_status(phantom.APP_ERROR, MSGOFFICE365_AUTOMATIC_AUTH_ERROR)
 
-        if action_id == "test_connectivity" and not self._cba_auth:
+        if action_id == "test_connectivity":
             # User is trying to complete the authentication flow, so just return True from here so that test connectivity continues
             return phantom.APP_SUCCESS
 
-        # Read private key if location provided
-        if self._private_key_location is not None:
-            try:
-                with open(self._private_key_location, 'r') as file:
-                    self._private_key = file.read()
-
-                    # Fix private key
-                    pem_prefix = '-----BEGIN RSA PRIVATE KEY-----'  # pragma: allowlist secret
-                    pem_suffix = '-----END RSA PRIVATE KEY-----'
-                    self._private_key = '\n'.join(self._private_key.replace(pem_prefix, '').replace(pem_suffix, '').strip().split())
-                    self._private_key = f'{pem_prefix}\n{self._private_key}\n{pem_suffix}'
-            except Exception:
-                return self.set_status(phantom.APP_ERROR, MSGOFFICE365_CBA_KEY_FILE_ERROR)
+        admin_consent = self._state.get("admin_consent")
 
         # if it was not and the current action is not test connectivity then it's an error
-        if not self._cba_auth and self._admin_access and not admin_consent:
-            return self.set_status(
-                phantom.APP_ERROR, MSGOFFICE365_RUN_CONNECTIVITY_MSG
-            )
+        if self._admin_access and not admin_consent:
+            return self.set_status(phantom.APP_ERROR, MSGOFFICE365_RUN_CONNECTIVITY_MSG)
 
         if not self._admin_access and (not self._access_token or not self._refresh_token):
             ret_val = self._get_token(action_result)

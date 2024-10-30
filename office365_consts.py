@@ -43,13 +43,10 @@ MSGOFFICE365_INVALID_PERMISSION_ERROR += "user should have the correct access ri
 MSGOFFICE365_NO_DATA_FOUND = "No data found"
 MSGOFFICE365_DUPLICATE_CONTAINER_FOUND_MSG = "duplicate container found"
 MSGOFFICE365_ERROR_EMPTY_RESPONSE = "Status Code {code}. Empty response and no information in the header."
-MSGOFFICE365_CBA_FIELDS_ERROR = 'Client Secret was not specified, in which case Certificate Thumbprint and '\
-    'Certificate Private Key Location are required'
-MSGOFFICE365_FIELD_CONFLICT_ERROR = 'Client Secret was specified as well as Certificate Thumbprint or '\
-    'Certificate Private Key Location. '\
-    'If Client Secret has a value, Certificate Thumbprint and Certificate Private Key Location values must be removed '\
-    'Alternatively, if Certificate Thumbprint and Certificate Private Key Location have values, Client Secret value must be removed'
-MSGOFFICE365_CBA_INTERACTIVE_ERROR = 'Certificate Based Authorization requires Admin Consent to be checked'
+MSGOFFICE365_CBA_AUTH_ERROR = 'Certificate Based Authentication requires both Certificate Thumbprint and Certificate Private Key Location'
+MSGOFFICE365_OAUTH_AUTH_ERROR = 'OAuth Authentication requires Client Secret'
+MSGOFFICE365_AUTOMATIC_AUTH_ERROR = "Automatic Authentication requires either Client Secret or s combination of Certificate Thumbprint and Certificate Private Key Location"
+MSGOFFICE365_CBA_ADMIN_CONSENT_ERROR = 'Certificate Based Authorization requires Admin Consent to be Provided'
 MSGOFFICE365_CBA_KEY_FILE_ERROR = 'Private Key file missing, in invalid format or unreadable'
 
 MSGOFFICE365_DEFAULT_REQUEST_TIMEOUT = 30  # in seconds
@@ -121,3 +118,11 @@ MSGOFFICE365_SELECT_PARAMETER_LIST = [
     "webLink",
     "internetMessageId"
 ]
+
+MSGOFFICE365_AUTH_TYPES = {
+    "Automatic": "auto",
+    "OAuth": "oauth",
+    "Certificate Based Authentication(CBA)": "cba"
+}
+
+MSGOFFICE365_AUTH_AUTOMATIC = "Automatic"

@@ -33,7 +33,7 @@
         }
     ],
     "license": "Copyright (c) 2017-2024 Splunk Inc.",
-    "app_version": "3.0.1",
+    "app_version": "4.0.0",
     "utctime_updated": "2024-09-11T08:34:15.000000Z",
     "package_name": "phantom_msgraphoffice365",
     "main_module": "office365_connector.py",
@@ -52,128 +52,143 @@
             "required": true,
             "order": 0
         },
-        "ph": {
-            "data_type": "ph",
-            "order": 1
-        },
         "client_id": {
             "description": "Application ID",
             "data_type": "string",
             "required": true,
-            "order": 2
+            "order": 1
         },
-        "client_secret": {
-            "description": "Application Secret",
-            "data_type": "password",
-            "required": false,
+        "auth_type": {
+            "data_type": "string",
+            "order": 2,
+            "description": "Authentication type to use for connectivity",
+            "default": "Automatic",
+            "value_list": [
+                "Automatic",
+                "OAuth",
+                "Certificate Based Authentication(CBA)"
+            ]
+        },
+        "ph": {
+            "data_type": "ph",
             "order": 3
         },
-        "certificate_thumbprint": {
-            "description": "Certificate Thumbprint",
+        "client_secret": {
+            "description": "Application Secret(required for OAuth)",
             "data_type": "password",
             "required": false,
             "order": 4
         },
+        "ph_4": {
+            "data_type": "ph",
+            "order": 5
+        },
+        "certificate_thumbprint": {
+            "description": "Certificate Thumbprint(required for CBA)",
+            "data_type": "password",
+            "required": false,
+            "order": 6
+        },
         "private_key_location": {
-            "description": "Location of the certificate private key (.PEM) on the filesystem",
+            "description": "Location of the certificate private key (.PEM) on the filesystem(required for CBA)",
             "data_type": "string",
             "required": false,
-            "order": 5
+            "order": 7
         },
         "admin_access": {
             "description": "Admin Access Required",
             "data_type": "boolean",
             "default": true,
-            "order": 6
+            "order": 8
         },
         "admin_consent": {
-            "description": "Admin Consent Already Provided",
+            "description": "Admin Consent Already Provided(Required checked for CBA)",
             "data_type": "boolean",
             "default": false,
-            "order": 7
+            "order": 9
         },
         "scope": {
-            "description": "Access Scope (for use with non-admin access; space-separated)",
+            "description": "Access Scope (for use with OAuth non-admin access; space-separated)",
             "data_type": "string",
             "default": "https://graph.microsoft.com/Calendars.Read https://graph.microsoft.com/User.Read",
-            "order": 8
+            "order": 10
         },
         "ph_2": {
             "data_type": "ph",
-            "order": 9
+            "order": 11
         },
         "email_address": {
             "description": "Email Address of the User (On Poll)",
             "data_type": "string",
-            "order": 10
+            "order": 12
         },
         "folder": {
             "description": "Mailbox folder name/folder path or the internal office365 folder ID to ingest (On Poll)",
             "data_type": "string",
-            "order": 11
+            "order": 13
         },
         "get_folder_id": {
             "description": "Retrieve the folder ID for the provided folder name/folder path automatically and replace the folder parameter value (On Poll)",
             "data_type": "boolean",
             "default": true,
-            "order": 12
+            "order": 14
         },
         "ph_3": {
             "data_type": "ph",
-            "order": 13
+            "order": 15
         },
         "first_run_max_emails": {
             "description": "Maximum Containers for scheduled polling first time",
             "data_type": "numeric",
             "default": 1000,
-            "order": 14
+            "order": 16
         },
         "max_containers": {
             "description": "Maximum Containers for scheduled polling",
             "data_type": "numeric",
             "default": 100,
-            "order": 15
+            "order": 17
         },
         "extract_attachments": {
             "description": "Extract Attachments",
             "data_type": "boolean",
             "default": false,
-            "order": 16
+            "order": 18
         },
         "extract_urls": {
             "description": "Extract URLs",
             "data_type": "boolean",
             "default": false,
-            "order": 17
+            "order": 19
         },
         "extract_ips": {
             "description": "Extract IPs",
             "data_type": "boolean",
             "default": false,
-            "order": 18
+            "order": 20
         },
         "extract_domains": {
             "description": "Extract Domain Names",
             "data_type": "boolean",
             "default": false,
-            "order": 19
+            "order": 21
         },
         "extract_hashes": {
             "description": "Extract Hashes",
             "data_type": "boolean",
             "default": false,
-            "order": 20
+            "order": 22
         },
         "ingest_eml": {
             "description": "Ingest EML file for the itemAttachment",
             "data_type": "boolean",
             "default": false,
-            "order": 21
+            "order": 23
         },
         "ingest_manner": {
             "data_type": "string",
             "description": "How to Ingest (during ingestion, should the app get the latest emails or the oldest)",
-            "order": 22,
+            "order": 24,
             "value_list": [
                 "oldest first",
                 "latest first"
@@ -184,18 +199,18 @@
             "description": "Maximum attempts to retry the API call (Default: 3)",
             "data_type": "numeric",
             "default": 3,
-            "order": 23
+            "order": 25
         },
         "retry_wait_time": {
             "description": "Delay in seconds between retries (Default: 60)",
             "data_type": "numeric",
             "default": 60,
-            "order": 24
+            "order": 26
         },
         "extract_eml": {
             "data_type": "boolean",
             "description": "Extract root (primary) email as Vault",
-            "order": 25,
+            "order": 27,
             "default": false
         }
     },
