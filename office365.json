@@ -7944,15 +7944,44 @@
                     "default": 100,
                     "order": 2
                 },
+                "offset": {
+                    "description": "Number of messages to skip before retrieving results",
+                    "data_type": "numeric",
+                    "default": 0,
+                    "order": 3
+                },
                 "start_date": {
                     "description": "Start date for filtering messages (format: YYYY-MM-DD)",
                     "data_type": "string",
-                    "order": 3
+                    "order": 4
                 },
                 "end_date": {
                     "description": "End date for filtering messages (format: YYYY-MM-DD)",
                     "data_type": "string",
-                    "order": 4
+                    "order": 5
+                },
+                "download_attachments": {
+                    "description": "Download email attachments to vault",
+                    "data_type": "boolean",
+                    "default": false,
+                    "order": 6
+                },
+                "download_email": {
+                    "description": "Download email as EML file to vault",
+                    "data_type": "boolean",
+                    "default": false,
+                    "order": 7
+                },
+                "extract_headers": {
+                    "description": "Include email headers in results",
+                    "data_type": "boolean",
+                    "default": false,
+                    "order": 8
+                },
+                "plus_ingest": {
+                    "description": "If enabled, messages will be also ingested like on_poll",
+                    "data_type": "boolean",
+                    "order": 9
                 }
             },
             "output": [

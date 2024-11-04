@@ -1294,6 +1294,70 @@ class Office365Connector(BaseConnector):
 
         return phantom.APP_SUCCESS
 
+    def _process_email_details(self, action_result, email, email_address, extract_headers=False, download_attachments=False, download_email=False):
+        """
+        Helper function to process email details including headers, attachments and email downloads
+
+        Args:
+            action_result: The action result object
+            email: The email object to process
+            email_address: The email address of the mailbox
+            extract_headers: Whether to extract email headers
+            download_attachments: Whether to download attachments
+            download_email: Whether to download the email as EML
+
+        Returns:
+            dict: Updated email object with additional details
+        """
+        try:
+            # Get headers if requested
+            if extract_headers:
+                header_endpoint = f"/users/{email_address}/messages/{email['id']}?$select=internetMessageHeaders"
+                ret_val, header_response = self._make_rest_call_helper(action_result, header_endpoint)
+                if phantom.is_fail(ret_val):
+                    self.debug_print(f"Failed to get headers for email {email['id']}")
+                else:
+                    email["internetMessageHeaders"] = self._flatten_headers(header_response.get("internetMessageHeaders"))
+
+            # Handle attachments if requested
+            if download_attachments and email.get("hasAttachments"):
+                attachment_endpoint = f"/users/{email_address}/messages/{email['id']}/attachments"
+                attach_endpoint = f"{attachment_endpoint}?$expand=microsoft.graph.itemattachment/item"
+                ret_val, attach_resp = self._make_rest_call_helper(action_result, attach_endpoint)
+
+                if phantom.is_success(ret_val):
+                    for attachment in attach_resp.get("value", []):
+                        if attachment.get("@odata.type") == "#microsoft.graph.fileAttachment":
+                            if not self._handle_attachment(attachment, self.get_container_id()):
+                                self.debug_print(f"Could not process attachment for email {email['id']}")
+                        elif attachment.get("@odata.type") == "#microsoft.graph.itemAttachment":
+                            if not self._handle_item_attachment(attachment, self.get_container_id(), attachment_endpoint, action_result):
+                                self.debug_print(f"Could not process item attachment for email {email['id']}")
+                    email["attachments"] = attach_resp["value"]
+
+            # Download email as EML if requested
+            if download_email:
+                subject = email.get("subject")
+                email_message = {
+                    "id": email["id"],
+                    "name": subject if subject else f"email_message_{email['id']}"
+                }
+                if self._handle_item_attachment(
+                    email_message,
+                    self.get_container_id(),
+                    f"/users/{email_address}/messages",
+                    action_result
+                ):
+                    email["vaultId"] = email_message["vaultId"]
+                else:
+                    self.debug_print(f"Could not download email {email['id']}")
+
+            return email
+
+        except Exception as e:
+            self.debug_print(f"Error processing email details: {str(e)}")
+            return email
+
     def _remove_tokens(self, action_result):
         # checks whether the message includes any of the known error codes
 
@@ -1994,88 +2058,16 @@ class Office365Connector(BaseConnector):
         if phantom.is_fail(ret_val):
             return action_result.get_status()
 
-        if param.get("extract_headers"):
-            header_endpoint = endpoint + "?$select=internetMessageHeaders"
-            ret_val, header_response = self._make_rest_call_helper(action_result, header_endpoint)
-
-            if phantom.is_fail(ret_val):
-                return action_result.get_status()
-            # For Drafts there might not be any internetMessageHeaders,
-            # so we have to use get() fetching instead of directly fetching from dictionary
-            response["internetMessageHeaders"] = header_response.get("internetMessageHeaders")
-
-        if param.get("download_attachments", False) and response.get("hasAttachments"):
-            endpoint += "/attachments"
-            attachment_endpoint = "{}?$expand=microsoft.graph.itemattachment/item".format(endpoint)
-            ret_val, attach_resp = self._make_rest_call_helper(action_result, attachment_endpoint)
-
-            if phantom.is_fail(ret_val):
-                return action_result.get_status()
-
-            for attachment in attach_resp.get("value", []):
-                # If it is fileAttachment, then we have to ingest it
-                if attachment.get("@odata.type") == "#microsoft.graph.fileAttachment":
-                    if not self._handle_attachment(attachment, self.get_container_id()):
-                        return action_result.set_status(
-                            phantom.APP_ERROR,
-                            "Could not process attachment. See logs for details",
-                        )
-                elif attachment.get("@odata.type") == "#microsoft.graph.itemAttachment":
-                    if not self._handle_item_attachment(attachment, self.get_container_id(), endpoint, action_result):
-                        return action_result.set_status(
-                            phantom.APP_ERROR,
-                            "Could not process item attachment. See logs for details",
-                        )
-
-            response["attachments"] = attach_resp["value"]
-
-        if response.get("@odata.type") in [
-            "#microsoft.graph.eventMessage",
-            "#microsoft.graph.eventMessageRequest",
-            "#microsoft.graph.eventMessageResponse",
-        ]:
-
-            event_endpoint = "{}/?$expand=Microsoft.Graph.EventMessage/Event".format(endpoint)
-            ret_val, event_resp = self._make_rest_call_helper(action_result, event_endpoint)
-            if phantom.is_fail(ret_val):
-                return action_result.get_status()
-
-            response["event"] = event_resp["event"]
-
-        if "internetMessageHeaders" in response:
-            response["internetMessageHeaders"] = self._flatten_headers(response["internetMessageHeaders"])
-
-        # If the response has attachments, update every attachment data with its type
-        # 'attachmentType' key - indicates type of attachment
-        # and if an email has any itemAttachment, then also add itemType in the response
-        # 'itemType' key - indicates type of itemAttachment
-        if response.get("attachments", []):
-            for attachment in response["attachments"]:
-                attachment_type = attachment.get("@odata.type", "")
-                attachment["attachmentType"] = attachment_type
-                if attachment_type == "#microsoft.graph.itemAttachment":
-                    attachment["itemType"] = attachment.get("item", {}).get("@odata.type", "")
-
-        if param.get("download_email"):
-            subject = response.get("subject")
-            email_message = {
-                "id": message_id,
-                "name": subject if subject else "email_message_{}".format(message_id),
-            }
-            if not self._handle_item_attachment(
-                email_message,
-                self.get_container_id(),
-                "/users/{0}/messages".format(email_addr),
-                action_result,
-            ):
-                return action_result.set_status(
-                    phantom.APP_ERROR,
-                    "Could not download the email. See logs for details",
-                )
-            response["vaultId"] = email_message["vaultId"]
+        response = self._process_email_details(
+            action_result,
+            response,
+            email_addr,
+            extract_headers=param.get("extract_headers"),
+            download_attachments=param.get("download_attachments", False),
+            download_email=param.get("download_email", False)
+        )
 
         action_result.add_data(response)
-
         return action_result.set_status(phantom.APP_SUCCESS, "Successfully fetched email")
 
     def _handle_get_email_properties(self, param):
@@ -3062,15 +3054,28 @@ class Office365Connector(BaseConnector):
         email_address = param["email_address"]
         folder = param.get("folder", MSGOFFICE365_DEFAULT_FOLDER)
         limit = param.get("limit", MSGOFFICE365_DEFAULT_LIMIT)
+        offset = param.get("offset", 0)
+        ingest = param.get("plus_ingest", False)
+        download_attachments = param.get("download_attachments", False)
+        download_email = param.get("download_email", False)
+        extract_headers = param.get("extract_headers", False)
 
         ret_val, limit = _validate_integer(action_result, limit, "'limit' action")
         if phantom.is_fail(ret_val):
             return action_result.get_status()
 
-        endpoint = MSGOFFICE365_MAILBOX_MESSAGES_ENDPOINT.format(email_address, folder)
-        params = {"$top": limit, "$orderby": MSGOFFICE365_ORDERBY_RECEIVED_DESC, "$select": ",".join(MSGOFFICE365_SELECT_PARAMETER_LIST)}
+        ret_val, offset = _validate_integer(action_result, offset, "'offset' action", allow_zero=True)
+        if phantom.is_fail(ret_val):
+            return action_result.get_status()
 
-        # Add optional filters
+        endpoint = MSGOFFICE365_MAILBOX_MESSAGES_ENDPOINT.format(email_address, folder)
+        params = {
+            "$top": limit,
+            "$orderby": MSGOFFICE365_ORDERBY_RECEIVED_DESC,
+            "$select": ",".join(MSGOFFICE365_SELECT_PARAMETER_LIST),
+            "$skip": offset
+        }
+
         date_filters = []
         if param.get("start_date"):
             date_filters.append(MSGOFFICE365_RECEIVED_DATE_FILTER.format(operator="ge", date=param.get("start_date")))
@@ -3085,15 +3090,68 @@ class Office365Connector(BaseConnector):
         if phantom.is_fail(ret_val):
             return action_result.get_status()
 
-        for message in messages:
-            action_result.add_data(message)
+        failed_email_ids = 0
+        duplicate_count = 0
+        total_emails = len(messages)
+
+        for index, email in enumerate(messages):
+            try:
+                # Perform additional processing of attachments/data for email
+                email = self._process_email_details(
+                    action_result,
+                    email,
+                    email_address,
+                    extract_headers=extract_headers,
+                    download_attachments=download_attachments,
+                    download_email=download_email
+                )
+
+                action_result.add_data(email)
+
+                if ingest:
+                    try:
+                        # Ingest email data
+                        ret_val = self._process_email_data(self.get_config(), action_result, endpoint, email)
+                        if phantom.is_fail(ret_val):
+                            failed_email_ids += 1
+                            continue
+
+                        # Check return message for duplication
+                        if action_result.get_message() == "Duplicate container found":
+                            duplicate_count += 1
+                            self.debug_print(f"Duplicate container found for email ID: {email.get('id')}")
+                            continue
+
+                    except Exception as e:
+                        failed_email_ids += 1
+                        self.debug_print(f"Exception occurred while processing email ID: {email.get('id')}. Error: {str(e)}")
+
+            except Exception as e:
+                failed_email_ids += 1
+                self.debug_print(f"Exception occurred while processing email ID: {email.get('id')}. Error: {str(e)}")
+
+        if failed_email_ids == total_emails and total_emails > 0:
+            return action_result.set_status(
+                phantom.APP_ERROR,
+                f"Error occurred while processing all {total_emails} email IDs."
+            )
 
         summary = action_result.update_summary({})
-        summary["total_messages"] = len(messages)
+        summary["total_messages"] = total_emails
+        if ingest:
+            summary["new_emails_ingested"] = total_emails - failed_email_ids - duplicate_count
+            summary["duplicate_emails"] = duplicate_count
+            summary["failed_emails"] = failed_email_ids
 
-        return action_result.set_status(
-            phantom.APP_SUCCESS, f"Successfully retrieved {len(messages)} messages from {email_address}'s {folder} folder"
-        )
+        status_msg = f"Successfully retrieved {total_emails} messages from {email_address}'s {folder} folder (offset: {offset})"
+        if ingest:
+            status_msg += f" and ingested {total_emails - failed_email_ids - duplicate_count} new messages"
+            if duplicate_count:
+                status_msg += f" ({duplicate_count} duplicates skipped)"
+            if failed_email_ids:
+                status_msg += f" ({failed_email_ids} failed)"
+
+        return action_result.set_status(phantom.APP_SUCCESS, status_msg)
 
     def handle_action(self, param):
 
