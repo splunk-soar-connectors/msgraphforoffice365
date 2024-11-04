@@ -8017,7 +8017,7 @@
                 {
                     "data_path": "action_result.data.*.id",
                     "data_type": "string",
-                    "column_name": "ID",
+                    "column_name": "MESSAGE ID",
                     "column_order": 0
                 },
                 {

@@ -1294,7 +1294,9 @@ class Office365Connector(BaseConnector):
 
         return phantom.APP_SUCCESS
 
-    def _process_email_details(self, action_result, email, email_address, extract_headers=False, download_attachments=False, download_email=False):
+    def _process_email_details(
+        self, action_result, email, email_address, extract_headers=False, download_attachments=False, download_email=False
+    ):
         """
         Helper function to process email details including headers, attachments and email downloads
 
@@ -1338,16 +1340,8 @@ class Office365Connector(BaseConnector):
             # Download email as EML if requested
             if download_email:
                 subject = email.get("subject")
-                email_message = {
-                    "id": email["id"],
-                    "name": subject if subject else f"email_message_{email['id']}"
-                }
-                if self._handle_item_attachment(
-                    email_message,
-                    self.get_container_id(),
-                    f"/users/{email_address}/messages",
-                    action_result
-                ):
+                email_message = {"id": email["id"], "name": subject if subject else f"email_message_{email['id']}"}
+                if self._handle_item_attachment(email_message, self.get_container_id(), f"/users/{email_address}/messages", action_result):
                     email["vaultId"] = email_message["vaultId"]
                 else:
                     self.debug_print(f"Could not download email {email['id']}")
@@ -2064,7 +2058,7 @@ class Office365Connector(BaseConnector):
             email_addr,
             extract_headers=param.get("extract_headers"),
             download_attachments=param.get("download_attachments", False),
-            download_email=param.get("download_email", False)
+            download_email=param.get("download_email", False),
         )
 
         action_result.add_data(response)
@@ -3077,7 +3071,7 @@ class Office365Connector(BaseConnector):
             "$top": limit,
             "$orderby": MSGOFFICE365_ORDERBY_RECEIVED_DESC,
             "$select": ",".join(MSGOFFICE365_SELECT_PARAMETER_LIST),
-            "$skip": offset
+            "$skip": offset,
         }
 
         date_filters = []
@@ -3107,7 +3101,7 @@ class Office365Connector(BaseConnector):
                     email_address,
                     extract_headers=extract_headers,
                     download_attachments=download_attachments,
-                    download_email=download_email
+                    download_email=download_email,
                 )
 
                 action_result.add_data(email)
@@ -3129,10 +3123,7 @@ class Office365Connector(BaseConnector):
                 self.debug_print(f"Exception occurred while processing email ID: {email.get('id')}. Error: {str(e)}")
 
         if failed_email_ids == total_emails and total_emails > 0:
-            return action_result.set_status(
-                phantom.APP_ERROR,
-                f"Error occurred while processing all {total_emails} email IDs."
-            )
+            return action_result.set_status(phantom.APP_ERROR, f"Error occurred while processing all {total_emails} email IDs.")
 
         summary = action_result.update_summary({})
         summary["total_messages"] = total_emails
