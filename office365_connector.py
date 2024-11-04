@@ -3064,6 +3064,10 @@ class Office365Connector(BaseConnector):
         if phantom.is_fail(ret_val):
             return action_result.get_status()
 
+        # Limit should not exceed 100 per request for timeout reasons
+        if limit > 100:
+            return action_result.set_status(phantom.APP_ERROR, "Limit should not exceed 100 messages per request")
+
         ret_val, offset = _validate_integer(action_result, offset, "'offset' action", allow_zero=True)
         if phantom.is_fail(ret_val):
             return action_result.get_status()
@@ -3091,7 +3095,7 @@ class Office365Connector(BaseConnector):
             return action_result.get_status()
 
         failed_email_ids = 0
-        duplicate_count = 0
+        duplicate_count = self._duplicate_count
         total_emails = len(messages)
 
         for index, email in enumerate(messages):
@@ -3116,12 +3120,6 @@ class Office365Connector(BaseConnector):
                             failed_email_ids += 1
                             continue
 
-                        # Check return message for duplication
-                        if action_result.get_message() == "Duplicate container found":
-                            duplicate_count += 1
-                            self.debug_print(f"Duplicate container found for email ID: {email.get('id')}")
-                            continue
-
                     except Exception as e:
                         failed_email_ids += 1
                         self.debug_print(f"Exception occurred while processing email ID: {email.get('id')}. Error: {str(e)}")
@@ -3139,6 +3137,7 @@ class Office365Connector(BaseConnector):
         summary = action_result.update_summary({})
         summary["total_messages"] = total_emails
         if ingest:
+            duplicate_count = self._duplicate_count - duplicate_count
             summary["new_emails_ingested"] = total_emails - failed_email_ids - duplicate_count
             summary["duplicate_emails"] = duplicate_count
             summary["failed_emails"] = failed_email_ids
