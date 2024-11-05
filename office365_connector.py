@@ -158,7 +158,7 @@ def _get_error_msg_from_exception(e, app_connector=None):
     :return: error message
     """
     error_code = None
-    error_msg = ERROR_MSG_UNAVAILABLE
+    error_msg = MSGOFFICE365_ERROR_MSG_UNAVAILABLE
     if app_connector:
         app_connector.error_print("Error occurred.", dump_object=e)
 
@@ -777,7 +777,7 @@ class Office365Connector(BaseConnector):
 
         # If token is expired, generate a new token
         msg = action_result.get_message()
-        if msg and (("token" in msg and "expired" in msg) or any(failure_msg in msg for failure_msg in AUTH_FAILURE_MSG)):
+        if msg and (("token" in msg and "expired" in msg) or any(failure_msg in msg for failure_msg in MSGOFFICE365_AUTH_FAILURE_MSG)):
             self.debug_print("MSGRAPH", f"Error '{msg}' found in API response. Requesting new access token using refresh token")
             ret_val = self._get_token(action_result)
             if phantom.is_fail(ret_val):
@@ -3066,7 +3066,7 @@ class Office365Connector(BaseConnector):
         if phantom.is_fail(ret_val):
             return action_result.get_status()
 
-        endpoint = MSGOFFICE365_MAILBOX_MESSAGES_ENDPOINT.format(email_address, folder)
+        endpoint = f"/users/{email_address}/mailFolders/{folder}/messages"
         params = {
             "$top": limit,
             "$orderby": MSGOFFICE365_ORDERBY_RECEIVED_DESC,
