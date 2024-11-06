@@ -7921,7 +7921,7 @@
         {
             "action": "get mailbox messages",
             "identifier": "get_mailbox_messages",
-            "description": "Retrieves messages from a specified mailbox folder",
+            "description": "Retrieves messages from a specified mailbox folder with advanced functionality",
             "type": "investigate",
             "read_only": true,
             "parameters": {
