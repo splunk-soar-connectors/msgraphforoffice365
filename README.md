@@ -354,7 +354,7 @@ VARIABLE | REQUIRED | TYPE | DESCRIPTION
 [block sender](#action-block-sender) - Add the sender email into the block list  
 [unblock sender](#action-unblock-sender) - Remove the sender email from the block list  
 [resolve name](#action-resolve-name) - Verify aliases and resolve display names to the appropriate user  
-[get mailbox messages](#action-get-mailbox-messages) - Retrieves messages from a specified mailbox folder  
+[get mailbox messages](#action-get-mailbox-messages) - Retrieves messages from a specified mailbox folder with advanced functionality  
 
 ## action: 'test connectivity'
 Use supplied credentials to generate a token with MS Graph
@@ -1689,7 +1689,7 @@ summary.total_objects | numeric |  |
 summary.total_objects_successful | numeric |  |    
 
 ## action: 'get mailbox messages'
-Retrieves messages from a specified mailbox folder
+Retrieves messages from a specified mailbox folder with advanced functionality
 
 Type: **investigate**  
 Read only: **True**
