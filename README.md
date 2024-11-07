@@ -2,7 +2,7 @@
 # MS Graph for Office 365
 
 Publisher: Splunk  
-Connector Version: 3.0.1  
+Connector Version: 4.0.0  
 Product Vendor: Microsoft  
 Product Name: Office 365 (MS Graph)  
 Product Version Supported (regex): ".\*"  
@@ -49,9 +49,21 @@ On the next page, select **New registration** and give your app a name.
   
 Once the app is created, follow the below-mentioned steps:
 
--   Under **Certificates & secrets** select **New client secret** . Enter the **Description** and
-    select the desired duration in **Expires** . Click on **Add** . Note down this **value**
-    somewhere secure, as it cannot be retrieved after closing the window.
+-   For authentication using a client secret(OAuth):
+
+    -   Under **Certificates & secrets** select **New client secret** . Enter the **Description** and
+        select the desired duration in **Expires** . Click on **Add** . Note down this **value**
+        somewhere secure, as it cannot be retrieved after closing the window.
+
+-  For authentication using certificate based authentication(CBA):
+
+    -   Under **Certificates & secrets** select **Certificates** then **Upload Certificate** . 
+        Select the certifitcate file to upload (.crt/.pem) and enter the **Description** . Note down 
+        the **thumbprint** as this will be used to configure the asset.
+    -   Generate private key:
+        -   `openssl genpkey -algorithm RSA -out private_key.pem` / `openssl genrsa -out private_key.pem 2048`
+    -   Generate certifitcate from the private key:
+        -   `openssl req -new -x509 -key private_key.pem -out certificate.pem -days 365`
 
 -   Under **Authentication** , select **Add a platform** . In the **Add a platform** window, select
     **Web** . The **Redirect URLs** should be filled right here. We will get **Redirect URLs** from
@@ -91,6 +103,7 @@ Once the app is created, follow the below-mentioned steps:
 
     -   MailboxSettings.Read (https://graph.microsoft.com/MailboxSettings.Read) - It is required
         only if you want to run the **oof status** , **list rules** and **get rule** actions.
+    -   For CBA Authentication, [Application-only access](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-permissions-and-consent#openid-connect-scopes) permissions are required.
 
 After making these changes, click **Add permissions** , then select **Grant admin consent for
 \<your_organization_name_as_on_azure_portal>** at the bottom of the screen.
@@ -137,7 +150,7 @@ the window. To give this user permission to view assets, follow these steps:
 
 ### Test connectivity
 
-#### Admin User Workflow
+#### Admin User Workflow (OAuth)
 
 -   Configure the asset with required details while keeping the **Admin Access Required** as
     checked.
@@ -160,7 +173,7 @@ the window. To give this user permission to view assets, follow these steps:
     config parameter as checked. This will skip the interactive flow and use the client credentials
     for generating tokens.
 
-#### Non-Admin User Workflow
+#### Non-Admin User Workflow (OAuth)
 
 -   Configure the asset with required details while keeping the **Admin Access Required** as
     unchecked. **Admin Consent Already Provided** config parameter will be ignored in the non-admin
@@ -181,8 +194,21 @@ the window. To give this user permission to view assets, follow these steps:
 -   Now go back and check the message on the Test Connectivity dialog box, it should say **Test
     Connectivity Passed** .
 
-  
-  
+#### Certificate Based Authentication Workflow (CBA)
+
+-   Configure the asset with **Tenant ID**, **Application ID**, **Certificate Thumbprint** and
+    the *location of the the certificate private key (.PEM)* on the SOAR server filesystem.
+-   Ensure **Admin Consent Already Provided** is checked.
+-   After setting up the asset and user, click the **TEST CONNECTIVITY** button.
+-   Check the message in the Test Connectivity dialog box. it should say **Test
+    Connectivity Passed** .
+
+#### Automatic Authentication Workflow
+
+-   Configure the asset with the required details, including either the Client Secret or a combination of Certificate Thumbprint and Certificate Private Key Location.
+-   If a client secret exists, it will take priority and follow the OAuth workflow. Otherwise, it will continue with the CBA workflow.
+-   The system does not automatically switch from OAuth to CBA when client secrets expire.
+
 The app should now be ready to be used.  
 
 ### On-Poll
@@ -306,10 +332,14 @@ VARIABLE | REQUIRED | TYPE | DESCRIPTION
 -------- | -------- | ---- | -----------
 **tenant** |  required  | string | Tenant ID (e.g. 1e309abf-db6c-XXXX-a1d2-XXXXXXXXXXXX)
 **client_id** |  required  | string | Application ID
-**client_secret** |  required  | password | Application Secret
+**auth_type** |  optional  | string | Authentication type to use for connectivity
+**client_secret** |  optional  | password | Application Secret(required for OAuth)
+**ph_4** |  optional  | ph | 
+**certificate_thumbprint** |  optional  | password | Certificate Thumbprint(required for CBA)
+**private_key_location** |  optional  | string | Location of the certificate private key (.PEM) on the filesystem(required for CBA)
 **admin_access** |  optional  | boolean | Admin Access Required
-**admin_consent** |  optional  | boolean | Admin Consent Already Provided
-**scope** |  optional  | string | Access Scope (for use with non-admin access; space-separated)
+**admin_consent** |  optional  | boolean | Admin Consent Already Provided(Required checked for CBA)
+**scope** |  optional  | string | Access Scope (for use with OAuth non-admin access; space-separated)
 **ph_2** |  optional  | ph | 
 **email_address** |  optional  | string | Email Address of the User (On Poll)
 **folder** |  optional  | string | Mailbox folder name/folder path or the internal office365 folder ID to ingest (On Poll)
@@ -1612,7 +1642,7 @@ DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
 action_result.parameter.message_id | string |  |  
 action_result.parameter.move_to_junk_folder | boolean |  |  
 action_result.parameter.user_id | boolean |  |  
-action_result.status | string |  |  
+action_result.status | string |  |   success  failed 
 action_result.summary | string |  |  
 action_result.status | string |  |   success  failed 
 action_result.message | string |  |  
@@ -1640,7 +1670,7 @@ DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
 action_result.parameter.message_id | string |  |  
 action_result.parameter.move_to_inbox | boolean |  |  
 action_result.parameter.user_id | boolean |  |  
-action_result.status | string |  |  
+action_result.status | string |  |   success  failed 
 action_result.summary | string |  |  
 action_result.status | string |  |   success  failed 
 action_result.message | string |  |  
