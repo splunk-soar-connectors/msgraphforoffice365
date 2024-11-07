@@ -53,9 +53,10 @@ MSGOFFICE365_DUPLICATE_CONTAINER_FOUND_MSG = "duplicate container found"
 MSGOFFICE365_ERROR_EMPTY_RESPONSE = "Status Code {code}. Empty response and no information in the header."
 MSGOFFICE365_CBA_AUTH_ERROR = 'Certificate Based Authentication requires both Certificate Thumbprint and Certificate Private Key Location'
 MSGOFFICE365_OAUTH_AUTH_ERROR = 'OAuth Authentication requires Client Secret'
-MSGOFFICE365_AUTOMATIC_AUTH_ERROR = "Automatic Authentication requires either Client Secret or s combination of Certificate Thumbprint and Certificate Private Key Location"
+MSGOFFICE365_AUTOMATIC_AUTH_ERROR = "Automatic Authentication requires either Client Secret or combination of Certificate Thumbprint and Certificate Private Key Location"
 MSGOFFICE365_CBA_ADMIN_CONSENT_ERROR = 'Certificate Based Authorization requires Admin Consent to be Provided'
 MSGOFFICE365_CBA_KEY_FILE_ERROR = 'Private Key file missing, in invalid format or unreadable'
+MSGOFFICE365_NON_ADMIN_SCOPE_ERROR = "Please provide scope for non-admin access in the asset configuration for OAuth authentication"
 
 MSGOFFICE365_DEFAULT_REQUEST_TIMEOUT = 30  # in seconds
 MSGOFFICE365_DEFAULT_NUMBER_OF_RETRIES = 3

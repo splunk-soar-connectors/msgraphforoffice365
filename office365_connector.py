@@ -45,7 +45,7 @@ from process_email import ProcessEmail
 TC_FILE = "oauth_task.out"
 SERVER_TOKEN_URL = "https://login.microsoftonline.com/{0}/oauth2/v2.0/token"
 MSGOFFICE365_AUTHORITY_URL = "https://login.microsoftonline.com/{tenant}"
-MSGRAPH_API_URL = "https://graph.microsoft.com/v1.0"
+MSGRAPH_API_URL = "https://graph.microsoft.com"
 MAX_END_OFFSET_VAL = 2147483646
 MSGOFFICE365_DEFAULT_SCOPE = "https://graph.microsoft.com/.default"
 
@@ -3076,6 +3076,9 @@ class Office365Connector(BaseConnector):
 
         self.save_progress('Generating token using Certificate Based Authentication...')
 
+        if not (self._thumbprint and self._private_key_location):
+            self.save_progress(MSGOFFICE365_CBA_AUTH_ERROR)
+            return self.set_status(phantom.APP_ERROR), None
         # Check non-interactive is enabled for CBA auth
         if not self._admin_consent:
             self.save_progress(MSGOFFICE365_CBA_ADMIN_CONSENT_ERROR)
@@ -3086,10 +3089,14 @@ class Office365Connector(BaseConnector):
         if phantom.is_fail(ret_val):
             return action_result.get_status(), None
 
-        app = msal.ConfidentialClientApplication(
-            self._client_id, authority=MSGOFFICE365_AUTHORITY_URL.format(tenant=self._tenant),
-            client_credential={"thumbprint": self._thumbprint, "private_key": self._private_key},
-        )
+        try:
+            app = msal.ConfidentialClientApplication(
+                self._client_id, authority=MSGOFFICE365_AUTHORITY_URL.format(tenant=self._tenant),
+                client_credential={"thumbprint": self._thumbprint, "private_key": self._private_key},
+            )
+        except Exception as e:
+            error_msg = _get_error_msg_from_exception(e, self)
+            return action_result.set_status(phantom.APP_ERROR, "Please check your configured. Error Occurred while Creating confidential client Application. {0}".format(error_msg)), None
 
         self.debug_print("Requesting new token from AAD.")
         res_json = app.acquire_token_for_client(scopes=[MSGOFFICE365_DEFAULT_SCOPE])
@@ -3234,7 +3241,7 @@ class Office365Connector(BaseConnector):
         else:
             # Scope is required for non-admin access
             if not self._scope:
-                self.save_progress("Please provide scope for non-admin access in the asset configuration for OAuth authentication")
+                self.save_progress(MSGOFFICE365_NON_ADMIN_SCOPE_ERROR)
                 return action_result.set_status(phantom.APP_ERROR)
             # Create the url authorization, this is the one pointing to the oauth server side
             admin_consent_url = "https://login.microsoftonline.com/{0}/oauth2/v2.0/authorize".format(
@@ -3375,7 +3382,7 @@ class Office365Connector(BaseConnector):
 
         if not self._admin_access:
             if not self._scope and self._auth_type == "oauth":
-                return self.set_status(phantom.APP_ERROR, "Please provide the OAuth scope for non-admin access in the asset configuration")
+                return self.set_status(phantom.APP_ERROR, MSGOFFICE365_NON_ADMIN_SCOPE_ERROR)
 
             self._access_token = self._state.get("non_admin_auth", {}).get("access_token", None)
             self._refresh_token = self._state.get("non_admin_auth", {}).get("refresh_token", None)
@@ -3406,7 +3413,7 @@ class Office365Connector(BaseConnector):
         if self._admin_access and not admin_consent:
             return self.set_status(phantom.APP_ERROR, MSGOFFICE365_RUN_CONNECTIVITY_MSG)
 
-        if not self._admin_access and (not self._access_token or not self._refresh_token):
+        if not self._admin_access and not self._access_token:
             ret_val = self._get_token(action_result)
 
             if phantom.is_fail(ret_val):
