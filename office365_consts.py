@@ -57,7 +57,7 @@ MSGOFFICE365_AUTOMATIC_AUTH_ERROR = (
     "Automatic Authentication requires either Client Secret or combination of Certificate Thumbprint and Certificate Private Key Location"
 )
 MSGOFFICE365_CBA_ADMIN_CONSENT_ERROR = "Certificate Based Authorization requires Admin Consent to be Provided"
-MSGOFFICE365_CBA_KEY_FILE_ERROR = "Private Key file missing, in invalid format or unreadable"
+MSGOFFICE365_CBA_KEY_FILE_ERROR = "Error occurred while reading the private key. {0}"
 MSGOFFICE365_NON_ADMIN_SCOPE_ERROR = "Please provide scope for non-admin access in the asset configuration for OAuth authentication"
 
 MSGOFFICE365_DEFAULT_REQUEST_TIMEOUT = 30  # in seconds

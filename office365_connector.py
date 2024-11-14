@@ -1320,6 +1320,7 @@ class Office365Connector(BaseConnector):
 
         action_result = self.add_action_result(ActionResult(param))
 
+        # Get Consent in OAuth Authentication and it's requires Client Secret (Scenario - Automatic)
         if self._auth_type != "cba" and self._client_secret and not (self._admin_access and self._admin_consent):
             ret_val = self._get_consent(action_result)
             if phantom.is_fail(ret_val):
@@ -1327,7 +1328,7 @@ class Office365Connector(BaseConnector):
                     return action_result.get_status()
                 else:
                     self._auth_type = "cba"
-                    self.save_progress("Failed to getting consent")
+                    self.save_progress("Failed to obtain consent, switching to Certificate Based Authentication")
 
         self.save_progress("Getting the token")
         ret_val = self._get_token(action_result)
@@ -1340,6 +1341,7 @@ class Office365Connector(BaseConnector):
         params = {"$top": "1"}
         message_failed = ""
 
+        # Application permissions are not supported when using the /me endpoint. (Scenario - CBA using /users)
         if self._admin_access or self._state["auth_type"] == "cba":
             message_failed = "API to fetch details of all the users failed"
             self.save_progress("Getting info about all users to verify token")
@@ -3065,16 +3067,25 @@ class Office365Connector(BaseConnector):
                 private_key = "\n".join(private_key.replace(pem_prefix, "").replace(pem_suffix, "").strip().split())
 
                 return phantom.APP_SUCCESS, f"{pem_prefix}\n{private_key}\n{pem_suffix}"
-        except Exception:
-            return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_CBA_KEY_FILE_ERROR), None
+        except Exception as e:
+            error_msg = _get_error_msg_from_exception(e, self)
+            return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_CBA_KEY_FILE_ERROR.format(error_msg)), None
 
     def _generate_new_cba_access_token(self, action_result):
 
         self.save_progress("Generating token using Certificate Based Authentication...")
 
+        # reset the state
+        if self._state.get("admin_auth", {}):
+            self._state.pop("admin_auth")
+        if self._state.get("non_admin_auth", {}):
+            self._state.pop("non_admin_auth")
+
+        # Certificate Based Authentication requires both Certificate Thumbprint and Certificate Private Key Location
         if not (self._thumbprint and self._private_key_location):
             self.save_progress(MSGOFFICE365_CBA_AUTH_ERROR)
             return self.set_status(phantom.APP_ERROR), None
+
         # Check non-interactive is enabled for CBA auth
         if not self._admin_consent:
             self.save_progress(MSGOFFICE365_CBA_ADMIN_CONSENT_ERROR)
@@ -3096,16 +3107,17 @@ class Office365Connector(BaseConnector):
             return (
                 action_result.set_status(
                     phantom.APP_ERROR,
-                    "Please check your configured. Error Occurred while Creating confidential client Application. {0}".format(error_msg),
+                    f"Please check your configured parameters. Error Occurred while Creating confidential client Application. {error_msg}",
                 ),
                 None,
             )
 
-        self.debug_print("Requesting new token from AAD.")
+        self.debug_print("Requesting new token from Azure AD.")
         res_json = app.acquire_token_for_client(scopes=[MSGOFFICE365_DEFAULT_SCOPE])
 
         if res_json.get("error"):
-            error_message = f"{res_json.get('error')}: {res_json.get('error_description')}"
+            # replace thumbprint to dummy value
+            error_message = f"{res_json.get('error')}: {res_json.get('error_description')}".replace(self._thumbprint[4:], "xxxxxxxxxxxxxxxxxxx")
             return action_result.set_status(phantom.APP_ERROR, error_message), None
 
         return phantom.APP_SUCCESS, res_json
@@ -3149,6 +3161,7 @@ class Office365Connector(BaseConnector):
     def _get_token(self, action_result):
 
         # Determine the authentication type and function to generate the access token
+        # Automatic auth -  If client Secret exists, it will take priority and follow the OAuth workflow.
         auth_type, generate_token_func = (
             ("cba", self._generate_new_cba_access_token)
             if self._auth_type == "cba" or not self._client_secret
@@ -3373,12 +3386,15 @@ class Office365Connector(BaseConnector):
             self._access_token = self._state.get("admin_auth", {}).get("access_token", None)
 
         if self._auth_type == "cba":
+            # Certificate Based Authentication requires both Certificate Thumbprint and Certificate Private Key Location
             if not (self._thumbprint and self._private_key_location):
                 return self.set_status(phantom.APP_ERROR, MSGOFFICE365_CBA_AUTH_ERROR)
+
             # Check non-interactive is enabled for CBA auth
             if not self._admin_consent:
                 return self.set_status(phantom.APP_ERROR, MSGOFFICE365_CBA_ADMIN_CONSENT_ERROR)
         elif self._auth_type == "oauth":
+            # OAuth Authentication requires Client Secret
             if not self._client_secret:
                 return self.set_status(phantom.APP_ERROR, MSGOFFICE365_OAUTH_AUTH_ERROR)
         else:

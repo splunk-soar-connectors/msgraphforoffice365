@@ -39,7 +39,7 @@
     "main_module": "office365_connector.py",
     "min_phantom_version": "6.2.2",
     "latest_tested_versions": [
-        "Cloud 9 January, 2024"
+        "Cloud 8 Nov, 2024"
     ],
     "app_wizard_version": "1.0.0",
     "python_version": "3",
@@ -314,7 +314,7 @@
                         "msgoffice365 user principal name",
                         "email"
                     ],
-                    "column_name": "User Id/Principal Name",
+                    "column_name": "User ID/Principal Name",
                     "column_order": 0,
                     "example_values": [
                         "eeb3645f-df19-58a1-0e9c-ghi234cb5f6f"
@@ -2006,7 +2006,7 @@
                         "TEST7d21-7631-4ea7-97b2-1328d1c5b901",
                         "example@test.com"
                     ],
-                    "column_name": "Group ID Or Group E Mail",
+                    "column_name": "Group ID or Group e-mail",
                     "column_order": 0
                 },
                 {
@@ -7928,10 +7928,6 @@
             {
                 "module": "cffi",
                 "input_file": "wheels/py39/cffi-1.17.1-cp39-cp39-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl"
-            },
-            {
-                "module": "cryptography",
-                "input_file": "wheels/py39/cryptography-43.0.3-cp39-abi3-manylinux_2_28_x86_64.whl"
             },
             {
                 "module": "msal",
