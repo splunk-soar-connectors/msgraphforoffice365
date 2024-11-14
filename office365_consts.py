@@ -77,12 +77,12 @@ MSGOFFICE365_ASSET_PARAM_CHECK_LIST_ERROR = [
 
 # Constants relating to '_get_error_message_from_exception'
 
-ERROR_MSG_UNAVAILABLE = "Error msg unavailable. Please check the asset configuration and|or action parameters"
+MSGOFFICE365_ERROR_MSG_UNAVAILABLE = "Error msg unavailable. Please check the asset configuration and|or action parameters"
 
 # Constants relating to 'validate_integer'
 MSGOFFICE365_VALID_INT_MSG = "Please provide a valid integer value in the {param} parameter"
 MSGOFFICE365_NON_NEG_NON_ZERO_INT_MSG = "Please provide a valid non-zero positive integer value in the {param} parameter"
-AUTH_FAILURE_MSG = [
+MSGOFFICE365_AUTH_FAILURE_MSG = [
     "token is invalid",
     "Access token has expired",
     "ExpiredAuthenticationToken",
@@ -135,3 +135,9 @@ MSGOFFICE365_SELECT_PARAMETER_LIST = [
 MSGOFFICE365_AUTH_TYPES = {"Automatic": "auto", "OAuth": "oauth", "Certificate Based Authentication(CBA)": "cba"}
 
 MSGOFFICE365_AUTH_AUTOMATIC = "Automatic"
+
+MSGOFFICE365_DEFAULT_FOLDER = "Inbox"
+MSGOFFICE365_DEFAULT_LIMIT = 100
+MSGOFFICE365_ORDERBY_RECEIVED_DESC = "receivedDateTime desc"
+MSGOFFICE365_RECEIVED_DATE_FILTER = "receivedDateTime {operator} {date}"
+MSGOFFICE365_DATE_FILTER_AND = " and "

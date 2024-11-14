@@ -382,6 +382,7 @@ VARIABLE | REQUIRED | TYPE | DESCRIPTION
 [block sender](#action-block-sender) - Add the sender email into the block list  
 [unblock sender](#action-unblock-sender) - Remove the sender email from the block list  
 [resolve name](#action-resolve-name) - Verify aliases and resolve display names to the appropriate user  
+[get mailbox messages](#action-get-mailbox-messages) - Retrieves messages from a specified mailbox folder with advanced functionality  
 
 ## action: 'test connectivity'
 Use supplied credentials to generate a token with MS Graph
@@ -1711,6 +1712,143 @@ action_result.data.\*.state | string |  `msgoffice365 state`  |
 action_result.data.\*.postalCode | string |  `msgoffice365 postal code`  |  
 action_result.summary | string |  |  
 action_result.status | string |  |   success  failed 
+action_result.message | string |  |  
+summary.total_objects | numeric |  |  
+summary.total_objects_successful | numeric |  |    
+
+## action: 'get mailbox messages'
+Retrieves messages from a specified mailbox folder with advanced functionality
+
+Type: **investigate**  
+Read only: **True**
+
+#### Action Parameters
+PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
+--------- | -------- | ----------- | ---- | --------
+**email_address** |  required  | Email address of the mailbox | string | 
+**folder** |  optional  | Folder to retrieve messages | string | 
+**limit** |  optional  | Maximum number of messages to retrieve (should not exceed 100 per request) | numeric | 
+**offset** |  optional  | Number of messages to skip before retrieving results | numeric | 
+**start_date** |  optional  | Start date for filtering messages (format: YYYY-MM-DD) | string | 
+**end_date** |  optional  | End date for filtering messages (format: YYYY-MM-DD) | string | 
+**download_attachments** |  optional  | Download email attachments to vault | boolean | 
+**download_email** |  optional  | Download email as EML file to vault | boolean | 
+**extract_headers** |  optional  | Include email headers in results | boolean | 
+**plus_ingest** |  optional  | If enabled, messages will be also ingested like on_poll | boolean | 
+
+#### Action Output
+DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
+--------- | ---- | -------- | --------------
+action_result.status | string |  |   success  failed 
+action_result.parameter.email_address | string |  |  
+action_result.parameter.folder | string |  |  
+action_result.parameter.limit | numeric |  |  
+action_result.parameter.offset | numeric |  |  
+action_result.parameter.start_date | string |  |  
+action_result.parameter.end_date | string |  |  
+action_result.data.\*.id | string |  |  
+action_result.data.\*.body.content | string |  |  
+action_result.data.\*.body.contentType | string |  |  
+action_result.data.\*.flag.flagStatus | string |  |  
+action_result.data.\*.from.emailAddress.name | string |  |  
+action_result.data.\*.from.emailAddress.address | string |  |  
+action_result.data.\*.isRead | boolean |  |  
+action_result.data.\*.sender.emailAddress.name | string |  |  
+action_result.data.\*.sender.emailAddress.address | string |  |  
+action_result.data.\*.isDraft | boolean |  |  
+action_result.data.\*.replyTo.\*.emailAddress.address | string |  |  
+action_result.data.\*.replyTo.\*.emailAddress.name | string |  |  
+action_result.data.\*.subject | string |  |  
+action_result.data.\*.webLink | string |  `url`  |  
+action_result.data.\*.changeKey | string |  |  
+action_result.data.\*.categories.\*.name | string |  |  
+action_result.data.\*.importance | string |  |  
+action_result.data.\*.uniqueBody.content | string |  |  
+action_result.data.\*.uniqueBody.contentType | string |  |  
+action_result.data.\*.bodyPreview | string |  |  
+action_result.data.\*.ccRecipients.\*.emailAddress.address | string |  |  
+action_result.data.\*.ccRecipients.\*.emailAddress.name | string |  |  
+action_result.data.\*.sentDateTime | string |  |  
+action_result.data.\*.toRecipients.\*.emailAddress.name | string |  |  
+action_result.data.\*.toRecipients.\*.emailAddress.address | string |  |  
+action_result.data.\*.bccRecipients.\*.emailAddress.address | string |  |  
+action_result.data.\*.bccRecipients.\*.emailAddress.name | string |  |  
+action_result.data.\*.conversationId | string |  |  
+action_result.data.\*.hasAttachments | boolean |  |  
+action_result.data.\*.parentFolderId | string |  |  
+action_result.data.\*.createdDateTime | string |  |  
+action_result.data.\*.receivedDateTime | string |  |  
+action_result.data.\*.conversationIndex | string |  |  
+action_result.data.\*.internetMessageId | string |  |  
+action_result.data.\*.lastModifiedDateTime | string |  |  
+action_result.data.\*.internetMessageHeaders.\*.name | string |  |  
+action_result.data.\*.internetMessageHeaders.\*.value | string |  |  
+action_result.data.\*.internetMessageHeaders.Accept-Language | string |  |   en-US 
+action_result.data.\*.internetMessageHeaders.Authentication-Results | string |  |   spf=pass (sender IP is 209.85.210.171) smtp.mailfrom=testdomain.com; .abc.com; dkim=pass (signature was verified) header.d=testdomain.com.20150623.gappssmtp.com;.abc.com; dmarc=pass action=none header.from=testdomain.com;compauth=pass reason=100 
+action_result.data.\*.internetMessageHeaders.Content-Language | string |  |   en-US 
+action_result.data.\*.internetMessageHeaders.Content-Transfer-Encoding | string |  |   binary 
+action_result.data.\*.internetMessageHeaders.Content-Type | string |  |   multipart/related 
+action_result.data.\*.internetMessageHeaders.DKIM-Signature | string |  |   v=1; a=rsa-sha256; c=relaxed/relaxed;        d=testdomain.com.20150623.gappssmtp.com; s=20150623;        h=message-id:date:mime-version:from:to:subject;        bh=tlTaRbacq4aWozhUPvcWg8i8flbpYQGZNs27nncn83I=;        b=avAAeJ8jF08K4oIBhxTirRmyB+SXHwdU0zdxv7eqs/zWaWWcgmT0007KP560TTgo5u         oD4nb6TvKxpRyWW4QwmkbuMIwHsMvehd2l1gispV3AawyGJjpmN7ErVYfLtIkz2Tap3V         YxmluV+SqeyyxTU8pFAEZ7+2C2lOb1DO5TC7xCMv+dyzevSscJdbeN0dFkG+C93zCqkg         w2fxubx2HDD7b/U6m2wXllYhH608wKJ/qYzyvQyqxYqNiQOtPRg2gw4sZ2UgN3+UQyVq         8ubO39ZuqakJpzEzYMw10d6E7SQhvHDJH7mFwhBlzhvOpb2gLJDN8n8dJaZo05BozQqq         MsvA== 
+action_result.data.\*.internetMessageHeaders.Date | string |  |   Thu, 18 Jun 2020 02:11:26 -0700 
+action_result.data.\*.internetMessageHeaders.From | string |  |   "Test" <test@abc.def.com> 
+action_result.data.\*.internetMessageHeaders.In-Reply-To | string |  |   <DM6QX11MB40266715C3C22ACE4E45D182D9730@DM6PR11MB4026.namprd11.prod.test.com> 
+action_result.data.\*.internetMessageHeaders.MIME-Version | string |  |   1.0 
+action_result.data.\*.internetMessageHeaders.Message-ID | string |  |   <5eeb2fbe.1c69fb81.22b4b.676a@mx.test.com> 
+action_result.data.\*.internetMessageHeaders.Received | string |  |   from localhost.localdomain (host-240.test.com. [204.107.141.240])        by tset.abc.com with UTF8SMTPSA id ng12sm1923252pjb.15.2020.06.18.02.11.26        for <user@test.com>        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);        Thu, 18 Jun 2020 02:11:26 -0700 (PDT) 
+action_result.data.\*.internetMessageHeaders.Received-SPF | string |  |   Pass (protection.test.com: domain of testdomain.com designates 209.85.210.171 as permitted sender) receiver=protection.test.com; client-ip=209.85.210.171; helo=mail-pf1-f171.test.com; 
+action_result.data.\*.internetMessageHeaders.References | string |  |   <DM6PR11MB40266715C3C22ACE4E45D182D9730@DM6PR11MB4034.namprd11.prod.test.com> 
+action_result.data.\*.internetMessageHeaders.Return-Path | string |  `email`  |   notifications@testdomain.com 
+action_result.data.\*.internetMessageHeaders.Subject | string |  |   Fw: Email having different attachments 
+action_result.data.\*.internetMessageHeaders.Thread-Index | string |  |   AQHWZLqyXR4k4Sc6skyFCMPITcMsbKpGS7Bm 
+action_result.data.\*.internetMessageHeaders.Thread-Topic | string |  |   Email having different attachments 
+action_result.data.\*.internetMessageHeaders.To | string |  |   "Test" <test@abc.def.com> 
+action_result.data.\*.internetMessageHeaders.X-EOPAttributedMessage | string |  |   0 
+action_result.data.\*.internetMessageHeaders.X-EOPTenantAttributedMessage | string |  |   a417c578-c7ee-480d-a225-d48057e74df5:0 
+action_result.data.\*.internetMessageHeaders.X-Forefront-Antispam-Report | string |  |   CIP:209.85.210.171;CTRY:US;LANG:en;SCL:-1;SRV:;IPV:NLI;SFV:SFE;H:mail-pf1-f171.test.com;PTR:mail-pf1-f171.test.com;CAT:NONE;SFTY:;SFS:;DIR:INB;SFP:; 
+action_result.data.\*.internetMessageHeaders.X-Gm-Message-State | string |  |   AOAM533ynFERIhSIewEEkj4b8B1rPNOEeie1IxBdrd55treEMtBa1jkL	cO5ee4Ff6p0FYedfFtVtHKiCglGTpFTOSw== 
+action_result.data.\*.internetMessageHeaders.X-Google-DKIM-Signature | string |  |   v=1; a=rsa-sha256; c=relaxed/relaxed;        d=1e100.net; s=20161025;        h=x-gm-message-state:message-id:date:mime-version:from:to:subject;        bh=tlTaRbacq4aWozhUPvcWg8i8flbpYQGZNs27nncn83I=;        b=fPT47NIiheeY6GM0bxUOlsmnOgN4WuiOlalFvZqrAiFiOoYk6zrznvgIcAtiHZ4nxE         naQAa+mZs5svqRjib3YI52OvR5U8MitIYaa0Rt3LyYSUO1s3iKTUs4nHyRnqPt1skNl7         2OUwsZPXo3ShJDw/uxZRu/cuN1iIfeuE02PrbR04p4D8+1XRslqt/Xqm/bOWKUauqZWe         dH1E7meFY01hXxODreO4nWHIhsZgr49TpP/OqRyFcyKHHFFg2sPGXz+QNah6jP4YQUYd         Tty2wzOX3nc/YS7TkVo3ORmbzh9o+UZaqH8wHbQlyTdklYxoMPvJwZTo72rTxZeqiJ9E         J7PQ== 
+action_result.data.\*.internetMessageHeaders.X-Google-Smtp-Source | string |  |   ABdhPJxrYC7raBubCCIOmauxmxryzS9KsihTN6XCRgaNp2rDrG71TVxryzYCtelFOZ2Xj1LzcYIiMA== 
+action_result.data.\*.internetMessageHeaders.X-MS-Exchange-AntiSpam-MessageData | string |  |   VSM9HTzub/OH3NCwKXEQqkkzjnhdw5kXsgd9WM0SRgZ0qRdPg5D9/o3LA7lf8ziXc5k0mm9M5mHvFoYePXNXs/MGhGdBGxa/qUQ+FVHA2mDgfPkamJCEZxz//OX/uruTDo+zF4p9D1dQJpnIpx1M75OhuvrHX/BxWWzyAh78DXfF214YHdyFBCYepwl56CS7+fSGQL/r3p+OvWIBnIkISC+HJljSro2k47pPPAkspMhoUkb+zklyENFjez+JcEHYlih2FiNeUO8kb9b7qvlm3zPK98HLspzDh4BojpQ6Ff330iy7nfIK726tCMByxjOdnEQSB9Ua2sbE5gxSeeWL8MB5DHcQSSsXg+sR8w4gXrXLO3meE0lNQKRoAv2b1U0Q+yM0QBqeQWlymZG21bKeuH4gtAFQvfXNjoCtIbBQK1n7ZnL7fI21FJZRcMcKEneus6gLYUqD4PdLEq9FEGbfgiLmVYeUAL2A0Q/gectvL1OVudtHVR5gFMJKt65F1OtS04CPulfLLFSl1F4AzpjjtBSyQcK9R7bOsjoHxQXPMd9fMCzMSIq5f551pO0klKqWY7l11Un2Noj6CA7EtXiD1bTv8JmYQEKR+0HTZagNd+79GeTvKjxTvt9MkyO8k3aqWyNqT331ITnVICtksN1TVMCp8GVeDudNMr2PLSW0alOduR5unuEgTWrqHoaTGOovQx0PVjudNlpZ80ANK9hqaC/ZhLLOtNpJ3fZnjs06PzrPLGhE/IeccY1n8sYDvGm1QA9TN6JaaGPl1Pj6ecy16k0XuF/PKGHTL0M4LCpxSS6T87oFFH1zHkKtmbJp3aAI4bt3ihbQmwFb29JyMgL7ZOy+zrIwXGILh1KQGWQQv1uXXnAuqQy29HeFXs6D2hDHxHlBk5ZQ+vgRtsvRvGnq58vJ3CapjntfL3pOINUj1avLyAZxjasBWMTwaZs9JQ4ZIMekzkIk05lh9XfDSeULk2yKaH8YSCC6ENUHxSWa6pPHJfOdp9kXwOtlp09/VTTAikKy862k9ybN4bRWZB45B9Pv5scna8IX3rthIXUih8c= 
+action_result.data.\*.internetMessageHeaders.X-MS-Exchange-CrossTenant-AuthAs | string |  |   Internal 
+action_result.data.\*.internetMessageHeaders.X-MS-Exchange-CrossTenant-AuthSource | string |  |   SJ0QA11MB4941.namprd11.prod.test.com 
+action_result.data.\*.internetMessageHeaders.X-MS-Exchange-CrossTenant-FromEntityHeader | string |  |   Internet 
+action_result.data.\*.internetMessageHeaders.X-MS-Exchange-CrossTenant-Id | string |  |   a417c578-c7ee-480d-a225-d48057e74df5 
+action_result.data.\*.internetMessageHeaders.X-MS-Exchange-CrossTenant-MailboxType | string |  |   HOSTED 
+action_result.data.\*.internetMessageHeaders.X-MS-Exchange-CrossTenant-Network-Message-Id | string |  |   4b1ef179-4fe7-4248-7ec0-08d81367956e 
+action_result.data.\*.internetMessageHeaders.X-MS-Exchange-CrossTenant-OriginalArrivalTime | string |  |   18 Jun 2020 09:11:28.2511 (UTC) 
+action_result.data.\*.internetMessageHeaders.X-MS-Exchange-CrossTenant-UserPrincipalName | string |  |   bs91VnpEPjrqCnvlIeymwO6ye4Q8rggHggVNUPUbV/tC9uuFPVFOYg7e/Cd0MeGmSqT4AlLW0Nn4ZeEqNieSf/D1gp5iLz/YkwjXhYUSJnLRb/csQN4sRMMZsX3LUkKkwVpifaeJzoukLu8qSWn7og== 
+action_result.data.\*.internetMessageHeaders.X-MS-Exchange-Organization-AuthAs | string |  |   Anonymous 
+action_result.data.\*.internetMessageHeaders.X-MS-Exchange-Organization-AuthMechanism | string |  |   04 
+action_result.data.\*.internetMessageHeaders.X-MS-Exchange-Organization-AuthSource | string |  |   DM6NAM11FT055.eop-nam11.prod.protection.test.com 
+action_result.data.\*.internetMessageHeaders.X-MS-Exchange-Organization-ExpirationInterval | string |  |   1:00:00:00.0000000 
+action_result.data.\*.internetMessageHeaders.X-MS-Exchange-Organization-ExpirationIntervalReason | string |  |   OriginalSubmit 
+action_result.data.\*.internetMessageHeaders.X-MS-Exchange-Organization-ExpirationStartTime | string |  |   18 Jun 2020 09:11:28.2531 (UTC) 
+action_result.data.\*.internetMessageHeaders.X-MS-Exchange-Organization-ExpirationStartTimeReason | string |  |   OriginalSubmit 
+action_result.data.\*.internetMessageHeaders.X-MS-Exchange-Organization-MessageDirectionality | string |  |   Incoming 
+action_result.data.\*.internetMessageHeaders.X-MS-Exchange-Organization-Network-Message-Id | string |  |   4b1ef179-4fe7-4248-7ec0-08d81367956e 
+action_result.data.\*.internetMessageHeaders.X-MS-Exchange-Organization-SCL | string |  |   -1 
+action_result.data.\*.internetMessageHeaders.X-MS-Exchange-Processed-By-BccFoldering | string |  |   15.20.3109.017 
+action_result.data.\*.internetMessageHeaders.X-MS-Exchange-Transport-CrossTenantHeadersStamped | string |  |   BN6PR18MB1492 
+action_result.data.\*.internetMessageHeaders.X-MS-Exchange-Transport-EndToEndLatency | string |  |   00:00:02.7417647 
+action_result.data.\*.internetMessageHeaders.X-MS-Has-Attach | string |  |   yes 
+action_result.data.\*.internetMessageHeaders.X-MS-Office365-Filtering-Correlation-Id | string |  |   4b1ef179-4fe7-4248-7ec0-08d81367956e 
+action_result.data.\*.internetMessageHeaders.X-MS-Oob-TLC-OOBClassifiers | string |  |   OLM:1728; 
+action_result.data.\*.internetMessageHeaders.X-MS-PublicTrafficType | string |  |   Email 
+action_result.data.\*.internetMessageHeaders.X-MS-TNEF-Correlator | string |  |   <SJ0QM11MB49418BDA1BB4215EB8B890AED9B59@SJ0PR11MB4941.namprd11.prod.test.com> 
+action_result.data.\*.internetMessageHeaders.X-MS-TrafficTypeDiagnostic | string |  |   BN6PR18MB1492: 
+action_result.data.\*.internetMessageHeaders.X-Microsoft-Antispam | string |  |   BCL:0; 
+action_result.data.\*.internetMessageHeaders.X-Microsoft-Antispam-Mailbox-Delivery | string |  |   wl:1;pcwl:1;ucf:0;jmr:0;auth:0;dest:I;ENG:(750128)(520011016)(520004050)(702028)(944506458)(944626604); 
+action_result.data.\*.internetMessageHeaders.X-Microsoft-Antispam-Message-Info | string |  |   La+CSxAnpzVJOXq7njrFPhIbsh0khleSwldy+W8NYDRsoyyPruPIiId4Avama7JyfzrxoExzhLk5pDn2lGPAJIpdcguiDSsDQg5T+iBCJgFeaEJXjhstECMi842/JGawB9WsiGw9Q/PpvjO5H/2fNLlQZVZW3AAQVZSsX3az4iOsv1Ggj4aYZRMKHmPAtniWOEtQD7zAEWC0jIZf613lWy3vxHfb/3+pV9X8zqPqazbyGy5Q14PICSNkKnvIw8rmeqJV8eSHhvR51Lchib6OIN4xOpLWxkSkBTt5B95RUPnpgPvgp2yLo0Q+EYRIabLDQ0kMsv+24+RnFmr9vo2gRNuFusw8iEPsVEQyhfgIWtBtsBpyvyykxcfa6lIdzQhixZH3Tlkdh1kb15wFS3Ooz3CjaWbY8jcUot5l1p08Ypsj6r7CpIo3xE6jE0x/EeUkDK3Fu/Ol0pOsJ1N5W4iJLdjqSQM3l/t9QWlcPhD8s6D7D7JM5OUHCeFEPr7sSL+P/5zTgBaeUvwtZrlQSH2GHc+5gPW8rkwlwJLJftVEid0gO2PUOrzItzME5PXYAcdx++sF3XC1YMPLet/jMpX8T7/z7+hxFxNyifgmGJ+DkNOec7yGkkcLBz6iCaHx7OrRGwDHIcdAtV85wCk3NEDDiKyHivQpwp/gY55W+wkLe7aqSHmFzm1rUSslx+DWz8w2EgSjJxOmf0JkoNKbTFl3FObkocR0lUUQUnETuoAXUqvpWGD5B69W9XXUM8c43ozz2oBZseheSAtkLil3tMIr/CMCMILPX/LdoErNtkmiFXCPqaLFSSeyO61oCMl6Ezndtwp22nwMPUg5ofG0kdqFuTW122umhy9C6h5BcREaLhWclSyqDoZPB9RvkRlI2kTRwuwbuFW3iOMzmVwxLIQH9K5JkxdMvC3hvNpjVgz7Q2ZnEF3xSNqeoWVQvkaIe8rQLUc8s+HMRUmSERGdfSuQJAx47g8PDs9s3rS/ThUSzIaljJPbUgXEnFg/G6h3I/yXLj2Nj2OG50snoI5jJmE4+69YmNwasdDZuYpnuQeFgu11HtsLniDthJdjEJyYC1utZNt9hgA+6JlLnm7Dxb43cSIiW8ev+3X+b2kREj2k/m8fSz7YgtoCB8AkuiVXRaH3EUiq8XCExbbWeynKRgwCZ6bzvfSiT3+cg+QQKPHFc/cgot56ta6X80tjhFodpTQNTE6V6C9QFHJ3JCVhsSzVifJAc8crI5hAcPbKFEIjinENcfpF/8reo2Yr1xFElhoX 
+action_result.data.\*.internetMessageHeaders.X-Originating-IP | string |  |   [2.39.180.162] 
+action_result.data.\*.internetMessageHeaders.X-Received | string |  |   by 2002:aa7:84d9:: with SMTP id x25mr2807688pfn.300.1592471487394;        Thu, 18 Jun 2020 02:11:27 -0700 (PDT) 
+action_result.data.\*.internetMessageHeaders.subject | string |  |   test html 
+action_result.data.\*.isReadReceiptRequested | boolean |  |  
+action_result.data.\*.inferenceClassification | string |  |  
+action_result.data.\*.isDeliveryReceiptRequested | boolean |  |  
+action_result.summary.total_messages | numeric |  |  
+action_result.summary.duplicate_emails | numeric |  |  
+action_result.summary.failed_emails | numeric |  |  
+action_result.summary.new_emails_ingested | numeric |  |  
 action_result.message | string |  |  
 summary.total_objects | numeric |  |  
 summary.total_objects_successful | numeric |  |  
