@@ -1,1 +1,4 @@
 **Unreleased**
+* Added Certificate Based Authentication(CBA) [PAPP-34784]
+* Added 'auth_type' configuration parameter to select authentication method
+* Fixed bug related to Well Known Folders [PAPP-33354]

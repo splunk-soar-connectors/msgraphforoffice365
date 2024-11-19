@@ -1764,7 +1764,7 @@
                     ],
                     "contains": [
                         "email",
-                        "msgoffice365 group e-mail address"
+                        "msgoffice365 group email address"
                     ],
                     "column_name": "Group Mail ID",
                     "column_order": 1
@@ -1942,7 +1942,7 @@
                     "primary": true,
                     "contains": [
                         "msgoffice365 group id",
-                        "msgoffice365 group e-mail address"
+                        "msgoffice365 group email address"
                     ],
                     "order": 1
                 },
@@ -2000,7 +2000,7 @@
                     "data_type": "string",
                     "contains": [
                         "msgoffice365 group id",
-                        "msgoffice365 group e-mail address"
+                        "msgoffice365 group email address"
                     ],
                     "example_values": [
                         "TEST7d21-7631-4ea7-97b2-1328d1c5b901",
@@ -7980,7 +7980,10 @@
                 {
                     "data_path": "action_result.status",
                     "data_type": "string",
-                    "example_values": ["success", "failed"]
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
                 },
                 {
                     "data_path": "action_result.parameter.email_address",
@@ -8069,7 +8072,9 @@
                 {
                     "data_path": "action_result.data.*.webLink",
                     "data_type": "string",
-                    "contains": ["url"]
+                    "contains": [
+                        "url"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.changeKey",
@@ -8642,7 +8647,7 @@
         "wheel": [
             {
                 "module": "PyJWT",
-                "input_file": "wheels/py3/PyJWT-2.9.0-py3-none-any.whl"
+                "input_file": "wheels/py3/PyJWT-2.10.0-py3-none-any.whl"
             },
             {
                 "module": "cffi",
