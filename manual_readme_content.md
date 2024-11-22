@@ -50,7 +50,7 @@ Once the app is created, follow the below-mentioned steps:
         the **thumbprint** as this will be used to configure the asset. ([Certificate Requirements](https://learn.microsoft.com/en-us/azure/databox-online/azure-stack-edge-gpu-certificate-requirements))
     -   Generate private key:
         -   `openssl genpkey -algorithm RSA -out private_key.pem` / `openssl genrsa -out private_key.pem 2048`
-    -   Generate certifitcate from the private key (Valid for 365 days):
+    -   Generate certificate from the private key (Valid for 365 days):
         -   `openssl req -new -x509 -key private_key.pem -out certificate.pem -days 365`
 
 -   Under **Authentication** , select **Add a platform** . In the **Add a platform** window, select
@@ -183,7 +183,7 @@ the window. To give this user permission to view assets, follow these steps:
 #### Certificate Based Authentication Workflow (CBA)
 
 -   Configure the asset with **Tenant ID**, **Application ID**, **Certificate Thumbprint** and
-    the **Location of the certificate private key (.PEM) on the filesystem.**
+    the **Certificate Private Key (.PEM).**
 -   Ensure **Admin Consent Already Provided** is checked. 
 -   After setting up the asset and user, click the **TEST CONNECTIVITY** button.
 -   Check the message in the Test Connectivity dialog box. it should say **Test
@@ -191,7 +191,7 @@ the window. To give this user permission to view assets, follow these steps:
 
 #### Automatic Authentication Workflow
 
--   Configure the asset with the required details, including either the **Application Secret** or a combination of **Certificate Thumbprint** and **Location of the certificate private key (.PEM) on the filesystem**.
+-   Configure the asset with the required details, including either the **Application Secret** or a combination of **Certificate Thumbprint** and **Certificate Private Key (.PEM)**.
 -   If **Application Secret** exists, it will take priority and follow the OAuth workflow. Otherwise, it will continue with the CBA workflow.
 -   The system doesn’t automatically switch from OAuth to CBA when the **Application Secret** expires. However, if **Admin Access Required** is disabled, **Access Scope** is not specified, and **Admin Consent Already Provided** is enabled, it will switch to CBA upon **Application Secret** expiration.
 
