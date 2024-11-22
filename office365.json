@@ -87,9 +87,10 @@
             "data_type": "password",
             "order": 6
         },
-        "private_key_location": {
-            "description": "Location of the certificate private key (.PEM) on the filesystem(required for CBA)",
-            "data_type": "string",
+        "certificate_private_key": {
+            "description": "Certificate Private Key (.PEM)",
+            "data_type": "password",
+            "required": false,
             "order": 7
         },
         "admin_access": {

@@ -405,7 +405,7 @@ class Office365Connector(BaseConnector):
         self._asset_id = None
         self._cba_auth = None
         self._private_key = None
-        self._private_key_location = None
+        self._certificate_private_key = None
 
     def load_state(self):
         """
@@ -3176,24 +3176,16 @@ class Office365Connector(BaseConnector):
         return ret_val
 
     def _get_private_key(self, action_result):
-        try:
-            with open(self._private_key_location, "r") as file:
-                private_key = file.read()
-
-                # Fix private key
-                if "BEGIN PRIVATE KEY" in private_key:  # pragma: allowlist secret
-                    pem_prefix = "-----BEGIN PRIVATE KEY-----"  # pragma: allowlist secret
-                    pem_suffix = "-----END PRIVATE KEY-----"
-                else:
-                    pem_prefix = "-----BEGIN RSA PRIVATE KEY-----"  # pragma: allowlist secret
-                    pem_suffix = "-----END RSA PRIVATE KEY-----"
-
-                private_key = "\n".join(private_key.replace(pem_prefix, "").replace(pem_suffix, "").strip().split())
-
-                return phantom.APP_SUCCESS, f"{pem_prefix}\n{private_key}\n{pem_suffix}"
-        except Exception as e:
-            error_msg = _get_error_msg_from_exception(e, self)
-            return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_CBA_KEY_FILE_ERROR.format(error_msg)), None
+        if self._certificate_private_key is not None:
+            # Fix private key
+            if "BEGIN PRIVATE KEY" in self._certificate_private_key:  # pragma: allowlist secret
+                pem_prefix = "-----BEGIN PRIVATE KEY-----"  # pragma: allowlist secret
+                pem_suffix = "-----END PRIVATE KEY-----"
+            else:
+                pem_prefix = "-----BEGIN RSA PRIVATE KEY-----"  # pragma: allowlist secret
+                pem_suffix = "-----END RSA PRIVATE KEY-----"
+            private_key = "\n".join(self._certificate_private_key.replace(pem_prefix, "").replace(pem_suffix, "").strip().split())
+            return phantom.APP_SUCCESS, f"{pem_prefix}\n{private_key}\n{pem_suffix}"
 
     def _generate_new_cba_access_token(self, action_result):
 
@@ -3205,8 +3197,8 @@ class Office365Connector(BaseConnector):
         if self._state.get("non_admin_auth", {}):
             self._state.pop("non_admin_auth")
 
-        # Certificate Based Authentication requires both Certificate Thumbprint and Certificate Private Key Location
-        if not (self._thumbprint and self._private_key_location):
+        # Certificate Based Authentication requires both Certificate Thumbprint and Certificate Private Key
+        if not (self._thumbprint and self._certificate_private_key):
             self.save_progress(MSGOFFICE365_CBA_AUTH_ERROR)
             return self.set_status(phantom.APP_ERROR), None
 
@@ -3480,7 +3472,7 @@ class Office365Connector(BaseConnector):
         self._admin_access = config.get("admin_access")
         self._admin_consent = config.get("admin_consent")
         self._thumbprint = config.get("certificate_thumbprint")
-        self._private_key_location = config.get("private_key_location")
+        self._certificate_private_key = config.get("certificate_private_key")
         self._scope = config.get("scope") if config.get("scope") else None
 
         self._number_of_retries = config.get("retry_count", MSGOFFICE365_DEFAULT_NUMBER_OF_RETRIES)
@@ -3510,8 +3502,8 @@ class Office365Connector(BaseConnector):
             self._access_token = self._state.get("admin_auth", {}).get("access_token", None)
 
         if self._auth_type == "cba":
-            # Certificate Based Authentication requires both Certificate Thumbprint and Certificate Private Key Location
-            if not (self._thumbprint and self._private_key_location):
+            # Certificate Based Authentication requires both Certificate Thumbprint and Certificate Private Key
+            if not (self._thumbprint and self._certificate_private_key):
                 return self.set_status(phantom.APP_ERROR, MSGOFFICE365_CBA_AUTH_ERROR)
 
             # Check non-interactive is enabled for CBA auth
@@ -3523,7 +3515,7 @@ class Office365Connector(BaseConnector):
                 return self.set_status(phantom.APP_ERROR, MSGOFFICE365_OAUTH_AUTH_ERROR)
         else:
             # Must either supply client_secret, or both thumbprint and private key
-            if not self._client_secret and not (self._thumbprint and self._private_key_location):
+            if not self._client_secret and not (self._thumbprint and self._certificate_private_key):
                 return self.set_status(phantom.APP_ERROR, MSGOFFICE365_AUTOMATIC_AUTH_ERROR)
 
         if action_id == "test_connectivity":

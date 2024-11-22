@@ -62,10 +62,10 @@ MSGOFFICE365_INVALID_PERMISSION_ERROR += (
 MSGOFFICE365_NO_DATA_FOUND = "No data found"
 MSGOFFICE365_DUPLICATE_CONTAINER_FOUND_MSG = "duplicate container found"
 MSGOFFICE365_ERROR_EMPTY_RESPONSE = "Status Code {code}. Empty response and no information in the header."
-MSGOFFICE365_CBA_AUTH_ERROR = "Certificate Based Authentication requires both Certificate Thumbprint and Certificate Private Key Location"
+MSGOFFICE365_CBA_AUTH_ERROR = "Certificate Based Authentication requires both Certificate Thumbprint and Certificate Private Key"
 MSGOFFICE365_OAUTH_AUTH_ERROR = "OAuth Authentication requires Client Secret"
 MSGOFFICE365_AUTOMATIC_AUTH_ERROR = (
-    "Automatic Authentication requires either Client Secret or combination of Certificate Thumbprint and Certificate Private Key Location"
+    "Automatic Authentication requires either Client Secret or combination of Certificate Thumbprint and Certificate Private Key"
 )
 MSGOFFICE365_CBA_ADMIN_CONSENT_ERROR = "Certificate Based Authorization requires Admin Consent to be Provided"
 MSGOFFICE365_CBA_KEY_FILE_ERROR = "Error occurred while reading the private key. {0}"
