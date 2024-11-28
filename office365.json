@@ -11,6 +11,15 @@
     "publisher": "Splunk",
     "contributors": [
         {
+            "name": "Trung Ngo"
+        },
+        {
+            "name": "Lindon Morris"
+        },
+        {
+            "name": "Asher Lee"
+        },
+        {
             "name": "Alan Shaikh"
         },
         {
@@ -33,8 +42,8 @@
         }
     ],
     "license": "Copyright (c) 2017-2024 Splunk Inc.",
-    "app_version": "3.1.1",
-    "utctime_updated": "2024-09-11T08:34:15.000000Z",
+    "app_version": "3.1.2",
+    "utctime_updated": "2024-27-11T08:34:15.000000Z",
     "package_name": "phantom_msgraphoffice365",
     "main_module": "office365_connector.py",
     "min_phantom_version": "6.2.2",
@@ -8636,6 +8645,317 @@
                 "type": "table"
             },
             "versions": "EQ(*)"
+        },
+        {
+            "action": "get named location",
+            "identifier": "get_named_location",
+            "description": "Get metadata for the specified named location",
+            "type": "generic",
+            "read_only": true,
+            "versions": "EQ(*)",
+            "render": {
+                "width": 12,
+                "title": "Get Named Location",
+                "type": "json",
+                "height": 5
+            },
+            "parameters": {
+                "displayName": {
+                    "description": "The displayName of the named location",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": true,
+                    "order": 0
+                }
+            },
+            "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.displayName",
+                    "data_type": "string",
+                    "example_values": [
+                        "testNamedLocation"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.id",
+                    "data_type": "string",
+                    "example_values": [
+                        "a4bf4b28-a56d-41ae-a333-8216a2399775"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.ipRanges.*.cidrAddress",
+                    "data_type": "string",
+                    "example_values": [
+                        "1.2.3.4",
+                        "1.2.3.4/32",
+                        "1.2.3.0/24"
+                    ],
+                    "contains": [
+                        "ip",
+                        "ip network"
+                    ]
+                }
+            ]
+        },
+        {
+            "action": "add named location ip",
+            "identifier": "add_named_location_ip",
+            "description": "Add the specified IP range to the named location",
+            "type": "contain",
+            "read_only": false,
+            "versions": "EQ(*)",
+            "render": {
+                "width": 12,
+                "title": "Add Named Location",
+                "type": "json",
+                "height": 5
+            },
+            "parameters": {
+                "displayName": {
+                    "description": "The displayName of the named location",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": true,
+                    "order": 0
+                },
+                "ipRange": {
+                    "description": "The IP range to add (IPv4/IPv6 CIDR)",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": true,
+                    "order": 1,
+                    "contains": [
+                        "ip",
+                        "ip network"
+                    ]
+                }
+            },
+            "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.displayName",
+                    "data_type": "string",
+                    "example_values": [
+                        "testNamedLocation"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.ipRange",
+                    "data_type": "string",
+                    "example_values": [
+                        "1.1.0.0/16",
+                        "1234::/16"
+                    ],
+                    "contains": [
+                        "ip",
+                        "ip network"
+                    ]
+                }
+            ]
+        },
+        {
+            "action": "disable mailbox rules",
+            "identifier": "disable_mailbox_rules",
+            "description": "Disable rules for the specified mailbox",
+            "type": "contain",
+            "read_only": false,
+            "versions": "EQ(*)",
+            "render": {
+                "width": 12,
+                "title": "Disable Mailbox Rules",
+                "type": "json",
+                "height": 5
+            },
+            "parameters": {
+                "user_id": {
+                    "description": "The user ID or principle name",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": true,
+                    "order": 0
+                },
+                "folder_id": {
+                    "description": "The mailbox folder ID",
+                    "data_type": "string",
+                    "required": false,
+                    "default": "inbox",
+                    "primary": true,
+                    "order": 1
+                },
+                "skip_undisableable_rules": {
+                    "description": "Skip failures caused by mailbox rules being unable to be disabled by the API",
+                    "data_type": "boolean",
+                    "required": false,
+                    "default": true,
+                    "order": 2
+                }
+            },
+            "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.user_id",
+                    "data_type": "string",
+                    "example_values": [
+                        "user@site.domain",
+                        "fb9ac0bc-6f3c-425d-bf66-a3bdf6300a0a"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.folder_id",
+                    "data_type": "string",
+                    "example_values": [
+                        "inbox"
+                    ]
+                }
+            ]
+        },
+        {
+            "action": "delete mailbox rule",
+            "identifier": "delete_mailbox_rule",
+            "description": "Delete the specified mailbox rule",
+            "type": "contain",
+            "read_only": false,
+            "versions": "EQ(*)",
+            "render": {
+                "width": 12,
+                "title": "Delete Mailbox Rule",
+                "type": "table",
+                "height": 5
+            },
+            "parameters": {
+                "user_id": {
+                    "description": "The user ID or principle name",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": true,
+                    "order": 0
+                },
+                "folder_id": {
+                    "description": "The mailbox folder ID",
+                    "data_type": "string",
+                    "required": false,
+                    "default": "inbox",
+                    "primary": true,
+                    "order": 1
+                },
+                "displayName": {
+                    "description": "The mailbox displayName",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": true,
+                    "order": 2
+                }
+            },
+            "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.user_id",
+                    "data_type": "string",
+                    "example_values": [
+                        "user@site.domain",
+                        "52be5543-a3c5-453f-85bf-7fc2a2c4d2e0"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.folder_id",
+                    "data_type": "string",
+                    "example_values": [
+                        "inbox"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.displayName",
+                    "data_type": "string",
+                    "example_values": [
+                        "some-rule-name"
+                    ]
+                }
+            ]
+        },
+        {
+            "action": "add user to group",
+            "identifier": "add_user_to_group",
+            "description": "Add the specified user to the specified group",
+            "type": "contain",
+            "read_only": false,
+            "versions": "EQ(*)",
+            "render": {
+                "width": 12,
+                "title": "Add User to Group",
+                "type": "json",
+                "height": 5
+            },
+            "parameters": {
+                "group_id": {
+                    "description": "The group ID",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": true,
+                    "order": 0
+                },
+                "user_id": {
+                    "description": "The user ID or principle name",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": true,
+                    "order": 1
+                }
+            },
+            "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.group_id",
+                    "data_type": "string",
+                    "example_values": [
+                        "9ea42d3e-6614-4dfc-b161-423933265250"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.user_id",
+                    "data_type": "string",
+                    "example_values": [
+                        "user@site.domain",
+                        "68bcc655-73c7-409a-95b0-a42cb96ecc37"
+                    ]
+                }
+            ]
         }
     ],
     "pip_dependencies": {
