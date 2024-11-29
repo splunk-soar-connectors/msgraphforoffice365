@@ -3312,8 +3312,8 @@ class Office365Connector(BaseConnector):
         action_result = self.add_action_result(ActionResult(dict(param)))
 
         user_id = param["user_id"]
-        folder_id = param["folder_id"]
-        skip_undisableable_rules = param["skip_undisableable_rules"]
+        folder_id = param.get("folder_id","inbox")
+        skip_undisableable_rules = param.get("skip_undisableable_rules",False)
 
         endpoint = f'/users/{user_id}/mailFolders/{folder_id}/messageRules'
         parameters = {'$select': 'id,isEnabled'}
@@ -3398,8 +3398,8 @@ class Office365Connector(BaseConnector):
         action_result = self.add_action_result(ActionResult(dict(param)))
 
         user_id = param["user_id"]
-        folder_id = param["folder_id"]
-        rule_name = param["displayName"]
+        folder_id = param.get("folder_id","inbox")
+        rule_name = param.get("displayName","")
 
         rules_endpoint = f'/users/{user_id}/mailFolders/{folder_id}/messageRules'
         parameters = {'$filter': f"displayName eq {rule_name!r}"}
