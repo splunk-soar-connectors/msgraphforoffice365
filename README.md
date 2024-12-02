@@ -49,7 +49,7 @@ On the next page, select **New registration** and give your app a name.
   
 Once the app is created, follow the below-mentioned steps:
 
--   For authentication using a client secret(OAuth):
+-   For authentication using a client secret (OAuth):
 
     -   Under **Certificates & secrets** select **New client secret** . Enter the **Description** and
         select the desired duration in **Expires** . Click on **Add** . Note down this **value**
