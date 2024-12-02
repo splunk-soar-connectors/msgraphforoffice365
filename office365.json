@@ -2004,7 +2004,8 @@
                     "data_type": "string",
                     "contains": [
                         "msgoffice365 group id",
-                        "msgoffice365 group email address"
+                        "msgoffice365 group email address",
+                        "msgoffice365 group e-mail address"
                     ],
                     "example_values": [
                         "TEST7d21-7631-4ea7-97b2-1328d1c5b901",
