@@ -1766,6 +1766,7 @@
                     ],
                     "contains": [
                         "email",
+                        "msgoffice365 group e-mail address",
                         "msgoffice365 group email address"
                     ],
                     "column_name": "Group Mail ID",
