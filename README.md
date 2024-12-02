@@ -55,7 +55,7 @@ Once the app is created, follow the below-mentioned steps:
         select the desired duration in **Expires** . Click on **Add** . Note down this **value**
         somewhere secure, as it cannot be retrieved after closing the window.
 
--  For authentication using certificate based authentication(CBA):
+-  For authentication using certificate based authentication (CBA):
 
     -   Under **Certificates & secrets** select **Certificates** then **Upload Certificate** . 
         Select the certifitcate file to upload (.crt/.pem) and enter the **Description** . Note down 
