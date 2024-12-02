@@ -101,7 +101,7 @@
             "order": 8
         },
         "admin_consent": {
-            "description": "Admin Consent Already Provided(Required checked for CBA)",
+            "description": "Admin Consent Already Provided (Required checked for CBA)",
             "data_type": "boolean",
             "default": false,
             "order": 9
