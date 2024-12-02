@@ -3221,7 +3221,7 @@ class Office365Connector(BaseConnector):
             return (
                 action_result.set_status(
                     phantom.APP_ERROR,
-                    f"Please check your configured parameters. Error Occurred while Creating confidential client Application. {error_msg}",
+                    f"Please check your configured parameters. Error while using certificate to authenticate. {error_msg}",
                 ),
                 None,
             )
