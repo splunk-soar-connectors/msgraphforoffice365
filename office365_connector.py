@@ -3176,16 +3176,19 @@ class Office365Connector(BaseConnector):
         return ret_val
 
     def _get_private_key(self, action_result):
+        # When the private key is copied/pasted to an asset parameter
+        # SOAR converts \n to spaces. This code fixes that and rebuilds
+        # the private key as it should be
+
         if self._certificate_private_key is not None:
-            # Fix private key
-            if "BEGIN PRIVATE KEY" in self._certificate_private_key:  # pragma: allowlist secret
-                pem_prefix = "-----BEGIN PRIVATE KEY-----"  # pragma: allowlist secret
-                pem_suffix = "-----END PRIVATE KEY-----"
+            p = re.compile("(-----.*?-----) (.*) (-----.*?-----)")
+            m = p.match(self._certificate_private_key)
+
+            if m:
+                private_key = "\n".join([m.group(1), m.group(2).replace(" ", "\n"), m.group(3)])
+                return phantom.APP_SUCCESS, private_key
             else:
-                pem_prefix = "-----BEGIN RSA PRIVATE KEY-----"  # pragma: allowlist secret
-                pem_suffix = "-----END RSA PRIVATE KEY-----"
-            private_key = "\n".join(self._certificate_private_key.replace(pem_prefix, "").replace(pem_suffix, "").strip().split())
-            return phantom.APP_SUCCESS, f"{pem_prefix}\n{private_key}\n{pem_suffix}"
+                return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_CBA_KEY_ERROR), None
 
     def _generate_new_cba_access_token(self, action_result):
 
