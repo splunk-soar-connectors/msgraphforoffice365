@@ -83,7 +83,7 @@
             "order": 5
         },
         "certificate_thumbprint": {
-            "description": "Certificate Thumbprint(required for CBA)",
+            "description": "Certificate Thumbprint (required for CBA)",
             "data_type": "password",
             "order": 6
         },
