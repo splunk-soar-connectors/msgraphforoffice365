@@ -195,7 +195,7 @@ the window. To give this user permission to view assets, follow these steps:
 #### Certificate Based Authentication Workflow (CBA)
 
 -   Configure the asset with **Tenant ID**, **Application ID**, **Certificate Thumbprint** and
-    the **Location of the certificate private key (.PEM) on the filesystem.**
+    the **Certificate private key (.PEM)**
 -   Ensure **Admin Consent Already Provided** is checked. 
 -   After setting up the asset and user, click the **TEST CONNECTIVITY** button.
 -   Check the message in the Test Connectivity dialog box. it should say **Test
