@@ -86,6 +86,7 @@
             "description": "Certificate Thumbprint (required for CBA)",
             "data_type": "password",
             "order": 6
+            "required": false
         },
         "certificate_private_key": {
             "description": "Certificate Private Key (.PEM)",
