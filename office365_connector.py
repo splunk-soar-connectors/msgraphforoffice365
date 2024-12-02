@@ -3192,10 +3192,8 @@ class Office365Connector(BaseConnector):
         self.save_progress("Generating token using Certificate Based Authentication...")
 
         # reset the state
-        if self._state.get("admin_auth", {}):
-            self._state.pop("admin_auth")
-        if self._state.get("non_admin_auth", {}):
-            self._state.pop("non_admin_auth")
+        self._state.pop("admin_auth", None)
+        self._state.pop("non_admin_auth", None)
 
         # Certificate Based Authentication requires both Certificate Thumbprint and Certificate Private Key
         if not (self._thumbprint and self._certificate_private_key):
