@@ -3229,9 +3229,9 @@ class Office365Connector(BaseConnector):
         self.debug_print("Requesting new token from Azure AD.")
         res_json = app.acquire_token_for_client(scopes=[MSGOFFICE365_DEFAULT_SCOPE])
 
-        if res_json.get("error"):
+        if error := res_json.get("error"):
             # replace thumbprint to dummy value
-            error_message = f"{res_json.get('error')}: {res_json.get('error_description')}".replace(self._thumbprint[4:], "xxxxxxxxxxxxxxxxxxx")
+            error_message = f"{error}: {res_json.get('error_description')}".replace(self._thumbprint[4:], "xxxxxxxxxxxxxxxxxxx")
             return action_result.set_status(phantom.APP_ERROR, error_message), None
 
         return phantom.APP_SUCCESS, res_json
