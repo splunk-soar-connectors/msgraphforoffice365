@@ -1944,7 +1944,8 @@
                     "primary": true,
                     "contains": [
                         "msgoffice365 group id",
-                        "msgoffice365 group email address"
+                        "msgoffice365 group email address",
+                        "msgoffice365 group e-mail address"
                     ],
                     "order": 1
                 },
