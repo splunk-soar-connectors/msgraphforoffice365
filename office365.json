@@ -85,7 +85,7 @@
         "certificate_thumbprint": {
             "description": "Certificate Thumbprint (required for CBA)",
             "data_type": "password",
-            "order": 6
+            "order": 6,
             "required": false
         },
         "certificate_private_key": {
