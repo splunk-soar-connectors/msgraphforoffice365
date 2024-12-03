@@ -196,6 +196,13 @@ The app should now be ready to be used.
     false, then the application will also skip the EML file ingestion regardless of this flag value.
 -   extract_eml - When polling is on and extract_eml is enabled, it will add the eml files of the
     root email in the vault.
+-   get named location - Get metadata for the specified named location
+-   add named location ip - Add the specified IP range to the named location
+-   disable mailbox rules - Disable rules for the specified mailbox
+-   delete mailbox rule - Delete the specified mailbox rule
+-   add user to group - Add the specified user to the specified group
+
+
 
 If extract_attachments is set to true, only fileAttachment will be ingested. If both ingest_eml and
 extract_attachments are set to true, then both fileAttachment and itemAttachment will be ingested.
