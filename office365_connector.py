@@ -3549,6 +3549,21 @@ class Office365Connector(BaseConnector):
 
         elif action_id == "get_mailbox_messages":
             ret_val = self._handle_get_mailbox_messages(param)
+#MARK
+        elif action_id == "get_named_location":
+            ret_val = self._handle_get_named_location(param)
+
+        elif action_id == "add_named_location_ip":
+            ret_val = self._handle_add_named_location_ip(param)
+
+        elif action_id == "disable_mailbox_rules":
+            ret_val = self._handle_disable_mailbox_rules(param)
+
+        elif action_id == "delete_mailbox_rule":
+            ret_val = self._handle_delete_mailbox_rule(param)
+
+        elif action_id == "add_user_to_group":
+            ret_val = self._handle_add_user_to_group(param)
 
         return ret_val
 
