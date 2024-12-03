@@ -134,9 +134,5 @@ MSGOFFICE365_DATE_FILTER_AND = " and "
 
 _RETRY_EXPONENTIONAL_DELAY_BASE = 2
 _THROTTLE_ATTEMPTS = 10
-_CIDR_ODATA_TYPES = {
-    IPv4Network: '#microsoft.graph.iPv4CidrRange',
-    IPv6Network: '#microsoft.graph.iPv6CidrRange',
-}
 _BATCH_SIZE = 20
 _API_CANT_DISABLE_CODE = 'ErrorNotSupportedMessageRule'
