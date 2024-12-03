@@ -3263,6 +3263,11 @@ class Office365Connector(BaseConnector):
 
         return named_location
 
+    _CIDR_ODATA_TYPES = {
+        IPv4Network: '#microsoft.graph.iPv4CidrRange',
+        IPv6Network: '#microsoft.graph.iPv6CidrRange',
+    }
+    
     def _handle_get_named_location(self, param):
         self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
         action_result = self.add_action_result(ActionResult(dict(param)))
