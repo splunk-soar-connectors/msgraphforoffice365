@@ -6,7 +6,7 @@ Connector Version: 4.0.0
 Product Vendor: Microsoft  
 Product Name: Office 365 (MS Graph)  
 Product Version Supported (regex): ".\*"  
-Minimum Product Version: 6.2.2  
+Minimum Product Version: 6.3.0  
 
 This app connects to Office 365 using the MS Graph API to support investigate and generic actions related to the email messages and calendar events
 
@@ -49,20 +49,20 @@ On the next page, select **New registration** and give your app a name.
   
 Once the app is created, follow the below-mentioned steps:
 
--   For authentication using a client secret (OAuth):
+-   For authentication using a client secret(OAuth):
 
     -   Under **Certificates & secrets** select **New client secret** . Enter the **Description** and
         select the desired duration in **Expires** . Click on **Add** . Note down this **value**
         somewhere secure, as it cannot be retrieved after closing the window.
 
--  For authentication using certificate based authentication (CBA):
+-  For authentication using certificate based authentication(CBA):
 
     -   Under **Certificates & secrets** select **Certificates** then **Upload Certificate** . 
         Select the certifitcate file to upload (.crt/.pem) and enter the **Description** . Note down 
         the **thumbprint** as this will be used to configure the asset. ([Certificate Requirements](https://learn.microsoft.com/en-us/azure/databox-online/azure-stack-edge-gpu-certificate-requirements))
     -   Generate private key:
         -   `openssl genpkey -algorithm RSA -out private_key.pem` / `openssl genrsa -out private_key.pem 2048`
-    -   Generate certifitcate from the private key (Valid for 365 days):
+    -   Generate certificate from the private key (Valid for 365 days):
         -   `openssl req -new -x509 -key private_key.pem -out certificate.pem -days 365`
 
 -   Under **Authentication** , select **Add a platform** . In the **Add a platform** window, select
@@ -195,7 +195,7 @@ the window. To give this user permission to view assets, follow these steps:
 #### Certificate Based Authentication Workflow (CBA)
 
 -   Configure the asset with **Tenant ID**, **Application ID**, **Certificate Thumbprint** and
-    the **Certificate private key (.PEM)**
+    the **Certificate Private Key (.PEM).**
 -   Ensure **Admin Consent Already Provided** is checked. 
 -   After setting up the asset and user, click the **TEST CONNECTIVITY** button.
 -   Check the message in the Test Connectivity dialog box. it should say **Test
@@ -203,7 +203,7 @@ the window. To give this user permission to view assets, follow these steps:
 
 #### Automatic Authentication Workflow
 
--   Configure the asset with the required details, including either the **Application Secret** or a combination of **Certificate Thumbprint** and **Location of the certificate private key (.PEM) on the filesystem**.
+-   Configure the asset with the required details, including either the **Application Secret** or a combination of **Certificate Thumbprint** and **Certificate Private Key (.PEM)**.
 -   If **Application Secret** exists, it will take priority and follow the OAuth workflow. Otherwise, it will continue with the CBA workflow.
 -   The system doesn’t automatically switch from OAuth to CBA when the **Application Secret** expires. However, if **Admin Access Required** is disabled, **Access Scope** is not specified, and **Admin Consent Already Provided** is enabled, it will switch to CBA upon **Application Secret** expiration.
 
@@ -323,8 +323,8 @@ ports used by the Splunk SOAR Connector.
 | https        | tcp                | 443  |
 
 
-### Configuration Variables
-The below configuration variables are required for this Connector to operate.  These variables are specified when configuring a Office 365 (MS Graph) asset in SOAR.
+### Configuration variables
+This table lists the configuration variables required to operate MS Graph for Office 365. These variables are specified when configuring a Office 365 (MS Graph) asset in Splunk SOAR.
 
 VARIABLE | REQUIRED | TYPE | DESCRIPTION
 -------- | -------- | ---- | -----------
@@ -332,17 +332,14 @@ VARIABLE | REQUIRED | TYPE | DESCRIPTION
 **client_id** |  required  | string | Application ID
 **auth_type** |  optional  | string | Authentication type to use for connectivity
 **client_secret** |  optional  | password | Application Secret(required for OAuth)
-**ph_4** |  optional  | ph | 
-**certificate_thumbprint** |  optional  | password | Certificate Thumbprint(required for CBA)
-**private_key_location** |  optional  | string | Location of the certificate private key (.PEM) on the filesystem(required for CBA)
+**certificate_thumbprint** |  optional  | password | Certificate Thumbprint (required for CBA)
+**certificate_private_key** |  optional  | password | Certificate Private Key (.PEM)
 **admin_access** |  optional  | boolean | Admin Access Required
-**admin_consent** |  optional  | boolean | Admin Consent Already Provided(Required checked for CBA)
+**admin_consent** |  optional  | boolean | Admin Consent Already Provided (Required checked for CBA)
 **scope** |  optional  | string | Access Scope (for use with OAuth non-admin access; space-separated)
-**ph_2** |  optional  | ph | 
 **email_address** |  optional  | string | Email Address of the User (On Poll)
 **folder** |  optional  | string | Mailbox folder name/folder path or the internal office365 folder ID to ingest (On Poll)
 **get_folder_id** |  optional  | boolean | Retrieve the folder ID for the provided folder name/folder path automatically and replace the folder parameter value (On Poll)
-**ph_3** |  optional  | ph | 
 **first_run_max_emails** |  optional  | numeric | Maximum Containers for scheduled polling first time
 **max_containers** |  optional  | numeric | Maximum Containers for scheduled polling
 **extract_attachments** |  optional  | boolean | Extract Attachments
@@ -681,7 +678,7 @@ action_result.data.\*.expirationDateTime | string |  |
 action_result.data.\*.groupTypes | string |  |   Unified 
 action_result.data.\*.id | string |  `msgoffice365 group id`  |   2a201c95-101b-42d9-a7af-9a2fdf8193f1 
 action_result.data.\*.isAssignableToRole | string |  |  
-action_result.data.\*.mail | string |  `email`  `msgoffice365 group e-mail address`  |   Test-test-site@testdomain.abc.com 
+action_result.data.\*.mail | string |  `email`  `msgoffice365 group e-mail address`  `msgoffice365 group email address`  |   Test-test-site@testdomain.abc.com 
 action_result.data.\*.mailEnabled | boolean |  |   True  False 
 action_result.data.\*.mailNickname | string |  |   Test-test-site 
 action_result.data.\*.membershipRule | string |  |  
@@ -717,7 +714,7 @@ Read only: **True**
 PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 --------- | -------- | ----------- | ---- | --------
 **method** |  required  | Method to use to list group members | string | 
-**identificator** |  required  | Group ID or group e-mail address, based on the selected method | string |  `msgoffice365 group id`  `msgoffice365 group e-mail address` 
+**identificator** |  required  | Group ID or group e-mail address, based on the selected method | string |  `msgoffice365 group id`  `msgoffice365 group email address`  `msgoffice365 group e-mail address` 
 **get_transitive_members** |  optional  | Get a list of the group's members. A group can have users, devices, organizational contacts, and other groups as members. This operation is transitive and returns a flat list of all nested members | boolean | 
 **filter** |  optional  | Search for specific results | string | 
 **limit** |  optional  | Maximum number of members to return | numeric | 
@@ -729,7 +726,7 @@ action_result.status | string |  |   success  failed
 action_result.parameter.filter | string |  |   displayName eq 'Group Name' 
 action_result.parameter.get_transitive_members | boolean |  |   True  False 
 action_result.parameter.method | string |  |   Group ID  Group e-mail 
-action_result.parameter.identificator | string |  `msgoffice365 group id`  `msgoffice365 group e-mail address`  |   TEST7d21-7631-4ea7-97b2-1328d1c5b901  example@test.com 
+action_result.parameter.identificator | string |  `msgoffice365 group id`  `msgoffice365 group email address`  `msgoffice365 group e-mail address`  |   TEST7d21-7631-4ea7-97b2-1328d1c5b901  example@test.com 
 action_result.parameter.limit | numeric |  |   20 
 action_result.data.\*.@odata.type | string |  |   #test.abc.user 
 action_result.data.\*.businessPhones | string |  |   2056120271 
