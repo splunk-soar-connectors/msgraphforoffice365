@@ -23,14 +23,25 @@ O365_TIME_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
 MSGOFFICE365_RUN_CONNECTIVITY_MSG = (
     "Please run test connectivity first to complete authorization flow and " "generate a token that the app can use to make calls to the server "
 )
-MSGOFFICE365_WELL_KNOWN_FOLDERS_FILTER = (
-    "displayName eq 'archive' or displayName eq 'clutter' or "
-    "displayName eq 'conflicts' or displayName eq 'conversation history' or displayName eq 'deleted items' or "
-    "displayName eq 'drafts' or displayName eq 'inbox' or displayName eq 'junk email' or displayName eq 'local failures' or"
-    " displayName eq 'msg folder root' or displayName eq 'outbox' or displayName eq 'recoverable items deletions' or "
-    "displayName eq 'scheduled' or displayName eq 'search folders' or displayName eq 'sent items' or displayName eq 'server failures' or "
-    "displayName eq 'sync issues'"
-)
+MSGOFFICE365_WELL_KNOWN_FOLDERS_FILTER = [
+    "archive",
+    "clutter",
+    "conflicts",
+    "conversationhistory",
+    "deleteditems",
+    "drafts",
+    "inbox",
+    "junkemail",
+    "localfailures",
+    "msgfolderroot",
+    "outbox",
+    "recoverableitemsdeletions",
+    "scheduled",
+    "searchfolders",
+    "sentitems",
+    "serverfailures",
+    "syncissues",
+]
 MSGOFFICE365_STATE_FILE_CORRUPT_ERROR = (
     "Error occurred while loading the state file. " "Resetting the state file with the default format. Please test the connectivity."
 )
@@ -51,6 +62,14 @@ MSGOFFICE365_INVALID_PERMISSION_ERROR += (
 MSGOFFICE365_NO_DATA_FOUND = "No data found"
 MSGOFFICE365_DUPLICATE_CONTAINER_FOUND_MSG = "duplicate container found"
 MSGOFFICE365_ERROR_EMPTY_RESPONSE = "Status Code {code}. Empty response and no information in the header."
+MSGOFFICE365_CBA_AUTH_ERROR = "Certificate Based Authentication requires both Certificate Thumbprint and Certificate Private Key"
+MSGOFFICE365_OAUTH_AUTH_ERROR = "OAuth Authentication requires Client Secret"
+MSGOFFICE365_AUTOMATIC_AUTH_ERROR = (
+    "Automatic Authentication requires either Client Secret or combination of Certificate Thumbprint and Certificate Private Key"
+)
+MSGOFFICE365_CBA_ADMIN_CONSENT_ERROR = "Certificate Based Authorization requires Admin Consent to be Provided"
+MSGOFFICE365_CBA_KEY_ERROR = "Error occurred while parsing the private key, is it in .PEM format?"
+MSGOFFICE365_NON_ADMIN_SCOPE_ERROR = "Please provide scope for non-admin access in the asset configuration for OAuth authentication"
 
 MSGOFFICE365_DEFAULT_REQUEST_TIMEOUT = 30  # in seconds
 MSGOFFICE365_DEFAULT_NUMBER_OF_RETRIES = 3
@@ -123,6 +142,10 @@ MSGOFFICE365_SELECT_PARAMETER_LIST = [
     "webLink",
     "internetMessageId",
 ]
+
+MSGOFFICE365_AUTH_TYPES = {"Automatic": "auto", "OAuth": "oauth", "Certificate Based Authentication(CBA)": "cba"}
+
+MSGOFFICE365_AUTH_AUTOMATIC = "Automatic"
 
 MSGOFFICE365_DEFAULT_FOLDER = "Inbox"
 MSGOFFICE365_DEFAULT_LIMIT = 100
