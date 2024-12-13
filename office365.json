@@ -8772,7 +8772,7 @@
         {
             "action": "disable mailbox rules",
             "identifier": "disable_mailbox_rules",
-            "description": "Disable rules for the specified mailbox",
+            "description": "Disable ALL rules for the specified mailbox",
             "type": "contain",
             "read_only": false,
             "versions": "EQ(*)",
