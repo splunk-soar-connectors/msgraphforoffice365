@@ -1955,6 +1955,109 @@ class Office365Connector(BaseConnector):
 
         return action_result.set_status(phantom.APP_SUCCESS, "Successfully retrieved specified inbox rule")
 
+    # get named location - Get metadata for the specified named location
+    def _handle_get_location(self, param):
+        self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
+        action_result = self.add_action_result(ActionResult(dict(param)))
+
+        display_name = param["display_name"]
+        endpoint = "/identity/conditionalAccess/namedLocations?$filter=displayname eq '{display_name}'".format(display_name=display_name)
+
+        ret_val, rule = self._make_rest_call_helper(action_result, endpoint)
+        if phantom.is_fail(ret_val):
+            return action_result.get_status()
+        if not rule:
+            return action_result.set_status(phantom.APP_SUCCESS, MSGOFFICE365_NO_DATA_FOUND)
+        rule = self.flatten_json(rule)
+        self.debug_print(rule)
+        action_result.add_data(rule)
+        return action_result.set_status(phantom.APP_SUCCESS, "Successfully retrieved location")
+    
+    # add named location ip - Add the specified IP range to the named location
+    def _handle_add_named_location_ip(self, param):
+        self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
+        action_result = self.add_action_result(ActionResult(dict(param)))
+
+        display_name = param["displayName"]
+        ip_range = ip_network(param['ipRange'], strict=False)
+        endpoint = f'/identity/conditionalAccess/namedLocations/{location_id}'
+
+        ret_val, rule = self._make_rest_call_helper(action_result, endpoint)
+        if phantom.is_fail(ret_val):
+            return action_result.get_status()
+        if not rule:
+            return action_result.set_status(phantom.APP_SUCCESS, MSGOFFICE365_NO_DATA_FOUND)
+        rule = self.flatten_json(rule)
+        self.debug_print(rule)
+        action_result.add_data(rule)
+        return action_result.set_status(phantom.APP_SUCCESS, "Successfully retrieved location ip")
+    
+    # disable mailbox rules - Disable rules for the specified mailbox
+    def _handle_disable_mailbox_rules(self, param):
+        self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
+        action_result = self.add_action_result(ActionResult(dict(param)))
+
+        user_id = param["user_id"]
+        folder_id = param["folder_id"]
+        skip_undisableable_rules = param["skip_undisableable_rules"]
+        endpoint = f'/users/{user_id}/mailFolders/{folder_id}/messageRules'
+
+        ret_val, rule = self._make_rest_call_helper(action_result, endpoint)
+        if phantom.is_fail(ret_val):
+            return action_result.get_status()
+        if not rule:
+            return action_result.set_status(phantom.APP_SUCCESS, MSGOFFICE365_NO_DATA_FOUND)
+        rule = self.flatten_json(rule)
+        self.debug_print(rule)
+        action_result.add_data(rule)
+        return action_result.set_status(phantom.APP_SUCCESS, "Successfully disabled mailbox rules")
+
+    # MARK: i think this one will be broken
+    # delete mailbox rule - Delete the specified mailbox rule
+    def _handle_delete_mailbox_rule(self, param):
+        self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
+        action_result = self.add_action_result(ActionResult(dict(param)))
+
+        user_id = param["user_id"]
+        folder_id = param["folder_id"]
+        rule_name = param["displayName"]
+
+        endpoint = f'/users/{user_id}/mailFolders/{folder_id}/messageRules'
+        parameters = {'$filter': f"displayName eq {rule_name!r}"}
+
+
+        ret_val, rule = self._make_rest_call_helper(action_result, endpoint)
+        if phantom.is_fail(ret_val):
+            return action_result.get_status()
+        if not rule:
+            return action_result.set_status(phantom.APP_SUCCESS, MSGOFFICE365_NO_DATA_FOUND)
+        rule = self.flatten_json(rule)
+        self.debug_print(rule)
+        action_result.add_data(rule)
+        return action_result.set_status(phantom.APP_SUCCESS, "Successfully deleted mailbox rule")
+
+    # MARK: possibly also broken
+    # add user to group - Add the specified user to the specified group
+    def _handle_add_user_to_group(self, param):
+        self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
+        action_result = self.add_action_result(ActionResult(dict(param)))
+
+        user_id = param["user_id"]
+        group_id = param["group_id"]
+
+        endpoint = f'/groups/{group_id}/members/$ref'
+
+        ret_val, rule = self._make_rest_call_helper(action_result, endpoint)
+        if phantom.is_fail(ret_val):
+            return action_result.get_status()
+        if not rule:
+            return action_result.set_status(phantom.APP_SUCCESS, MSGOFFICE365_NO_DATA_FOUND)
+        rule = self.flatten_json(rule)
+        self.debug_print(rule)
+        action_result.add_data(rule)
+        return action_result.set_status(phantom.APP_SUCCESS, "Successfully deleted mailbox rule")
+
+
     def _handle_list_folders(self, param):
 
         self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
@@ -3246,7 +3349,7 @@ class Office365Connector(BaseConnector):
         except Exception:  # Can't use JSONDecodeError because of simplejson
             return response.text
 
-    def _get_named_location(self, display_name):
+    def _get_named_location2(self, display_name):
         endpoint = f'/identity/conditionalAccess/namedLocations'
         parameters = {'$filter': f"displayName eq {display_name!r}"}
         data = self._custom_rest('GET', endpoint=endpoint, params=parameters)
@@ -3268,7 +3371,7 @@ class Office365Connector(BaseConnector):
         IPv6Network: '#microsoft.graph.iPv6CidrRange',
     }
     
-    def _handle_get_named_location(self, param):
+    def _handle_get_named_location2(self, param):
         self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
         action_result = self.add_action_result(ActionResult(dict(param)))
 
@@ -3286,7 +3389,7 @@ class Office365Connector(BaseConnector):
         
         return action_result.set_status(code, message)
 
-    def _handle_add_named_location_ip(self, param):
+    def _handle_add_named_location_ip2(self, param):
         self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
         action_result = self.add_action_result(ActionResult(dict(param)))
 
@@ -3317,7 +3420,7 @@ class Office365Connector(BaseConnector):
 
         return action_result.set_status(code, message)
 
-    def _handle_disable_mailbox_rules(self, param):
+    def _handle_disable_mailbox_rules2(self, param):
         self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
         action_result = self.add_action_result(ActionResult(dict(param)))
 
@@ -3403,7 +3506,7 @@ class Office365Connector(BaseConnector):
 
         return action_result.set_status(code, message)
 
-    def _handle_delete_mailbox_rule(self, param):
+    def _handle_delete_mailbox_rule2(self, param):
         self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
         action_result = self.add_action_result(ActionResult(dict(param)))
 
@@ -3439,7 +3542,7 @@ class Office365Connector(BaseConnector):
 
         return action_result.set_status(code, message)
 
-    def _handle_add_user_to_group(self, param):
+    def _handle_add_user_to_group2(self, param):
         self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
         action_result = self.add_action_result(ActionResult(dict(param)))
 
