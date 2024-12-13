@@ -1956,7 +1956,7 @@ class Office365Connector(BaseConnector):
         return action_result.set_status(phantom.APP_SUCCESS, "Successfully retrieved specified inbox rule")
 
     # get named location - Get metadata for the specified named location
-    def _handle_get_location(self, param):
+    def _handle_get_named_location(self, param):
         self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
         action_result = self.add_action_result(ActionResult(dict(param)))
 
