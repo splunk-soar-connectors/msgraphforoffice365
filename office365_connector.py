@@ -1980,7 +1980,7 @@ class Office365Connector(BaseConnector):
 
         display_name = param["displayName"]
         ip_range = ip_network(param['ipRange'], strict=False)
-        endpoint = f'/identity/conditionalAccess/namedLocations/{location_id}'
+        endpoint = "/identity/conditionalAccess/namedLocations/{0}".format(location_id)
 
         ret_val, rule = self._make_rest_call_helper(action_result, endpoint)
         if phantom.is_fail(ret_val):
@@ -1990,17 +1990,19 @@ class Office365Connector(BaseConnector):
         rule = self.flatten_json(rule)
         self.debug_print(rule)
         action_result.add_data(rule)
-        return action_result.set_status(phantom.APP_SUCCESS, "Successfully retrieved location ip")
+        return action_result.set_status(phantom.APP_SUCCESS, "Successfully retrieved named location ip")
     
     # disable mailbox rules - Disable rules for the specified mailbox
+    # TODO: modify this or make new action to disable specific rule instead of ALL rules
     def _handle_disable_mailbox_rules(self, param):
         self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
         action_result = self.add_action_result(ActionResult(dict(param)))
 
         user_id = param["user_id"]
         folder_id = param["folder_id"]
-        skip_undisableable_rules = param["skip_undisableable_rules"]
-        endpoint = f'/users/{user_id}/mailFolders/{folder_id}/messageRules'
+        # skip_undisableable_rules = param["skip_undisableable_rules"] 
+        # TODO: add fucntionality later
+        endpoint = "/users/{1}/mailFolders/{0}/messageRules".format(folder_id,user_id)
 
         ret_val, rule = self._make_rest_call_helper(action_result, endpoint)
         if phantom.is_fail(ret_val):
@@ -2010,7 +2012,7 @@ class Office365Connector(BaseConnector):
         rule = self.flatten_json(rule)
         self.debug_print(rule)
         action_result.add_data(rule)
-        return action_result.set_status(phantom.APP_SUCCESS, "Successfully disabled mailbox rules")
+        return action_result.set_status(phantom.APP_SUCCESS, "Successfully disabled ALL mailbox rules")
 
     # MARK: i think this one will be broken
     # delete mailbox rule - Delete the specified mailbox rule
@@ -2022,7 +2024,7 @@ class Office365Connector(BaseConnector):
         folder_id = param["folder_id"]
         rule_name = param["displayName"]
 
-        endpoint = f'/users/{user_id}/mailFolders/{folder_id}/messageRules'
+        endpoint = "/users/{0}/mailFolders/{1}/messageRules?$filter eq '{2}'".format(user_id,folder_id,rule_name)
         parameters = {'$filter': f"displayName eq {rule_name!r}"}
 
 
@@ -3294,277 +3296,6 @@ class Office365Connector(BaseConnector):
                 status_msg += f" ({failed_email_ids} failed)"
 
         return action_result.set_status(phantom.APP_SUCCESS, status_msg)
-
-# START MARKER1
-    def _custom_rest_retry(self, method, url, **kwargs):
-        self.debug_print(f'Sending {method} to {url}')
-        for attempt in range(self._THROTTLE_ATTEMPTS):
-            response = requests.request(method, url, **kwargs)
-            try:
-                response.raise_for_status()
-            except requests.HTTPError as error:
-                latest_error = error
-                if response.status_code != 429:
-                    raise
-
-                self.error_print(f'API request throttled (attempt {attempt})')
-                default_delay = self._RETRY_EXPONENTIONAL_DELAY_BASE ** attempt
-                delay = response.headers.get('Retry-After', default_delay)
-                time.sleep(delay)
-            else:
-                return response
-
-        self.error_print('Exhausted connection attempts after API throttling')
-        raise latest_error
-
-    def _custom_rest(self, method, endpoint, *, headers=None, **kwargs):
-        url = f'{MSGRAPH_API_URL}{endpoint}'
-        default_headers = {
-                'Authorization': f'Bearer {self._access_token}',
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-        }
-        if headers is None:
-            headers = default_headers
-        else:
-            headers = {**default_headers, **headers}
-        
-        try:
-            response = self._custom_rest_retry(method=method, url=url, headers=headers, **kwargs)
-        except requests.HTTPError as error:
-            if error.response.status_code != 401:
-                raise ApiError(error.response.text) from error
-            
-            if 'token'.casefold() not in error.response.text.casefold():
-                raise ApiError(error.response.text) from error
-
-            self.debug_print('Refreshing access token')
-            action_result, = self.get_action_results()
-            self._get_token(action_result)
-            headers['Authorization'] = f'Bearer {self._access_token}'
-            response = self._custom_rest_retry(method=method, url=url, headers=headers, **kwargs)
-
-        try:
-            return response.json()
-        except Exception:  # Can't use JSONDecodeError because of simplejson
-            return response.text
-
-    def _get_named_location2(self, display_name):
-        endpoint = f'/identity/conditionalAccess/namedLocations'
-        parameters = {'$filter': f"displayName eq {display_name!r}"}
-        data = self._custom_rest('GET', endpoint=endpoint, params=parameters)
-        self.debug_print(f'Retrieved named location data: {data}')
-        try:
-            named_location, = data['value']
-        except ValueError as error:
-            if data['value']:
-                message = 'More than one named location exists with the specified displayName'
-            else:
-                message = 'No named location with the specified displayName'
-            
-            raise ValueError(message) from error
-
-        return named_location
-
-    _CIDR_ODATA_TYPES = {
-        IPv4Network: '#microsoft.graph.iPv4CidrRange',
-        IPv6Network: '#microsoft.graph.iPv6CidrRange',
-    }
-    
-    def _handle_get_named_location2(self, param):
-        self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
-        action_result = self.add_action_result(ActionResult(dict(param)))
-
-        display_name = param["displayName"]
-
-        try:
-            named_location = self._get_named_location(display_name=display_name)
-        except ApiError as error:
-            code = phantom.APP_ERROR
-            message = str(error)
-        else:
-            action_result.add_data(named_location)
-            code = phantom.APP_SUCCESS
-            message = 'Successfully retrieved named location data'
-        
-        return action_result.set_status(code, message)
-
-    def _handle_add_named_location_ip2(self, param):
-        self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
-        action_result = self.add_action_result(ActionResult(dict(param)))
-
-        display_name = param["displayName"]
-        ip_range = ip_network(param['ipRange'], strict=False)
-        new_range = {
-            '@odata.type': self._CIDR_ODATA_TYPES[type(ip_range)],
-            'cidrAddress': str(ip_range),
-        }
-        try:
-            named_location = self._get_named_location(display_name=display_name)
-        except ApiError as error:
-            return action_result.set_status(phantom.APP_ERROR, str(error))
-
-        location_id = named_location['id']
-        patch_data = {k: named_location[k] for k in ['@odata.type', 'ipRanges']}
-        patch_data['ipRanges'].append(new_range)
-        endpoint = f'/identity/conditionalAccess/namedLocations/{location_id}'
-        try:
-            response_data = self._custom_rest('PATCH', endpoint=endpoint, json=patch_data)
-        except ApiError as error:
-            code = phantom.APP_ERROR
-            message = str(error)
-        else:
-            action_result.add_data(response_data)
-            code = phantom.APP_SUCCESS
-            message = 'Successfully updated the named location IP range list'
-
-        return action_result.set_status(code, message)
-
-    def _handle_disable_mailbox_rules2(self, param):
-        self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
-        action_result = self.add_action_result(ActionResult(dict(param)))
-
-        user_id = param["user_id"]
-        folder_id = param.get("folder_id","inbox")
-        skip_undisableable_rules = param.get("skip_undisableable_rules",False)
-
-        endpoint = f'/users/{user_id}/mailFolders/{folder_id}/messageRules'
-        parameters = {'$select': 'id,isEnabled'}
-        try:
-            response_data = self._custom_rest('GET', endpoint=endpoint, params=parameters)
-        except ApiError as error:
-            return action_result.set_status(phantom.APP_ERROR, str(error))
-
-        self.debug_print(f'rule data response: {response_data}')
-
-        batches = []
-        rules = iter(response_data['value'])
-        while True:
-            batch_data = []
-            try:
-                for batch_id in range(1, self._BATCH_SIZE+1):
-                    rule = next(rules)
-                    if rule['isEnabled']:
-                        data = {'batch_id': batch_id, 'rule_id': rule['id']}
-                        batch_data.append(data)
-                    
-            except StopIteration:
-                break
-            finally:
-                batches.append(batch_data)
-
-        self.debug_print(f'batch data: {batch_data}')
-
-        errors = []
-        summary = {'successes': [], 'failures': []}
-        for batch in batches:
-            post_data = {'requests': []}
-            for rule_data in batch:
-                rule_id = rule_data['rule_id']
-                url = f'/users/{user_id}/mailFolders/{folder_id}/messageRules/{rule_id}'
-                request_data = {
-                    'id': rule_data['batch_id'],
-                    'method': 'PATCH',
-                    'url': quote(url),
-                    'headers': {'Content-Type': 'application/json'},
-                    'body': {'isEnabled': False},
-                }
-                post_data['requests'].append(request_data)
-
-            response_data = self._custom_rest(method='POST', endpoint='/$batch', json=post_data)
-            for response in response_data['responses']:
-                action_result.add_data(response)
-                if response['status'] == 200:
-                    summary['successes'].append(response['body'])
-                    continue
-
-                response_id = int(response['id'])
-                failure_data = {'error': response['body']['error']}
-                for rule_data in batch:
-                    if rule_data['batch_id'] == response_id:
-                        failure_data['id'] = rule_data['rule_id']
-                        break
-
-                summary['failures'].append(failure_data)
-                if skip_undisableable_rules:
-                    error_code = failure_data['error']['code']
-                    if error_code == self._API_CANT_DISABLE_CODE:
-                        continue
-
-                errors.append(response)
-
-        action_result.set_summary(summary)
-        if errors:
-            code = phantom.APP_ERROR
-            message = str(errors)
-        else:
-            code = phantom.APP_SUCCESS
-            if summary['failures']:
-                message = 'Disabled mailbox rules with some skippable failures'
-            else:
-                message = 'Successfully disabled all mailbox rules'
-
-        return action_result.set_status(code, message)
-
-    def _handle_delete_mailbox_rule2(self, param):
-        self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
-        action_result = self.add_action_result(ActionResult(dict(param)))
-
-        user_id = param["user_id"]
-        folder_id = param.get("folder_id","inbox")
-        rule_name = param.get("displayName","")
-
-        rules_endpoint = f'/users/{user_id}/mailFolders/{folder_id}/messageRules'
-        parameters = {'$filter': f"displayName eq {rule_name!r}"}
-        data = self._custom_rest('GET', endpoint=rules_endpoint, params=parameters)
-        self.debug_print(f'Retrieved rule data: {data}')
-        try:
-            rule, = data['value']
-        except ValueError as error:
-            if data['value']:
-                message = 'More than one rule exists with the specified displayName'
-            else:
-                message = 'No rule with the specified displayName'
-
-            raise ValueError(message) from error
-
-        rule_id = rule['id']
-        endpoint = f'{rules_endpoint}/{rule_id}'
-        try:
-            response_data = self._custom_rest(method='DELETE', endpoint=endpoint)
-        except ApiError as error:
-            code = phantom.APP_ERROR
-            message = str(error)
-        else:
-            action_result.add_data(response_data)
-            code = phantom.APP_SUCCESS
-            message = 'Successfully deleted mailbox rule'
-
-        return action_result.set_status(code, message)
-
-    def _handle_add_user_to_group2(self, param):
-        self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
-        action_result = self.add_action_result(ActionResult(dict(param)))
-
-        user_id = param["user_id"]
-        group_id = param["group_id"]
-
-        endpoint = f'/groups/{group_id}/members/$ref'
-        post_data = {'@odata.id': f'{MSGRAPH_API_URL}/users/{user_id}'}
-        try:
-            response_data = self._custom_rest('POST', endpoint, json=post_data)
-        except ApiError as error:
-            code = phantom.APP_ERROR
-            message = str(error)
-        else:
-            action_result.add_data(response_data)
-            code = phantom.APP_SUCCESS
-            message = 'Successfully added user to group'
-
-        return action_result.set_status(code, message)
-
-### END MARKER1
-
 
     def handle_action(self, param):
 
