@@ -8856,7 +8856,7 @@
                 "folder_id": {
                     "description": "The mailbox folder ID",
                     "data_type": "string",
-                    "required": false,
+                    "required": true,
                     "default": "inbox",
                     "primary": true,
                     "order": 1
