@@ -37,9 +37,21 @@ On the next page, select **New registration** and give your app a name.
   
 Once the app is created, follow the below-mentioned steps:
 
--   Under **Certificates & secrets** select **New client secret** . Enter the **Description** and
-    select the desired duration in **Expires** . Click on **Add** . Note down this **value**
-    somewhere secure, as it cannot be retrieved after closing the window.
+-   For authentication using a client secret(OAuth):
+
+    -   Under **Certificates & secrets** select **New client secret** . Enter the **Description** and
+        select the desired duration in **Expires** . Click on **Add** . Note down this **value**
+        somewhere secure, as it cannot be retrieved after closing the window.
+
+-  For authentication using certificate based authentication(CBA):
+
+    -   Under **Certificates & secrets** select **Certificates** then **Upload Certificate** . 
+        Select the certifitcate file to upload (.crt/.pem) and enter the **Description** . Note down 
+        the **thumbprint** as this will be used to configure the asset. ([Certificate Requirements](https://learn.microsoft.com/en-us/azure/databox-online/azure-stack-edge-gpu-certificate-requirements))
+    -   Generate private key:
+        -   `openssl genpkey -algorithm RSA -out private_key.pem` / `openssl genrsa -out private_key.pem 2048`
+    -   Generate certificate from the private key (Valid for 365 days):
+        -   `openssl req -new -x509 -key private_key.pem -out certificate.pem -days 365`
 
 -   Under **Authentication** , select **Add a platform** . In the **Add a platform** window, select
     **Web** . The **Redirect URLs** should be filled right here. We will get **Redirect URLs** from
@@ -59,8 +71,6 @@ Once the app is created, follow the below-mentioned steps:
 
     -   User.Read.All (https://graph.microsoft.com/User.Read.All)
 
-          
-
         -   For non-admin access, use User.Read (Delegated permission) instead
             (https://graph.microsoft.com/User.Read)
 
@@ -79,6 +89,7 @@ Once the app is created, follow the below-mentioned steps:
 
     -   MailboxSettings.Read (https://graph.microsoft.com/MailboxSettings.Read) - It is required
         only if you want to run the **oof status** , **list rules** and **get rule** actions.
+    -   For CBA Authentication, [Application-only access](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-permissions-and-consent#openid-connect-scopes) permissions are required.
 
 After making these changes, click **Add permissions** , then select **Grant admin consent for
 \<your_organization_name_as_on_azure_portal>** at the bottom of the screen.
@@ -125,7 +136,7 @@ the window. To give this user permission to view assets, follow these steps:
 
 ### Test connectivity
 
-#### Admin User Workflow
+#### Admin User Workflow (OAuth)
 
 -   Configure the asset with required details while keeping the **Admin Access Required** as
     checked.
@@ -148,7 +159,7 @@ the window. To give this user permission to view assets, follow these steps:
     config parameter as checked. This will skip the interactive flow and use the client credentials
     for generating tokens.
 
-#### Non-Admin User Workflow
+#### Non-Admin User Workflow (OAuth)
 
 -   Configure the asset with required details while keeping the **Admin Access Required** as
     unchecked. **Admin Consent Already Provided** config parameter will be ignored in the non-admin
@@ -169,8 +180,21 @@ the window. To give this user permission to view assets, follow these steps:
 -   Now go back and check the message on the Test Connectivity dialog box, it should say **Test
     Connectivity Passed** .
 
-  
-  
+#### Certificate Based Authentication Workflow (CBA)
+
+-   Configure the asset with **Tenant ID**, **Application ID**, **Certificate Thumbprint** and
+    the **Certificate Private Key (.PEM).**
+-   Ensure **Admin Consent Already Provided** is checked. 
+-   After setting up the asset and user, click the **TEST CONNECTIVITY** button.
+-   Check the message in the Test Connectivity dialog box. it should say **Test
+    Connectivity Passed** .
+
+#### Automatic Authentication Workflow
+
+-   Configure the asset with the required details, including either the **Application Secret** or a combination of **Certificate Thumbprint** and **Certificate Private Key (.PEM)**.
+-   If **Application Secret** exists, it will take priority and follow the OAuth workflow. Otherwise, it will continue with the CBA workflow.
+-   The system doesn’t automatically switch from OAuth to CBA when the **Application Secret** expires. However, if **Admin Access Required** is disabled, **Access Scope** is not specified, and **Admin Consent Already Provided** is enabled, it will switch to CBA upon **Application Secret** expiration.
+
 The app should now be ready to be used.  
 
 ### On-Poll

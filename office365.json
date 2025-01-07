@@ -33,13 +33,13 @@
         }
     ],
     "license": "Copyright (c) 2017-2024 Splunk Inc.",
-    "app_version": "3.1.1",
+    "app_version": "4.0.0",
     "utctime_updated": "2024-09-11T08:34:15.000000Z",
     "package_name": "phantom_msgraphoffice365",
     "main_module": "office365_connector.py",
-    "min_phantom_version": "6.2.2",
+    "min_phantom_version": "6.3.0",
     "latest_tested_versions": [
-        "Cloud 9 January, 2024"
+        "Cloud 8 Nov, 2024"
     ],
     "app_wizard_version": "1.0.0",
     "python_version": "3",
@@ -52,116 +52,142 @@
             "required": true,
             "order": 0
         },
-        "ph": {
-            "data_type": "ph",
-            "order": 1
-        },
         "client_id": {
             "description": "Application ID",
             "data_type": "string",
             "required": true,
-            "order": 2
+            "order": 1
+        },
+        "auth_type": {
+            "data_type": "string",
+            "order": 2,
+            "description": "Authentication type to use for connectivity",
+            "default": "Automatic",
+            "value_list": [
+                "Automatic",
+                "OAuth",
+                "Certificate Based Authentication(CBA)"
+            ]
+        },
+        "ph": {
+            "data_type": "ph",
+            "order": 3
         },
         "client_secret": {
-            "description": "Application Secret",
+            "description": "Application Secret(required for OAuth)",
             "data_type": "password",
-            "required": true,
-            "order": 3
+            "order": 4
+        },
+        "ph_4": {
+            "data_type": "ph",
+            "order": 5
+        },
+        "certificate_thumbprint": {
+            "description": "Certificate Thumbprint (required for CBA)",
+            "data_type": "password",
+            "order": 6,
+            "required": false
+        },
+        "certificate_private_key": {
+            "description": "Certificate Private Key (.PEM)",
+            "data_type": "password",
+            "required": false,
+            "order": 7
         },
         "admin_access": {
             "description": "Admin Access Required",
             "data_type": "boolean",
             "default": true,
-            "order": 4
+            "order": 8
         },
         "admin_consent": {
-            "description": "Admin Consent Already Provided",
+            "description": "Admin Consent Already Provided (Required checked for CBA)",
             "data_type": "boolean",
             "default": false,
-            "order": 5
+            "order": 9
         },
         "scope": {
-            "description": "Access Scope (for use with non-admin access; space-separated)",
+            "description": "Access Scope (for use with OAuth non-admin access; space-separated)",
             "data_type": "string",
             "default": "https://graph.microsoft.com/Calendars.Read https://graph.microsoft.com/User.Read",
-            "order": 6
+            "order": 10
         },
         "ph_2": {
             "data_type": "ph",
-            "order": 7
+            "order": 11
         },
         "email_address": {
             "description": "Email Address of the User (On Poll)",
             "data_type": "string",
-            "order": 8
+            "order": 12
         },
         "folder": {
             "description": "Mailbox folder name/folder path or the internal office365 folder ID to ingest (On Poll)",
             "data_type": "string",
-            "order": 9
+            "order": 13
         },
         "get_folder_id": {
             "description": "Retrieve the folder ID for the provided folder name/folder path automatically and replace the folder parameter value (On Poll)",
             "data_type": "boolean",
             "default": true,
-            "order": 10
+            "order": 14
         },
         "ph_3": {
             "data_type": "ph",
-            "order": 11
+            "order": 15
         },
         "first_run_max_emails": {
             "description": "Maximum Containers for scheduled polling first time",
             "data_type": "numeric",
             "default": 1000,
-            "order": 12
+            "order": 16
         },
         "max_containers": {
             "description": "Maximum Containers for scheduled polling",
             "data_type": "numeric",
             "default": 100,
-            "order": 13
+            "order": 17
         },
         "extract_attachments": {
             "description": "Extract Attachments",
             "data_type": "boolean",
             "default": false,
-            "order": 14
+            "order": 18
         },
         "extract_urls": {
             "description": "Extract URLs",
             "data_type": "boolean",
             "default": false,
-            "order": 15
+            "order": 19
         },
         "extract_ips": {
             "description": "Extract IPs",
             "data_type": "boolean",
             "default": false,
-            "order": 16
+            "order": 20
         },
         "extract_domains": {
             "description": "Extract Domain Names",
             "data_type": "boolean",
             "default": false,
-            "order": 17
+            "order": 21
         },
         "extract_hashes": {
             "description": "Extract Hashes",
             "data_type": "boolean",
             "default": false,
-            "order": 18
+            "order": 22
         },
         "ingest_eml": {
             "description": "Ingest EML file for the itemAttachment",
             "data_type": "boolean",
             "default": false,
-            "order": 19
+            "order": 23
         },
         "ingest_manner": {
             "data_type": "string",
             "description": "How to Ingest (during ingestion, should the app get the latest emails or the oldest)",
-            "order": 20,
+            "order": 24,
             "value_list": [
                 "oldest first",
                 "latest first"
@@ -172,18 +198,18 @@
             "description": "Maximum attempts to retry the API call (Default: 3)",
             "data_type": "numeric",
             "default": 3,
-            "order": 21
+            "order": 25
         },
         "retry_wait_time": {
             "description": "Delay in seconds between retries (Default: 60)",
             "data_type": "numeric",
             "default": 60,
-            "order": 22
+            "order": 26
         },
         "extract_eml": {
             "data_type": "boolean",
             "description": "Extract root (primary) email as Vault",
-            "order": 23,
+            "order": 27,
             "default": false
         }
     },
@@ -1740,7 +1766,8 @@
                     ],
                     "contains": [
                         "email",
-                        "msgoffice365 group e-mail address"
+                        "msgoffice365 group e-mail address",
+                        "msgoffice365 group email address"
                     ],
                     "column_name": "Group Mail ID",
                     "column_order": 1
@@ -1904,7 +1931,6 @@
                     "description": "Method to use to list group members",
                     "data_type": "string",
                     "required": true,
-                    "primary": true,
                     "value_list": [
                         "Group ID",
                         "Group e-mail"
@@ -1919,6 +1945,7 @@
                     "primary": true,
                     "contains": [
                         "msgoffice365 group id",
+                        "msgoffice365 group email address",
                         "msgoffice365 group e-mail address"
                     ],
                     "order": 1
@@ -1977,6 +2004,7 @@
                     "data_type": "string",
                     "contains": [
                         "msgoffice365 group id",
+                        "msgoffice365 group email address",
                         "msgoffice365 group e-mail address"
                     ],
                     "example_values": [
@@ -7511,62 +7539,48 @@
                     "description": "Message ID to pick the sender of",
                     "data_type": "string",
                     "required": true,
-                    "primary": true,
-                    "contains": [],
-                    "value_list": [],
-                    "default": "",
-                    "order": 0,
-                    "name": "message_id"
+                    "order": 0
                 },
                 "user_id": {
                     "description": "User ID to base the action of",
                     "data_type": "string",
                     "required": true,
-                    "primary": true,
-                    "contains": [],
-                    "value_list": [],
-                    "default": "",
-                    "order": 1,
-                    "name": "user_id"
+                    "order": 1
                 },
                 "move_to_junk_folder": {
                     "description": "Should the email be moved to the junk folder",
                     "data_type": "boolean",
-                    "required": false,
-                    "primary": false,
-                    "contains": [],
-                    "default": "",
-                    "order": 2,
-                    "name": "move_to_junk_folder"
+                    "order": 2
                 }
             },
             "output": [
                 {
                     "data_path": "action_result.parameter.message_id",
                     "data_type": "string",
-                    "contains": [],
-                    "column_name": "message id",
+                    "column_name": "Message ID",
                     "column_order": 0
                 },
                 {
                     "data_path": "action_result.parameter.move_to_junk_folder",
                     "data_type": "boolean",
-                    "contains": [],
-                    "column_name": "move to junk folder",
+                    "column_name": "Move To Junk Folder",
                     "column_order": 1
                 },
                 {
                     "data_path": "action_result.parameter.user_id",
                     "data_type": "boolean",
-                    "contains": [],
-                    "column_name": "user id",
+                    "column_name": "User ID",
                     "column_order": 2
                 },
                 {
                     "data_path": "action_result.status",
                     "data_type": "string",
-                    "column_name": "status",
-                    "column_order": 3
+                    "column_name": "Status",
+                    "column_order": 3,
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
                 },
                 {
                     "data_path": "action_result.summary",
@@ -7610,62 +7624,48 @@
                     "description": "Message ID to pick the sender of",
                     "data_type": "string",
                     "required": true,
-                    "primary": true,
-                    "contains": [],
-                    "value_list": [],
-                    "default": "",
-                    "order": 0,
-                    "name": "message_id"
+                    "order": 0
                 },
                 "user_id": {
                     "description": "User ID to base the action of",
                     "data_type": "string",
                     "required": true,
-                    "primary": true,
-                    "contains": [],
-                    "value_list": [],
-                    "default": "",
-                    "order": 1,
-                    "name": "user_id"
+                    "order": 1
                 },
                 "move_to_inbox": {
                     "description": "Should the email be moved to the inbox folder",
                     "data_type": "boolean",
-                    "required": false,
-                    "primary": false,
-                    "contains": [],
-                    "default": "",
-                    "order": 2,
-                    "name": "move_to_inbox"
+                    "order": 2
                 }
             },
             "output": [
                 {
                     "data_path": "action_result.parameter.message_id",
                     "data_type": "string",
-                    "contains": [],
-                    "column_name": "message id",
+                    "column_name": "Message ID",
                     "column_order": 0
                 },
                 {
                     "data_path": "action_result.parameter.move_to_inbox",
                     "data_type": "boolean",
-                    "contains": [],
-                    "column_name": "move to inbox folder",
+                    "column_name": "Move To Inbox Folder",
                     "column_order": 1
                 },
                 {
                     "data_path": "action_result.parameter.user_id",
                     "data_type": "boolean",
-                    "contains": [],
-                    "column_name": "user id",
+                    "column_name": "User ID",
                     "column_order": 2
                 },
                 {
                     "data_path": "action_result.status",
                     "data_type": "string",
-                    "column_name": "status",
-                    "column_order": 3
+                    "column_name": "Status",
+                    "column_order": 3,
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
                 },
                 {
                     "data_path": "action_result.summary",
@@ -7714,10 +7714,7 @@
                         "email",
                         "string"
                     ],
-                    "value_list": [],
-                    "default": "",
-                    "order": 0,
-                    "name": "email"
+                    "order": 0
                 }
             },
             "output": [
@@ -7728,7 +7725,7 @@
                         "email",
                         "string"
                     ],
-                    "column_name": "email",
+                    "column_name": "Email",
                     "column_order": 0
                 },
                 {
@@ -7737,7 +7734,7 @@
                     "contains": [
                         "msgoffice365 id"
                     ],
-                    "column_name": "id",
+                    "column_name": "ID",
                     "column_order": 1
                 },
                 {
@@ -7746,7 +7743,7 @@
                     "contains": [
                         "msgoffice365 user principal name"
                     ],
-                    "column_name": "principal name",
+                    "column_name": "Principal Name",
                     "column_order": 2
                 },
                 {
@@ -7755,7 +7752,7 @@
                     "contains": [
                         "msgoffice365 given name"
                     ],
-                    "column_name": "given name",
+                    "column_name": "Given Name",
                     "column_order": 3
                 },
                 {
@@ -7764,7 +7761,7 @@
                     "contains": [
                         "msgoffice365 surname"
                     ],
-                    "column_name": "surname",
+                    "column_name": "Surname",
                     "column_order": 4
                 },
                 {
@@ -7773,7 +7770,7 @@
                     "contains": [
                         "msgoffice365 display name"
                     ],
-                    "column_name": "display name",
+                    "column_name": "Display Name",
                     "column_order": 5
                 },
                 {
@@ -7782,7 +7779,7 @@
                     "contains": [
                         "msgoffice365 mail nickname"
                     ],
-                    "column_name": "mail nickname",
+                    "column_name": "Mail Nickname",
                     "column_order": 6
                 },
                 {
@@ -7791,7 +7788,7 @@
                     "contains": [
                         "email"
                     ],
-                    "column_name": "mail",
+                    "column_name": "Mail",
                     "column_order": 7
                 },
                 {
@@ -7800,7 +7797,7 @@
                     "contains": [
                         "email list"
                     ],
-                    "column_name": "other mails",
+                    "column_name": "Other Mails",
                     "column_order": 8
                 },
                 {
@@ -7809,7 +7806,7 @@
                     "contains": [
                         "email list"
                     ],
-                    "column_name": "proxy email addresses",
+                    "column_name": "Proxy Email Addresses",
                     "column_order": 9
                 },
                 {
@@ -7818,7 +7815,7 @@
                     "contains": [
                         "msgoffice365 job title"
                     ],
-                    "column_name": "job title",
+                    "column_name": "Job Title",
                     "column_order": 10
                 },
                 {
@@ -7827,7 +7824,7 @@
                     "contains": [
                         "msgoffice365 office location"
                     ],
-                    "column_name": "office location",
+                    "column_name": "Office Location",
                     "column_order": 11
                 },
                 {
@@ -7836,7 +7833,7 @@
                     "contains": [
                         "msgoffice365 user purpose"
                     ],
-                    "column_name": "user purpose",
+                    "column_name": "User Purpose",
                     "column_order": 12
                 },
                 {
@@ -7845,7 +7842,7 @@
                     "contains": [
                         "msgoffice365 mobile phone"
                     ],
-                    "column_name": "mobile phone",
+                    "column_name": "Mobile Phone",
                     "column_order": 13
                 },
                 {
@@ -7854,7 +7851,7 @@
                     "contains": [
                         "msgoffice365 buisness phones"
                     ],
-                    "column_name": "business phones",
+                    "column_name": "Business Phones",
                     "column_order": 14
                 },
                 {
@@ -7863,7 +7860,7 @@
                     "contains": [
                         "msgoffice365 preferred language"
                     ],
-                    "column_name": "preferred language",
+                    "column_name": "Preferred Language",
                     "column_order": 15
                 },
                 {
@@ -7872,7 +7869,7 @@
                     "contains": [
                         "msgoffice365 state"
                     ],
-                    "column_name": "state",
+                    "column_name": "State",
                     "column_order": 16
                 },
                 {
@@ -7881,7 +7878,7 @@
                     "contains": [
                         "msgoffice365 postal code"
                     ],
-                    "column_name": "postal code",
+                    "column_name": "Postal Code",
                     "column_order": 17
                 },
                 {
@@ -7988,7 +7985,10 @@
                 {
                     "data_path": "action_result.status",
                     "data_type": "string",
-                    "example_values": ["success", "failed"]
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
                 },
                 {
                     "data_path": "action_result.parameter.email_address",
@@ -8077,7 +8077,9 @@
                 {
                     "data_path": "action_result.data.*.webLink",
                     "data_type": "string",
-                    "contains": ["url"]
+                    "contains": [
+                        "url"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.changeKey",
@@ -8640,6 +8642,30 @@
     ],
     "pip_dependencies": {
         "wheel": [
+            {
+                "module": "python_magic",
+                "input_file": "wheels/shared/python_magic-0.4.18-py2.py3-none-any.whl"
+            }
+        ]
+    },
+    "pip39_dependencies": {
+        "wheel": [
+            {
+                "module": "PyJWT",
+                "input_file": "wheels/py3/PyJWT-2.10.0-py3-none-any.whl"
+            },
+            {
+                "module": "cffi",
+                "input_file": "wheels/py39/cffi-1.17.1-cp39-cp39-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl"
+            },
+            {
+                "module": "msal",
+                "input_file": "wheels/py3/msal-1.31.0-py3-none-any.whl"
+            },
+            {
+                "module": "pycparser",
+                "input_file": "wheels/py3/pycparser-2.22-py3-none-any.whl"
+            },
             {
                 "module": "python_magic",
                 "input_file": "wheels/shared/python_magic-0.4.18-py2.py3-none-any.whl"
