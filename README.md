@@ -1,28 +1,13 @@
 # MS Graph for Office 365
 
-Publisher: Splunk  
-Connector Version: 4.0.1  
-Product Vendor: Microsoft  
-Product Name: Office 365 (MS Graph)  
-Product Version Supported (regex): ".\*"  
-Minimum Product Version: 6.3.0  
+Publisher: Splunk \
+Connector Version: 4.0.1 \
+Product Vendor: Microsoft \
+Product Name: Office 365 (MS Graph) \
+Minimum Product Version: 6.3.0
 
 This app connects to Office 365 using the MS Graph API to support investigate and generic actions related to the email messages and calendar events
 
-[comment]: # " File: README.md"
-[comment]: # "  Copyright (c) 2017-2025 Splunk Inc."
-[comment]: # ""
-[comment]: # "Licensed under the Apache License, Version 2.0 (the 'License');"
-[comment]: # "you may not use this file except in compliance with the License."
-[comment]: # "You may obtain a copy of the License at"
-[comment]: # ""
-[comment]: # "    http://www.apache.org/licenses/LICENSE-2.0"
-[comment]: # ""
-[comment]: # "Unless required by applicable law or agreed to in writing, software distributed under"
-[comment]: # "the License is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,"
-[comment]: # "either express or implied. See the License for the specific language governing permissions"
-[comment]: # "and limitations under the License."
-[comment]: # ""
 ## Playbook Backward Compatibility
 
 - With version 3.0.0 of the connector, the 'group_id' parameter of the 'list group members' action has been removed and two new parameters are added in the same action as follows:
