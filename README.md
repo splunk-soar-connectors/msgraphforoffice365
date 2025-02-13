@@ -1,13 +1,28 @@
 # MS Graph for Office 365
 
-Publisher: Splunk \
-Connector Version: 4.0.0 \
-Product Vendor: Microsoft \
-Product Name: Office 365 (MS Graph) \
-Minimum Product Version: 6.3.0
+Publisher: Splunk  
+Connector Version: 4.0.1  
+Product Vendor: Microsoft  
+Product Name: Office 365 (MS Graph)  
+Product Version Supported (regex): ".\*"  
+Minimum Product Version: 6.3.0  
 
 This app connects to Office 365 using the MS Graph API to support investigate and generic actions related to the email messages and calendar events
 
+[comment]: # " File: README.md"
+[comment]: # "  Copyright (c) 2017-2025 Splunk Inc."
+[comment]: # ""
+[comment]: # "Licensed under the Apache License, Version 2.0 (the 'License');"
+[comment]: # "you may not use this file except in compliance with the License."
+[comment]: # "You may obtain a copy of the License at"
+[comment]: # ""
+[comment]: # "    http://www.apache.org/licenses/LICENSE-2.0"
+[comment]: # ""
+[comment]: # "Unless required by applicable law or agreed to in writing, software distributed under"
+[comment]: # "the License is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,"
+[comment]: # "either express or implied. See the License for the specific language governing permissions"
+[comment]: # "and limitations under the License."
+[comment]: # ""
 ## Playbook Backward Compatibility
 
 - With version 3.0.0 of the connector, the 'group_id' parameter of the 'list group members' action has been removed and two new parameters are added in the same action as follows:
@@ -1333,7 +1348,7 @@ Search emails
 Type: **investigate** \
 Read only: **True**
 
-If the <b>query</b> or <b>internet_message_id</b> parameters are included, the <b>subject</b>, <b>sender</b>, <b>body</b>, and <b>range</b> parameters will be ignored. The <b>internet_message_id</b> parameter will take precedence over the <b>query</b> parameter.<br><br>For information on formatting the <b>query</b> parameter, see https://developer.microsoft.com/en-us/graph/docs/concepts/query_parameters.<br><br>If the <b>limit</b> parameter is not included, the action will default to limiting to ten emails that match the rest of the query. The <b>get_folder_id</b> parameter should be enabled only when you specified folder name/folder path in the folder parameter. If you provide folder ID in the <b>folder</b> parameter and set <b>get_folder_id</b> parameter to true, it will throw an error of folder ID not found for given folder name (because the action considers folder parameter value as folder name/folder path). The <b>folder</b> parameter must be either a (case sensitive) well-known name [list here; https://docs.microsoft.com/en-us/graph/api/resources/mailfolder?view=graph-rest-1.0] or the internal o365 folder ID. The action supports searching for a folder that is nested within another. To copy in such a folder, specify the complete folder path using the <b>'/'</b> (forward slash) as the separator.<br>e.g. to search in a folder named <i>phishing</i> which is nested within (is a child of) <i>Inbox</i>, set the value as <b>Inbox/phishing</b>. If a folder name has a literal forward slash('/') in the name escape it with a backslash('\\') to differentiate.<br>When the <b>search_well_known_folders</b> parameter is set to true, action will ignore values provided in the <b>folder</b> and <b>get_folder_id</b> parameters and the user will get details from all 17 well-known folders which are listed below:<br><ul style="columns: 2;-webkit-columns: 2; -moz-columns: 2"> <li>Archive</li> <li>Clutter</li> <li>Conflicts</li> <li>Conversation History</li> <li>Deleted Items</li> <li>Drafts</li> <li>Inbox</li> <li>Junk Email</li> <li>Local Failures</li> <li>Msg Folder Root</li> <li>Outbox</li> <li>Recoverable Items Deletions</li> <li>Scheduled</li> <li>Search Folders</li> <li>Sent Items</li> <li>Server Failures</li> <li>Sync Issues</li></ul><br>If the <b>limit</b> parameter is provided, the user will get the number of messages provided in the <b>limit</b> from every folder if present.
+If the <b>query</b> or <b>internet_message_id</b> parameters are included, the <b>subject</b>, <b>sender</b>, <b>body</b>, and <b>range</b> parameters will be ignored. The <b>internet_message_id</b> parameter will take precedence over the <b>query</b> parameter.<br><br>For details on formatting the <b>query</b> parameter, refer to <a href="https://learn.microsoft.com/en-us/graph/query-parameters" target="_blank">Microsoft Graph Query Parameters</a>. Query parameters can include OData system query options or other supported parameters.<br><br>If the <b>limit</b> parameter is not included, the action will default to limiting to ten emails that match the rest of the query. The <b>get_folder_id</b> parameter should be enabled only when you specified folder name/folder path in the folder parameter. If you provide folder ID in the <b>folder</b> parameter and set <b>get_folder_id</b> parameter to true, it will throw an error of folder ID not found for given folder name (because the action considers folder parameter value as folder name/folder path). The <b>folder</b> parameter must be either a (case sensitive) well-known name [list here; https://docs.microsoft.com/en-us/graph/api/resources/mailfolder?view=graph-rest-1.0] or the internal o365 folder ID. The action supports searching for a folder that is nested within another. To copy in such a folder, specify the complete folder path using the <b>'/'</b> (forward slash) as the separator.<br>e.g. to search in a folder named <i>phishing</i> which is nested within (is a child of) <i>Inbox</i>, set the value as <b>Inbox/phishing</b>. If a folder name has a literal forward slash('/') in the name escape it with a backslash('\\') to differentiate.<br>When the <b>search_well_known_folders</b> parameter is set to true, action will ignore values provided in the <b>folder</b> and <b>get_folder_id</b> parameters and the user will get details from all 17 well-known folders which are listed below:<br><ul style="columns: 2;-webkit-columns: 2; -moz-columns: 2"> <li>Archive</li> <li>Clutter</li> <li>Conflicts</li> <li>Conversation History</li> <li>Deleted Items</li> <li>Drafts</li> <li>Inbox</li> <li>Junk Email</li> <li>Local Failures</li> <li>Msg Folder Root</li> <li>Outbox</li> <li>Recoverable Items Deletions</li> <li>Scheduled</li> <li>Search Folders</li> <li>Sent Items</li> <li>Server Failures</li> <li>Sync Issues</li></ul><br>If the <b>limit</b> parameter is provided, the user will get the number of messages provided in the <b>limit</b> from every folder if present.
 
 #### Action Parameters
 

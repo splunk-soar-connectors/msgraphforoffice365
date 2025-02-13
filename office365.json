@@ -8668,11 +8668,15 @@
         "wheel": [
             {
                 "module": "PyJWT",
-                "input_file": "wheels/py3/PyJWT-2.10.0-py3-none-any.whl"
+                "input_file": "wheels/py3/PyJWT-2.10.1-py3-none-any.whl"
             },
             {
                 "module": "cffi",
                 "input_file": "wheels/py39/cffi-1.17.1-cp39-cp39-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl"
+            },
+            {
+                "module": "cryptography",
+                "input_file": "wheels/py39/cryptography-44.0.1-cp39-abi3-manylinux_2_28_x86_64.whl"
             },
             {
                 "module": "msal",
