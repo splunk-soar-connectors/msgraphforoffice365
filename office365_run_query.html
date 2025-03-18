@@ -1,16 +1,17 @@
 {% extends 'widgets/widget_template.html' %}
 {% load custom_template %}
-
-{% block custom_title_prop %}{% if title_logo %}style="background-size: auto 60%; background-position: 50%; background-repeat: no-repeat; background-image: url('/app_resource/{{ title_logo }}');"{% endif %}{% endblock %}
+{% block custom_title_prop %}
+  {% if title_logo %}
+    style="background-size: auto 60%; background-position: 50%; background-repeat: no-repeat; background-image: url('/app_resource/{{ title_logo }}');"
+  {% endif %}
+{% endblock %}
 {% block title1 %}{{ title1 }}{% endblock %}
 {% block title2 %}{{ title2 }}{% endblock %}
-{% block custom_tools %}
-{% endblock %}
-
-{% block widget_content %} <!-- Main Start Block -->
-
-<!-- File: office365_run_query.html
-  Copyright (c) 2017-2024 Splunk Inc.
+{% block custom_tools %}{% endblock %}
+{% block widget_content %}
+  <!-- Main Start Block -->
+  <!-- File: office365_run_query.html
+  Copyright (c) 2017-2025 Splunk Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -23,8 +24,7 @@ the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS
 either express or implied. See the License for the specific language governing permissions
 and limitations under the License.
 -->
-<style>
-
+  <style>
     .office365 a:hover {
         text-decoration:underline;
     }
@@ -78,168 +78,175 @@ and limitations under the License.
         white-space: nowrap;
     }
 
-</style>
-
-<div class="office365" style="overflow: auto; width: 100% height: 100%; padding-left:10px; padding-right:10px">
+  </style>
+  <div class="office365"
+       style="overflow: auto;
+              width: 100% height: 100%;
+              padding-left:10px;
+              padding-right:10px">
     <!-- Main Div -->
-
-    {% for result in results %} <!-- loop for each result -->
-        {% if not result.data %}
-            <h4 class="wf-h4-style">No data found</h4>
-        {% else %}
-            <div class="info">
-                <h4 class="wf-h4-style">Action Parameters</h4>
-                <table class="wf-table-vertical">
-                    <tr>
-                        <td>Email Address</td>
-                        <td><a href="javascript:;" onclick="context_menu(this, [{'contains': ['email'],
-                            'value': '{{ result.param.email_address }}' }], 0, {{ container.id }}, null, false);">
-                        {{ result.param.email_address }}
-                        &nbsp;
-                        <span class="fa fa-caret-down" style="font-size: smaller;"></span>
-                        </a></td>
-                    </tr>
-                    {% if result.param.folder %}
-                    <tr>
-                        <td>Folder</td>
-                        <td><a href="javascript:;" onclick="context_menu(this, [{'contains': ['msgoffice365 mail folder', 'msgoffice365 mail folder path', 'msgoffice365 folder id'],
-                            'value': '{{ result.param.folder }}' }], 0, {{ container.id }}, null, false);">
-                        {{ result.param.folder }}
-                        &nbsp;
-                        <span class="fa fa-caret-down" style="font-size: smaller;"></span>
-                        </a></td>
-                    </tr>
-                    {% endif %}
-                    {% if result.param.get_folder_id %}
-                        <tr>
-                            <td>Get Folder ID</td>
-                            <td>{{ result.param.get_folder_id }}</td>
-                        </tr>
-                    {% endif %}
-                    {% if result.param.subject %}
-                        <tr>
-                            <td>Subject</td>
-                            <td>
-                                <a href="javascript:;" onclick="context_menu(this, [{'contains': ['msgoffice365 subject'],
-                                'value': '{{ result.param.subject }}' }], 0, {{ container.id }}, null, false);">
-                                {{ result.param.subject }}
-                                &nbsp;
-                                <span class="fa fa-caret-down" style="font-size: smaller;"></span>
-                                </a>
-                            </td>
-                        </tr>
-                    {% endif %}
-                    {% if result.param.body %}
-                        <tr>
-                            <td>Body</td>
-                            <td>{{ result.param.body }}</td>
-                        </tr>
-                    {% endif %}
-                    {% if result.param.sender %}
-                        <tr>
-                            <td>Sender</td>
-                            <td><a href="javascript:;" onclick="context_menu(this, [{'contains': ['email'],
-                                'value': '{{ result.param.sender }}' }], 0, {{ container.id }}, null, false);">
-                            {{ result.param.sender }}
-                            &nbsp;
-                            <span class="fa fa-caret-down" style="font-size: smaller;"></span>
-                            </a></td>
-                        </tr>
-                    {% endif %}
-                    {% if result.param.limit %}
-                        <tr>
-                            <td>Limit</td>
-                            <td>{{ result.param.limit }}</td>
-                        </tr>
-                    {% endif %}
-                    {% if result.param.query %}
-                        <tr>
-                            <td>Query</td>
-                            <td>{{ result.param.query }}</td>
-                        </tr>
-                    {% endif %}
-                    {% if result.param.internet_message_id %}
-                        <tr>
-                            <td>Internet Message ID</td>
-                            <td><a href="javascript:;" onclick="context_menu(this, [{'contains': ['msgoffice365 internet message id'],
-                                'value': '{{ result.param.internet_message_id }}' }], 0, {{ container.id }}, null, false);">
-                            {{ result.param.internet_message_id }}
-                            &nbsp;
-                            <span class="fa fa-caret-down" style="font-size: smaller;"></span>
-                            </a></td>
-                        </tr>
-                    {% endif %}
-                </table>
-            </div>
-
-            <div class="data">
-                <h4 class="wf-h4-style">Data</h4>
-                <table class="phantom-table dataTable">
-                    <thead>
-                        <th class="widget-th">Sender</th>
-                        <th class="widget-th">Received DateTime</th>
-                        <th class="widget-th">Subject</th>
-                        <th class="widget-th">Body Perview</th>
-                        <th class="widget-th">Message ID</th>
-                        <th class="widget-th">Internet Message ID</th>
-                    </thead>
-                    {% for data in result.data %}
-                        <tr>
-                            {% if data.sender.emailAddress.address is not None %}
-                                <td>
-                                    <a class="no-word-wrap" href="javascript:;" onclick="context_menu(this, [{'contains': ['email'],
-                                        'value': '{{ data.sender.emailAddress.address }}' }], 0, {{ container.id }}, null, false);">
-                                    {{ data.sender.emailAddress.address }}
-                                    &nbsp;
-                                    <span class="fa fa-caret-down" style="font-size: smaller;"></span>
-                                    </a>
-                                </td>
-                            {% else %}
-                                <td>None</td>
-                            {% endif %}
-
-                            <td>{{ data.receivedDateTime }}</td>
-
-                            {% if data.subject is not None %}
-                                <td>
-                                    <a href="javascript:;" onclick="context_menu(this, [{'contains': ['msgoffice365 subject'],
-                                    'value': '{{ data.subject }}' }], 0, {{ container.id }}, null, false);">
-                                    {{ data.subject }}
-                                    &nbsp;
-                                    <span class="fa fa-caret-down" style="font-size: smaller;"></span>
-                                    </a>
-                                </td>
-                            {% else %}
-                                <td>None</td>
-                            {% endif %}
-
-                            <td>{{ data.bodyPreview }}</td>
-
-                            <td>
-                                <a href="javascript:;" onclick="context_menu(this, [{'contains': ['msgoffice365 message id'],
-                                'value': '{{ data.id }}' }], 0, {{ container.id }}, null, false);">
-                                {{ data.id }}
-                                &nbsp;
-                                <span class="fa fa-caret-down" style="font-size: smaller;"></span>
-                                </a>
-                            </td>
-
-                            <td>
-                                <a class="no-word-wrap" href="javascript:;" onclick="context_menu(this, [{'contains': ['msgoffice365 internet message id'],
-                                'value': '{{ data.internetMessageId }}' }], 0, {{ container.id }}, null, false);">
-                                {{ data.internetMessageId }}
-                                &nbsp;
-                                <span class="fa fa-caret-down" style="font-size: smaller;"></span>
-                                </a>
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </table>
-            </div>
-        {% endif %}
+    {% for result in results %}
+      <!-- loop for each result -->
+      {% if not result.data %}
+        <h4 class="wf-h4-style">No data found</h4>
+      {% else %}
+        <div class="info">
+          <h4 class="wf-h4-style">Action Parameters</h4>
+          <table class="wf-table-vertical">
+            <tr>
+              <td>Email Address</td>
+              <td>
+                <a href="javascript:;"
+                   onclick="context_menu(this, [{'contains': ['email'], 'value': '{{ result.param.email_address }}' }], 0, {{ container.id }}, null, false);">
+                  {{ result.param.email_address }}
+                  &nbsp;
+                  <span class="fa fa-caret-down" style="font-size: smaller;"></span>
+                </a>
+              </td>
+            </tr>
+            {% if result.param.folder %}
+              <tr>
+                <td>Folder</td>
+                <td>
+                  <a href="javascript:;"
+                     onclick="context_menu(this, [{'contains': ['msgoffice365 mail folder', 'msgoffice365 mail folder path', 'msgoffice365 folder id'], 'value': '{{ result.param.folder }}' }], 0, {{ container.id }}, null, false);">
+                    {{ result.param.folder }}
+                    &nbsp;
+                    <span class="fa fa-caret-down" style="font-size: smaller;"></span>
+                  </a>
+                </td>
+              </tr>
+            {% endif %}
+            {% if result.param.get_folder_id %}
+              <tr>
+                <td>Get Folder ID</td>
+                <td>{{ result.param.get_folder_id }}</td>
+              </tr>
+            {% endif %}
+            {% if result.param.subject %}
+              <tr>
+                <td>Subject</td>
+                <td>
+                  <a href="javascript:;"
+                     onclick="context_menu(this, [{'contains': ['msgoffice365 subject'], 'value': '{{ result.param.subject }}' }], 0, {{ container.id }}, null, false);">
+                    {{ result.param.subject }}
+                    &nbsp;
+                    <span class="fa fa-caret-down" style="font-size: smaller;"></span>
+                  </a>
+                </td>
+              </tr>
+            {% endif %}
+            {% if result.param.body %}
+              <tr>
+                <td>Body</td>
+                <td>{{ result.param.body }}</td>
+              </tr>
+            {% endif %}
+            {% if result.param.sender %}
+              <tr>
+                <td>Sender</td>
+                <td>
+                  <a href="javascript:;"
+                     onclick="context_menu(this, [{'contains': ['email'], 'value': '{{ result.param.sender }}' }], 0, {{ container.id }}, null, false);">
+                    {{ result.param.sender }}
+                    &nbsp;
+                    <span class="fa fa-caret-down" style="font-size: smaller;"></span>
+                  </a>
+                </td>
+              </tr>
+            {% endif %}
+            {% if result.param.limit %}
+              <tr>
+                <td>Limit</td>
+                <td>{{ result.param.limit }}</td>
+              </tr>
+            {% endif %}
+            {% if result.param.query %}
+              <tr>
+                <td>Query</td>
+                <td>{{ result.param.query }}</td>
+              </tr>
+            {% endif %}
+            {% if result.param.internet_message_id %}
+              <tr>
+                <td>Internet Message ID</td>
+                <td>
+                  <a href="javascript:;"
+                     onclick="context_menu(this, [{'contains': ['msgoffice365 internet message id'], 'value': '{{ result.param.internet_message_id }}' }], 0, {{ container.id }}, null, false);">
+                    {{ result.param.internet_message_id }}
+                    &nbsp;
+                    <span class="fa fa-caret-down" style="font-size: smaller;"></span>
+                  </a>
+                </td>
+              </tr>
+            {% endif %}
+          </table>
+        </div>
+        <div class="data">
+          <h4 class="wf-h4-style">Data</h4>
+          <table class="phantom-table dataTable">
+            <thead>
+              <th class="widget-th">Sender</th>
+              <th class="widget-th">Received DateTime</th>
+              <th class="widget-th">Subject</th>
+              <th class="widget-th">Body Perview</th>
+              <th class="widget-th">Message ID</th>
+              <th class="widget-th">Internet Message ID</th>
+            </thead>
+            {% for data in result.data %}
+              <tr>
+                {% if data.sender.emailAddress.address is not None %}
+                  <td>
+                    <a class="no-word-wrap"
+                       href="javascript:;"
+                       onclick="context_menu(this, [{'contains': ['email'], 'value': '{{ data.sender.emailAddress.address }}' }], 0, {{ container.id }}, null, false);">
+                      {{ data.sender.emailAddress.address }}
+                      &nbsp;
+                      <span class="fa fa-caret-down" style="font-size: smaller;"></span>
+                    </a>
+                  </td>
+                {% else %}
+                  <td>None</td>
+                {% endif %}
+                <td>{{ data.receivedDateTime }}</td>
+                {% if data.subject is not None %}
+                  <td>
+                    <a href="javascript:;"
+                       onclick="context_menu(this, [{'contains': ['msgoffice365 subject'], 'value': '{{ data.subject }}' }], 0, {{ container.id }}, null, false);">
+                      {{ data.subject }}
+                      &nbsp;
+                      <span class="fa fa-caret-down" style="font-size: smaller;"></span>
+                    </a>
+                  </td>
+                {% else %}
+                  <td>None</td>
+                {% endif %}
+                <td>{{ data.bodyPreview }}</td>
+                <td>
+                  <a href="javascript:;"
+                     onclick="context_menu(this, [{'contains': ['msgoffice365 message id'], 'value': '{{ data.id }}' }], 0, {{ container.id }}, null, false);">
+                    {{ data.id }}
+                    &nbsp;
+                    <span class="fa fa-caret-down" style="font-size: smaller;"></span>
+                  </a>
+                </td>
+                <td>
+                  <a class="no-word-wrap"
+                     href="javascript:;"
+                     onclick="context_menu(this, [{'contains': ['msgoffice365 internet message id'], 'value': '{{ data.internetMessageId }}' }], 0, {{ container.id }}, null, false);">
+                    {{ data.internetMessageId }}
+                    &nbsp;
+                    <span class="fa fa-caret-down" style="font-size: smaller;"></span>
+                  </a>
+                </td>
+              </tr>
+            {% endfor %}
+          </table>
+        </div>
+      {% endif %}
     {% endfor %}
-</div>
-<script>
+  </div>
+  <script>
 $.extend(true, $.fn.dataTable.defaults, {
     "searching": true,
     "bLengthChange": false,
@@ -258,6 +265,5 @@ $.extend(true, $.fn.dataTable.defaults, {
   });
   $('.dataTable').DataTable();
 
-</script>
-
+  </script>
 {% endblock %}

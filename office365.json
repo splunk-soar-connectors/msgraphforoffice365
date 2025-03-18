@@ -32,7 +32,7 @@
             "name": "Anton Neledov"
         }
     ],
-    "license": "Copyright (c) 2017-2024 Splunk Inc.",
+    "license": "Copyright (c) 2017-2025 Splunk Inc.",
     "app_version": "4.0.0",
     "utctime_updated": "2024-09-11T08:34:15.000000Z",
     "package_name": "phantom_msgraphoffice365",
@@ -8632,6 +8632,22 @@
                 {
                     "data_path": "summary.total_objects_successful",
                     "data_type": "numeric"
+                },
+                {
+                    "data_path": "action_result.parameter.download_attachments",
+                    "data_type": "boolean"
+                },
+                {
+                    "data_path": "action_result.parameter.download_email",
+                    "data_type": "boolean"
+                },
+                {
+                    "data_path": "action_result.parameter.extract_headers",
+                    "data_type": "boolean"
+                },
+                {
+                    "data_path": "action_result.parameter.plus_ingest",
+                    "data_type": "boolean"
                 }
             ],
             "render": {
