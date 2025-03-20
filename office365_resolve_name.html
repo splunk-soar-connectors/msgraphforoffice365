@@ -1,16 +1,17 @@
 {% extends 'widgets/widget_template.html' %}
 {% load custom_template %}
-
-{% block custom_title_prop %}{% if title_logo %}style="background-size: auto 60%; background-position: 50%; background-repeat: no-repeat; background-image: url('/app_resource/{{ title_logo }}');"{% endif %}{% endblock %}
+{% block custom_title_prop %}
+  {% if title_logo %}
+    style="background-size: auto 60%; background-position: 50%; background-repeat: no-repeat; background-image: url('/app_resource/{{ title_logo }}');"
+  {% endif %}
+{% endblock %}
 {% block title1 %}{{ title1 }}{% endblock %}
 {% block title2 %}{{ title2 }}{% endblock %}
-{% block custom_tools %}
-{% endblock %}
-
-{% block widget_content %} <!-- Main Start Block -->
-
-<!-- File: office365_resolve_name.html
-  Copyright (c) 2017-2024 Splunk Inc.
+{% block custom_tools %}{% endblock %}
+{% block widget_content %}
+  <!-- Main Start Block -->
+  <!-- File: office365_resolve_name.html
+  Copyright (c) 2017-2025 Splunk Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -23,8 +24,7 @@ the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS
 either express or implied. See the License for the specific language governing permissions
 and limitations under the License.
 -->
-<style>
-
+  <style>
     .office365 a:hover {
         text-decoration:underline;
     }
@@ -78,284 +78,287 @@ and limitations under the License.
         white-space: nowrap;
     }
 
-</style>
-
-<div class="office365" style="overflow: auto; width: 100% height: 100%; padding-left:10px; padding-right:10px">
+  </style>
+  <div class="office365"
+       style="overflow: auto;
+              width: 100% height: 100%;
+              padding-left:10px;
+              padding-right:10px">
     <!-- Main Div -->
-
-    {% for result in results %} <!-- loop for each result -->
-        {% if not result.data %}
-            <h4 class="wf-h4-style">No data found</h4>
-        {% else %}
-            <div class="info">
-                <h4 class="wf-h4-style">Action Parameters</h4>
-                <table class="wf-table-vertical">
-                    <tr>
-                        <td>Email Address</td>
-                        <td><a href="javascript:;" onclick="context_menu(this, [{'contains': ['email'],
-                            'value': '{{ result.param.email }}' }], 0, {{ container.id }}, null, false);">
-                        {{ result.param.email }}
-                        &nbsp;
-                        <span class="fa fa-caret-down" style="font-size: smaller;"></span>
-                        </a></td>
-                    </tr>
-                </table>
-            </div>
-
-            <div class="data">
-                <h4 class="wf-h4-style">Data</h4>
-                <table class="phantom-table dataTable">
-                    <thead>
-                        <th class="widget-th">id</th>
-                        <th class="widget-th">Principal name</th>
-                        <th class="widget-th">given name</th>
-                        <th class="widget-th">surname</th>
-                        <th class="widget-th">display name</th>
-                        <th class="widget-th">mail nickname</th>
-                        <th class="widget-th">mail</th>
-                        <th class="widget-th">other mails</th>
-                        <th class="widget-th">proxy email addresses</th>
-                        <th class="widget-th">job title</th>
-                        <th class="widget-th">office location</th>
-                        <th class="widget-th">value</th>
-                        <th class="widget-th">mobile phone</th>
-                        <th class="widget-th">business phones</th>
-                        <th class="widget-th">preferred language</th>
-                        <th class="widget-th">state</th>
-                        <th class="widget-th">postal code</th>
-                    </thead>
-                    {% for data in result.data %}
-                        <tr>
-
-                            {% if data.id is not None %}
-                                <td>
-                                    <a class="no-word-wrap" href="javascript:;" onclick="context_menu(this, [{'contains': ['msgoffice365 id'],
-                                        'value': '{{ data.id }}' }], 0, {{ container.id }}, null, false);">
-                                    {{ data.id }}
-                                    &nbsp;
-                                    <span class="fa fa-caret-down" style="font-size: smaller;"></span>
-                                    </a>
-                                </td>
-                            {% else %}
-                                <td>None</td>
-                            {% endif %}
-
-                            {% if data.userPrincipalName is not None %}
-                                <td>
-                                    <a class="no-word-wrap" href="javascript:;" onclick="context_menu(this, [{'contains': ['msgoffice365 user principal name'],
-                                        'value': '{{ data.userPrincipalName }}' }], 0, {{ container.id }}, null, false);">
-                                    {{ data.userPrincipalName }}
-                                    &nbsp;
-                                    <span class="fa fa-caret-down" style="font-size: smaller;"></span>
-                                    </a>
-                                </td>
-                            {% else %}
-                                <td>None</td>
-                            {% endif %}
-
-                            {% if data.givenName is not None %}
-                                <td>
-                                    <a class="no-word-wrap" href="javascript:;" onclick="context_menu(this, [{'contains': ['msgoffice365 given name'],
-                                        'value': '{{ data.givenName }}' }], 0, {{ container.id }}, null, false);">
-                                    {{ data.givenName }}
-                                    &nbsp;
-                                    <span class="fa fa-caret-down" style="font-size: smaller;"></span>
-                                    </a>
-                                </td>
-                            {% else %}
-                                <td>None</td>
-                            {% endif %}
-
-                            {% if data.surname is not None %}
-                                <td>
-                                    <a class="no-word-wrap" href="javascript:;" onclick="context_menu(this, [{'contains': ['msgoffice365 surname'],
-                                        'value': '{{ data.surname }}' }], 0, {{ container.id }}, null, false);">
-                                    {{ data.surname }}
-                                    &nbsp;
-                                    <span class="fa fa-caret-down" style="font-size: smaller;"></span>
-                                    </a>
-                                </td>
-                            {% else %}
-                                <td>None</td>
-                            {% endif %}
-
-                            {% if data.displayName is not None %}
-                                <td>
-                                    <a class="no-word-wrap" href="javascript:;" onclick="context_menu(this, [{'contains': ['msgoffice365 display name'],
-                                        'value': '{{ data.displayName }}' }], 0, {{ container.id }}, null, false);">
-                                    {{ data.displayName }}
-                                    &nbsp;
-                                    <span class="fa fa-caret-down" style="font-size: smaller;"></span>
-                                    </a>
-                                </td>
-                            {% else %}
-                                <td>None</td>
-                            {% endif %}
-
-                            {% if data.mailNickname is not None %}
-                                <td>
-                                    <a class="no-word-wrap" href="javascript:;" onclick="context_menu(this, [{'contains': ['msgoffice365 mail nickname'],
-                                        'value': '{{ data.mailNickname }}' }], 0, {{ container.id }}, null, false);">
-                                    {{ data.mailNickname }}
-                                    &nbsp;
-                                    <span class="fa fa-caret-down" style="font-size: smaller;"></span>
-                                    </a>
-                                </td>
-                            {% else %}
-                                <td>None</td>
-                            {% endif %}
-
-                            {% if data.mail is not None %}
-                                <td>
-                                    <a class="no-word-wrap" href="javascript:;" onclick="context_menu(this, [{'contains': ['email'],
-                                        'value': '{{ data.mail }}' }], 0, {{ container.id }}, null, false);">
-                                    {{ data.mail }}
-                                    &nbsp;
-                                    <span class="fa fa-caret-down" style="font-size: smaller;"></span>
-                                    </a>
-                                </td>
-                            {% else %}
-                                <td>None</td>
-                            {% endif %}
-
-                            {% if data.otherMails is not None %}
-                                <td>
-                                    <a class="no-word-wrap" href="javascript:;" onclick="context_menu(this, [{'contains': ['email list'],
-                                        'value': '{{ data.otherMails }}' }], 0, {{ container.id }}, null, false);">
-                                    {{ data.otherMails }}
-                                    &nbsp;
-                                    <span class="fa fa-caret-down" style="font-size: smaller;"></span>
-                                    </a>
-                                </td>
-                            {% else %}
-                                <td>None</td>
-                            {% endif %}
-
-                            {% if data.proxyAddresses is not None %}
-                                <td>
-                                    <a class="no-word-wrap" href="javascript:;" onclick="context_menu(this, [{'contains': ['email list'],
-                                        'value': '{{ data.proxyAddresses }}' }], 0, {{ container.id }}, null, false);">
-                                    {{ data.proxyAddresses }}
-                                    &nbsp;
-                                    <span class="fa fa-caret-down" style="font-size: smaller;"></span>
-                                    </a>
-                                </td>
-                            {% else %}
-                                <td>None</td>
-                            {% endif %}
-
-                            {% if data.jobTitle is not None %}
-                                <td>
-                                    <a class="no-word-wrap" href="javascript:;" onclick="context_menu(this, [{'contains': ['msgoffice365 job title'],
-                                        'value': '{{ data.jobTitle }}' }], 0, {{ container.id }}, null, false);">
-                                    {{ data.jobTitle }}
-                                    &nbsp;
-                                    <span class="fa fa-caret-down" style="font-size: smaller;"></span>
-                                    </a>
-                                </td>
-                            {% else %}
-                                <td>None</td>
-                            {% endif %}
-
-                            {% if data.officeLocation is not None %}
-                                <td>
-                                    <a class="no-word-wrap" href="javascript:;" onclick="context_menu(this, [{'contains': ['msgoffice365 office location'],
-                                        'value': '{{ data.officeLocation }}' }], 0, {{ container.id }}, null, false);">
-                                    {{ data.officeLocation }}
-                                    &nbsp;
-                                    <span class="fa fa-caret-down" style="font-size: smaller;"></span>
-                                    </a>
-                                </td>
-                            {% else %}
-                                <td>None</td>
-                            {% endif %}
-
-                            {% if data.value is not None %}
-                                <td>
-                                    <a class="no-word-wrap" href="javascript:;" onclick="context_menu(this, [{'contains': ['msgoffice365 user purpose'],
-                                        'value': '{{ data.value }}' }], 0, {{ container.id }}, null, false);">
-                                    {{ data.value }}
-                                    &nbsp;
-                                    <span class="fa fa-caret-down" style="font-size: smaller;"></span>
-                                    </a>
-                                </td>
-                            {% else %}
-                                <td>None</td>
-                            {% endif %}
-
-                            {% if data.mobilePhone is not None %}
-                                <td>
-                                    <a class="no-word-wrap" href="javascript:;" onclick="context_menu(this, [{'contains': ['msgoffice365 mobile phone'],
-                                        'value': '{{ data.mobilePhone }}' }], 0, {{ container.id }}, null, false);">
-                                    {{ data.mobilePhone }}
-                                    &nbsp;
-                                    <span class="fa fa-caret-down" style="font-size: smaller;"></span>
-                                    </a>
-                                </td>
-                            {% else %}
-                                <td>None</td>
-                            {% endif %}
-
-                            {% if data.businessPhones is not None %}
-                                <td>
-                                    <a class="no-word-wrap" href="javascript:;" onclick="context_menu(this, [{'contains': ['msgoffice365 buisness phones'],
-                                        'value': '{{ data.businessPhones }}' }], 0, {{ container.id }}, null, false);">
-                                    {{ data.businessPhones }}
-                                    &nbsp;
-                                    <span class="fa fa-caret-down" style="font-size: smaller;"></span>
-                                    </a>
-                                </td>
-                            {% else %}
-                                <td>None</td>
-                            {% endif %}
-
-                            {% if data.preferredLanguage is not None %}
-                                <td>
-                                    <a class="no-word-wrap" href="javascript:;" onclick="context_menu(this, [{'contains': ['msgoffice365 preferred language'],
-                                        'value': '{{ data.preferredLanguage }}' }], 0, {{ container.id }}, null, false);">
-                                    {{ data.preferredLanguage }}
-                                    &nbsp;
-                                    <span class="fa fa-caret-down" style="font-size: smaller;"></span>
-                                    </a>
-                                </td>
-                            {% else %}
-                                <td>None</td>
-                            {% endif %}
-
-                            {% if data.state is not None %}
-                                <td>
-                                    <a class="no-word-wrap" href="javascript:;" onclick="context_menu(this, [{'contains': ['msgoffice365 state'],
-                                        'value': '{{ data.state }}' }], 0, {{ container.id }}, null, false);">
-                                    {{ data.state }}
-                                    &nbsp;
-                                    <span class="fa fa-caret-down" style="font-size: smaller;"></span>
-                                    </a>
-                                </td>
-                            {% else %}
-                                <td>None</td>
-                            {% endif %}
-
-                            {% if data.postalCode is not None %}
-                                <td>
-                                    <a class="no-word-wrap" href="javascript:;" onclick="context_menu(this, [{'contains': ['msgoffice365 postal code'],
-                                        'value': '{{ data.postalCode }}' }], 0, {{ container.id }}, null, false);">
-                                    {{ data.postalCode }}
-                                    &nbsp;
-                                    <span class="fa fa-caret-down" style="font-size: smaller;"></span>
-                                    </a>
-                                </td>
-                            {% else %}
-                                <td>None</td>
-                            {% endif %}
-
-                        </tr>
-                    {% endfor %}
-                </table>
-            </div>
-        {% endif %}
+    {% for result in results %}
+      <!-- loop for each result -->
+      {% if not result.data %}
+        <h4 class="wf-h4-style">No data found</h4>
+      {% else %}
+        <div class="info">
+          <h4 class="wf-h4-style">Action Parameters</h4>
+          <table class="wf-table-vertical">
+            <tr>
+              <td>Email Address</td>
+              <td>
+                <a href="javascript:;"
+                   onclick="context_menu(this, [{'contains': ['email'], 'value': '{{ result.param.email }}' }], 0, {{ container.id }}, null, false);">
+                  {{ result.param.email }}
+                  &nbsp;
+                  <span class="fa fa-caret-down" style="font-size: smaller;"></span>
+                </a>
+              </td>
+            </tr>
+          </table>
+        </div>
+        <div class="data">
+          <h4 class="wf-h4-style">Data</h4>
+          <table class="phantom-table dataTable">
+            <thead>
+              <th class="widget-th">id</th>
+              <th class="widget-th">Principal name</th>
+              <th class="widget-th">given name</th>
+              <th class="widget-th">surname</th>
+              <th class="widget-th">display name</th>
+              <th class="widget-th">mail nickname</th>
+              <th class="widget-th">mail</th>
+              <th class="widget-th">other mails</th>
+              <th class="widget-th">proxy email addresses</th>
+              <th class="widget-th">job title</th>
+              <th class="widget-th">office location</th>
+              <th class="widget-th">value</th>
+              <th class="widget-th">mobile phone</th>
+              <th class="widget-th">business phones</th>
+              <th class="widget-th">preferred language</th>
+              <th class="widget-th">state</th>
+              <th class="widget-th">postal code</th>
+            </thead>
+            {% for data in result.data %}
+              <tr>
+                {% if data.id is not None %}
+                  <td>
+                    <a class="no-word-wrap"
+                       href="javascript:;"
+                       onclick="context_menu(this, [{'contains': ['msgoffice365 id'], 'value': '{{ data.id }}' }], 0, {{ container.id }}, null, false);">
+                      {{ data.id }}
+                      &nbsp;
+                      <span class="fa fa-caret-down" style="font-size: smaller;"></span>
+                    </a>
+                  </td>
+                {% else %}
+                  <td>None</td>
+                {% endif %}
+                {% if data.userPrincipalName is not None %}
+                  <td>
+                    <a class="no-word-wrap"
+                       href="javascript:;"
+                       onclick="context_menu(this, [{'contains': ['msgoffice365 user principal name'], 'value': '{{ data.userPrincipalName }}' }], 0, {{ container.id }}, null, false);">
+                      {{ data.userPrincipalName }}
+                      &nbsp;
+                      <span class="fa fa-caret-down" style="font-size: smaller;"></span>
+                    </a>
+                  </td>
+                {% else %}
+                  <td>None</td>
+                {% endif %}
+                {% if data.givenName is not None %}
+                  <td>
+                    <a class="no-word-wrap"
+                       href="javascript:;"
+                       onclick="context_menu(this, [{'contains': ['msgoffice365 given name'], 'value': '{{ data.givenName }}' }], 0, {{ container.id }}, null, false);">
+                      {{ data.givenName }}
+                      &nbsp;
+                      <span class="fa fa-caret-down" style="font-size: smaller;"></span>
+                    </a>
+                  </td>
+                {% else %}
+                  <td>None</td>
+                {% endif %}
+                {% if data.surname is not None %}
+                  <td>
+                    <a class="no-word-wrap"
+                       href="javascript:;"
+                       onclick="context_menu(this, [{'contains': ['msgoffice365 surname'], 'value': '{{ data.surname }}' }], 0, {{ container.id }}, null, false);">
+                      {{ data.surname }}
+                      &nbsp;
+                      <span class="fa fa-caret-down" style="font-size: smaller;"></span>
+                    </a>
+                  </td>
+                {% else %}
+                  <td>None</td>
+                {% endif %}
+                {% if data.displayName is not None %}
+                  <td>
+                    <a class="no-word-wrap"
+                       href="javascript:;"
+                       onclick="context_menu(this, [{'contains': ['msgoffice365 display name'], 'value': '{{ data.displayName }}' }], 0, {{ container.id }}, null, false);">
+                      {{ data.displayName }}
+                      &nbsp;
+                      <span class="fa fa-caret-down" style="font-size: smaller;"></span>
+                    </a>
+                  </td>
+                {% else %}
+                  <td>None</td>
+                {% endif %}
+                {% if data.mailNickname is not None %}
+                  <td>
+                    <a class="no-word-wrap"
+                       href="javascript:;"
+                       onclick="context_menu(this, [{'contains': ['msgoffice365 mail nickname'], 'value': '{{ data.mailNickname }}' }], 0, {{ container.id }}, null, false);">
+                      {{ data.mailNickname }}
+                      &nbsp;
+                      <span class="fa fa-caret-down" style="font-size: smaller;"></span>
+                    </a>
+                  </td>
+                {% else %}
+                  <td>None</td>
+                {% endif %}
+                {% if data.mail is not None %}
+                  <td>
+                    <a class="no-word-wrap"
+                       href="javascript:;"
+                       onclick="context_menu(this, [{'contains': ['email'], 'value': '{{ data.mail }}' }], 0, {{ container.id }}, null, false);">
+                      {{ data.mail }}
+                      &nbsp;
+                      <span class="fa fa-caret-down" style="font-size: smaller;"></span>
+                    </a>
+                  </td>
+                {% else %}
+                  <td>None</td>
+                {% endif %}
+                {% if data.otherMails is not None %}
+                  <td>
+                    <a class="no-word-wrap"
+                       href="javascript:;"
+                       onclick="context_menu(this, [{'contains': ['email list'], 'value': '{{ data.otherMails }}' }], 0, {{ container.id }}, null, false);">
+                      {{ data.otherMails }}
+                      &nbsp;
+                      <span class="fa fa-caret-down" style="font-size: smaller;"></span>
+                    </a>
+                  </td>
+                {% else %}
+                  <td>None</td>
+                {% endif %}
+                {% if data.proxyAddresses is not None %}
+                  <td>
+                    <a class="no-word-wrap"
+                       href="javascript:;"
+                       onclick="context_menu(this, [{'contains': ['email list'], 'value': '{{ data.proxyAddresses }}' }], 0, {{ container.id }}, null, false);">
+                      {{ data.proxyAddresses }}
+                      &nbsp;
+                      <span class="fa fa-caret-down" style="font-size: smaller;"></span>
+                    </a>
+                  </td>
+                {% else %}
+                  <td>None</td>
+                {% endif %}
+                {% if data.jobTitle is not None %}
+                  <td>
+                    <a class="no-word-wrap"
+                       href="javascript:;"
+                       onclick="context_menu(this, [{'contains': ['msgoffice365 job title'], 'value': '{{ data.jobTitle }}' }], 0, {{ container.id }}, null, false);">
+                      {{ data.jobTitle }}
+                      &nbsp;
+                      <span class="fa fa-caret-down" style="font-size: smaller;"></span>
+                    </a>
+                  </td>
+                {% else %}
+                  <td>None</td>
+                {% endif %}
+                {% if data.officeLocation is not None %}
+                  <td>
+                    <a class="no-word-wrap"
+                       href="javascript:;"
+                       onclick="context_menu(this, [{'contains': ['msgoffice365 office location'], 'value': '{{ data.officeLocation }}' }], 0, {{ container.id }}, null, false);">
+                      {{ data.officeLocation }}
+                      &nbsp;
+                      <span class="fa fa-caret-down" style="font-size: smaller;"></span>
+                    </a>
+                  </td>
+                {% else %}
+                  <td>None</td>
+                {% endif %}
+                {% if data.value is not None %}
+                  <td>
+                    <a class="no-word-wrap"
+                       href="javascript:;"
+                       onclick="context_menu(this, [{'contains': ['msgoffice365 user purpose'], 'value': '{{ data.value }}' }], 0, {{ container.id }}, null, false);">
+                      {{ data.value }}
+                      &nbsp;
+                      <span class="fa fa-caret-down" style="font-size: smaller;"></span>
+                    </a>
+                  </td>
+                {% else %}
+                  <td>None</td>
+                {% endif %}
+                {% if data.mobilePhone is not None %}
+                  <td>
+                    <a class="no-word-wrap"
+                       href="javascript:;"
+                       onclick="context_menu(this, [{'contains': ['msgoffice365 mobile phone'], 'value': '{{ data.mobilePhone }}' }], 0, {{ container.id }}, null, false);">
+                      {{ data.mobilePhone }}
+                      &nbsp;
+                      <span class="fa fa-caret-down" style="font-size: smaller;"></span>
+                    </a>
+                  </td>
+                {% else %}
+                  <td>None</td>
+                {% endif %}
+                {% if data.businessPhones is not None %}
+                  <td>
+                    <a class="no-word-wrap"
+                       href="javascript:;"
+                       onclick="context_menu(this, [{'contains': ['msgoffice365 buisness phones'], 'value': '{{ data.businessPhones }}' }], 0, {{ container.id }}, null, false);">
+                      {{ data.businessPhones }}
+                      &nbsp;
+                      <span class="fa fa-caret-down" style="font-size: smaller;"></span>
+                    </a>
+                  </td>
+                {% else %}
+                  <td>None</td>
+                {% endif %}
+                {% if data.preferredLanguage is not None %}
+                  <td>
+                    <a class="no-word-wrap"
+                       href="javascript:;"
+                       onclick="context_menu(this, [{'contains': ['msgoffice365 preferred language'], 'value': '{{ data.preferredLanguage }}' }], 0, {{ container.id }}, null, false);">
+                      {{ data.preferredLanguage }}
+                      &nbsp;
+                      <span class="fa fa-caret-down" style="font-size: smaller;"></span>
+                    </a>
+                  </td>
+                {% else %}
+                  <td>None</td>
+                {% endif %}
+                {% if data.state is not None %}
+                  <td>
+                    <a class="no-word-wrap"
+                       href="javascript:;"
+                       onclick="context_menu(this, [{'contains': ['msgoffice365 state'], 'value': '{{ data.state }}' }], 0, {{ container.id }}, null, false);">
+                      {{ data.state }}
+                      &nbsp;
+                      <span class="fa fa-caret-down" style="font-size: smaller;"></span>
+                    </a>
+                  </td>
+                {% else %}
+                  <td>None</td>
+                {% endif %}
+                {% if data.postalCode is not None %}
+                  <td>
+                    <a class="no-word-wrap"
+                       href="javascript:;"
+                       onclick="context_menu(this, [{'contains': ['msgoffice365 postal code'], 'value': '{{ data.postalCode }}' }], 0, {{ container.id }}, null, false);">
+                      {{ data.postalCode }}
+                      &nbsp;
+                      <span class="fa fa-caret-down" style="font-size: smaller;"></span>
+                    </a>
+                  </td>
+                {% else %}
+                  <td>None</td>
+                {% endif %}
+              </tr>
+            {% endfor %}
+          </table>
+        </div>
+      {% endif %}
     {% endfor %}
-</div>
-<script>
+  </div>
+  <script>
 $.extend(true, $.fn.dataTable.defaults, {
     "searching": true,
     "bLengthChange": false,
@@ -374,6 +377,5 @@ $.extend(true, $.fn.dataTable.defaults, {
   });
   $('.dataTable').DataTable();
 
-</script>
-
+  </script>
 {% endblock %}

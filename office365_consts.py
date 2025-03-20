@@ -1,6 +1,6 @@
 # File: office365_consts.py
 #
-# Copyright (c) 2017-2024 Splunk Inc.
+# Copyright (c) 2017-2025 Splunk Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ SPLUNK_SOAR_ASSET_INFO_URL = "{url}rest/asset/{asset_id}"
 SPLUNK_SOAR_CONTAINER_INFO_URL = "{url}rest/container/{container_id}"
 O365_TIME_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
 MSGOFFICE365_RUN_CONNECTIVITY_MSG = (
-    "Please run test connectivity first to complete authorization flow and " "generate a token that the app can use to make calls to the server "
+    "Please run test connectivity first to complete authorization flow and generate a token that the app can use to make calls to the server "
 )
 MSGOFFICE365_WELL_KNOWN_FOLDERS_FILTER = [
     "archive",
@@ -43,7 +43,7 @@ MSGOFFICE365_WELL_KNOWN_FOLDERS_FILTER = [
     "syncissues",
 ]
 MSGOFFICE365_STATE_FILE_CORRUPT_ERROR = (
-    "Error occurred while loading the state file. " "Resetting the state file with the default format. Please test the connectivity."
+    "Error occurred while loading the state file. Resetting the state file with the default format. Please test the connectivity."
 )
 
 MSGOFFICE365_AUTHORIZE_TROUBLESHOOT_MSG = (
@@ -53,11 +53,11 @@ MSGOFFICE365_AUTHORIZE_TROUBLESHOOT_MSG = (
     " 2. Configured the base URL of your Splunk SOAR Instance at Administration -> Company Settings -> Info"
 )
 MSGOFFICE365_INVALID_PERMISSION_ERROR = (
-    "Error occurred while saving the newly generated access token " "(in place of the expired token) in the state file."
+    "Error occurred while saving the newly generated access token (in place of the expired token) in the state file."
 )
 MSGOFFICE365_INVALID_PERMISSION_ERROR += " Please check the owner, owner group, and the permissions of the state file. The Splunk SOAR "
 MSGOFFICE365_INVALID_PERMISSION_ERROR += (
-    "user should have the correct access rights and ownership for the corresponding state file " "(refer to readme file for more information)."
+    "user should have the correct access rights and ownership for the corresponding state file (refer to readme file for more information)."
 )
 MSGOFFICE365_NO_DATA_FOUND = "No data found"
 MSGOFFICE365_DUPLICATE_CONTAINER_FOUND_MSG = "duplicate container found"

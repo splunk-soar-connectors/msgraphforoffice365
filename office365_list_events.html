@@ -1,16 +1,17 @@
 {% extends 'widgets/widget_template.html' %}
 {% load custom_template %}
-
-{% block custom_title_prop %}{% if title_logo %}style="background-size: auto 60%; background-position: 50%; background-repeat: no-repeat; background-image: url('/app_resource/{{ title_logo }}');"{% endif %}{% endblock %}
+{% block custom_title_prop %}
+  {% if title_logo %}
+    style="background-size: auto 60%; background-position: 50%; background-repeat: no-repeat; background-image: url('/app_resource/{{ title_logo }}');"
+  {% endif %}
+{% endblock %}
 {% block title1 %}{{ title1 }}{% endblock %}
 {% block title2 %}{{ title2 }}{% endblock %}
-{% block custom_tools %}
-{% endblock %}
-
-{% block widget_content %} <!-- Main Start Block -->
-
-<!-- File: office365_list_events.html
-  Copyright (c) 2017-2024 Splunk Inc.
+{% block custom_tools %}{% endblock %}
+{% block widget_content %}
+  <!-- Main Start Block -->
+  <!-- File: office365_list_events.html
+  Copyright (c) 2017-2025 Splunk Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -23,8 +24,7 @@ the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS
 either express or implied. See the License for the specific language governing permissions
 and limitations under the License.
 -->
-<style>
-
+  <style>
     .office365 a:hover {
         text-decoration:underline;
     }
@@ -73,91 +73,97 @@ and limitations under the License.
     .office365 .dataTable .glyphicon.glyphicon-dot:before {
        content: "\25cf"; font-size: 10px;
    }
-</style>
-
-<div class="office365" style="overflow: auto; width: 100% height: 100%; padding-left:10px; padding-right:10px">
+  </style>
+  <div class="office365"
+       style="overflow: auto;
+              width: 100% height: 100%;
+              padding-left:10px;
+              padding-right:10px">
     <!-- Main Div -->
-
-    {% for result in results %} <!-- loop for each result -->
-        {% if not result.data %}
-            <h4 class="wf-h4-style">No data found</h4>
-        {% else %}
-            <div class="info">
-                <h4 class="wf-h4-style">Info</h4>
-                <table class="wf-table-vertical">
-                    {% if result.param.user_id %}
-                    <tr>
-                        <td>User ID</td>
-                        <td><a href="javascript:;" onclick="context_menu(this, [{'contains': ['msgoffice365 user id','msgoffice365 user principle name','email'],
-                            'value': '{{ result.param.user_id }}' }], 0, {{ container.id }}, null, false);">
-                        {{ result.param.user_id }}
-                        &nbsp;
-                        <span class="fa fa-caret-down" style="font-size: smaller;"></span>
-                        </a></td>
-                    </tr>
-                    {% endif %}
-                    {% if result.param.group_id %}
-                    <tr>
-                        <td>Group ID</td>
-                        <td><a href="javascript:;" onclick="context_menu(this, [{'contains': ['msgoffice365 group id'],
-                            'value': '{{ result.param.group_id }}' }], 0, {{ container.id }}, null, false);">
-                        {{ result.param.group_id }}
-                        &nbsp;
-                        <span class="fa fa-caret-down" style="font-size: smaller;"></span>
-                        </a></td>
-                    </tr>
-                    {% endif %}
-                    {% if result.param.limit %}
-                        <tr>
-                            <td>Limit</td>
-                            <td>{{ result.param.limit }}</td>
-                        </tr>
-                    {% endif %}
-                    {% if result.param.filter %}
-                        <tr>
-                            <td>Filter</td>
-                            <td>{{ result.param.filter }}</td>
-                        </tr>
-                    {% endif %}
-                </table>
-            </div>
-
-            <div class="data">
-                <h4 class="wf-h4-style">Data</h4>
-                <table class="phantom-table dataTable">
-                    <thead>
-                        <th class="widget-th">Event ID</th>
-                        <th class="widget-th">Subject</th>
-                        <th class="widget-th">Start Time</th>
-                        <th class="widget-th">End Time</th>
-                        <th class="widget-th">Attendee(s)</th>
-                    </thead>
-                    {% for data in result.data %}
-                        <tr>
-                            {% if data.id %}
-                                <td>
-                                    <a href="javascript:;" onclick="context_menu(this, [{'contains': ['msgoffice365 event id'],
-                                        'value': '{{ data.id }}' }], 0, {{ container.id }}, null, false);">
-                                    {{ data.id }}
-                                    &nbsp;
-                                    <span class="fa fa-caret-down" style="font-size: smaller;"></span>
-                                    </a>
-                                </td>
-                            {% else %}
-                                <td>None</td>
-                            {% endif %}
-                            <td>{{ data.subject }}</td>
-                            <td>{{ data.start.dateTime }}</td>
-                            <td>{{ data.end.dateTime }}</td>
-                            <td>{{ data.attendee_list }}</td>
-                        </tr>
-                    {% endfor %}
-                </table>
-            </div>
-        {% endif %}
+    {% for result in results %}
+      <!-- loop for each result -->
+      {% if not result.data %}
+        <h4 class="wf-h4-style">No data found</h4>
+      {% else %}
+        <div class="info">
+          <h4 class="wf-h4-style">Info</h4>
+          <table class="wf-table-vertical">
+            {% if result.param.user_id %}
+              <tr>
+                <td>User ID</td>
+                <td>
+                  <a href="javascript:;"
+                     onclick="context_menu(this, [{'contains': ['msgoffice365 user id','msgoffice365 user principle name','email'], 'value': '{{ result.param.user_id }}' }], 0, {{ container.id }}, null, false);">
+                    {{ result.param.user_id }}
+                    &nbsp;
+                    <span class="fa fa-caret-down" style="font-size: smaller;"></span>
+                  </a>
+                </td>
+              </tr>
+            {% endif %}
+            {% if result.param.group_id %}
+              <tr>
+                <td>Group ID</td>
+                <td>
+                  <a href="javascript:;"
+                     onclick="context_menu(this, [{'contains': ['msgoffice365 group id'], 'value': '{{ result.param.group_id }}' }], 0, {{ container.id }}, null, false);">
+                    {{ result.param.group_id }}
+                    &nbsp;
+                    <span class="fa fa-caret-down" style="font-size: smaller;"></span>
+                  </a>
+                </td>
+              </tr>
+            {% endif %}
+            {% if result.param.limit %}
+              <tr>
+                <td>Limit</td>
+                <td>{{ result.param.limit }}</td>
+              </tr>
+            {% endif %}
+            {% if result.param.filter %}
+              <tr>
+                <td>Filter</td>
+                <td>{{ result.param.filter }}</td>
+              </tr>
+            {% endif %}
+          </table>
+        </div>
+        <div class="data">
+          <h4 class="wf-h4-style">Data</h4>
+          <table class="phantom-table dataTable">
+            <thead>
+              <th class="widget-th">Event ID</th>
+              <th class="widget-th">Subject</th>
+              <th class="widget-th">Start Time</th>
+              <th class="widget-th">End Time</th>
+              <th class="widget-th">Attendee(s)</th>
+            </thead>
+            {% for data in result.data %}
+              <tr>
+                {% if data.id %}
+                  <td>
+                    <a href="javascript:;"
+                       onclick="context_menu(this, [{'contains': ['msgoffice365 event id'], 'value': '{{ data.id }}' }], 0, {{ container.id }}, null, false);">
+                      {{ data.id }}
+                      &nbsp;
+                      <span class="fa fa-caret-down" style="font-size: smaller;"></span>
+                    </a>
+                  </td>
+                {% else %}
+                  <td>None</td>
+                {% endif %}
+                <td>{{ data.subject }}</td>
+                <td>{{ data.start.dateTime }}</td>
+                <td>{{ data.end.dateTime }}</td>
+                <td>{{ data.attendee_list }}</td>
+              </tr>
+            {% endfor %}
+          </table>
+        </div>
+      {% endif %}
     {% endfor %}
-</div>
-<script>
+  </div>
+  <script>
 $.extend(true, $.fn.dataTable.defaults, {
     "searching": true,
     "bLengthChange": false,
@@ -176,6 +182,5 @@ $.extend(true, $.fn.dataTable.defaults, {
   });
   $('.dataTable').DataTable();
 
-</script>
-
+  </script>
 {% endblock %}
