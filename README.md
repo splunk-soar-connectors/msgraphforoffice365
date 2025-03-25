@@ -1905,6 +1905,10 @@ action_result.summary.new_emails_ingested | numeric | | |
 action_result.message | string | | |
 summary.total_objects | numeric | | |
 summary.total_objects_successful | numeric | | |
+action_result.parameter.download_attachments | boolean | | |
+action_result.parameter.download_email | boolean | | |
+action_result.parameter.extract_headers | boolean | | |
+action_result.parameter.plus_ingest | boolean | | |
 
 ______________________________________________________________________
 

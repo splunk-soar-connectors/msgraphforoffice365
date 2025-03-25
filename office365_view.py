@@ -84,7 +84,6 @@ def display_view(provides, all_app_runs, context):
     context["results"] = results = []
     for summary, action_results in all_app_runs:
         for result in action_results:
-
             ctx_result = get_ctx_result(provides, result)
             if not ctx_result:
                 continue
