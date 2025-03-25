@@ -1,3 +1,2 @@
 **Unreleased**
-
-* chore: batch changes
+* Updated Documentation
