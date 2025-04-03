@@ -58,7 +58,7 @@ Once the app is created, follow the below-mentioned steps:
 
 - Under the **Microsoft API** section, select **Microsoft Graph** .
 
-- Provide the following Application permissions to the app:
+- To ensure all actions run successfully, Provide the following application permissions to the app:
 
   - Mail.Read (https://graph.microsoft.com/Mail.Read)
 
@@ -87,8 +87,43 @@ Once the app is created, follow the below-mentioned steps:
 
   - For CBA Authentication, [Application-only access](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-permissions-and-consent#openid-connect-scopes) permissions are required.
 
-After making these changes, click **Add permissions** , then select **Grant admin consent for
-\<your_organization_name_as_on_azure_portal>** at the bottom of the screen.
+- After making these changes, click **Add permissions** , then select **Grant admin consent for
+  \<your_organization_name_as_on_azure_portal>** at the bottom of the screen.
+
+- To run a specific action with minimal permissions, please refer to the table below and the given references.
+
+### Action Permissions Table
+
+- Below is the list of required Application/Delegated permissions for successfully running each action in the app. Ensure these permissions are granted to avoid any issues during execution.
+
+- To run a specific action with minimal permissions, please refer below table and the given references.
+
+| Sr.no | Action | Delegated Permissions | Application Permissions |
+|-------|--------------------------|---------------------------------|---------------------------------|
+| 1 | delete event ([reference](https://learn.microsoft.com/en-us/graph/api/event-delete?view=graph-rest-1.0&tabs=http#permissions)) | Calendars.ReadWrite | Calendars.ReadWrite |
+| 2 | oof check ([reference](https://learn.microsoft.com/en-us/graph/api/user-get-mailboxsettings?view=graph-rest-1.0&tabs=http#permissions)) | MailboxSettings.Read | MailboxSettings.Read |
+| 3 | list events ([reference](https://learn.microsoft.com/en-us/graph/api/user-list-events?view=graph-rest-1.0&tabs=http)) | Calendars.Read, Group.Read.All (to access groups only) | Calendars.Read (Application permissions not supported for group events) |
+| 4 | get rule ([reference](https://learn.microsoft.com/en-us/graph/api/messagerule-get?view=graph-rest-1.0&tabs=http#permissions)) | MailboxSettings.Read | MailboxSettings.Read |
+| 5 | list rules ([reference](https://learn.microsoft.com/en-us/graph/api/mailfolder-list-messagerules?view=graph-rest-1.0&tabs=http#permissions)) | MailboxSettings.Read | MailboxSettings.Read |
+| 6 | list users ([reference](https://learn.microsoft.com/en-us/graph/api/user-list?view=graph-rest-1.0&tabs=http)) | User.Read.All, User.ReadBasic.All | User.Read.All |
+| 7 | list groups ([reference](https://learn.microsoft.com/en-us/graph/api/user-list?view=graph-rest-1.0&tabs=http)) | GroupMember.Read.All, Group.Read.All | GroupMember.Read.All, Group.Read.All |
+| 8 | list group members ([reference1](https://learn.microsoft.com/en-us/graph/api/group-list-members?view=graph-rest-1.0&tabs=http), [reference2](https://learn.microsoft.com/en-us/graph/api/group-list-transitivemembers?view=graph-rest-1.0&tabs=http)) | GroupMember.Read.All, Group.Read.All | GroupMember.Read.All, Group.Read.All |
+| 9 | list folders ([reference1](https://learn.microsoft.com/en-us/graph/api/user-list-mailfolders?view=graph-rest-1.0&tabs=http), [reference2](https://learn.microsoft.com/en-us/graph/api/mailfolder-list-childfolders?view=graph-rest-1.0&tabs=http)) | Mail.ReadBasic, Mail.Read | Mail.ReadBasic, Mail.Read |
+| 10 | copy email ([reference](https://learn.microsoft.com/en-us/graph/api/message-copy?view=graph-rest-1.0&tabs=http#permissions)) | Mail.ReadWrite | Mail.ReadWrite |
+| 11 | move email ([reference](https://learn.microsoft.com/en-us/graph/api/message-move?view=graph-rest-1.0&tabs=http)) | Mail.ReadWrite | Mail.ReadWrite |
+| 12 | delete email ([reference](https://learn.microsoft.com/en-us/graph/api/message-delete?view=graph-rest-1.0&tabs=http)) | Mail.ReadWrite | Mail.ReadWrite |
+| 13 | get email ([reference1](https://learn.microsoft.com/en-us/graph/api/message-get?view=graph-rest-1.0&tabs=http), [reference2](https://learn.microsoft.com/en-us/graph/api/message-list-attachments?view=graph-rest-1.0&tabs=http), [reference3](https://learn.microsoft.com/en-us/graph/api/attachment-get?view=graph-rest-1.0&tabs=http)) | Mail.Read | Mail.Read |
+| 14 | get email properties ([reference](https://learn.microsoft.com/en-us/graph/api/message-get?view=graph-rest-1.0&tabs=http#permissions)) | Mail.Read, Mail.ReadBasic | Mail.Read, Mail.ReadBasic |
+| 15 | run query ([reference1](https://learn.microsoft.com/en-us/graph/api/mailfolder-list-messages?view=graph-rest-1.0&tabs=http), [reference2](https://learn.microsoft.com/en-us/graph/api/user-list-messages?view=graph-rest-1.0&tabs=http), [reference3](https://learn.microsoft.com/en-us/graph/api/mailfolder-get?view=graph-rest-1.0&tabs=http)) | Mail.Read | Mail.Read |
+| 16 | create folder ([reference](https://learn.microsoft.com/en-us/graph/api/mailfolder-list-childfolders?view=graph-rest-1.0&tabs=http)) | Mail.ReadWrite | Mail.ReadWrite |
+| 17 | get folder id ([reference](https://learn.microsoft.com/en-us/graph/api/mailfolder-list-childfolders?view=graph-rest-1.0&tabs=http)) | Mail.Read, Mail.ReadBasic | Mail.Read, Mail.ReadBasic |
+| 18 | send email ([reference1](https://learn.microsoft.com/en-us/graph/api/message-send?view=graph-rest-1.0&tabs=http), [reference2](https://learn.microsoft.com/en-us/graph/api/attachment-createuploadsession?view=graph-rest-1.0&tabs=http)) | Mail.Send, Mail.ReadWrite | Mail.Send, Mail.ReadWrite |
+| 19 | on poll | Mail.Read, Mail.ReadBasic | Mail.Read, Mail.ReadBasic |
+| 20 | update email ([reference](https://learn.microsoft.com/en-us/graph/api/eventmessage-update?view=graph-rest-1.0&tabs=http)) | Mail.ReadWrite | Mail.ReadWrite |
+| 21 | block sender ([reference](https://learn.microsoft.com/en-us/graph/api/message-markasjunk?view=graph-rest-beta&tabs=http)) | Mail.ReadWrite | Mail.ReadWrite |
+| 22 | unblock sender ([reference](https://learn.microsoft.com/en-us/graph/api/message-markasnotjunk?view=graph-rest-beta&tabs=http)) | Mail.ReadWrite | Mail.ReadWrite |
+| 23 | resolve name ([reference](https://learn.microsoft.com/en-us/graph/api/user-get-mailboxsettings?view=graph-rest-1.0&tabs=http)) | User.Read, MailboxSettings.Read | User.Read.All, MailboxSettings.Read |
+| 24 | get mailbox messages ([reference](https://learn.microsoft.com/en-us/graph/api/mailfolder-list-messages?view=graph-rest-1.0&tabs=http)) | Mail.Read | Mail.Read |
 
 ## Splunk SOAR Graph Asset
 
