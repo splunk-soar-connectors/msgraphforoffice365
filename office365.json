@@ -61,8 +61,8 @@
         "auth_type": {
             "data_type": "string",
             "order": 2,
+            "required": true,
             "description": "Authentication type to use for connectivity",
-            "default": "Automatic",
             "value_list": [
                 "Automatic",
                 "OAuth",
