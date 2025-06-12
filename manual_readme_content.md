@@ -82,11 +82,13 @@ After making these changes, click **Add permissions** , then select **Grant admi
 
 ## Splunk SOAR Graph Asset
 
-When creating an asset for the **MS Graph for Office 365** app, place **Application ID** of the app
-created during the app registration on the Azure Portal in the **Application ID** field and place
-the client secret generated during the app registration process in the **Application Secret** field.
-Then, after filling out the **Tenant** field, click **SAVE** . Both the Application/Client ID and
-the Tenant ID can be found in the **Overview** tab on your app's Azure page.
+When creating an asset you must choose one of the 3 auth types: Automatic, OAuth and CBA and specify your
+choice in the **Authentication type to use for connectivity** field. Automatic auth is simply a combination of 
+OAuth and CBA, where the app starts priotizes the OAuth workflow and uses CBA as a fall back. For this reason
+if you choose Automatic auth you must specify the paramteters required for both OAuth and CBA.
+
+For all three auth types you must fill out the **Application ID** and **Tenant** fields. Both the Application/Client ID and
+the Tenant ID can be found in the **Overview** tab on your app's Azure page. After you have these fields filled out click **SAVE**.
 
 After saving, a new field will appear in the **Asset Settings** tab. Take the URL found in the
 **POST incoming for MS Graph for Office 365 to this location** field and place it in the **Redirect
@@ -121,7 +123,7 @@ the window. To give this user permission to view assets, follow these steps:
 
 #### Admin User Workflow (OAuth)
 
-- Configure the asset with required details while keeping the **Admin Access Required** as
+- Configure the asset with **Tenant ID**, **Application ID** and **Application Secret** while keeping the **Admin Access Required** as
   checked.
 - While configuring the asset for the first time, keep **Admin Consent Already Provided** as
   unchecked.
@@ -144,7 +146,7 @@ the window. To give this user permission to view assets, follow these steps:
 
 #### Non-Admin User Workflow (OAuth)
 
-- Configure the asset with required details while keeping the **Admin Access Required** as
+- Configure the asset with **Tenant ID**, **Application ID** and **Application Secret** while keeping the **Admin Access Required** as
   unchecked. **Admin Consent Already Provided** config parameter will be ignored in the non-admin
   workflow.
 - Provide **Access Scope** parameter in the asset configuration. All the actions will get executed
@@ -174,8 +176,8 @@ the window. To give this user permission to view assets, follow these steps:
 
 #### Automatic Authentication Workflow
 
-- Configure the asset with the required details, including either the **Application Secret** or a combination of **Certificate Thumbprint** and **Certificate Private Key (.PEM)**.
-- If **Application Secret** exists, it will take priority and follow the OAuth workflow. Otherwise, it will continue with the CBA workflow.
+- Configure the asset with the both the parameters needed for OAuth and CBA. This means you need to specify the **Application Secret** and a combination of **Certificate Thumbprint** and **Certificate Private Key (.PEM)**.
+- The OAuth workflow will take priority over the CBA workflow. 
 - The system doesn’t automatically switch from OAuth to CBA when the **Application Secret** expires. However, if **Admin Access Required** is disabled, **Access Scope** is not specified, and **Admin Consent Already Provided** is enabled, it will switch to CBA upon **Application Secret** expiration.
 
 The app should now be ready to be used.
