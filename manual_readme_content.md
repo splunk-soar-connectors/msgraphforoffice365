@@ -82,10 +82,10 @@ After making these changes, click **Add permissions** , then select **Grant admi
 
 ## Splunk SOAR Graph Asset
 
-When creating an asset you must choose one of the 3 auth types: Automatic, OAuth and CBA and specify your
-choice in the **Authentication type to use for connectivity** field. Automatic auth is simply a combination of 
-OAuth and CBA, where the app starts priotizes the OAuth workflow and uses CBA as a fall back. For this reason
-if you choose Automatic auth you must specify the paramteters required for both OAuth and CBA.
+When creating an asset you must choose one of the 3 auth types: **Automatic**, **OAuth**, or **CBA**; and specify your
+choice in the **Authentication type to use for connectivity** field. "Automatic" auth means that the app will first try OAuth,
+and then if that doesn't work, it will try CBA. For this reason if you choose Automatic auth, the most resilient strategy would be
+to specify the parameters required for both OAuth and CBA.
 
 For all three auth types you must fill out the **Application ID** and **Tenant** fields. Both the Application/Client ID and
 the Tenant ID can be found in the **Overview** tab on your app's Azure page. After you have these fields filled out click **SAVE**.
@@ -176,8 +176,8 @@ the window. To give this user permission to view assets, follow these steps:
 
 #### Automatic Authentication Workflow
 
-- Configure the asset with the both the parameters needed for OAuth and CBA. This means you need to specify the **Application Secret** and a combination of **Certificate Thumbprint** and **Certificate Private Key (.PEM)**.
-- The OAuth workflow will take priority over the CBA workflow. 
+- Configure the asset with the both the parameters needed for OAuth and CBA. This means you need to specify either the **Application Secret** or a combination of **Certificate Thumbprint** and **Certificate Private Key (.PEM)**. You may provide all three.
+- The OAuth workflow will take priority over the CBA workflow.
 - The system doesn’t automatically switch from OAuth to CBA when the **Application Secret** expires. However, if **Admin Access Required** is disabled, **Access Scope** is not specified, and **Admin Consent Already Provided** is enabled, it will switch to CBA upon **Application Secret** expiration.
 
 The app should now be ready to be used.

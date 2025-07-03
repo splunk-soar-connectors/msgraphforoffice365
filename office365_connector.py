@@ -1391,14 +1391,14 @@ class Office365Connector(BaseConnector):
             else:
                 if self._state.get("admin_auth", {}).get("access_token"):
                     self._state["admin_auth"].pop("access_token")
-    
+
     def _handle_test_connectivity(self, param):
         """Function that handles the test connectivity action, it is much simpler than other action handlers."""
 
         action_result = self.add_action_result(ActionResult(param))
 
         # Get Consent in OAuth Authentication and it's requires Client Secret (Scenario - Automatic)
-        if self._auth_type != "cba" and not (self._admin_access and self._admin_consent):
+        if self._auth_type != "cba" and self._client_secret and not (self._admin_access and self._admin_consent):
             ret_val = self._get_consent(action_result)
             if phantom.is_fail(ret_val):
                 if self._auth_type == "oauth":
@@ -1406,6 +1406,11 @@ class Office365Connector(BaseConnector):
                 else:
                     self._auth_type = "cba"
                     self.save_progress("Failed to obtain consent, switching to Certificate Based Authentication")
+                    if not (self._thumbprint and self._certificate_private_key):
+                        return action_result.set_status(
+                            phantom.APP_ERROR,
+                            "Tried switching to Certificate Based Authentication, but the necessary CBA configuraiton parameters are not set.",
+                        )
 
         self.save_progress("Getting the token")
         ret_val = self._get_token(action_result)
@@ -3217,7 +3222,7 @@ class Office365Connector(BaseConnector):
         # Automatic auth -  If client Secret exists, it will take priority and follow the OAuth workflow.
         auth_type, generate_token_func = (
             ("cba", self._generate_new_cba_access_token)
-            if self._auth_type == "cba"
+            if self._auth_type == "cba" or not self._client_secret
             else ("oauth", self._generate_new_oauth_access_token)
         )
 
@@ -3396,7 +3401,6 @@ class Office365Connector(BaseConnector):
         config = self.get_config()
         self._asset_id = self.get_asset_id()
 
-
         self._tenant = config["tenant"]
         self._client_id = config["client_id"]
         self._auth_type = MSGOFFICE365_AUTH_TYPES.get(config.get("auth_type", MSGOFFICE365_AUTH_AUTOMATIC))
@@ -3420,10 +3424,10 @@ class Office365Connector(BaseConnector):
             if not self._client_secret:
                 return self.set_status(phantom.APP_ERROR, MSGOFFICE365_OAUTH_AUTH_ERROR)
         else:
-            # Must supply both cba and oauth credentials for automatic auth
-            if not self._client_secret or not (self._thumbprint and self._certificate_private_key):
+            # Must either supply cba or oauth credentials for automatic auth
+            if not self._client_secret and not (self._thumbprint and self._certificate_private_key):
                 return self.set_status(phantom.APP_ERROR, MSGOFFICE365_AUTOMATIC_AUTH_ERROR)
-        
+
         self._number_of_retries = config.get("retry_count", MSGOFFICE365_DEFAULT_NUMBER_OF_RETRIES)
         ret_val, self._number_of_retries = _validate_integer(
             self, self._number_of_retries, "'Maximum attempts to retry the API call' asset configuration"
@@ -3440,7 +3444,7 @@ class Office365Connector(BaseConnector):
         )
         if phantom.is_fail(ret_val):
             return self.get_status()
-        
+
         # Load all the asset configuration in global variables
         self._state = self.load_state()
 
@@ -3452,7 +3456,6 @@ class Office365Connector(BaseConnector):
             self._refresh_token = self._state.get("non_admin_auth", {}).get("refresh_token", None)
         else:
             self._access_token = self._state.get("admin_auth", {}).get("access_token", None)
-
 
         if action_id == "test_connectivity":
             # User is trying to complete the authentication flow, so just return True from here so that test connectivity continues
