@@ -176,7 +176,7 @@ the window. To give this user permission to view assets, follow these steps:
 
 #### Automatic Authentication Workflow
 
-- Configure the asset with the both the parameters needed for OAuth and CBA. This means you need to specify either the **Application Secret** or a combination of **Certificate Thumbprint** and **Certificate Private Key (.PEM)**. You may provide all three.
+- Configure the asset with both the parameters needed for OAuth and CBA. This means you need to specify either the **Application Secret** or a combination of **Certificate Thumbprint** and **Certificate Private Key (.PEM)**. You may provide all three.
 - The OAuth workflow will take priority over the CBA workflow.
 - The system doesn’t automatically switch from OAuth to CBA when the **Application Secret** expires. However, if **Admin Access Required** is disabled, **Access Scope** is not specified, and **Admin Consent Already Provided** is enabled, it will switch to CBA upon **Application Secret** expiration.
 
