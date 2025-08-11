@@ -44,11 +44,15 @@ from process_email import ProcessEmail
 
 
 TC_FILE = "oauth_task.out"
-SERVER_TOKEN_URL = "https://login.microsoftonline.com/{0}/oauth2/v2.0/token"
-MSGOFFICE365_AUTHORITY_URL = "https://login.microsoftonline.com/{tenant}"
+ENTRA_API_URL = "https://login.microsoftonline.com"
+GOV_ENTRA_API_URL = "https://login.microsoftonline.us"
+SERVER_TOKEN_URL = "{base_url}/{tenant}/oauth2/v2.0/token"
+MSGOFFICE365_AUTHORITY_URL = "{base_url}/{tenant}"
 MSGRAPH_API_URL = "https://graph.microsoft.com"
+GOV_MSGRAPH_API_URL = "https://graph.microsoft.us"
 MAX_END_OFFSET_VAL = 2147483646
 MSGOFFICE365_DEFAULT_SCOPE = "https://graph.microsoft.com/.default"
+GOV_MSGOFFICE365_DEFAULT_SCOPE = "https://graph.microsoft.us/.default"
 
 
 class ReturnException(Exception):
@@ -403,6 +407,7 @@ class Office365Connector(BaseConnector):
         self._cba_auth = None
         self._private_key = None
         self._certificate_private_key = None
+        self._is_gov = None
 
     def load_state(self):
         """
@@ -756,9 +761,9 @@ class Office365Connector(BaseConnector):
             url = nextLink
         else:
             if not beta:
-                url = f"{MSGRAPH_API_URL}/v1.0{endpoint}"
+                url = f"{self._graph_base_url}/v1.0{endpoint}"
             else:
-                url = f"{MSGRAPH_API_URL}/beta{endpoint}"
+                url = f"{self._graph_base_url}/beta{endpoint}"
 
         if headers is None:
             headers = {}
@@ -3158,7 +3163,7 @@ class Office365Connector(BaseConnector):
         try:
             app = msal.ConfidentialClientApplication(
                 self._client_id,
-                authority=MSGOFFICE365_AUTHORITY_URL.format(tenant=self._tenant),
+                authority=MSGOFFICE365_AUTHORITY_URL.format(base_url=self._entra_base_url, tenant=self._tenant),
                 client_credential={"thumbprint": self._thumbprint, "private_key": self._private_key},
             )
         except Exception as e:
@@ -3172,7 +3177,7 @@ class Office365Connector(BaseConnector):
             )
 
         self.debug_print("Requesting new token from Azure AD.")
-        res_json = app.acquire_token_for_client(scopes=[MSGOFFICE365_DEFAULT_SCOPE])
+        res_json = app.acquire_token_for_client(scopes=[GOV_MSGOFFICE365_DEFAULT_SCOPE] if self._is_gov else [MSGOFFICE365_DEFAULT_SCOPE])
 
         if error := res_json.get("error"):
             # replace thumbprint to dummy value
@@ -3183,7 +3188,7 @@ class Office365Connector(BaseConnector):
 
     def _generate_new_oauth_access_token(self, action_result):
         self.save_progress("Generating token using OAuth Authentication...")
-        req_url = SERVER_TOKEN_URL.format(self._tenant)
+        req_url = SERVER_TOKEN_URL.format(base_url=self._entra_base_url, tenant=self._tenant)
         headers = {"Content-Type": "application/x-www-form-urlencoded"}
 
         data = {
@@ -3195,7 +3200,7 @@ class Office365Connector(BaseConnector):
         if not self._admin_access:
             data["scope"] = "offline_access " + self._scope
         else:
-            data["scope"] = MSGOFFICE365_DEFAULT_SCOPE
+            data["scope"] = GOV_MSGOFFICE365_DEFAULT_SCOPE if self._is_gov else MSGOFFICE365_DEFAULT_SCOPE
 
         if not self._admin_access:
             if self._state.get("code"):
@@ -3299,7 +3304,7 @@ class Office365Connector(BaseConnector):
 
         if self._admin_access:
             # Create the url for fetching administrator consent
-            admin_consent_url = f"https://login.microsoftonline.com/{self._tenant}/adminconsent"
+            admin_consent_url = f"https://{self._entra_base_url}/{self._tenant}/adminconsent"
             admin_consent_url += f"?client_id={self._client_id}"
             admin_consent_url += f"&redirect_uri={redirect_uri}"
             admin_consent_url += f"&state={self._asset_id}"
@@ -3309,7 +3314,7 @@ class Office365Connector(BaseConnector):
                 self.save_progress(MSGOFFICE365_NON_ADMIN_SCOPE_ERROR)
                 return action_result.set_status(phantom.APP_ERROR)
             # Create the url authorization, this is the one pointing to the oauth server side
-            admin_consent_url = f"https://login.microsoftonline.com/{self._tenant}/oauth2/v2.0/authorize"
+            admin_consent_url = f"https://{self._entra_base_url}/{self._tenant}/oauth2/v2.0/authorize"
             admin_consent_url += f"?client_id={self._client_id}"
             admin_consent_url += f"&redirect_uri={redirect_uri}"
             admin_consent_url += f"&state={self._asset_id}"
@@ -3410,6 +3415,9 @@ class Office365Connector(BaseConnector):
         self._thumbprint = config.get("certificate_thumbprint")
         self._certificate_private_key = config.get("certificate_private_key")
         self._scope = config.get("scope") if config.get("scope") else None
+        self._is_gov = config.get("is_gov")
+        self._entra_base_url = GOV_ENTRA_API_URL if self._is_gov else ENTRA_API_URL
+        self._graph_base_url = GOV_MSGRAPH_API_URL if self._is_gov else MSGRAPH_API_URL
 
         if self._auth_type == "cba":
             # Certificate Based Authentication requires both Certificate Thumbprint and Certificate Private Key
