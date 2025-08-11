@@ -45,13 +45,14 @@ from process_email import ProcessEmail
 
 TC_FILE = "oauth_task.out"
 ENTRA_API_URL = "https://login.microsoftonline.com"
-GOV_ENTRA_API_URL = "https://login.microsoft.us"
+GOV_ENTRA_API_URL = "https://login.microsoftonline.us"
 SERVER_TOKEN_URL = "{base_url}/{tenant}/oauth2/v2.0/token"
 MSGOFFICE365_AUTHORITY_URL = "{base_url}/{tenant}"
 MSGRAPH_API_URL = "https://graph.microsoft.com"
 GOV_MSGRAPH_API_URL = "https://graph.microsoft.us"
 MAX_END_OFFSET_VAL = 2147483646
 MSGOFFICE365_DEFAULT_SCOPE = "https://graph.microsoft.com/.default"
+GOV_MSGOFFICE365_DEFAULT_SCOPE = "https://graph.microsoft.us/.default"
 
 
 class ReturnException(Exception):
@@ -3176,7 +3177,7 @@ class Office365Connector(BaseConnector):
             )
 
         self.debug_print("Requesting new token from Azure AD.")
-        res_json = app.acquire_token_for_client(scopes=[MSGOFFICE365_DEFAULT_SCOPE])
+        res_json = app.acquire_token_for_client(scopes=[GOV_MSGOFFICE365_DEFAULT_SCOPE] if self._is_gov else [MSGOFFICE365_DEFAULT_SCOPE])
 
         if error := res_json.get("error"):
             # replace thumbprint to dummy value
@@ -3199,7 +3200,7 @@ class Office365Connector(BaseConnector):
         if not self._admin_access:
             data["scope"] = "offline_access " + self._scope
         else:
-            data["scope"] = MSGOFFICE365_DEFAULT_SCOPE
+            data["scope"] = GOV_MSGOFFICE365_DEFAULT_SCOPE if self._is_gov else MSGOFFICE365_DEFAULT_SCOPE
 
         if not self._admin_access:
             if self._state.get("code"):
@@ -3303,7 +3304,7 @@ class Office365Connector(BaseConnector):
 
         if self._admin_access:
             # Create the url for fetching administrator consent
-            admin_consent_url = f"https://login.microsoftonline.com/{self._tenant}/adminconsent"
+            admin_consent_url = f"https://{self._entra_base_url}/{self._tenant}/adminconsent"
             admin_consent_url += f"?client_id={self._client_id}"
             admin_consent_url += f"&redirect_uri={redirect_uri}"
             admin_consent_url += f"&state={self._asset_id}"
@@ -3313,7 +3314,7 @@ class Office365Connector(BaseConnector):
                 self.save_progress(MSGOFFICE365_NON_ADMIN_SCOPE_ERROR)
                 return action_result.set_status(phantom.APP_ERROR)
             # Create the url authorization, this is the one pointing to the oauth server side
-            admin_consent_url = f"https://login.microsoftonline.com/{self._tenant}/oauth2/v2.0/authorize"
+            admin_consent_url = f"https://{self._entra_base_url}/{self._tenant}/oauth2/v2.0/authorize"
             admin_consent_url += f"?client_id={self._client_id}"
             admin_consent_url += f"&redirect_uri={redirect_uri}"
             admin_consent_url += f"&state={self._asset_id}"
