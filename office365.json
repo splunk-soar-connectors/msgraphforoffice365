@@ -34,7 +34,7 @@
     ],
     "license": "Copyright (c) 2017-2025 Splunk Inc.",
     "app_version": "4.0.1",
-    "utctime_updated": "2024-09-11T08:34:15.000000Z",
+    "utctime_updated": "2025-07-14T20:57:57.821682Z",
     "package_name": "phantom_msgraphoffice365",
     "main_module": "office365_connector.py",
     "min_phantom_version": "6.3.0",
@@ -61,8 +61,8 @@
         "auth_type": {
             "data_type": "string",
             "order": 2,
+            "required": true,
             "description": "Authentication type to use for connectivity",
-            "default": "Automatic",
             "value_list": [
                 "Automatic",
                 "OAuth",
@@ -8676,7 +8676,7 @@
             },
             {
                 "module": "cryptography",
-                "input_file": "wheels/py39/cryptography-44.0.3-cp39-abi3-manylinux_2_28_x86_64.whl"
+                "input_file": "wheels/py3/cryptography-45.0.6-cp37-abi3-manylinux_2_28_x86_64.whl"
             },
             {
                 "module": "msal",
@@ -8704,7 +8704,7 @@
             },
             {
                 "module": "cryptography",
-                "input_file": "wheels/py39/cryptography-44.0.3-cp39-abi3-manylinux_2_28_x86_64.whl"
+                "input_file": "wheels/py3/cryptography-45.0.6-cp311-abi3-manylinux_2_28_x86_64.whl"
             },
             {
                 "module": "msal",

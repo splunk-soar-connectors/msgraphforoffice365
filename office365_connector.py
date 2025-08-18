@@ -1406,6 +1406,11 @@ class Office365Connector(BaseConnector):
                 else:
                     self._auth_type = "cba"
                     self.save_progress("Failed to obtain consent, switching to Certificate Based Authentication")
+                    if not (self._thumbprint and self._certificate_private_key):
+                        return action_result.set_status(
+                            phantom.APP_ERROR,
+                            "Tried switching to Certificate Based Authentication, but the necessary CBA configuraiton parameters are not set.",
+                        )
 
         self.save_progress("Getting the token")
         ret_val = self._get_token(action_result)
@@ -3396,9 +3401,6 @@ class Office365Connector(BaseConnector):
         config = self.get_config()
         self._asset_id = self.get_asset_id()
 
-        # Load all the asset configuration in global variables
-        self._state = self.load_state()
-
         self._tenant = config["tenant"]
         self._client_id = config["client_id"]
         self._auth_type = MSGOFFICE365_AUTH_TYPES.get(config.get("auth_type", MSGOFFICE365_AUTH_AUTOMATIC))
@@ -3408,6 +3410,23 @@ class Office365Connector(BaseConnector):
         self._thumbprint = config.get("certificate_thumbprint")
         self._certificate_private_key = config.get("certificate_private_key")
         self._scope = config.get("scope") if config.get("scope") else None
+
+        if self._auth_type == "cba":
+            # Certificate Based Authentication requires both Certificate Thumbprint and Certificate Private Key
+            if not (self._thumbprint and self._certificate_private_key):
+                return self.set_status(phantom.APP_ERROR, MSGOFFICE365_CBA_AUTH_ERROR)
+
+            # Check non-interactive is enabled for CBA auth
+            if not self._admin_consent:
+                return self.set_status(phantom.APP_ERROR, MSGOFFICE365_CBA_ADMIN_CONSENT_ERROR)
+        elif self._auth_type == "oauth":
+            # OAuth Authentication requires Client Secret
+            if not self._client_secret:
+                return self.set_status(phantom.APP_ERROR, MSGOFFICE365_OAUTH_AUTH_ERROR)
+        else:
+            # Must either supply cba or oauth credentials for automatic auth
+            if not self._client_secret and not (self._thumbprint and self._certificate_private_key):
+                return self.set_status(phantom.APP_ERROR, MSGOFFICE365_AUTOMATIC_AUTH_ERROR)
 
         self._number_of_retries = config.get("retry_count", MSGOFFICE365_DEFAULT_NUMBER_OF_RETRIES)
         ret_val, self._number_of_retries = _validate_integer(
@@ -3426,6 +3445,9 @@ class Office365Connector(BaseConnector):
         if phantom.is_fail(ret_val):
             return self.get_status()
 
+        # Load all the asset configuration in global variables
+        self._state = self.load_state()
+
         if not self._admin_access:
             if not self._scope and self._auth_type == "oauth":
                 return self.set_status(phantom.APP_ERROR, MSGOFFICE365_NON_ADMIN_SCOPE_ERROR)
@@ -3434,23 +3456,6 @@ class Office365Connector(BaseConnector):
             self._refresh_token = self._state.get("non_admin_auth", {}).get("refresh_token", None)
         else:
             self._access_token = self._state.get("admin_auth", {}).get("access_token", None)
-
-        if self._auth_type == "cba":
-            # Certificate Based Authentication requires both Certificate Thumbprint and Certificate Private Key
-            if not (self._thumbprint and self._certificate_private_key):
-                return self.set_status(phantom.APP_ERROR, MSGOFFICE365_CBA_AUTH_ERROR)
-
-            # Check non-interactive is enabled for CBA auth
-            if not self._admin_consent:
-                return self.set_status(phantom.APP_ERROR, MSGOFFICE365_CBA_ADMIN_CONSENT_ERROR)
-        elif self._auth_type == "oauth":
-            # OAuth Authentication requires Client Secret
-            if not self._client_secret:
-                return self.set_status(phantom.APP_ERROR, MSGOFFICE365_OAUTH_AUTH_ERROR)
-        else:
-            # Must either supply client_secret, or both thumbprint and private key
-            if not self._client_secret and not (self._thumbprint and self._certificate_private_key):
-                return self.set_status(phantom.APP_ERROR, MSGOFFICE365_AUTOMATIC_AUTH_ERROR)
 
         if action_id == "test_connectivity":
             # User is trying to complete the authentication flow, so just return True from here so that test connectivity continues
