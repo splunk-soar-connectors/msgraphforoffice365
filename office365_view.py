@@ -89,6 +89,8 @@ def display_view(provides, all_app_runs, context):
                 continue
             results.append(ctx_result)
 
+    return_page = None
+
     if provides == "list events":
         return_page = "office365_list_events.html"
 
