@@ -14,6 +14,27 @@
   corresponding action blocks to ensure the correct functioning of the playbooks created on the
   earlier versions of the app.
 
+## Prerequisites
+
+### Azure AD Admin Role Requirements
+
+To configure this connector, you need appropriate Azure AD administrative privileges. The following roles can perform the required setup tasks:
+
+#### **Required Roles (Least Privilege Options)**
+
+- **Application Administrator** - Can create and manage app registrations, enterprise applications, and grant admin consent for application permissions
+- **Cloud Application Administrator** - Similar to Application Administrator but with some limitations on on-premises applications
+- **Privileged Role Administrator** - Can grant admin consent for any application permissions
+- **Global Administrator** - Has full administrative access
+
+For **least privilege access**, use the **Application Administrator** role, which provides the minimum necessary permissions to:
+
+- Create and configure app registrations
+- Upload certificates for Certificate Based Authentication (CBA)
+- Configure API permissions
+- Grant admin consent for application permissions
+- Manage enterprise application settings
+
 ## Step-by-Step Configuration
 
 ### Step 1: Azure AD App Registration
