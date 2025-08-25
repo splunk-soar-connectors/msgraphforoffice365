@@ -630,12 +630,12 @@ class ProcessEmail:
 
         part_base64_encoded = part.get_payload()
 
-        headers = self._get_email_headers_from_part(part)
+        email_headers = self._get_email_headers_from_part(part)
 
         attach_meta_info = dict()
 
-        if headers:
-            attach_meta_info = {"headers": dict(headers)}
+        if email_headers:
+            attach_meta_info = {"headers": dict(email_headers)}
 
         for curr_attach in self._attachments_from_msgraph:
             if curr_attach.get("should_ignore", False):
@@ -726,21 +726,21 @@ class ProcessEmail:
 
         return phantom.APP_SUCCESS
 
-    def _update_headers(self, headers):
+    def _update_headers(self, headers_to_update):
         # compare the various values of the passed header (param: headers)
         # to the header that the class got self._headers_from_ews
         if not self._headers_from_ews:
             return phantom.APP_SUCCESS
 
-        if not headers:
+        if not headers_to_update:
             return phantom.APP_SUCCESS
 
-        headers_ci = CaseInsensitiveDict(headers)
+        headers_ci = CaseInsensitiveDict(headers_to_update)
 
         for curr_header_lower in self._headers_from_ews:
             if headers_ci.get("message-id", "default_value1").strip() == curr_header_lower.get("message-id", "default_value2").strip():
                 # the headers match with the one that we got from the ews API, so update it
-                headers.update(curr_header_lower)
+                headers_to_update.update(curr_header_lower)
 
         return phantom.APP_SUCCESS
 
@@ -758,9 +758,9 @@ class ProcessEmail:
             return {}
 
         # Convert the header tuple into a dictionary
-        headers = CaseInsensitiveDict()
+        email_headers_dict = CaseInsensitiveDict()
         try:
-            [headers.update({x[0]: self._get_string(x[1], charset)}) for x in email_headers]
+            [email_headers_dict.update({x[0]: self._get_string(x[1], charset)}) for x in email_headers]
         except Exception as e:
             error_msg = _get_error_msg_from_exception(e)
             err = "Error occurred while converting the header tuple into a dictionary"
@@ -776,48 +776,48 @@ class ProcessEmail:
             self._debug_print(f"{err}. {error_msg}")
 
         if received_headers:
-            headers["Received"] = received_headers
+            email_headers_dict["Received"] = received_headers
 
         # handle the subject string, if required add a new key
-        subject = headers.get("Subject")
+        subject = email_headers_dict.get("Subject")
         if subject:
             if isinstance(subject, str):
-                headers["decodedSubject"] = self._decode_uni_string(subject, subject)
+                email_headers_dict["decodedSubject"] = self._decode_uni_string(subject, subject)
 
-        return headers
+        return email_headers_dict
 
     def _parse_email_headers(self, parsed_mail, part, charset=None, add_email_id=None):
         email_header_artifacts = parsed_mail[PROC_EMAIL_JSON_EMAIL_HEADERS]
 
-        headers = self._get_email_headers_from_part(part, charset)
+        email_headers = self._get_email_headers_from_part(part, charset)
 
-        if not headers:
+        if not email_headers:
             return 0
 
         # Parse email keys first
         cef_artifact = {}
         cef_types = {}
 
-        if headers.get("From"):
-            emails = headers["From"]
+        if email_headers.get("From"):
+            emails = email_headers["From"]
             if emails:
                 cef_artifact.update({"fromEmail": emails})
 
-        if headers.get("To"):
-            emails = headers["To"]
+        if email_headers.get("To"):
+            emails = email_headers["To"]
             if emails:
                 cef_artifact.update({"toEmail": emails})
 
         # if the header did not contain any email addresses then ignore this artifact
-        message_id = headers.get("message-id")
+        message_id = email_headers.get("message-id")
         if not cef_artifact and message_id is None:
             return 0
 
         cef_types.update({"fromEmail": ["email"], "toEmail": ["email"]})
 
-        if headers:
-            self._update_headers(headers)
-            cef_artifact["emailHeaders"] = dict(headers)
+        if email_headers:
+            self._update_headers(email_headers)
+            cef_artifact["emailHeaders"] = dict(email_headers)
 
         for curr_key in list(cef_artifact["emailHeaders"].keys()):
             if curr_key.lower().startswith("body"):
