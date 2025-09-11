@@ -3304,7 +3304,7 @@ class Office365Connector(BaseConnector):
 
         if self._admin_access:
             # Create the url for fetching administrator consent
-            admin_consent_url = f"https://{self._entra_base_url}/{self._tenant}/adminconsent"
+            admin_consent_url = f"{self._entra_base_url}/{self._tenant}/adminconsent"
             admin_consent_url += f"?client_id={self._client_id}"
             admin_consent_url += f"&redirect_uri={redirect_uri}"
             admin_consent_url += f"&state={self._asset_id}"
@@ -3314,7 +3314,7 @@ class Office365Connector(BaseConnector):
                 self.save_progress(MSGOFFICE365_NON_ADMIN_SCOPE_ERROR)
                 return action_result.set_status(phantom.APP_ERROR)
             # Create the url authorization, this is the one pointing to the oauth server side
-            admin_consent_url = f"https://{self._entra_base_url}/{self._tenant}/oauth2/v2.0/authorize"
+            admin_consent_url = f"{self._entra_base_url}/{self._tenant}/oauth2/v2.0/authorize"
             admin_consent_url += f"?client_id={self._client_id}"
             admin_consent_url += f"&redirect_uri={redirect_uri}"
             admin_consent_url += f"&state={self._asset_id}"
