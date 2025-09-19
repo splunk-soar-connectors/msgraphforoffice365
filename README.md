@@ -1,9 +1,9 @@
 # MS Graph for Office 365
 
-Publisher: Splunk \
-Connector Version: 4.0.2 \
-Product Vendor: Microsoft \
-Product Name: Office 365 (MS Graph) \
+Publisher: Splunk <br>
+Connector Version: 4.0.2 <br>
+Product Vendor: Microsoft <br>
+Product Name: Office 365 (MS Graph) <br>
 Minimum Product Version: 6.3.0
 
 This app connects to Office 365 using the MS Graph API to support investigate and generic actions related to the email messages and calendar events
@@ -336,38 +336,38 @@ VARIABLE | REQUIRED | TYPE | DESCRIPTION
 
 ### Supported Actions
 
-[test connectivity](#action-test-connectivity) - Use supplied credentials to generate a token with MS Graph \
-[generate token](#action-generate-token) - Generate a token \
-[oof check](#action-oof-check) - Get user's out of office status \
-[list events](#action-list-events) - List events from user or group calendar \
-[get rule](#action-get-rule) - Get the properties and relationships of a messageRule object \
-[list rules](#action-list-rules) - Get all the messageRule objects defined for the user's inbox \
-[list users](#action-list-users) - Retrieve a list of users \
-[list groups](#action-list-groups) - List all the groups in an organization, including but not limited to Office 365 groups \
-[list group members](#action-list-group-members) - List all the members in group by group ID or group e-mail address \
-[list folders](#action-list-folders) - Retrieve a list of mail folders \
-[copy email](#action-copy-email) - Copy an email to a folder \
-[move email](#action-move-email) - Move an email to a folder \
-[delete email](#action-delete-email) - Delete an email \
-[delete event](#action-delete-event) - Delete an event from user calendar \
-[get email](#action-get-email) - Get an email from the server \
-[get email properties](#action-get-email-properties) - Get non-standard email properties from the server \
-[run query](#action-run-query) - Search emails \
-[create folder](#action-create-folder) - Create a new folder \
-[get folder id](#action-get-folder-id) - Get the API ID of the folder \
-[send email](#action-send-email) - Sends an email with optional text rendering. Attachments are allowed a Content-ID tag for reference within the html \
-[on poll](#action-on-poll) - Ingest emails from Office 365 using Graph API \
-[update email](#action-update-email) - Update an email on the server \
-[block sender](#action-block-sender) - Add the sender email into the block list \
-[unblock sender](#action-unblock-sender) - Remove the sender email from the block list \
-[resolve name](#action-resolve-name) - Verify aliases and resolve display names to the appropriate user \
+[test connectivity](#action-test-connectivity) - Use supplied credentials to generate a token with MS Graph <br>
+[generate token](#action-generate-token) - Generate a token <br>
+[oof check](#action-oof-check) - Get user's out of office status <br>
+[list events](#action-list-events) - List events from user or group calendar <br>
+[get rule](#action-get-rule) - Get the properties and relationships of a messageRule object <br>
+[list rules](#action-list-rules) - Get all the messageRule objects defined for the user's inbox <br>
+[list users](#action-list-users) - Retrieve a list of users <br>
+[list groups](#action-list-groups) - List all the groups in an organization, including but not limited to Office 365 groups <br>
+[list group members](#action-list-group-members) - List all the members in group by group ID or group e-mail address <br>
+[list folders](#action-list-folders) - Retrieve a list of mail folders <br>
+[copy email](#action-copy-email) - Copy an email to a folder <br>
+[move email](#action-move-email) - Move an email to a folder <br>
+[delete email](#action-delete-email) - Delete an email <br>
+[delete event](#action-delete-event) - Delete an event from user calendar <br>
+[get email](#action-get-email) - Get an email from the server <br>
+[get email properties](#action-get-email-properties) - Get non-standard email properties from the server <br>
+[run query](#action-run-query) - Search emails <br>
+[create folder](#action-create-folder) - Create a new folder <br>
+[get folder id](#action-get-folder-id) - Get the API ID of the folder <br>
+[send email](#action-send-email) - Sends an email with optional text rendering. Attachments are allowed a Content-ID tag for reference within the html <br>
+[on poll](#action-on-poll) - Ingest emails from Office 365 using Graph API <br>
+[update email](#action-update-email) - Update an email on the server <br>
+[block sender](#action-block-sender) - Add the sender email into the block list <br>
+[unblock sender](#action-unblock-sender) - Remove the sender email from the block list <br>
+[resolve name](#action-resolve-name) - Verify aliases and resolve display names to the appropriate user <br>
 [get mailbox messages](#action-get-mailbox-messages) - Retrieves messages from a specified mailbox folder with advanced functionality
 
 ## action: 'test connectivity'
 
 Use supplied credentials to generate a token with MS Graph
 
-Type: **test** \
+Type: **test** <br>
 Read only: **True**
 
 #### Action Parameters
@@ -382,7 +382,7 @@ No Output
 
 Generate a token
 
-Type: **generic** \
+Type: **generic** <br>
 Read only: **False**
 
 #### Action Parameters
@@ -404,7 +404,7 @@ summary.total_objects_successful | numeric | | 1 |
 
 Get user's out of office status
 
-Type: **investigate** \
+Type: **investigate** <br>
 Read only: **True**
 
 #### Action Parameters
@@ -438,7 +438,7 @@ summary.total_objects_successful | numeric | | 1 |
 
 List events from user or group calendar
 
-Type: **investigate** \
+Type: **investigate** <br>
 Read only: **True**
 
 #### Action Parameters
@@ -545,7 +545,7 @@ summary.total_objects_successful | numeric | | 1 |
 
 Get the properties and relationships of a messageRule object
 
-Type: **investigate** \
+Type: **investigate** <br>
 Read only: **True**
 
 #### Action Parameters
@@ -583,7 +583,7 @@ summary.total_objects_successful | numeric | | 1 |
 
 Get all the messageRule objects defined for the user's inbox
 
-Type: **investigate** \
+Type: **investigate** <br>
 Read only: **True**
 
 #### Action Parameters
@@ -620,7 +620,7 @@ summary.total_objects_successful | numeric | | 1 |
 
 Retrieve a list of users
 
-Type: **investigate** \
+Type: **investigate** <br>
 Read only: **True**
 
 #### Action Parameters
@@ -657,7 +657,7 @@ summary.total_objects_successful | numeric | | 1 |
 
 List all the groups in an organization, including but not limited to Office 365 groups
 
-Type: **investigate** \
+Type: **investigate** <br>
 Read only: **True**
 
 #### Action Parameters
@@ -714,7 +714,7 @@ summary.total_objects_successful | numeric | | 1 |
 
 List all the members in group by group ID or group e-mail address
 
-Type: **investigate** \
+Type: **investigate** <br>
 Read only: **True**
 
 #### Action Parameters
@@ -758,7 +758,7 @@ summary.total_objects_successful | numeric | | 1 |
 
 Retrieve a list of mail folders
 
-Type: **investigate** \
+Type: **investigate** <br>
 Read only: **True**
 
 If you want to list all the child folders (includes all the sub-levels) of the specific parent folder, then, you have to provide the parent <b>folder_id</b> parameter. If you don't provide <b>folder_id</b> it will list all the folders on Office 365 account (includes all the sub-level folders).
@@ -794,7 +794,7 @@ summary.total_objects_successful | numeric | | 1 |
 
 Copy an email to a folder
 
-Type: **generic** \
+Type: **generic** <br>
 Read only: **False**
 
 The <b>get_folder_id</b> parameter should be enabled only when you have specified folder name/folder path in the <b>folder</b> parameter. If you provide folder ID in the <b>folder</b> parameter and set <b>get_folder_id</b> parameter to true, it will throw an error of folder ID not found for given folder name (because the action considers folder parameter value as folder name/folder path). The <b>folder</b> parameter must be either a (case sensitive) well-known name [list here; https://docs.microsoft.com/en-us/graph/api/resources/mailfolder?view=graph-rest-1.0] or the internal o365 folder ID. The action supports copying to a folder that is nested within another. To copy in such a folder, specify the complete folder path using the <b>'/'</b> (forward slash) as the separator.<br>e.g. to search in a folder named <i>phishing</i> which is nested within (is a child of) <i>Inbox</i>, set the value as <b>Inbox/phishing</b>. If a folder name has a literal forward slash('/') in the name escape it with a backslash('\\') to differentiate.
@@ -864,7 +864,7 @@ summary.total_objects_successful | numeric | | 1 |
 
 Move an email to a folder
 
-Type: **generic** \
+Type: **generic** <br>
 Read only: **False**
 
 The <b>get_folder_id</b> parameter should be enabled only when you have specified folder name/folder path in the <b>folder</b> parameter. If you provide folder ID in the <b>folder</b> parameter and set <b>get_folder_id</b> parameter to true, it will throw an error of folder ID not found for given folder name (because the action considers folder parameter value as folder name/folder path). The <b>folder</b> parameter must be either a (case sensitive) well-known name [list here; https://docs.microsoft.com/en-us/graph/api/resources/mailfolder?view=graph-rest-1.0] or the internal o365 folder ID. The action supports moving to a folder that is nested within another. To copy in such a folder, specify the complete folder path using the <b>'/'</b> (forward slash) as the separator.<br>e.g. to search in a folder named <i>phishing</i> which is nested within (is a child of) <i>Inbox</i>, set the value as <b>Inbox/phishing</b>. If a folder name has a literal forward slash('/') in the name escape it with a backslash('\\') to differentiate.
@@ -934,7 +934,7 @@ summary.total_objects_successful | numeric | | 1 |
 
 Delete an email
 
-Type: **contain** \
+Type: **contain** <br>
 Read only: **False**
 
 #### Action Parameters
@@ -961,7 +961,7 @@ summary.total_objects_successful | numeric | | 1 |
 
 Delete an event from user calendar
 
-Type: **generic** \
+Type: **generic** <br>
 Read only: **False**
 
 #### Action Parameters
@@ -990,7 +990,7 @@ summary.total_objects_successful | numeric | | 1 |
 
 Get an email from the server
 
-Type: **investigate** \
+Type: **investigate** <br>
 Read only: **True**
 
 If the 'download attachments' parameter is set to true, the action will ingest the '#microsoft.graph.itemAttachment' and '#microsoft.graph.fileAttachment' type of attachments.
@@ -1224,7 +1224,7 @@ summary.total_objects_successful | numeric | | 1 |
 
 Get non-standard email properties from the server
 
-Type: **investigate** \
+Type: **investigate** <br>
 Read only: **True**
 
 For a list of possible properties to retrieve, visit https://docs.microsoft.com/en-us/graph/api/message-get?view=graph-rest-1.0&tabs=http.
@@ -1332,7 +1332,7 @@ summary.total_objects_successful | numeric | | 1 |
 
 Search emails
 
-Type: **investigate** \
+Type: **investigate** <br>
 Read only: **True**
 
 If the <b>query</b> or <b>internet_message_id</b> parameters are included, the <b>subject</b>, <b>sender</b>, <b>body</b>, and <b>range</b> parameters will be ignored. The <b>internet_message_id</b> parameter will take precedence over the <b>query</b> parameter.<br><br>For information on formatting the <b>query</b> parameter, see https://developer.microsoft.com/en-us/graph/docs/concepts/query_parameters.<br><br>If the <b>limit</b> parameter is not included, the action will default to limiting to ten emails that match the rest of the query. The <b>get_folder_id</b> parameter should be enabled only when you specified folder name/folder path in the folder parameter. If you provide folder ID in the <b>folder</b> parameter and set <b>get_folder_id</b> parameter to true, it will throw an error of folder ID not found for given folder name (because the action considers folder parameter value as folder name/folder path). The <b>folder</b> parameter must be either a (case sensitive) well-known name [list here; https://docs.microsoft.com/en-us/graph/api/resources/mailfolder?view=graph-rest-1.0] or the internal o365 folder ID. The action supports searching for a folder that is nested within another. To copy in such a folder, specify the complete folder path using the <b>'/'</b> (forward slash) as the separator.<br>e.g. to search in a folder named <i>phishing</i> which is nested within (is a child of) <i>Inbox</i>, set the value as <b>Inbox/phishing</b>. If a folder name has a literal forward slash('/') in the name escape it with a backslash('\\') to differentiate.<br>When the <b>search_well_known_folders</b> parameter is set to true, action will ignore values provided in the <b>folder</b> and <b>get_folder_id</b> parameters and the user will get details from all 17 well-known folders which are listed below:<br><ul style="columns: 2;-webkit-columns: 2; -moz-columns: 2"> <li>Archive</li> <li>Clutter</li> <li>Conflicts</li> <li>Conversation History</li> <li>Deleted Items</li> <li>Drafts</li> <li>Inbox</li> <li>Junk Email</li> <li>Local Failures</li> <li>Msg Folder Root</li> <li>Outbox</li> <li>Recoverable Items Deletions</li> <li>Scheduled</li> <li>Search Folders</li> <li>Sent Items</li> <li>Server Failures</li> <li>Sync Issues</li></ul><br>If the <b>limit</b> parameter is provided, the user will get the number of messages provided in the <b>limit</b> from every folder if present.
@@ -1440,7 +1440,7 @@ summary.total_objects_successful | numeric | | 1 |
 
 Create a new folder
 
-Type: **generic** \
+Type: **generic** <br>
 Read only: **False**
 
 Create a new folder either in the mailbox root or inside an existing folder. The action supports creating a folder that is nested within another. To create in such a folder, specify the complete path using the <b>'/'</b> (forward slash) as the separator.<br>e.g. to search in a folder named <i>phishing</i> which is nested within (is a child of) <i>Inbox</i>, set the value as <b>Inbox/phishing</b>. If a folder name has a literal forward slash('/') in the name escape it with a backslash('\\') to differentiate.
@@ -1481,7 +1481,7 @@ summary.total_objects_successful | numeric | | 1 |
 
 Get the API ID of the folder
 
-Type: **investigate** \
+Type: **investigate** <br>
 Read only: **True**
 
 The action supports searching a folder that is nested within another. To search in such a folder, specify the complete path using the <b>'/'</b> (forward slash) as the separator.<br>e.g. to search in a folder named <i>phishing</i> which is nested within (is a child of) <i>Inbox</i>, set the value as <b>Inbox/phishing</b>. If a folder name has a literal forward slash('/') in the name escape it with a backslash('\\') to differentiate.
@@ -1512,7 +1512,7 @@ summary.total_objects_successful | numeric | | 1 |
 
 Sends an email with optional text rendering. Attachments are allowed a Content-ID tag for reference within the html
 
-Type: **generic** \
+Type: **generic** <br>
 Read only: **False**
 
 <div><div>Notes</div><ul><li>If the <b>from</b> parameter is not provided, then the action will consider the <b>username</b> parameter provided in the asset configuration as the sender's email address.</li><li>The send email action is executed in two stages. Before sending an email it creates a draft of the email. Once the  draft is successfully saved, the email is sent.</li></ul></div>
@@ -1583,7 +1583,7 @@ summary.total_objects_successful | numeric | | 1 |
 
 Ingest emails from Office 365 using Graph API
 
-Type: **ingest** \
+Type: **ingest** <br>
 Read only: **True**
 
 #### Action Parameters
@@ -1604,7 +1604,7 @@ No Output
 
 Update an email on the server
 
-Type: **generic** \
+Type: **generic** <br>
 Read only: **False**
 
 Currently, this action only updates the categories and subject of an email. To set multiple categories, please pass a comma-separated list to the <b>category</b> parameter.<br>NOTE: If the user tries to update the categories, then the existing categories of the email will be replaced with the new categories provided as input.
@@ -1667,7 +1667,7 @@ summary.total_objects_successful | numeric | | 1 |
 
 Add the sender email into the block list
 
-Type: **contain** \
+Type: **contain** <br>
 Read only: **False**
 
 This action takes as input an email whose sender will be added to the Block Senders List. The message ID changes after the execution and is a required parameter for request hence undo action would require unique ID. Note that a message from the email address must exist in the user's mailbox before you can add the email address to or remove it from the Blocked Senders List.<ul><li>If the <b>move_to_junk_folder</b> parameter is set to True, the sender of the target email message is added to the blocked sender list and the email message is moved to the Junk Email folder.</li><li>If the <b>move_to_junk_folder</b> attribute is set to False, the sender of the target email message is added to the blocked sender list and the email message is not moved from the folder.</li></ul>To view the current Block Senders list, please read the following Powershell articles: <ul><li>https://docs.microsoft.com/en-us/powershell/exchange/exchange-online/connect-to-exchange-online-powershell/connect-to-exchange-online-powershell?view=exchange-ps</li><li>https://docs.microsoft.com/en-us/powershell/module/exchange/antispam-antimalware/Get-MailboxJunkEmailConfiguration?view=exchange-ps.</li></ul>
@@ -1698,7 +1698,7 @@ summary.total_objects_successful | numeric | | |
 
 Remove the sender email from the block list
 
-Type: **contain** \
+Type: **contain** <br>
 Read only: **False**
 
 This action takes as input an email whose sender will be removed from the Block Senders List. The message ID changes after the execution and is a required parameter for request hence undo action would require unique ID. Note that a message from the email address must exist in the user's mailbox before you can add the email address to or remove it from the Blocked Senders List.<ul><li>If the <b>move_to_inbox</b> parameter is set to True, the sender of the target email message is removed from the blocked sender list and the email message is moved from the Junk Email folder.</li><li>If the <b>move_to_inbox</b> attribute is set to False, the sender of the target email message is removed from the blocked sender list and the email message is not moved from the folder.</li></ul>To view the current Block Senders list, please read the following Powershell articles: <ul><li>https://docs.microsoft.com/en-us/powershell/exchange/exchange-online/connect-to-exchange-online-powershell/connect-to-exchange-online-powershell?view=exchange-ps</li><li>https://docs.microsoft.com/en-us/powershell/module/exchange/antispam-antimalware/Get-MailboxJunkEmailConfiguration?view=exchange-ps.</li></ul>
@@ -1729,7 +1729,7 @@ summary.total_objects_successful | numeric | | |
 
 Verify aliases and resolve display names to the appropriate user
 
-Type: **investigate** \
+Type: **investigate** <br>
 Read only: **True**
 
 Resolve an Alias name or email address, gathering complex data about the user.
@@ -1772,7 +1772,7 @@ summary.total_objects_successful | numeric | | |
 
 Retrieves messages from a specified mailbox folder with advanced functionality
 
-Type: **investigate** \
+Type: **investigate** <br>
 Read only: **True**
 
 #### Action Parameters
