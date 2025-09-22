@@ -42,7 +42,7 @@
         "Cloud 13 Feb, 2025"
     ],
     "app_wizard_version": "1.0.0",
-    "python_version": "3",
+    "python_version": "3.9, 3.13",
     "fips_compliant": true,
     "rest_handler": "office365_connector.handle_request",
     "configuration": {
@@ -8673,23 +8673,23 @@
             },
             {
                 "module": "cffi",
-                "input_file": "wheels/py39/cffi-1.17.1-cp39-cp39-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl"
+                "input_file": "wheels/py39/cffi-2.0.0-cp39-cp39-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl"
             },
             {
                 "module": "cryptography",
-                "input_file": "wheels/py3/cryptography-45.0.6-cp37-abi3-manylinux_2_28_x86_64.whl"
+                "input_file": "wheels/py3/cryptography-46.0.1-cp38-abi3-manylinux_2_28_x86_64.whl"
             },
             {
                 "module": "msal",
-                "input_file": "wheels/py3/msal-1.31.0-py3-none-any.whl"
+                "input_file": "wheels/py3/msal-1.33.0-py3-none-any.whl"
             },
             {
                 "module": "pycparser",
-                "input_file": "wheels/py3/pycparser-2.22-py3-none-any.whl"
+                "input_file": "wheels/py3/pycparser-2.23-py3-none-any.whl"
             },
             {
-                "module": "python_magic",
-                "input_file": "wheels/shared/python_magic-0.4.18-py2.py3-none-any.whl"
+                "module": "typing_extensions",
+                "input_file": "wheels/py3/typing_extensions-4.15.0-py3-none-any.whl"
             }
         ]
     },
@@ -8701,23 +8701,19 @@
             },
             {
                 "module": "cffi",
-                "input_file": "wheels/py313/cffi-1.17.1-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl"
+                "input_file": "wheels/py313/cffi-2.0.0-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl"
             },
             {
                 "module": "cryptography",
-                "input_file": "wheels/py3/cryptography-45.0.6-cp311-abi3-manylinux_2_28_x86_64.whl"
+                "input_file": "wheels/py3/cryptography-46.0.1-cp311-abi3-manylinux_2_28_x86_64.whl"
             },
             {
                 "module": "msal",
-                "input_file": "wheels/py3/msal-1.31.0-py3-none-any.whl"
+                "input_file": "wheels/py3/msal-1.33.0-py3-none-any.whl"
             },
             {
                 "module": "pycparser",
-                "input_file": "wheels/py3/pycparser-2.22-py3-none-any.whl"
-            },
-            {
-                "module": "python_magic",
-                "input_file": "wheels/shared/python_magic-0.4.18-py2.py3-none-any.whl"
+                "input_file": "wheels/py3/pycparser-2.23-py3-none-any.whl"
             }
         ]
     }
