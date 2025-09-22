@@ -1,2 +1,1 @@
-msal==1.31.0
-python-magic==0.4.18
+msal==1.33.0
