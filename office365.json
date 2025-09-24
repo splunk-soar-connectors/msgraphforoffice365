@@ -42,7 +42,7 @@
         "Cloud 8 Nov, 2024"
     ],
     "app_wizard_version": "1.0.0",
-    "python_version": "3",
+    "python_version": "3.9, 3.13",
     "fips_compliant": true,
     "rest_handler": "office365_connector.handle_request",
     "configuration": {
