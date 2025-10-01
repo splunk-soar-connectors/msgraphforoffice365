@@ -8657,14 +8657,6 @@
             "versions": "EQ(*)"
         }
     ],
-    "pip_dependencies": {
-        "wheel": [
-            {
-                "module": "python_magic",
-                "input_file": "wheels/shared/python_magic-0.4.18-py2.py3-none-any.whl"
-            }
-        ]
-    },
     "pip39_dependencies": {
         "wheel": [
             {
@@ -8677,11 +8669,11 @@
             },
             {
                 "module": "cryptography",
-                "input_file": "wheels/py3/cryptography-46.0.1-cp38-abi3-manylinux_2_28_x86_64.whl"
+                "input_file": "wheels/py3/cryptography-46.0.2-cp38-abi3-manylinux_2_28_x86_64.whl"
             },
             {
                 "module": "msal",
-                "input_file": "wheels/py3/msal-1.33.0-py3-none-any.whl"
+                "input_file": "wheels/py3/msal-1.34.0-py3-none-any.whl"
             },
             {
                 "module": "pycparser",
@@ -8705,11 +8697,11 @@
             },
             {
                 "module": "cryptography",
-                "input_file": "wheels/py3/cryptography-46.0.1-cp311-abi3-manylinux_2_28_x86_64.whl"
+                "input_file": "wheels/py3/cryptography-46.0.2-cp311-abi3-manylinux_2_28_x86_64.whl"
             },
             {
                 "module": "msal",
-                "input_file": "wheels/py3/msal-1.33.0-py3-none-any.whl"
+                "input_file": "wheels/py3/msal-1.34.0-py3-none-any.whl"
             },
             {
                 "module": "pycparser",
