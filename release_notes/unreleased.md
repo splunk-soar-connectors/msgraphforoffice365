@@ -1,2 +1,1 @@
 **Unreleased**
-* Update dependencies for python 3.13 compatibility
