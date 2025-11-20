@@ -712,7 +712,7 @@ class ProcessEmail:
         self._debug_print(f"file_path: {file_path}")
 
         # is the part representing the body of the email
-        status, process_further = self._handle_if_body(content_disp, content_id, content_type, part, bodies, file_path)
+        _status, process_further = self._handle_if_body(content_disp, content_id, content_type, part, bodies, file_path)
 
         if not process_further:
             return phantom.APP_SUCCESS
@@ -1029,7 +1029,7 @@ class ProcessEmail:
             artifacts = container["artifacts"]
             for artifact in artifacts:
                 artifact["container_id"] = cid
-            ret_val, msg, ids = self._base_connector.save_artifacts(artifacts)
+            ret_val, msg, _ids = self._base_connector.save_artifacts(artifacts)
             self._base_connector.debug_print(f"save_artifacts returns, value: {ret_val}, reason: {msg}")
 
         else:
@@ -1150,7 +1150,7 @@ class ProcessEmail:
         return self._base_connector.set_status(phantom.APP_SUCCESS)
 
     def _add_vault_hashes_to_dictionary(self, cef_artifact, vault_id):
-        success, msg, vault_info = phantom_rules.vault_info(vault_id=vault_id)
+        _success, _msg, vault_info = phantom_rules.vault_info(vault_id=vault_id)
 
         if not vault_info:
             return (phantom.APP_ERROR, "Vault ID not found")
