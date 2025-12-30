@@ -1,7 +1,7 @@
 # MS Graph for Office 365
 
 Publisher: Splunk <br>
-Connector Version: 4.0.6 <br>
+Connector Version: 4.0.5 <br>
 Product Vendor: Microsoft <br>
 Product Name: Office 365 (MS Graph) <br>
 Minimum Product Version: 6.3.0
@@ -1939,7 +1939,7 @@ Add the sender email into the report
 Type: **contain** <br>
 Read only: **False**
 
-This action takes as input an email whose sender will be added to the junk/notJunk/unknown/phish/unknownFutureValue Senders List. The message ID changes after the execution and is a required parameter for request hence undo action would require unique ID. Note that a message from the email address must exist in the user's mailbox before you can add the email address to or remove it from the Blocked Senders List.<ul><li>If the <b>is_message_move_requested</b> parameter is set to True, the sender of the target email message is added to the blocked sender list and the email message is moved to the junk/notJunk/unknown/phish/unknownFutureValue.</li><li>If the <b>is_message_move_requested</b> attribute is set to False, the sender of the target email message is added to the blocked sender list and the email message is not moved from the folder.</li></ul>To view the current Block Senders list, please read the following Powershell articles: <ul><li>https://docs.microsoft.com/en-us/powershell/exchange/exchange-online/connect-to-exchange-online-powershell/connect-to-exchange-online-powershell?view=exchange-ps</li><li>https://docs.microsoft.com/en-us/powershell/module/exchange/antispam-antimalware/Get-MailboxJunkEmailConfiguration?view=exchange-ps.</li></ul>
+This action processes an email message and updates the sender classification based on the selected verdict (junk, notJunk, phish, unknown, or unknownFutureValue). When enabled, the message can optionally be moved to the corresponding folder based on the verdict. The action applies only if a message from the sender exists in the user's mailbox.
 
 #### Action Parameters
 
