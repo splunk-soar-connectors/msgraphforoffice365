@@ -33,7 +33,7 @@
         }
     ],
     "license": "Copyright (c) 2017-2025 Splunk Inc.",
-    "app_version": "4.0.5",
+    "app_version": "4.0.6",
     "utctime_updated": "2025-11-20T05:04:49.066175Z",
     "package_name": "phantom_msgraphoffice365",
     "main_module": "office365_connector.py",
@@ -7526,6 +7526,92 @@
                     ]
                 }
             ],
+            "versions": "EQ(*)"
+        },
+        {
+            "action": "report message",
+            "identifier": "report_message",
+            "description": "Add the sender email into the report",
+            "verbose": "This action takes as input an email whose sender will be added to the junk/notJunk/unknown/phish/unknownFutureValue Senders List. The message ID changes after the execution and is a required parameter for request hence undo action would require unique ID. Note that a message from the email address must exist in the user's mailbox before you can add the email address to or remove it from the Blocked Senders List.<ul><li>If the <b>is_message_move_requested</b> parameter is set to True, the sender of the target email message is added to the blocked sender list and the email message is moved to the junk/notJunk/unknown/phish/unknownFutureValue.</li><li>If the <b>is_message_move_requested</b> attribute is set to False, the sender of the target email message is added to the blocked sender list and the email message is not moved from the folder.</li></ul>To view the current Block Senders list, please read the following Powershell articles: <ul><li>https://docs.microsoft.com/en-us/powershell/exchange/exchange-online/connect-to-exchange-online-powershell/connect-to-exchange-online-powershell?view=exchange-ps</li><li>https://docs.microsoft.com/en-us/powershell/module/exchange/antispam-antimalware/Get-MailboxJunkEmailConfiguration?view=exchange-ps.</li></ul>",
+            "type": "contain",
+            "read_only": false,
+            "parameters": {
+                "message_id": {
+                    "description": "Message ID to pick the sender of",
+                    "data_type": "string",
+                    "required": true,
+                    "order": 0
+                },
+                "user_id": {
+                    "description": "User ID to base the action of",
+                    "data_type": "string",
+                    "required": true,
+                    "order": 1
+                },
+                "is_message_move_requested": {
+                    "description": "Indicates whether the message should be moved out of current folder",
+                    "data_type": "boolean",
+                    "order": 2
+                }
+                ,
+                "report_action": {
+                    "description": "Indicates the type of action to be reported on the message",
+                    "data_type": "string",
+                    "required": true,
+                    "order": 3
+                }
+            },
+            "output": [
+                {
+                    "data_path": "action_result.parameter.message_id",
+                    "data_type": "string",
+                    "column_name": "Message ID",
+                    "column_order": 0
+                },
+                {
+                    "data_path": "action_result.parameter.user_id",
+                    "data_type": "string",
+                    "column_name": "User ID",
+                    "column_order": 1
+                },
+                {
+                    "data_path": "action_result.parameter.is_message_move_requested",
+                    "data_type": "boolean",
+                    "column_name": "Message Move Requested",
+                    "column_order": 2
+                },
+                {
+                    "data_path": "action_result.parameter.report_action",
+                    "data_type": "string",
+                    "column_name": "Message Move Requested Type",
+                    "column_order": 3
+                },
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "column_name": "Status",
+                    "column_order": 4,
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric"
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric"
+                }
+            ],
+            "render": {
+                "type": "table"
+            },
             "versions": "EQ(*)"
         },
         {

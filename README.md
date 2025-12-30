@@ -1,7 +1,7 @@
 # MS Graph for Office 365
 
 Publisher: Splunk <br>
-Connector Version: 4.0.5 <br>
+Connector Version: 4.0.6 <br>
 Product Vendor: Microsoft <br>
 Product Name: Office 365 (MS Graph) <br>
 Minimum Product Version: 6.3.0
@@ -626,6 +626,7 @@ VARIABLE | REQUIRED | TYPE | DESCRIPTION
 [send email](#action-send-email) - Sends an email with optional text rendering. Attachments are allowed a Content-ID tag for reference within the html <br>
 [on poll](#action-on-poll) - Ingest emails from Office 365 using Graph API <br>
 [update email](#action-update-email) - Update an email on the server <br>
+[report message](#action-report-message) - Add the sender email into the report <br>
 [block sender](#action-block-sender) - Add the sender email into the block list <br>
 [unblock sender](#action-unblock-sender) - Remove the sender email from the block list <br>
 [resolve name](#action-resolve-name) - Verify aliases and resolve display names to the appropriate user <br>
@@ -1930,6 +1931,37 @@ action_result.summary | string | | |
 action_result.message | string | | Create time: 2017-10-05T20:19:58Z Subject: Both value are modified Sent time: 2017-10-03T21:31:20Z |
 summary.total_objects | numeric | | 1 |
 summary.total_objects_successful | numeric | | 1 |
+
+## action: 'report message'
+
+Add the sender email into the report
+
+Type: **contain** <br>
+Read only: **False**
+
+This action takes as input an email whose sender will be added to the junk/notJunk/unknown/phish/unknownFutureValue Senders List. The message ID changes after the execution and is a required parameter for request hence undo action would require unique ID. Note that a message from the email address must exist in the user's mailbox before you can add the email address to or remove it from the Blocked Senders List.<ul><li>If the <b>is_message_move_requested</b> parameter is set to True, the sender of the target email message is added to the blocked sender list and the email message is moved to the junk/notJunk/unknown/phish/unknownFutureValue.</li><li>If the <b>is_message_move_requested</b> attribute is set to False, the sender of the target email message is added to the blocked sender list and the email message is not moved from the folder.</li></ul>To view the current Block Senders list, please read the following Powershell articles: <ul><li>https://docs.microsoft.com/en-us/powershell/exchange/exchange-online/connect-to-exchange-online-powershell/connect-to-exchange-online-powershell?view=exchange-ps</li><li>https://docs.microsoft.com/en-us/powershell/module/exchange/antispam-antimalware/Get-MailboxJunkEmailConfiguration?view=exchange-ps.</li></ul>
+
+#### Action Parameters
+
+PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
+--------- | -------- | ----------- | ---- | --------
+**message_id** | required | Message ID to pick the sender of | string | |
+**user_id** | required | User ID to base the action of | string | |
+**is_message_move_requested** | optional | Indicates whether the message should be moved out of current folder | boolean | |
+**report_action** | required | Indicates the type of action to be reported on the message | string | |
+
+#### Action Output
+
+DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
+--------- | ---- | -------- | --------------
+action_result.parameter.message_id | string | | |
+action_result.parameter.user_id | string | | |
+action_result.parameter.is_message_move_requested | boolean | | |
+action_result.parameter.report_action | string | | |
+action_result.status | string | | success failed |
+action_result.message | string | | |
+summary.total_objects | numeric | | |
+summary.total_objects_successful | numeric | | |
 
 ## action: 'block sender'
 

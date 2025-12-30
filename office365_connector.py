@@ -2853,6 +2853,32 @@ class Office365Connector(BaseConnector):
 
         return action_result.set_status(phantom.APP_SUCCESS, "Successfully updated email")
 
+    def _report_message_sender(self, param):
+        self.save_progress(f"In action handler for: {self.get_action_identifier()}")
+        action_result = self.add_action_result(ActionResult(dict(param)))
+
+        message = param["message_id"]
+        user = param["user_id"]
+        report_action = param.get("report_action", False)
+        is_message_move_requested = param["is_message_move_requested"]
+
+        endpoint = f"/users/{user}/messages/{message}/reportMessage"
+        self.save_progress(f"endpoint {endpoint}")
+
+        ret_val, response = self._make_rest_call_helper(
+            action_result,
+            endpoint,
+            data=json.dumps({"IsMessageMoveRequested": is_message_move_requested, "ReportAction": report_action}),
+            method="post",
+            beta=True,
+        )
+
+        if phantom.is_fail(ret_val):
+            return action_result.set_status(phantom.APP_ERROR, f"Moving email  with id: {message} to {report_action} folder failed")
+
+        action_result.add_data(response)
+        return action_result.set_status(phantom.APP_SUCCESS)
+
     def _handle_block_sender(self, param):
         self.save_progress(f"In action handler for: {self.get_action_identifier()}")
         action_result = self.add_action_result(ActionResult(dict(param)))
@@ -3040,6 +3066,9 @@ class Office365Connector(BaseConnector):
 
         if action_id == "resolve_name":
             ret_val = self._handle_resolve_name(param)
+
+        if action_id == "report_message":
+            ret_val = self._report_message_sender(param)
 
         if action_id == "block_sender":
             ret_val = self._handle_block_sender(param)
