@@ -7552,8 +7552,7 @@
                     "description": "Indicates whether the message should be moved out of current folder",
                     "data_type": "boolean",
                     "order": 2
-                }
-                ,
+                },
                 "report_action": {
                     "description": "Indicates the type of action to be reported on the message",
                     "data_type": "string",
