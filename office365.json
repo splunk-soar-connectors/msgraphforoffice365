@@ -7532,7 +7532,7 @@
             "action": "report message",
             "identifier": "report_message",
             "description": "Add the sender email into the report",
-            "verbose": "This action processes an email message and updates the sender classification based on the selected verdict (junk, notJunk, phish, unknown, or unknownFutureValue). When enabled, the message can optionally be moved to the corresponding folder based on the verdict. The action applies only if a message from the sender exists in the user’s mailbox.",
+            "verbose": "This action processes an email message and updates the sender classification based on the selected verdict (junk, notJunk, phish, unknown, or unknownFutureValue). When enabled, the message can optionally be moved to the corresponding folder based on the verdict. The action applies only if a message from the sender exists in the user's mailbox.",
             "type": "contain",
             "read_only": false,
             "parameters": {
