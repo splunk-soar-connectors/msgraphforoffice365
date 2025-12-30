@@ -7558,7 +7558,17 @@
                     "description": "Indicates the type of action to be reported on the message",
                     "data_type": "string",
                     "required": true,
-                    "order": 3
+                    "order": 3,
+                    "value_list": [
+                        "",
+                        "junk",
+                        "notJunk",
+                        "unknown",
+                        "phish",
+                        "unknownFutureValue"
+                    ],
+                    "default": "",
+                    "name": "report_action"
                 }
             },
             "output": [
