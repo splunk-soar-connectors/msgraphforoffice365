@@ -1,3 +1,3 @@
 **Unreleased**
 
-* Added report message action [PAPP-37314] and updated documentation for report message action
+* Added report message action to replace `block sender` and `unblock sender` action. 
