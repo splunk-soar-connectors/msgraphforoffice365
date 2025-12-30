@@ -2874,7 +2874,7 @@ class Office365Connector(BaseConnector):
         )
 
         if phantom.is_fail(ret_val):
-            return action_result.set_status(phantom.APP_ERROR, f"Moving email  with id: {message} to {report_action} folder failed")
+            return action_result.set_status(phantom.APP_ERROR, f"Failed to report email with ID {message} as '{report_action}'")
 
         action_result.add_data(response)
         return action_result.set_status(phantom.APP_SUCCESS)
