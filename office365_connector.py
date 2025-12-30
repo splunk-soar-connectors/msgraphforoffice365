@@ -2859,8 +2859,8 @@ class Office365Connector(BaseConnector):
 
         message = param["message_id"]
         user = param["user_id"]
-        report_action = param.get("report_action", False)
-        is_message_move_requested = param["is_message_move_requested"]
+        is_message_move_requested = param.get("is_message_move_requested", False)
+        report_action = param["report_action"]
 
         endpoint = f"/users/{user}/messages/{message}/reportMessage"
         self.save_progress(f"endpoint {endpoint}")

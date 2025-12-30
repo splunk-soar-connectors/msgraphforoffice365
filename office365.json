@@ -7559,14 +7559,12 @@
                     "required": true,
                     "order": 3,
                     "value_list": [
-                        "",
                         "junk",
                         "notJunk",
                         "unknown",
                         "phish",
                         "unknownFutureValue"
                     ],
-                    "default": "",
                     "name": "report_action"
                 }
             },
