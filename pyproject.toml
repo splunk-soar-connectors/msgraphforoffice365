@@ -1,7 +1,60 @@
+[project]
+name = "msgraphoffice365"
+version = "4.2.1"
+description = "This app enables MS Graph API-based email ingestion and investigative actions on Office 365"
+license = "Copyright (c) 2017-2025 Splunk Inc."
+requires-python = ">=3.13, <3.15"
+authors = []
+dependencies = [
+    "beautifulsoup4>=4.14.2",
+    "msal>=1.31.0",
+    "requests>=2.32.0",
+    "splunk-soar-sdk>=3.8.0",
+]
+
+# [tool.uv.sources]
+# splunk-soar-sdk = { path = "../soar-apps-sdk", editable = true }
+
+[tool.soar.app]
+main_module = "src.app:app"
+
+### YOU SHOULD NOT NEED TO TOUCH ANYTHING BELOW THIS LINE ###
+
+[dependency-groups]
+dev = [
+    "coverage>=7.6.7,<8",
+    "mypy>=1.2.0,<2",
+    "pre-commit>=4.2.0,<5",
+    "pytest>=7.4.2,<8",
+    "pytest-mock>=3.14.0,<4",
+    "pytest-watch>=4.2.0,<5",
+    "ruff>=0.11.6,<1",
+]
+
+[[tool.uv.index]]
+url = "https://pypi.python.org/simple"
+
+[tool.uv]
+environments = [
+    "sys_platform == 'linux' and platform_machine == 'x86_64' and python_version == '3.13'",
+    "sys_platform == 'linux' and platform_machine == 'aarch64' and python_version == '3.13'",
+    "sys_platform == 'darwin' and platform_machine == 'x86_64' and python_version == '3.13'",
+    "sys_platform == 'darwin' and platform_machine == 'arm64' and python_version == '3.13'",
+    "sys_platform == 'linux' and platform_machine == 'x86_64' and python_version == '3.14'",
+    "sys_platform == 'linux' and platform_machine == 'aarch64' and python_version == '3.14'",
+    "sys_platform == 'darwin' and platform_machine == 'x86_64' and python_version == '3.14'",
+    "sys_platform == 'darwin' and platform_machine == 'arm64' and python_version == '3.14'",
+]
+required-environments = [
+    "sys_platform == 'linux' and platform_machine == 'x86_64' and python_version == '3.13'",
+    "sys_platform == 'linux' and platform_machine == 'x86_64' and python_version == '3.14'",
+]
+
 # Ruff linting
 [tool.ruff]
-line-length = 145
-target-version = "py39"
+output-format = "full"
+fix = true
+target-version = "py313"
 
 [tool.ruff.lint]
 select = [ # Auto-fixable rules only

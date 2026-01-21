@@ -4,6 +4,8 @@
 # By default, run each hook only in the standard pre-commit stage
 default_install_hook_types: [pre-commit, commit-msg]
 default_stages: [pre-commit]
+default_language_version:
+  python: python3.13
 
 # This is a template for connector pre-commit hooks
 repos:
