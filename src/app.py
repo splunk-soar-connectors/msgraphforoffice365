@@ -13,9 +13,13 @@
 
 import base64
 import hashlib
+import json
+import os
 import re
+import time
 from collections.abc import Iterator
 from html import unescape
+from pathlib import Path
 
 from bs4 import BeautifulSoup
 from soar_sdk.abstract import SOARClient
@@ -23,11 +27,7 @@ from soar_sdk.app import App
 from soar_sdk.asset import AssetField, BaseAsset, FieldCategory
 from soar_sdk.auth import (
     AuthorizationCodeFlow,
-    CertificateCredentials,
-    CertificateOAuthClient,
     ClientCredentialsFlow,
-    OAuthConfig,
-    SOARAssetOAuthClient,
 )
 from soar_sdk.extras.email.processor import (
     HASH_REGEX,
@@ -39,7 +39,6 @@ from soar_sdk.logging import getLogger
 from soar_sdk.models.artifact import Artifact
 from soar_sdk.models.container import Container
 from soar_sdk.params import OnPollParams
-from soar_sdk.webhooks.models import WebhookRequest, WebhookResponse
 
 from .consts import (
     MSGOFFICE365_CONTAINER_DESCRIPTION,
@@ -55,6 +54,111 @@ from .helper import MsGraphHelper
 logger = getLogger()
 
 APP_ID = "0a0a4087-10e8-4c96-9872-b740ff26d8bb"
+APP_NAME = "MS Graph for Office 365"
+
+
+def _get_state_dir() -> Path:
+    """Get the state directory for this app."""
+    return Path(os.path.dirname(os.path.abspath(__file__)))
+
+
+def _load_app_state(asset_id: str) -> dict:
+    """Load state from file for an asset."""
+    asset_id = str(asset_id)
+    if not asset_id or not asset_id.isalnum():
+        return {}
+    state_file = _get_state_dir() / f"{asset_id}_state.json"
+    if state_file.exists():
+        try:
+            return json.loads(state_file.read_text())
+        except Exception:
+            return {}
+    return {}
+
+
+def _save_app_state(state: dict, asset_id: str) -> None:
+    """Save state to file for an asset."""
+    asset_id = str(asset_id)
+    if not asset_id or not asset_id.isalnum():
+        return
+    state_file = _get_state_dir() / f"{asset_id}_state.json"
+    state_file.write_text(json.dumps(state))
+
+
+def _handle_oauth_result(request, path_parts):
+    """Handle OAuth callback from Microsoft (admin consent or authorization code)."""
+    from django.http import HttpResponse
+
+    asset_id = request.GET.get("state")
+    if not asset_id:
+        return HttpResponse(
+            f"ERROR: Asset ID not found in URL\n{json.dumps(dict(request.GET))}",
+            content_type="text/plain",
+            status=400,
+        )
+
+    error = request.GET.get("error")
+    error_description = request.GET.get("error_description")
+    if error:
+        msg = f"Error: {error}"
+        if error_description:
+            msg += f" Details: {error_description}"
+        return HttpResponse(
+            f"Server returned {msg}", content_type="text/plain", status=400
+        )
+
+    admin_consent = request.GET.get("admin_consent")
+    code = request.GET.get("code")
+
+    if not admin_consent and not code:
+        return HttpResponse(
+            f"ERROR: admin_consent or authorization code not found in URL\n{json.dumps(dict(request.GET))}",
+            content_type="text/plain",
+            status=400,
+        )
+
+    state = _load_app_state(asset_id)
+
+    if admin_consent:
+        admin_consent_bool = admin_consent == "True"
+        state["admin_consent"] = admin_consent_bool
+        _save_app_state(state, asset_id)
+
+        if admin_consent_bool:
+            return HttpResponse(
+                "Admin Consent received. Please close this window.",
+                content_type="text/plain",
+            )
+        return HttpResponse(
+            "Admin Consent declined. Please close this window and try again later.",
+            content_type="text/plain",
+            status=400,
+        )
+
+    state["code"] = code
+    _save_app_state(state, asset_id)
+    return HttpResponse(
+        "Code received. Please close this window, the action will continue to get new token.",
+        content_type="text/plain",
+    )
+
+
+def _get_app_rest_url(soar: SOARClient, route: str) -> str:
+    """Build the REST handler URL for OAuth callbacks (legacy format).
+
+    This constructs the URL in the format expected by the SOAR platform's
+    built-in REST handler: /rest/handler/{app_dir}_{appid}/{asset_name}/{route}
+    """
+    system_info = soar.get("rest/system_info").json()
+    base_url = system_info.get("base_url", "").rstrip("/")
+
+    asset_id = soar.get_asset_id()
+    asset_info = soar.get(f"rest/asset/{asset_id}").json()
+    asset_name = asset_info.get("name", "")
+
+    app_dir = "".join(c for c in APP_NAME if c.isalnum()).lower()
+
+    return f"{base_url}/rest/handler/{app_dir}_{APP_ID}/{asset_name}/{route}"
 
 
 def _extract_urls_domains(
@@ -277,7 +381,7 @@ app = App(
     appid=APP_ID,
     fips_compliant=True,
     asset_cls=Asset,
-).enable_webhooks(default_requires_auth=False)
+)
 
 
 MS_GRAPH_AUTH_URL = "https://login.microsoftonline.com/{tenant}/oauth2/v2.0/authorize"
@@ -285,116 +389,53 @@ MS_GRAPH_TOKEN_URL = "https://login.microsoftonline.com/{tenant}/oauth2/v2.0/tok
 MS_GRAPH_ADMIN_CONSENT_URL = "https://login.microsoftonline.com/{tenant}/adminconsent"
 
 
-def _get_oauth_config(asset: Asset, redirect_uri: str | None = None) -> OAuthConfig:
-    """Create OAuth configuration for MS Graph API."""
-    scopes = asset.scope.split() if asset.scope else []
-    if asset.admin_access:
-        scopes = [MSGOFFICE365_DEFAULT_SCOPE]
-
-    return OAuthConfig(
-        client_id=asset.client_id,
-        client_secret=asset.client_secret,
-        authorization_endpoint=MS_GRAPH_AUTH_URL.format(tenant=asset.tenant),
-        token_endpoint=MS_GRAPH_TOKEN_URL.format(tenant=asset.tenant),
-        redirect_uri=redirect_uri,
-        scope=scopes,
-    )
-
-
-def _get_oauth_client(
-    asset: Asset, redirect_uri: str | None = None
-) -> SOARAssetOAuthClient:
-    """Create OAuth client for MS Graph API."""
-    config = _get_oauth_config(asset, redirect_uri)
-    return SOARAssetOAuthClient(config, asset.auth_state)
-
-
-@app.webhook("result")
-def oauth_callback(request: WebhookRequest[Asset]) -> WebhookResponse:
-    """Handle OAuth callback from Microsoft."""
-    query_params = {k: v[0] if v else "" for k, v in request.query.items()}
-
-    if "error" in query_params:
-        reason = query_params.get("error_description", "Unknown error")
-        return WebhookResponse.text_response(
-            content=f"Authorization failed: {reason}",
-            status_code=400,
-        )
-
-    code = query_params.get("code")
-    admin_consent = query_params.get("admin_consent")
-
-    if admin_consent:
-        return WebhookResponse.text_response(
-            content="Admin Consent received. Please close this window.",
-            status_code=200,
-        )
-
-    if not code:
-        return WebhookResponse.text_response(
-            content="Missing authorization code",
-            status_code=400,
-        )
-
-    oauth_client = _get_oauth_client(request.asset)
-    oauth_client.set_authorization_code(code)
-
-    return WebhookResponse.text_response(
-        content="Authorization successful! You can close this window.",
-        status_code=200,
-    )
-
-
 @app.test_connectivity()
 def test_connectivity(soar: SOARClient, asset: Asset) -> None:
-    redirect_uri = app.get_webhook_url("result")
-    logger.progress(f"Using OAuth Redirect URL as:")
-    logger.progress(redirect_uri)
+    redirect_uri = _get_app_rest_url(soar, "result")
+    logger.info("Using OAuth Redirect URL as:")
+    logger.info(redirect_uri)
 
-    auth_type = asset.auth_type.lower()
+    auth_type = (asset.auth_type or "automatic").lower()
     is_cba = auth_type == "certificate based authentication(cba)" or (
         auth_type == "automatic" and not asset.client_secret
     )
 
     if is_cba:
         logger.info("Using Certificate Based Authentication...")
-        creds = CertificateCredentials(
-            certificate_thumbprint=asset.certificate_thumbprint,
-            private_key=asset.certificate_private_key,
-        )
-        config = _get_oauth_config(asset)
-        oauth_client = CertificateOAuthClient(config, asset.auth_state, creds)
-        oauth_client.fetch_token_with_certificate()
-        logger.info("Successfully obtained token via CBA")
+        helper = MsGraphHelper(soar, asset)
+        helper.get_token()
 
     elif asset.admin_access:
+        # Can't use SDK OAuth - Microsoft's /adminconsent returns admin_consent=True, not a code
+        asset_id = str(soar.get_asset_id())
         if not asset.admin_consent:
             admin_consent_url = (
                 f"{MS_GRAPH_ADMIN_CONSENT_URL.format(tenant=asset.tenant)}"
                 f"?client_id={asset.client_id}"
                 f"&redirect_uri={redirect_uri}"
-                f"&state={soar.get_asset_id()}"
+                f"&state={asset_id}"
             )
-            logger.progress(
+            logger.info(
                 "Please connect to the following URL from a different tab to continue the connectivity process"
             )
-            logger.progress(admin_consent_url)
+            logger.info(admin_consent_url)
 
-            flow = AuthorizationCodeFlow(
-                asset.auth_state,
-                soar.get_asset_id(),
-                client_id=asset.client_id,
-                client_secret=asset.client_secret,
-                authorization_endpoint=MS_GRAPH_ADMIN_CONSENT_URL.format(
-                    tenant=asset.tenant
-                ),
-                token_endpoint=MS_GRAPH_TOKEN_URL.format(tenant=asset.tenant),
-                redirect_uri=redirect_uri,
-                scope=[MSGOFFICE365_DEFAULT_SCOPE],
-            )
-            flow.wait_for_authorization()
-        else:
-            logger.info("Admin consent already provided, using client credentials...")
+            logger.info("Waiting for Admin Consent to complete")
+            poll_timeout = 300
+            poll_interval = 3
+            start_time = time.time()
+
+            while time.time() - start_time < poll_timeout:
+                time.sleep(poll_interval)
+                state = _load_app_state(asset_id)
+                if state.get("admin_consent"):
+                    logger.info("Admin consent received successfully")
+                    break
+            else:
+                raise TimeoutError(
+                    f"Admin consent timed out after {poll_timeout} seconds. "
+                    "Please ensure you complete the consent process in your browser."
+                )
 
         flow = ClientCredentialsFlow(
             asset.auth_state,
@@ -413,7 +454,7 @@ def test_connectivity(soar: SOARClient, asset: Asset) -> None:
         scopes = asset.scope.split()
         flow = AuthorizationCodeFlow(
             asset.auth_state,
-            soar.get_asset_id(),
+            str(soar.get_asset_id()),
             client_id=asset.client_id,
             client_secret=asset.client_secret,
             authorization_endpoint=MS_GRAPH_AUTH_URL.format(tenant=asset.tenant),
@@ -423,10 +464,10 @@ def test_connectivity(soar: SOARClient, asset: Asset) -> None:
         )
 
         auth_url = flow.get_authorization_url()
-        logger.progress(
+        logger.info(
             "Please connect to the following URL from a different tab to continue the connectivity process"
         )
-        logger.progress(auth_url)
+        logger.info(auth_url)
         flow.wait_for_authorization()
         logger.info("Successfully obtained token via authorization code flow")
 
