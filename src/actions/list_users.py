@@ -63,5 +63,7 @@ def list_users(
         resp = helper.make_rest_call_helper(endpoint, nextLink=next_link)
         api_params = None
 
-    soar.set_message(f"Successfully retrieved {len(users)} users")
+    soar.set_message(
+        f"Successfully retrieved {len(users)} {'user' if len(users) == 1 else 'users'}"
+    )
     return [UserOutput(**u) for u in users]

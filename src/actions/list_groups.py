@@ -64,5 +64,7 @@ def list_groups(
         resp = helper.make_rest_call_helper(endpoint, nextLink=next_link)
         api_params = None
 
-    soar.set_message(f"Successfully retrieved {len(groups)} groups")
+    soar.set_message(
+        f"Successfully retrieved {len(groups)} {'group' if len(groups) == 1 else 'groups'}"
+    )
     return [GroupOutput(**g) for g in groups]
