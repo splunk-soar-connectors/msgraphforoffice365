@@ -17,14 +17,14 @@ import json
 import os
 import re
 import time
-from collections.abc import Iterator
+from collections.abc import Generator, Iterator
 from html import unescape
 from pathlib import Path
 
 from bs4 import BeautifulSoup
 from soar_sdk.abstract import SOARClient
 from soar_sdk.app import App
-from soar_sdk.asset import AssetField, BaseAsset, FieldCategory
+from soar_sdk.asset import AssetField, BaseAsset, ESIngestMixin, FieldCategory
 from soar_sdk.auth import (
     AuthorizationCodeFlow,
     ClientCredentialsFlow,
@@ -38,7 +38,8 @@ from soar_sdk.extras.email.utils import clean_url, is_ip
 from soar_sdk.logging import getLogger
 from soar_sdk.models.artifact import Artifact
 from soar_sdk.models.container import Container
-from soar_sdk.params import OnPollParams
+from soar_sdk.models.finding import Finding
+from soar_sdk.params import OnESPollParams, OnPollParams
 
 from .consts import (
     MSGOFFICE365_CONTAINER_DESCRIPTION,
@@ -222,7 +223,7 @@ def _extract_hashes(body: str) -> set[str]:
     return set(re.findall(HASH_REGEX, body))
 
 
-class Asset(BaseAsset):
+class Asset(BaseAsset, ESIngestMixin):
     # Connectivity fields
     tenant: str = AssetField(
         required=True,
@@ -761,6 +762,107 @@ def on_poll(
     if not is_poll_now and latest_time:
         state["last_time"] = latest_time
         state["first_run"] = False
+
+
+@app.on_es_poll()
+def on_es_poll(
+    params: OnESPollParams, soar: SOARClient, asset: Asset
+) -> Generator[Finding, int | None]:
+    """Poll for new emails and create ES findings for each email."""
+    helper = MsGraphHelper(soar, asset)
+    helper.get_token()
+
+    state = getattr(asset, "ingest_state", None) or {}
+    email_address = asset.email_address
+    if not email_address:
+        raise ValueError("Email address is required for ES polling")
+
+    folder = asset.folder or MSGOFFICE365_DEFAULT_FOLDER
+    folder_id = folder
+    if asset.get_folder_id:
+        resolved_id = helper.get_folder_id(folder, email_address)
+        if resolved_id:
+            folder_id = resolved_id
+
+    is_first_run = state.get("es_first_run", True)
+    max_emails = asset.first_run_max_emails if is_first_run else asset.max_containers
+    last_time = state.get("es_last_time")
+
+    endpoint = f"/users/{email_address}/mailFolders/{folder_id}/messages"
+    select_fields = ",".join(MSGOFFICE365_SELECT_PARAMETER_LIST)
+    api_params = {
+        "$select": select_fields,
+        "$top": str(min(max_emails, MSGOFFICE365_PER_PAGE_COUNT)),
+        "$orderby": MSGOFFICE365_ORDERBY_RECEIVED_DESC
+        if asset.ingest_manner == "latest first"
+        else "receivedDateTime asc",
+    }
+
+    if last_time:
+        api_params["$filter"] = f"receivedDateTime gt {last_time}"
+
+    emails_processed = 0
+    latest_time = last_time
+
+    while emails_processed < max_emails:
+        resp = helper.make_rest_call_helper(endpoint, params=api_params)
+        emails = resp.get("value", [])
+
+        if not emails:
+            break
+
+        for email_data in emails:
+            if emails_processed >= max_emails:
+                break
+
+            email_time = email_data.get("receivedDateTime")
+            if email_time and (not latest_time or email_time > latest_time):
+                latest_time = email_time
+
+            email_id = email_data.get("id")
+            subject = email_data.get("subject") or email_id
+
+            container_id = yield Finding(
+                rule_title=f"Email: {subject[:100]}"
+                if subject
+                else f"Email ID: {email_id}",
+                security_domain=asset.es_security_domain,
+                urgency=asset.es_urgency,
+            )
+
+            if container_id and asset.extract_eml:
+                try:
+                    eml_content = helper.make_rest_call_helper(
+                        f"/users/{email_address}/messages/{email_id}/$value",
+                        download=True,
+                    )
+                    if eml_content:
+                        if isinstance(eml_content, str):
+                            eml_content = eml_content.encode("utf-8")
+                        soar.vault.create_attachment(
+                            container_id,
+                            file_content=eml_content,
+                            file_name=f"{subject[:50]}.eml",
+                            metadata={"type": "email", "email_id": email_id},
+                        )
+                except Exception as e:
+                    logger.warning(f"Failed to attach email EML: {e}")
+
+            emails_processed += 1
+
+        next_link = resp.get("@odata.nextLink")
+        if not next_link or emails_processed >= max_emails:
+            break
+        api_params = None
+        resp = helper.make_rest_call_helper(endpoint, nextLink=next_link)
+
+    if latest_time:
+        state["es_last_time"] = latest_time
+        state["es_first_run"] = False
+        if hasattr(asset, "ingest_state"):
+            asset.ingest_state.put_all(state)
+
+    logger.info(f"Processed {emails_processed} emails for ES findings")
 
 
 # Import action modules to register them with the app

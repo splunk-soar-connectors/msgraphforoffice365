@@ -577,6 +577,8 @@ This table lists the configuration variables required to operate MS Graph for Of
 
 VARIABLE | REQUIRED | TYPE | DESCRIPTION
 -------- | -------- | ---- | -----------
+**es_security_domain** | optional | string | Security domain for ES findings |
+**es_urgency** | optional | string | Urgency level for ES findings |
 **tenant** | required | string | Tenant ID (e.g. 1e309abf-db6c-XXXX-a1d2-XXXXXXXXXXXX) |
 **client_id** | required | string | Application ID |
 **auth_type** | required | string | Authentication type to use for connectivity |
@@ -606,6 +608,7 @@ VARIABLE | REQUIRED | TYPE | DESCRIPTION
 
 [test connectivity](#action-test-connectivity) - test connectivity <br>
 [on poll](#action-on-poll) - on poll <br>
+[on es poll](#action-on-es-poll) - Poll for new emails and create ES findings for each email. <br>
 [block sender](#action-block-sender) - Add a sender to the blocked senders list <br>
 [copy email](#action-copy-email) - Copy an email to a folder <br>
 [create folder](#action-create-folder) - Create a new mail folder <br>
@@ -672,6 +675,29 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 **container_count** | optional | Maximum number of container records to query for. | numeric | |
 **artifact_count** | optional | Maximum number of artifact records to query for. | numeric | |
 **container_id** | optional | Comma-separated list of container IDs to limit the ingestion to. | string | |
+
+#### Action Output
+
+No Output
+
+## action: 'on es poll'
+
+Poll for new emails and create ES findings for each email.
+
+Type: **ingest** <br>
+Read only: **True**
+
+Callback action for the on_es_poll ingest functionality
+
+#### Action Parameters
+
+PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
+--------- | -------- | ----------- | ---- | --------
+**start_time** | optional | Start of time range, in epoch time (milliseconds). | numeric | |
+**end_time** | optional | End of time range, in epoch time (milliseconds). | numeric | |
+**container_count** | optional | Maximum number of container records to query for. | numeric | |
+**es_base_url** | required | Base URL for the Splunk Enterprise Security API | string | |
+**es_session_key** | required | Session token for the Splunk Enterprise Security API | string | |
 
 #### Action Output
 
