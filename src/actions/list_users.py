@@ -26,7 +26,7 @@ class UserOutput(ActionOutput):
     jobTitle: str | None = None
     mobilePhone: str | None = None
     officeLocation: str | None = None
-    businessPhones: str | None = None
+    businessPhones: list[str] | None = None
 
 
 @app.action(description="Retrieve a list of users", action_type="investigate")

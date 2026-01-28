@@ -948,7 +948,7 @@ Read only: **True**
 
 PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 --------- | -------- | ----------- | ---- | --------
-**user_id** | required | User ID/Principal name | string | `msgoffice365 user id` `msgoffice365 user principal name` `email` |
+**email_address** | required | User's email address (mailbox) | string | `msgoffice365 user id` `msgoffice365 user principal name` `email` |
 **folder** | required | Folder name or path (e.g. 'Inbox' or 'Inbox/Subfolder') | string | |
 
 #### Action Output
@@ -957,7 +957,7 @@ DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
 --------- | ---- | -------- | --------------
 action_result.status | string | | success failure |
 action_result.message | string | | |
-action_result.parameter.user_id | string | `msgoffice365 user id` `msgoffice365 user principal name` `email` | |
+action_result.parameter.email_address | string | `msgoffice365 user id` `msgoffice365 user principal name` `email` | |
 action_result.parameter.folder | string | | |
 action_result.data.\*.folder_id | string | | |
 action_result.data.\*.folder_name | string | | |
@@ -1167,7 +1167,7 @@ action_result.data.\*.description | string | | |
 action_result.data.\*.mail | string | | |
 action_result.data.\*.mailEnabled | boolean | | True False |
 action_result.data.\*.mailNickname | string | | |
-action_result.data.\*.groupTypes | string | | |
+action_result.data.\*.groupTypes.\* | string | | |
 action_result.data.\*.createdDateTime | string | | |
 summary.total_objects | numeric | | 1 |
 summary.total_objects_successful | numeric | | 1 |
@@ -1234,7 +1234,7 @@ action_result.data.\*.mail | string | | |
 action_result.data.\*.jobTitle | string | | |
 action_result.data.\*.mobilePhone | string | | |
 action_result.data.\*.officeLocation | string | | |
-action_result.data.\*.businessPhones | string | | |
+action_result.data.\*.businessPhones.\* | string | | |
 summary.total_objects | numeric | | 1 |
 summary.total_objects_successful | numeric | | 1 |
 

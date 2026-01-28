@@ -23,7 +23,7 @@ class GroupOutput(ActionOutput):
     mail: str | None = None
     mailEnabled: bool | None = None
     mailNickname: str | None = None
-    groupTypes: str | None = None
+    groupTypes: list[str] | None = None
     createdDateTime: str | None = None
 
 

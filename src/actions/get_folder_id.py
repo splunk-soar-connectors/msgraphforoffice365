@@ -8,8 +8,8 @@ from ..helper import MsGraphHelper
 
 
 class GetFolderIdParams(Params):
-    user_id: str = Param(
-        description="User ID/Principal name",
+    email_address: str = Param(
+        description="User's email address (mailbox)",
         required=True,
         primary=True,
         cef_types=["msgoffice365 user id", "msgoffice365 user principal name", "email"],
@@ -34,11 +34,11 @@ def get_folder_id(
     helper = MsGraphHelper(soar, asset)
     helper.get_token()
 
-    folder_id = helper.get_folder_id(params.folder, params.user_id)
+    folder_id = helper.get_folder_id(params.folder, params.email_address)
     if not folder_id:
         raise ValueError(f"Could not find folder: {params.folder}")
 
-    endpoint = f"/users/{params.user_id}/mailFolders/{folder_id}"
+    endpoint = f"/users/{params.email_address}/mailFolders/{folder_id}"
     resp = helper.make_rest_call_helper(endpoint)
 
     soar.set_message(f"Successfully retrieved folder ID: {folder_id}")
