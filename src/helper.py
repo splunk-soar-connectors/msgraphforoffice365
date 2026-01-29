@@ -164,6 +164,12 @@ class MsGraphHelper:
                 data=data,
                 timeout=MSGOFFICE365_DEFAULT_REQUEST_TIMEOUT,
             )
+            if resp.status_code == 429:
+                retry_after = int(
+                    resp.headers.get("Retry-After", self._retry_wait_time)
+                )
+                time.sleep(min(retry_after, 60))
+                continue
             if resp.status_code != 502:
                 break
             time.sleep(self._retry_wait_time)
@@ -233,7 +239,7 @@ class MsGraphHelper:
             return None
 
         if folder_name.lower() in MSGOFFICE365_WELL_KNOWN_FOLDERS_FILTER:
-            return folder_name
+            return folder_name.lower()
 
         folders = folder_name.split("/")
         parent_folder_id = None

@@ -31,6 +31,10 @@ class FolderOutput(ActionOutput):
     totalItemCount: int | None = None
 
 
+class ListFoldersSummary(ActionOutput):
+    total_folders_returned: int = 0
+
+
 @app.action(description="Get the mail folder hierarchy", action_type="investigate")
 def list_folders(
     params: ListFoldersParams, soar: SOARClient, asset: Asset
@@ -56,4 +60,5 @@ def list_folders(
         resp = helper.make_rest_call_helper(endpoint, nextLink=next_link)
 
     soar.set_message(f"Successfully retrieved {len(folders)} folders")
+    soar.set_summary(ListFoldersSummary(total_folders_returned=len(folders)))
     return [FolderOutput(**f) for f in folders]
