@@ -47,9 +47,10 @@ def list_users(
         api_params["$top"] = str(params.limit)
 
     users = []
+    next_link = None
     while True:
         resp = helper.make_rest_call_helper(
-            endpoint, params=api_params if api_params else None
+            endpoint, params=api_params if api_params else None, nextLink=next_link
         )
         users.extend(resp.get("value", []))
 
@@ -60,7 +61,6 @@ def list_users(
         next_link = resp.get("@odata.nextLink")
         if not next_link:
             break
-        resp = helper.make_rest_call_helper(endpoint, nextLink=next_link)
         api_params = None
 
     soar.set_message(

@@ -76,15 +76,17 @@ def get_mailbox_messages(
         api_params["$skip"] = str(params.offset)
 
     messages = []
+    next_link = None
     while len(messages) < params.limit:
-        resp = helper.make_rest_call_helper(endpoint, params=api_params)
+        resp = helper.make_rest_call_helper(
+            endpoint, params=api_params, nextLink=next_link
+        )
         messages.extend(resp.get("value", []))
 
         next_link = resp.get("@odata.nextLink")
         if not next_link or len(messages) >= params.limit:
             break
         api_params = None
-        resp = helper.make_rest_call_helper(endpoint, nextLink=next_link)
 
     messages = messages[: params.limit]
     messages = [serialize_complex_fields(m, ["sender"]) for m in messages]

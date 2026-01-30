@@ -43,9 +43,10 @@ def list_group_members(
         api_params["$top"] = str(params.limit)
 
     members = []
+    next_link = None
     while True:
         resp = helper.make_rest_call_helper(
-            endpoint, params=api_params if api_params else None
+            endpoint, params=api_params if api_params else None, nextLink=next_link
         )
         members.extend(resp.get("value", []))
 
@@ -56,7 +57,6 @@ def list_group_members(
         next_link = resp.get("@odata.nextLink")
         if not next_link:
             break
-        resp = helper.make_rest_call_helper(endpoint, nextLink=next_link)
         api_params = None
 
     soar.set_message(f"Successfully retrieved {len(members)} members")

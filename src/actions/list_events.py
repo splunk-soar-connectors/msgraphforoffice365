@@ -86,9 +86,10 @@ def list_events(
         api_params["$top"] = str(params.limit)
 
     events = []
+    next_link = None
     while True:
         resp = helper.make_rest_call_helper(
-            endpoint, params=api_params if api_params else None
+            endpoint, params=api_params if api_params else None, nextLink=next_link
         )
         for event in resp.get("value", []):
             attendees = event.get("attendees", [])
@@ -104,7 +105,6 @@ def list_events(
         next_link = resp.get("@odata.nextLink")
         if not next_link:
             break
-        resp = helper.make_rest_call_helper(endpoint, nextLink=next_link)
         api_params = None
 
     events = [serialize_complex_fields(e, COMPLEX_EVENT_FIELDS) for e in events]

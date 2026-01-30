@@ -50,14 +50,14 @@ def list_folders(
         endpoint = f"/users/{params.user_id}/mailFolders"
 
     folders = []
+    next_link = None
     while True:
-        resp = helper.make_rest_call_helper(endpoint)
+        resp = helper.make_rest_call_helper(endpoint, nextLink=next_link)
         folders.extend(resp.get("value", []))
 
         next_link = resp.get("@odata.nextLink")
         if not next_link:
             break
-        resp = helper.make_rest_call_helper(endpoint, nextLink=next_link)
 
     soar.set_message(f"Successfully retrieved {len(folders)} folders")
     soar.set_summary(ListFoldersSummary(total_folders_returned=len(folders)))

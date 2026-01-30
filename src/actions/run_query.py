@@ -114,15 +114,17 @@ def run_query(
         api_params["$top"] = str(min(params.limit, MSGOFFICE365_PER_PAGE_COUNT))
 
     emails = []
+    next_link = None
     while len(emails) < params.limit:
-        resp = helper.make_rest_call_helper(endpoint, params=api_params)
+        resp = helper.make_rest_call_helper(
+            endpoint, params=api_params, nextLink=next_link
+        )
         emails.extend(resp.get("value", []))
 
         next_link = resp.get("@odata.nextLink")
         if not next_link:
             break
         api_params = None
-        resp = helper.make_rest_call_helper(endpoint, nextLink=next_link)
 
     emails = emails[: params.limit]
     emails = [serialize_complex_fields(e, ["sender"]) for e in emails]
