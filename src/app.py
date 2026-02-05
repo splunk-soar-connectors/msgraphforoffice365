@@ -24,7 +24,7 @@ from pathlib import Path
 from bs4 import BeautifulSoup
 from soar_sdk.abstract import SOARClient
 from soar_sdk.app import App
-from soar_sdk.asset import AssetField, BaseAsset, ESIngestMixin, FieldCategory
+from soar_sdk.asset import AssetField, BaseAsset, FieldCategory
 from soar_sdk.auth import (
     AuthorizationCodeFlow,
     ClientCredentialsFlow,
@@ -38,7 +38,7 @@ from soar_sdk.extras.email.utils import clean_url, is_ip
 from soar_sdk.logging import getLogger
 from soar_sdk.models.artifact import Artifact
 from soar_sdk.models.container import Container
-from soar_sdk.models.finding import Finding
+from soar_sdk.models.finding import Finding, FindingAttachment
 from soar_sdk.params import OnESPollParams, OnPollParams
 
 from .consts import (
@@ -223,7 +223,7 @@ def _extract_hashes(body: str) -> set[str]:
     return set(re.findall(HASH_REGEX, body))
 
 
-class Asset(BaseAsset, ESIngestMixin):
+class Asset(BaseAsset):
     # Connectivity fields
     tenant: str = AssetField(
         required=True,
@@ -822,31 +822,30 @@ def on_es_poll(
             email_id = email_data.get("id")
             subject = email_data.get("subject") or email_id
 
-            container_id = yield Finding(
+            attachments = []
+            try:
+                eml_content = helper.make_rest_call_helper(
+                    f"/users/{email_address}/messages/{email_id}/$value",
+                    download=True,
+                )
+                if eml_content:
+                    if isinstance(eml_content, str):
+                        eml_content = eml_content.encode("utf-8")
+                    attachments.append(
+                        FindingAttachment(
+                            file_name=f"{subject[:50]}.eml",
+                            data=eml_content,
+                        )
+                    )
+            except Exception as e:
+                logger.warning(f"Failed to fetch email EML: {e}")
+
+            yield Finding(
                 rule_title=f"Email: {subject[:100]}"
                 if subject
                 else f"Email ID: {email_id}",
-                security_domain=asset.es_security_domain,
-                urgency=asset.es_urgency,
+                attachments=attachments if attachments else None,
             )
-
-            if container_id and asset.extract_eml:
-                try:
-                    eml_content = helper.make_rest_call_helper(
-                        f"/users/{email_address}/messages/{email_id}/$value",
-                        download=True,
-                    )
-                    if eml_content:
-                        if isinstance(eml_content, str):
-                            eml_content = eml_content.encode("utf-8")
-                        soar.vault.create_attachment(
-                            container_id,
-                            file_content=eml_content,
-                            file_name=f"{subject[:50]}.eml",
-                            metadata={"type": "email", "email_id": email_id},
-                        )
-                except Exception as e:
-                    logger.warning(f"Failed to attach email EML: {e}")
 
             emails_processed += 1
 
