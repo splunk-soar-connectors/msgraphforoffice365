@@ -1,6 +1,6 @@
 # File: office365_connector.py
 #
-# Copyright (c) 2017-2025 Splunk Inc.
+# Copyright (c) 2017-2026 Splunk Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -2018,17 +2018,17 @@ class Office365Connector(BaseConnector):
 
         return action_result.set_status(phantom.APP_SUCCESS, "Successfully fetched email")
 
-    def _manage_data_duplication(self, emails, total_ingested, limit, max_emails):
+    def _manage_data_duplication(self, emails, total_ingested, max_emails, actual_processed):
         """
         This function handles the duplicate emails we get during the ingestion process.
 
         :param emails: Processed emails
         :param total_ingested: Total ingested emails till now
-        :param limit: Current pagination limit
         :param max_emails: Max emails to ingest
+        :param actual_processed: Actual number of emails processed (excluding connector-level skipped emails)
         :return: limit: next cycle pagination limit, total_ingested: Total ingested emails till now
         """
-        total_ingested_current_cycle = limit - self._duplicate_count
+        total_ingested_current_cycle = actual_processed - self._duplicate_count
         total_ingested += total_ingested_current_cycle
 
         remaining_count = max_emails - total_ingested
@@ -2119,8 +2119,13 @@ class Office365Connector(BaseConnector):
         # last modified time in the state file
         email_index = 0 if ingest_manner == "latest first" else -1
 
+        # Prevent duplicate ingestion in cross-poll (last_email_id) and intra-batch (seen_ids)
+        last_email_id = self._state.get("last_email_id", None)
+        seen_ids = {last_email_id} if last_email_id else set()
+
         while True:
             self._duplicate_count = 0
+            client_side_skipped = 0
             ret_val, emails = self._paginator(action_result, endpoint, limit=cur_limit, params=params)
             if phantom.is_fail(ret_val):
                 return action_result.get_status()
@@ -2135,9 +2140,16 @@ class Office365Connector(BaseConnector):
             if self.is_poll_now():
                 self.save_progress("Ingesting all possible artifacts (ignoring maximum artifacts value) for POLL NOW")
 
+            # Process all emails, checking each against seen_ids to handle out-of-order delivery
             for index, email in enumerate(emails):
+                email_id = email.get("id")
+                if email_id in seen_ids:
+                    client_side_skipped += 1
+                    continue
+                seen_ids.add(email_id)
+
                 try:
-                    self.send_progress("Processing email # {} with ID ending in: {}".format(index + 1, email["id"][-10:]))
+                    self.send_progress("Processing email # {} with ID ending in: {}".format(index + 1 - client_side_skipped, email["id"][-10:]))
                     ret_val = self._process_email_data(config, action_result, endpoint, email)
                     if phantom.is_fail(ret_val):
                         failed_email_ids += 1
@@ -2148,12 +2160,15 @@ class Office365Connector(BaseConnector):
                     error_msg = _get_error_msg_from_exception(e, self)
                     self.debug_print(f"Exception occurred while processing email ID: {email.get('id')}. {error_msg}")
 
-            if failed_email_ids == total_emails:
+            actual_processed = total_emails - client_side_skipped
+            if failed_email_ids == actual_processed and actual_processed > 0:
                 return action_result.set_status(
                     phantom.APP_ERROR,
                     "Error occurred while processing all the email IDs",
                 )
 
+            # Store last processed email ID to prevent duplicates on next poll
+            self._state["last_email_id"] = emails[email_index]["id"]
             if not self.is_poll_now():
                 last_time = datetime.strptime(emails[email_index]["lastModifiedDateTime"], O365_TIME_FORMAT).strftime(O365_TIME_FORMAT)
                 self._state["last_time"] = last_time
@@ -2164,12 +2179,13 @@ class Office365Connector(BaseConnector):
 
                 # Duplication logic should only work for the oldest first order and if we have more data on the server.
                 if total_emails >= cur_limit and email_index == -1:
-                    cur_limit, total_ingested = self._manage_data_duplication(emails, total_ingested, cur_limit, max_emails)
+                    cur_limit, total_ingested = self._manage_data_duplication(emails, total_ingested, max_emails, actual_processed)
                     if not cur_limit:
                         break
                 else:
                     break
             else:
+                self.save_state(deepcopy(self._state))
                 break
 
         # Update the 'first_run' value only if the ingestion gets successfully completed
