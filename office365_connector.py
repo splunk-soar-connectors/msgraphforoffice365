@@ -3238,9 +3238,12 @@ class Office365Connector(BaseConnector):
                 data["refresh_token"] = self._refresh_token
                 data["grant_type"] = "refresh_token"
             else:
-                return action_result.set_status(
-                    phantom.APP_ERROR,
-                    "Unexpected details retrieved from the state file.",
+                return (
+                    action_result.set_status(
+                        phantom.APP_ERROR,
+                        "Unexpected details retrieved from the state file.",
+                    ),
+                    None,
                 )
 
         self.debug_print("Generating token...")
