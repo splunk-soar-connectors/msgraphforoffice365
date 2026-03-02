@@ -1,10 +1,15 @@
 # Copyright (c) 2017-2026 Splunk Inc.
 
+import json
+from typing import TYPE_CHECKING
+
 from soar_sdk.abstract import SOARClient
 from soar_sdk.action_results import ActionOutput
 from soar_sdk.params import Param, Params
 
-from ..app import Asset, app
+
+if TYPE_CHECKING:
+    from ..app import Asset
 from ..consts import MSGOFFICE365_PER_PAGE_COUNT, MSGOFFICE365_SELECT_PARAMETER_LIST
 from ..helper import MsGraphHelper, serialize_complex_fields
 
@@ -64,6 +69,7 @@ class EmailResult(ActionOutput):
     receivedDateTime: str | None = None
     bodyPreview: str | None = None
     hasAttachments: bool | None = None
+    internetMessageId: str | None = None
     parentFolderId: str | None = None
 
 
@@ -71,9 +77,49 @@ class RunQuerySummary(ActionOutput):
     emails_matched: int = 0
 
 
-@app.action(description="Search emails in a mailbox", action_type="investigate")
+def _extract_sender_address(sender_json):
+    if not sender_json:
+        return None
+    try:
+        data = json.loads(sender_json) if isinstance(sender_json, str) else sender_json
+        return data.get("emailAddress", {}).get("address")
+    except (json.JSONDecodeError, AttributeError, ValueError):
+        return None
+
+
+def render_run_query(output: list[EmailResult]) -> dict:
+    emails = []
+    for item in output:
+        emails.append(
+            {
+                "id": item.id,
+                "subject": item.subject,
+                "sender_address": _extract_sender_address(item.sender),
+                "received_date_time": item.receivedDateTime,
+                "body_preview": item.bodyPreview,
+                "internet_message_id": item.internetMessageId,
+            }
+        )
+
+    results = [
+        {
+            "data": bool(emails),
+            "param_email_address": None,
+            "param_folder": None,
+            "param_get_folder_id": None,
+            "param_subject": None,
+            "param_body": None,
+            "param_sender": None,
+            "param_limit": None,
+            "param_internet_message_id": None,
+            "emails": emails,
+        }
+    ]
+    return {"results": results}
+
+
 def run_query(
-    params: RunQueryParams, soar: SOARClient, asset: Asset
+    params: RunQueryParams, soar: SOARClient, asset: "Asset"
 ) -> list[EmailResult]:
     if params.limit is not None and params.limit <= 0:
         raise ValueError("'limit' action parameter must be a positive integer")

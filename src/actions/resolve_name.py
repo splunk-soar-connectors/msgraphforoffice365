@@ -1,9 +1,13 @@
 # Copyright (c) 2017-2026 Splunk Inc.
+from typing import TYPE_CHECKING
+
 from soar_sdk.abstract import SOARClient
 from soar_sdk.action_results import ActionOutput
 from soar_sdk.params import Param, Params
 
-from ..app import Asset, app
+
+if TYPE_CHECKING:
+    from ..app import Asset
 from ..helper import MsGraphHelper
 
 
@@ -26,9 +30,30 @@ class ResolvedContact(ActionOutput):
     id: str | None = None
 
 
-@app.action(description="Resolve a name to email addresses", action_type="investigate")
+def render_resolve_name(output: list[ResolvedContact]) -> dict:
+    contacts = []
+    for item in output:
+        contacts.append(
+            {
+                "id": item.id,
+                "user_principal_name": item.userPrincipalName,
+                "display_name": item.displayName,
+                "email_address": item.emailAddress,
+            }
+        )
+
+    results = [
+        {
+            "data": bool(contacts),
+            "email": None,
+            "contacts": contacts,
+        }
+    ]
+    return {"results": results}
+
+
 def resolve_name(
-    params: ResolveNameParams, soar: SOARClient, asset: Asset
+    params: ResolveNameParams, soar: SOARClient, asset: "Asset"
 ) -> list[ResolvedContact]:
     helper = MsGraphHelper(soar, asset)
     helper.get_token()

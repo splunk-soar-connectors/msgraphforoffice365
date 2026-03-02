@@ -1,7 +1,7 @@
 # MS Graph for Office 365
 
 Publisher: Splunk <br>
-Connector Version: 4.2.1 <br>
+Connector Version: 4.2.2 <br>
 Product Vendor: Microsoft <br>
 Product Name: Office 365 (MS Graph) <br>
 Minimum Product Version: 7.0.0
@@ -577,8 +577,6 @@ This table lists the configuration variables required to operate MS Graph for Of
 
 VARIABLE | REQUIRED | TYPE | DESCRIPTION
 -------- | -------- | ---- | -----------
-**es_security_domain** | optional | string | Security domain for ES findings |
-**es_urgency** | optional | string | Urgency level for ES findings |
 **tenant** | required | string | Tenant ID (e.g. 1e309abf-db6c-XXXX-a1d2-XXXXXXXXXXXX) |
 **client_id** | required | string | Application ID |
 **auth_type** | required | string | Authentication type to use for connectivity |
@@ -609,31 +607,31 @@ VARIABLE | REQUIRED | TYPE | DESCRIPTION
 [test connectivity](#action-test-connectivity) - test connectivity <br>
 [on poll](#action-on-poll) - on poll <br>
 [on es poll](#action-on-es-poll) - Poll for new emails and create ES findings for each email. <br>
-[block sender](#action-block-sender) - Add a sender to the blocked senders list <br>
 [copy email](#action-copy-email) - Copy an email to a folder <br>
 [create folder](#action-create-folder) - Create a new mail folder <br>
 [delete email](#action-delete-email) - Delete an email <br>
 [delete event](#action-delete-event) - Delete an event <br>
 [generate token](#action-generate-token) - Generates a new access token <br>
-[get email](#action-get-email) - Get an email from the server <br>
 [get email properties](#action-get-email-properties) - Get properties of an email <br>
 [get folder id](#action-get-folder-id) - Get the ID of a mail folder <br>
 [get mailbox messages](#action-get-mailbox-messages) - Get messages from a mailbox folder <br>
-[get rule](#action-get-rule) - Get the properties and relationships of a messageRule object <br>
-[list events](#action-list-events) - List events from user or group calendar <br>
 [list folders](#action-list-folders) - Get the mail folder hierarchy <br>
 [list group members](#action-list-group-members) - Get group members <br>
 [list groups](#action-list-groups) - List all the groups in an organization, including but not limited to Office 365 groups <br>
-[list rules](#action-list-rules) - Get all the messageRule objects defined for the user's inbox <br>
 [list users](#action-list-users) - Retrieve a list of users <br>
 [move email](#action-move-email) - Move an email to a folder <br>
 [oof check](#action-oof-check) - Get user's out of office status <br>
 [report message](#action-report-message) - Add the sender email into the report <br>
-[resolve name](#action-resolve-name) - Resolve a name to email addresses <br>
-[run query](#action-run-query) - Search emails in a mailbox <br>
 [send email](#action-send-email) - Send an email <br>
 [unblock sender](#action-unblock-sender) - Remove a sender from the blocked senders list <br>
-[update email](#action-update-email) - Update properties of an email
+[update email](#action-update-email) - Update properties of an email <br>
+[get email](#action-get-email) - Get an email from the server <br>
+[list events](#action-list-events) - List events from user or group calendar <br>
+[get rule](#action-get-rule) - Get the properties and relationships of a messageRule object <br>
+[list rules](#action-list-rules) - Get all the messageRule objects defined for the user's inbox <br>
+[resolve name](#action-resolve-name) - Resolve a name to email addresses <br>
+[run query](#action-run-query) - Search emails in a mailbox <br>
+[block sender](#action-block-sender) - Add a sender to the blocked senders list
 
 ## action: 'test connectivity'
 
@@ -695,39 +693,11 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 --------- | -------- | ----------- | ---- | --------
 **start_time** | optional | Start of time range, in epoch time (milliseconds). | numeric | |
 **end_time** | optional | End of time range, in epoch time (milliseconds). | numeric | |
-**container_count** | optional | Maximum number of container records to query for. | numeric | |
-**es_base_url** | required | Base URL for the Splunk Enterprise Security API | string | |
-**es_session_key** | required | Session token for the Splunk Enterprise Security API | string | |
+**container_count** | optional | Maximum number of findings to query for. | numeric | |
 
 #### Action Output
 
 No Output
-
-## action: 'block sender'
-
-Add a sender to the blocked senders list
-
-Type: **contain** <br>
-Read only: **True**
-
-#### Action Parameters
-
-PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
---------- | -------- | ----------- | ---- | --------
-**email_address** | required | User's email address (mailbox) | string | `email` |
-**sender** | required | Email address of sender to block | string | `email` |
-
-#### Action Output
-
-DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
---------- | ---- | -------- | --------------
-action_result.status | string | | success failure |
-action_result.message | string | | |
-action_result.parameter.email_address | string | `email` | |
-action_result.parameter.sender | string | `email` | |
-action_result.data.\*.message | string | | |
-summary.total_objects | numeric | | 1 |
-summary.total_objects_successful | numeric | | 1 |
 
 ## action: 'copy email'
 
@@ -870,52 +840,6 @@ action_result.data.\*.message | string | | |
 summary.total_objects | numeric | | 1 |
 summary.total_objects_successful | numeric | | 1 |
 
-## action: 'get email'
-
-Get an email from the server
-
-Type: **investigate** <br>
-Read only: **True**
-
-#### Action Parameters
-
-PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
---------- | -------- | ----------- | ---- | --------
-**id** | required | Message ID to get | string | `msgoffice365 message id` |
-**email_address** | required | User's email address (mailbox) | string | `email` |
-**get_headers** | optional | Get email headers | boolean | |
-**download_attachments** | optional | Download attachments | boolean | |
-**download_email** | optional | Download email as EML file | boolean | |
-
-#### Action Output
-
-DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
---------- | ---- | -------- | --------------
-action_result.status | string | | success failure |
-action_result.message | string | | |
-action_result.parameter.id | string | `msgoffice365 message id` | |
-action_result.parameter.email_address | string | `email` | |
-action_result.parameter.get_headers | boolean | | |
-action_result.parameter.download_attachments | boolean | | |
-action_result.parameter.download_email | boolean | | |
-action_result.data.\*.id | string | | |
-action_result.data.\*.subject | string | | |
-action_result.data.\*.body | string | | |
-action_result.data.\*.bodyPreview | string | | |
-action_result.data.\*.sender | string | | |
-action_result.data.\*.toRecipients | string | | |
-action_result.data.\*.ccRecipients | string | | |
-action_result.data.\*.bccRecipients | string | | |
-action_result.data.\*.receivedDateTime | string | | |
-action_result.data.\*.sentDateTime | string | | |
-action_result.data.\*.hasAttachments | boolean | | True False |
-action_result.data.\*.importance | string | | |
-action_result.data.\*.isRead | boolean | | True False |
-action_result.data.\*.internetMessageHeaders | string | | |
-action_result.data.\*.attachments | string | | |
-summary.total_objects | numeric | | 1 |
-summary.total_objects_successful | numeric | | 1 |
-
 ## action: 'get email properties'
 
 Get properties of an email
@@ -1031,79 +955,6 @@ action_result.data.\*.importance | string | | |
 summary.total_objects | numeric | | 1 |
 summary.total_objects_successful | numeric | | 1 |
 
-## action: 'get rule'
-
-Get the properties and relationships of a messageRule object
-
-Type: **investigate** <br>
-Read only: **True**
-
-#### Action Parameters
-
-PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
---------- | -------- | ----------- | ---- | --------
-**user_id** | required | User ID/Principal name | string | `msgoffice365 user id` `msgoffice365 user principal name` `email` |
-**rule_id** | required | Inbox rule ID | string | `msgoffice365 rule id` |
-
-#### Action Output
-
-DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
---------- | ---- | -------- | --------------
-action_result.status | string | | success failure |
-action_result.message | string | | |
-action_result.parameter.user_id | string | `msgoffice365 user id` `msgoffice365 user principal name` `email` | |
-action_result.parameter.rule_id | string | `msgoffice365 rule id` | |
-action_result.data.\*.id | string | | |
-action_result.data.\*.displayName | string | | |
-action_result.data.\*.sequence | numeric | | |
-action_result.data.\*.isEnabled | boolean | | True False |
-action_result.data.\*.isReadOnly | boolean | | True False |
-action_result.data.\*.hasError | boolean | | True False |
-action_result.data.\*.conditions | string | | |
-action_result.data.\*.actions | string | | |
-summary.total_objects | numeric | | 1 |
-summary.total_objects_successful | numeric | | 1 |
-
-## action: 'list events'
-
-List events from user or group calendar
-
-Type: **investigate** <br>
-Read only: **True**
-
-#### Action Parameters
-
-PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
---------- | -------- | ----------- | ---- | --------
-**user_id** | optional | User ID/Principal name | string | `msgoffice365 user id` `msgoffice365 user principal name` `email` |
-**group_id** | optional | Group ID | string | `msgoffice365 group id` |
-**filter** | optional | OData query to filter/search for specific results | string | |
-**limit** | optional | Maximum number of events to return | numeric | |
-
-#### Action Output
-
-DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
---------- | ---- | -------- | --------------
-action_result.status | string | | success failure |
-action_result.message | string | | |
-action_result.parameter.user_id | string | `msgoffice365 user id` `msgoffice365 user principal name` `email` | |
-action_result.parameter.group_id | string | `msgoffice365 group id` | |
-action_result.parameter.filter | string | | |
-action_result.parameter.limit | numeric | | |
-action_result.data.\*.id | string | | |
-action_result.data.\*.subject | string | | |
-action_result.data.\*.bodyPreview | string | | |
-action_result.data.\*.start | string | | |
-action_result.data.\*.end | string | | |
-action_result.data.\*.location | string | | |
-action_result.data.\*.organizer | string | | |
-action_result.data.\*.attendees | string | | |
-action_result.data.\*.isAllDay | boolean | | True False |
-action_result.data.\*.isCancelled | boolean | | True False |
-action_result.data.\*.webLink | string | | |
-summary.total_objects | numeric | | 1 |
-summary.total_objects_successful | numeric | | 1 |
-
 ## action: 'list folders'
 
 Get the mail folder hierarchy
@@ -1195,37 +1046,6 @@ action_result.data.\*.mailEnabled | boolean | | True False |
 action_result.data.\*.mailNickname | string | | |
 action_result.data.\*.groupTypes.\* | string | | |
 action_result.data.\*.createdDateTime | string | | |
-summary.total_objects | numeric | | 1 |
-summary.total_objects_successful | numeric | | 1 |
-
-## action: 'list rules'
-
-Get all the messageRule objects defined for the user's inbox
-
-Type: **investigate** <br>
-Read only: **True**
-
-#### Action Parameters
-
-PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
---------- | -------- | ----------- | ---- | --------
-**user_id** | required | User ID/Principal name | string | `msgoffice365 user id` `msgoffice365 user principal name` `email` |
-
-#### Action Output
-
-DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
---------- | ---- | -------- | --------------
-action_result.status | string | | success failure |
-action_result.message | string | | |
-action_result.parameter.user_id | string | `msgoffice365 user id` `msgoffice365 user principal name` `email` | |
-action_result.data.\*.id | string | | |
-action_result.data.\*.displayName | string | | |
-action_result.data.\*.sequence | numeric | | |
-action_result.data.\*.isEnabled | boolean | | True False |
-action_result.data.\*.isReadOnly | boolean | | True False |
-action_result.data.\*.hasError | boolean | | True False |
-action_result.data.\*.conditions | string | | |
-action_result.data.\*.actions | string | | |
 summary.total_objects | numeric | | 1 |
 summary.total_objects_successful | numeric | | 1 |
 
@@ -1355,81 +1175,6 @@ action_result.data.\*.message | string | | |
 summary.total_objects | numeric | | 1 |
 summary.total_objects_successful | numeric | | 1 |
 
-## action: 'resolve name'
-
-Resolve a name to email addresses
-
-Type: **investigate** <br>
-Read only: **True**
-
-#### Action Parameters
-
-PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
---------- | -------- | ----------- | ---- | --------
-**email_address** | required | User's email address (mailbox) | string | `email` |
-**name** | required | Name or email to resolve | string | |
-
-#### Action Output
-
-DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
---------- | ---- | -------- | --------------
-action_result.status | string | | success failure |
-action_result.message | string | | |
-action_result.parameter.email_address | string | `email` | |
-action_result.parameter.name | string | | |
-action_result.data.\*.displayName | string | | |
-action_result.data.\*.emailAddress | string | | |
-action_result.data.\*.userPrincipalName | string | | |
-action_result.data.\*.id | string | | |
-summary.total_objects | numeric | | 1 |
-summary.total_objects_successful | numeric | | 1 |
-
-## action: 'run query'
-
-Search emails in a mailbox
-
-Type: **investigate** <br>
-Read only: **True**
-
-#### Action Parameters
-
-PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
---------- | -------- | ----------- | ---- | --------
-**email_address** | required | User's email address (mailbox) | string | `email` |
-**folder** | optional | Folder name/path or ID | string | |
-**get_folder_id** | optional | Retrieve folder ID from folder name/path | boolean | |
-**subject** | optional | Substring to search in subject | string | |
-**sender** | optional | Sender email to search | string | |
-**body** | optional | Substring to search in body | string | |
-**internet_message_id** | optional | Internet Message ID to search | string | |
-**limit** | optional | Maximum number of emails to return | numeric | |
-**search_well_known_folders** | optional | Search in well-known folders | boolean | |
-
-#### Action Output
-
-DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
---------- | ---- | -------- | --------------
-action_result.status | string | | success failure |
-action_result.message | string | | |
-action_result.parameter.email_address | string | `email` | |
-action_result.parameter.folder | string | | |
-action_result.parameter.get_folder_id | boolean | | |
-action_result.parameter.subject | string | | |
-action_result.parameter.sender | string | | |
-action_result.parameter.body | string | | |
-action_result.parameter.internet_message_id | string | | |
-action_result.parameter.limit | numeric | | |
-action_result.parameter.search_well_known_folders | boolean | | |
-action_result.data.\*.id | string | | |
-action_result.data.\*.subject | string | | |
-action_result.data.\*.sender | string | | |
-action_result.data.\*.receivedDateTime | string | | |
-action_result.data.\*.bodyPreview | string | | |
-action_result.data.\*.hasAttachments | boolean | | True False |
-action_result.data.\*.parentFolderId | string | | |
-summary.total_objects | numeric | | 1 |
-summary.total_objects_successful | numeric | | 1 |
-
 ## action: 'send email'
 
 Send an email
@@ -1522,6 +1267,262 @@ action_result.data.\*.id | string | | |
 action_result.data.\*.subject | string | | |
 action_result.data.\*.isRead | boolean | | True False |
 action_result.data.\*.categories | string | | |
+summary.total_objects | numeric | | 1 |
+summary.total_objects_successful | numeric | | 1 |
+
+## action: 'get email'
+
+Get an email from the server
+
+Type: **investigate** <br>
+Read only: **True**
+
+#### Action Parameters
+
+PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
+--------- | -------- | ----------- | ---- | --------
+**id** | required | Message ID to get | string | `msgoffice365 message id` |
+**email_address** | required | User's email address (mailbox) | string | `email` |
+**get_headers** | optional | Get email headers | boolean | |
+**download_attachments** | optional | Download attachments | boolean | |
+**download_email** | optional | Download email as EML file | boolean | |
+
+#### Action Output
+
+DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
+--------- | ---- | -------- | --------------
+action_result.status | string | | success failure |
+action_result.message | string | | |
+action_result.parameter.id | string | `msgoffice365 message id` | |
+action_result.parameter.email_address | string | `email` | |
+action_result.parameter.get_headers | boolean | | |
+action_result.parameter.download_attachments | boolean | | |
+action_result.parameter.download_email | boolean | | |
+action_result.data.\*.id | string | | |
+action_result.data.\*.subject | string | | |
+action_result.data.\*.body | string | | |
+action_result.data.\*.bodyPreview | string | | |
+action_result.data.\*.sender | string | | |
+action_result.data.\*.from_field | string | | |
+action_result.data.\*.toRecipients | string | | |
+action_result.data.\*.ccRecipients | string | | |
+action_result.data.\*.bccRecipients | string | | |
+action_result.data.\*.receivedDateTime | string | | |
+action_result.data.\*.sentDateTime | string | | |
+action_result.data.\*.hasAttachments | boolean | | True False |
+action_result.data.\*.importance | string | | |
+action_result.data.\*.isRead | boolean | | True False |
+action_result.data.\*.internetMessageId | string | | |
+action_result.data.\*.internetMessageHeaders | string | | |
+action_result.data.\*.attachments | string | | |
+action_result.data.\*.event_id | string | | |
+summary.total_objects | numeric | | 1 |
+summary.total_objects_successful | numeric | | 1 |
+
+## action: 'list events'
+
+List events from user or group calendar
+
+Type: **investigate** <br>
+Read only: **True**
+
+#### Action Parameters
+
+PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
+--------- | -------- | ----------- | ---- | --------
+**user_id** | optional | User ID/Principal name | string | `msgoffice365 user id` `msgoffice365 user principal name` `email` |
+**group_id** | optional | Group ID | string | `msgoffice365 group id` |
+**filter** | optional | OData query to filter/search for specific results | string | |
+**limit** | optional | Maximum number of events to return | numeric | |
+
+#### Action Output
+
+DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
+--------- | ---- | -------- | --------------
+action_result.status | string | | success failure |
+action_result.message | string | | |
+action_result.parameter.user_id | string | `msgoffice365 user id` `msgoffice365 user principal name` `email` | |
+action_result.parameter.group_id | string | `msgoffice365 group id` | |
+action_result.parameter.filter | string | | |
+action_result.parameter.limit | numeric | | |
+action_result.data.\*.id | string | | |
+action_result.data.\*.subject | string | | |
+action_result.data.\*.bodyPreview | string | | |
+action_result.data.\*.start | string | | |
+action_result.data.\*.end | string | | |
+action_result.data.\*.location | string | | |
+action_result.data.\*.organizer | string | | |
+action_result.data.\*.attendees | string | | |
+action_result.data.\*.attendee_list | string | | |
+action_result.data.\*.isAllDay | boolean | | True False |
+action_result.data.\*.isCancelled | boolean | | True False |
+action_result.data.\*.webLink | string | | |
+summary.total_objects | numeric | | 1 |
+summary.total_objects_successful | numeric | | 1 |
+
+## action: 'get rule'
+
+Get the properties and relationships of a messageRule object
+
+Type: **investigate** <br>
+Read only: **True**
+
+#### Action Parameters
+
+PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
+--------- | -------- | ----------- | ---- | --------
+**user_id** | required | User ID/Principal name | string | `msgoffice365 user id` `msgoffice365 user principal name` `email` |
+**rule_id** | required | Inbox rule ID | string | `msgoffice365 rule id` |
+
+#### Action Output
+
+DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
+--------- | ---- | -------- | --------------
+action_result.status | string | | success failure |
+action_result.message | string | | |
+action_result.parameter.user_id | string | `msgoffice365 user id` `msgoffice365 user principal name` `email` | |
+action_result.parameter.rule_id | string | `msgoffice365 rule id` | |
+action_result.data.\*.id | string | | |
+action_result.data.\*.displayName | string | | |
+action_result.data.\*.sequence | numeric | | |
+action_result.data.\*.isEnabled | boolean | | True False |
+action_result.data.\*.isReadOnly | boolean | | True False |
+action_result.data.\*.hasError | boolean | | True False |
+action_result.data.\*.conditions | string | | |
+action_result.data.\*.actions | string | | |
+summary.total_objects | numeric | | 1 |
+summary.total_objects_successful | numeric | | 1 |
+
+## action: 'list rules'
+
+Get all the messageRule objects defined for the user's inbox
+
+Type: **investigate** <br>
+Read only: **True**
+
+#### Action Parameters
+
+PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
+--------- | -------- | ----------- | ---- | --------
+**user_id** | required | User ID/Principal name | string | `msgoffice365 user id` `msgoffice365 user principal name` `email` |
+
+#### Action Output
+
+DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
+--------- | ---- | -------- | --------------
+action_result.status | string | | success failure |
+action_result.message | string | | |
+action_result.parameter.user_id | string | `msgoffice365 user id` `msgoffice365 user principal name` `email` | |
+action_result.data.\*.id | string | | |
+action_result.data.\*.displayName | string | | |
+action_result.data.\*.sequence | numeric | | |
+action_result.data.\*.isEnabled | boolean | | True False |
+action_result.data.\*.isReadOnly | boolean | | True False |
+action_result.data.\*.hasError | boolean | | True False |
+action_result.data.\*.conditions | string | | |
+action_result.data.\*.actions | string | | |
+summary.total_objects | numeric | | 1 |
+summary.total_objects_successful | numeric | | 1 |
+
+## action: 'resolve name'
+
+Resolve a name to email addresses
+
+Type: **investigate** <br>
+Read only: **True**
+
+#### Action Parameters
+
+PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
+--------- | -------- | ----------- | ---- | --------
+**email_address** | required | User's email address (mailbox) | string | `email` |
+**name** | required | Name or email to resolve | string | |
+
+#### Action Output
+
+DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
+--------- | ---- | -------- | --------------
+action_result.status | string | | success failure |
+action_result.message | string | | |
+action_result.parameter.email_address | string | `email` | |
+action_result.parameter.name | string | | |
+action_result.data.\*.displayName | string | | |
+action_result.data.\*.emailAddress | string | | |
+action_result.data.\*.userPrincipalName | string | | |
+action_result.data.\*.id | string | | |
+summary.total_objects | numeric | | 1 |
+summary.total_objects_successful | numeric | | 1 |
+
+## action: 'run query'
+
+Search emails in a mailbox
+
+Type: **investigate** <br>
+Read only: **True**
+
+#### Action Parameters
+
+PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
+--------- | -------- | ----------- | ---- | --------
+**email_address** | required | User's email address (mailbox) | string | `email` |
+**folder** | optional | Folder name/path or ID | string | |
+**get_folder_id** | optional | Retrieve folder ID from folder name/path | boolean | |
+**subject** | optional | Substring to search in subject | string | |
+**sender** | optional | Sender email to search | string | |
+**body** | optional | Substring to search in body | string | |
+**internet_message_id** | optional | Internet Message ID to search | string | |
+**limit** | optional | Maximum number of emails to return | numeric | |
+**search_well_known_folders** | optional | Search in well-known folders | boolean | |
+
+#### Action Output
+
+DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
+--------- | ---- | -------- | --------------
+action_result.status | string | | success failure |
+action_result.message | string | | |
+action_result.parameter.email_address | string | `email` | |
+action_result.parameter.folder | string | | |
+action_result.parameter.get_folder_id | boolean | | |
+action_result.parameter.subject | string | | |
+action_result.parameter.sender | string | | |
+action_result.parameter.body | string | | |
+action_result.parameter.internet_message_id | string | | |
+action_result.parameter.limit | numeric | | |
+action_result.parameter.search_well_known_folders | boolean | | |
+action_result.data.\*.id | string | | |
+action_result.data.\*.subject | string | | |
+action_result.data.\*.sender | string | | |
+action_result.data.\*.receivedDateTime | string | | |
+action_result.data.\*.bodyPreview | string | | |
+action_result.data.\*.hasAttachments | boolean | | True False |
+action_result.data.\*.internetMessageId | string | | |
+action_result.data.\*.parentFolderId | string | | |
+summary.total_objects | numeric | | 1 |
+summary.total_objects_successful | numeric | | 1 |
+
+## action: 'block sender'
+
+Add a sender to the blocked senders list
+
+Type: **contain** <br>
+Read only: **True**
+
+#### Action Parameters
+
+PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
+--------- | -------- | ----------- | ---- | --------
+**email_address** | required | User's email address (mailbox) | string | `email` |
+**sender** | required | Email address of sender to block | string | `email` |
+
+#### Action Output
+
+DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
+--------- | ---- | -------- | --------------
+action_result.status | string | | success failure |
+action_result.message | string | | |
+action_result.parameter.email_address | string | `email` | |
+action_result.parameter.sender | string | `email` | |
+action_result.data.\*.message | string | | |
 summary.total_objects | numeric | | 1 |
 summary.total_objects_successful | numeric | | 1 |
 

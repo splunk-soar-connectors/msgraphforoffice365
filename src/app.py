@@ -872,25 +872,86 @@ from .actions import (  # noqa: F401
     delete_email,
     delete_event,
     generate_token,
-    get_email,
     get_email_properties,
     get_folder_id,
     get_mailbox_messages,
-    get_rule,
-    list_events,
     list_folders,
     list_group_members,
     list_groups,
-    list_rules,
     list_users,
     move_email,
     oof_check,
     report_message,
-    resolve_name,
-    run_query,
     send_email,
     unblock_sender,
     update_email,
+)
+
+# Register actions that use custom views
+from .actions.get_email import get_email, render_get_email
+
+
+app.register_action(
+    get_email,
+    description="Get an email from the server",
+    action_type="investigate",
+    view_handler=render_get_email,
+    view_template="office365_get_email.html",
+)
+
+from .actions.list_events import list_events, render_list_events
+
+
+app.register_action(
+    list_events,
+    description="List events from user or group calendar",
+    action_type="investigate",
+    view_handler=render_list_events,
+    view_template="office365_list_events.html",
+)
+
+from .actions.get_rule import get_rule, render_get_rule
+
+
+app.register_action(
+    get_rule,
+    description="Get the properties and relationships of a messageRule object",
+    action_type="investigate",
+    view_handler=render_get_rule,
+    view_template="office365_get_rule.html",
+)
+
+from .actions.list_rules import list_rules, render_list_rules
+
+
+app.register_action(
+    list_rules,
+    description="Get all the messageRule objects defined for the user's inbox",
+    action_type="investigate",
+    view_handler=render_list_rules,
+    view_template="office365_list_rules.html",
+)
+
+from .actions.resolve_name import render_resolve_name, resolve_name
+
+
+app.register_action(
+    resolve_name,
+    description="Resolve a name to email addresses",
+    action_type="investigate",
+    view_handler=render_resolve_name,
+    view_template="office365_resolve_name.html",
+)
+
+from .actions.run_query import render_run_query, run_query
+
+
+app.register_action(
+    run_query,
+    description="Search emails in a mailbox",
+    action_type="investigate",
+    view_handler=render_run_query,
+    view_template="office365_run_query.html",
 )
 
 

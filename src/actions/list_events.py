@@ -1,10 +1,15 @@
 # Copyright (c) 2017-2026 Splunk Inc.
 
+import json
+from typing import TYPE_CHECKING
+
 from soar_sdk.abstract import SOARClient
 from soar_sdk.action_results import ActionOutput
 from soar_sdk.params import Param, Params
 
-from ..app import Asset, app
+
+if TYPE_CHECKING:
+    from ..app import Asset
 from ..helper import MsGraphHelper, serialize_complex_fields
 
 
@@ -42,6 +47,7 @@ class EventOutput(ActionOutput):
     location: str | None = None
     organizer: str | None = None
     attendees: str | None = None
+    attendee_list: str | None = None
     isAllDay: bool | None = None
     isCancelled: bool | None = None
     webLink: str | None = None
@@ -50,11 +56,51 @@ class EventOutput(ActionOutput):
 COMPLEX_EVENT_FIELDS = ["start", "end", "location", "organizer", "attendees"]
 
 
-@app.action(
-    description="List events from user or group calendar", action_type="investigate"
-)
+def _parse_json_field(val):
+    if not val:
+        return None
+    if isinstance(val, str):
+        try:
+            return json.loads(val)
+        except (json.JSONDecodeError, ValueError):
+            return None
+    return val
+
+
+def render_list_events(output: list[EventOutput]) -> dict:
+    events = []
+    for item in output:
+        start_data = _parse_json_field(item.start)
+        end_data = _parse_json_field(item.end)
+        events.append(
+            {
+                "id": item.id,
+                "subject": item.subject,
+                "start_time": start_data.get("dateTime")
+                if isinstance(start_data, dict)
+                else None,
+                "end_time": end_data.get("dateTime")
+                if isinstance(end_data, dict)
+                else None,
+                "attendee_list": item.attendee_list,
+            }
+        )
+
+    results = [
+        {
+            "data": bool(events),
+            "user_id": None,
+            "group_id": None,
+            "limit": None,
+            "filter": None,
+            "events": events,
+        }
+    ]
+    return {"results": results}
+
+
 def list_events(
-    params: ListEventsParams, soar: SOARClient, asset: Asset
+    params: ListEventsParams, soar: SOARClient, asset: "Asset"
 ) -> list[EventOutput]:
     if params.limit is not None and params.limit < 0:
         raise ValueError("'limit' action parameter must be a non-negative integer")
