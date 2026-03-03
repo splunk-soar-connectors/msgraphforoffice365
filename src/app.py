@@ -34,11 +34,12 @@ from soar_sdk.extras.email.processor import (
     IP_REGEX,
     URI_REGEX,
 )
+from soar_sdk.extras.email.rfc5322 import extract_rfc5322_email_data
 from soar_sdk.extras.email.utils import clean_url, is_ip
 from soar_sdk.logging import getLogger
 from soar_sdk.models.artifact import Artifact
 from soar_sdk.models.container import Container
-from soar_sdk.models.finding import Finding, FindingAttachment
+from soar_sdk.models.finding import Finding, FindingAttachment, FindingEmail
 from soar_sdk.params import OnESPollParams, OnPollParams
 
 from .consts import (
@@ -822,44 +823,79 @@ def on_es_poll(
             email_id = email_data.get("id")
             subject = email_data.get("subject") or email_id
 
-            attachments = []
+            finding_email = None
+            attachments: list[FindingAttachment] = []
+
             try:
                 eml_content = helper.make_rest_call_helper(
                     f"/users/{email_address}/messages/{email_id}/$value",
                     download=True,
                 )
                 if eml_content:
-                    if isinstance(eml_content, str):
-                        eml_content = eml_content.encode("utf-8")
+                    raw_eml = (
+                        eml_content.encode("utf-8")
+                        if isinstance(eml_content, str)
+                        else eml_content
+                    )
+                    eml_str = (
+                        eml_content
+                        if isinstance(eml_content, str)
+                        else eml_content.decode("utf-8", errors="replace")
+                    )
                     attachments.append(
                         FindingAttachment(
                             file_name=f"{subject[:50]}.eml",
-                            data=eml_content,
+                            data=raw_eml,
+                            is_raw_email=True,
                         )
                     )
+
+                    try:
+                        parsed = extract_rfc5322_email_data(
+                            eml_str, email_id, include_attachment_content=True
+                        )
+                        body_text = parsed.body.plain_text or parsed.body.html or ""
+                        email_headers = {
+                            k: v for k, v in parsed.to_dict()["headers"].items() if v
+                        }
+                        finding_email = FindingEmail(
+                            headers=email_headers or None,
+                            body=body_text or None,
+                            urls=parsed.urls or None,
+                        )
+                        for att in parsed.attachments:
+                            if att.content:
+                                attachments.append(
+                                    FindingAttachment(
+                                        file_name=att.filename,
+                                        data=att.content,
+                                        is_raw_email=False,
+                                    )
+                                )
+                    except Exception as e:
+                        logger.warning(f"Failed to parse email content: {e}")
             except Exception as e:
                 logger.warning(f"Failed to fetch email EML: {e}")
 
             yield Finding(
-                rule_title=f"Email: {subject[:100]}"
-                if subject
-                else f"Email ID: {email_id}",
+                rule_title=subject[:100] if subject else f"Email ID: {email_id}",
+                email=finding_email,
                 attachments=attachments if attachments else None,
             )
 
             emails_processed += 1
+
+            if latest_time:
+                state["es_last_time"] = latest_time
+                state["es_first_run"] = False
+                if hasattr(asset, "ingest_state"):
+                    asset.ingest_state.put_all(state)
 
         next_link = resp.get("@odata.nextLink")
         if not next_link or emails_processed >= max_emails:
             break
         api_params = None
         resp = helper.make_rest_call_helper(endpoint, nextLink=next_link)
-
-    if latest_time:
-        state["es_last_time"] = latest_time
-        state["es_first_run"] = False
-        if hasattr(asset, "ingest_state"):
-            asset.ingest_state.put_all(state)
 
     logger.info(f"Processed {emails_processed} emails for ES findings")
 
