@@ -13,13 +13,10 @@
 
 import base64
 import hashlib
-import json
-import os
 import re
 import time
 from collections.abc import Generator, Iterator
 from html import unescape
-from pathlib import Path
 
 from bs4 import BeautifulSoup
 from soar_sdk.abstract import SOARClient
@@ -28,6 +25,8 @@ from soar_sdk.asset import AssetField, BaseAsset, FieldCategory
 from soar_sdk.auth import (
     AuthorizationCodeFlow,
     ClientCredentialsFlow,
+    OAuthConfig,
+    SOARAssetOAuthClient,
 )
 from soar_sdk.extras.email.processor import (
     HASH_REGEX,
@@ -41,6 +40,7 @@ from soar_sdk.models.artifact import Artifact
 from soar_sdk.models.container import Container
 from soar_sdk.models.finding import Finding, FindingAttachment, FindingEmail
 from soar_sdk.params import OnESPollParams, OnPollParams
+from soar_sdk.webhooks.models import WebhookRequest, WebhookResponse
 
 from .consts import (
     MSGOFFICE365_CONTAINER_DESCRIPTION,
@@ -58,109 +58,7 @@ logger = getLogger()
 APP_ID = "0a0a4087-10e8-4c96-9872-b740ff26d8bb"
 APP_NAME = "MS Graph for Office 365"
 
-
-def _get_state_dir() -> Path:
-    """Get the state directory for this app."""
-    return Path(os.path.dirname(os.path.abspath(__file__)))
-
-
-def _load_app_state(asset_id: str) -> dict:
-    """Load state from file for an asset."""
-    asset_id = str(asset_id)
-    if not asset_id or not asset_id.isalnum():
-        return {}
-    state_file = _get_state_dir() / f"{asset_id}_state.json"
-    if state_file.exists():
-        try:
-            return json.loads(state_file.read_text())
-        except Exception:
-            return {}
-    return {}
-
-
-def _save_app_state(state: dict, asset_id: str) -> None:
-    """Save state to file for an asset."""
-    asset_id = str(asset_id)
-    if not asset_id or not asset_id.isalnum():
-        return
-    state_file = _get_state_dir() / f"{asset_id}_state.json"
-    state_file.write_text(json.dumps(state))
-
-
-def _handle_oauth_result(request, path_parts):
-    """Handle OAuth callback from Microsoft (admin consent or authorization code)."""
-    from django.http import HttpResponse
-
-    asset_id = request.GET.get("state")
-    if not asset_id:
-        return HttpResponse(
-            f"ERROR: Asset ID not found in URL\n{json.dumps(dict(request.GET))}",
-            content_type="text/plain",
-            status=400,
-        )
-
-    error = request.GET.get("error")
-    error_description = request.GET.get("error_description")
-    if error:
-        msg = f"Error: {error}"
-        if error_description:
-            msg += f" Details: {error_description}"
-        return HttpResponse(
-            f"Server returned {msg}", content_type="text/plain", status=400
-        )
-
-    admin_consent = request.GET.get("admin_consent")
-    code = request.GET.get("code")
-
-    if not admin_consent and not code:
-        return HttpResponse(
-            f"ERROR: admin_consent or authorization code not found in URL\n{json.dumps(dict(request.GET))}",
-            content_type="text/plain",
-            status=400,
-        )
-
-    state = _load_app_state(asset_id)
-
-    if admin_consent:
-        admin_consent_bool = admin_consent == "True"
-        state["admin_consent"] = admin_consent_bool
-        _save_app_state(state, asset_id)
-
-        if admin_consent_bool:
-            return HttpResponse(
-                "Admin Consent received. Please close this window.",
-                content_type="text/plain",
-            )
-        return HttpResponse(
-            "Admin Consent declined. Please close this window and try again later.",
-            content_type="text/plain",
-            status=400,
-        )
-
-    state["code"] = code
-    _save_app_state(state, asset_id)
-    return HttpResponse(
-        "Code received. Please close this window, the action will continue to get new token.",
-        content_type="text/plain",
-    )
-
-
-def _get_app_rest_url(soar: SOARClient, route: str) -> str:
-    """Build the REST handler URL for OAuth callbacks (legacy format).
-
-    This constructs the URL in the format expected by the SOAR platform's
-    built-in REST handler: /rest/handler/{app_dir}_{appid}/{asset_name}/{route}
-    """
-    system_info = soar.get("rest/system_info").json()
-    base_url = system_info.get("base_url", "").rstrip("/")
-
-    asset_id = soar.get_asset_id()
-    asset_info = soar.get(f"rest/asset/{asset_id}").json()
-    asset_name = asset_info.get("name", "")
-
-    app_dir = "".join(c for c in APP_NAME if c.isalnum()).lower()
-
-    return f"{base_url}/rest/handler/{app_dir}_{APP_ID}/{asset_name}/{route}"
+ADMIN_CONSENT_STATE_KEY = "admin_consent_granted"
 
 
 def _extract_urls_domains(
@@ -383,7 +281,7 @@ app = App(
     appid=APP_ID,
     fips_compliant=True,
     asset_cls=Asset,
-)
+).enable_webhooks(default_requires_auth=False)
 
 
 MS_GRAPH_AUTH_URL = "https://login.microsoftonline.com/{tenant}/oauth2/v2.0/authorize"
@@ -393,7 +291,7 @@ MS_GRAPH_ADMIN_CONSENT_URL = "https://login.microsoftonline.com/{tenant}/adminco
 
 @app.test_connectivity()
 def test_connectivity(soar: SOARClient, asset: Asset) -> None:
-    redirect_uri = _get_app_rest_url(soar, "result")
+    redirect_uri = app.get_webhook_url("result")
     logger.info("Using OAuth Redirect URL as:")
     logger.info(redirect_uri)
 
@@ -408,7 +306,6 @@ def test_connectivity(soar: SOARClient, asset: Asset) -> None:
         helper.get_token()
 
     elif asset.admin_access:
-        # Can't use SDK OAuth - Microsoft's /adminconsent returns admin_consent=True, not a code
         asset_id = str(soar.get_asset_id())
         if not asset.admin_consent:
             admin_consent_url = (
@@ -429,8 +326,7 @@ def test_connectivity(soar: SOARClient, asset: Asset) -> None:
 
             while time.time() - start_time < poll_timeout:
                 time.sleep(poll_interval)
-                state = _load_app_state(asset_id)
-                if state.get("admin_consent"):
+                if asset.auth_state.get(ADMIN_CONSENT_STATE_KEY):
                     logger.info("Admin consent received successfully")
                     break
             else:
@@ -488,6 +384,53 @@ def test_connectivity(soar: SOARClient, asset: Asset) -> None:
     logger.info("Test Connectivity Passed")
 
 
+@app.webhook("result")
+def handle_oauth_result(request: WebhookRequest[Asset]) -> WebhookResponse:
+    query_params = {k: v[0] if v else "" for k, v in request.query.items()}
+
+    if "error" in query_params:
+        reason = query_params.get("error_description", "Unknown error")
+        return WebhookResponse.text_response(
+            content=f"Authorization failed: {reason}",
+            status_code=400,
+        )
+
+    # Admin consent callback - Microsoft returns admin_consent=True instead of a code
+    if query_params.get("admin_consent", "").lower() == "true":
+        request.asset.auth_state[ADMIN_CONSENT_STATE_KEY] = True
+        return WebhookResponse.text_response(
+            content="Admin consent received. You can close this window.",
+            status_code=200,
+        )
+
+    # Authorization code callback
+    code = query_params.get("code")
+    if not code:
+        return WebhookResponse.text_response(
+            content="Missing authorization code", status_code=400
+        )
+
+    oauth_client = SOARAssetOAuthClient(
+        OAuthConfig(
+            client_id=request.asset.client_id,
+            client_secret=request.asset.client_secret,
+            authorization_endpoint=MS_GRAPH_AUTH_URL.format(
+                tenant=request.asset.tenant
+            ),
+            token_endpoint=MS_GRAPH_TOKEN_URL.format(tenant=request.asset.tenant),
+            redirect_uri=app.get_webhook_url("result"),
+            scope=request.asset.scope.split() if request.asset.scope else [],
+        ),
+        request.asset.auth_state,
+    )
+    oauth_client.set_authorization_code(code)
+
+    return WebhookResponse.text_response(
+        content="Authorization successful! You can close this window.",
+        status_code=200,
+    )
+
+
 @app.on_poll()
 def on_poll(
     params: OnPollParams, soar: SOARClient, asset: Asset
@@ -495,7 +438,7 @@ def on_poll(
     helper = MsGraphHelper(soar, asset)
     helper.get_token()
 
-    state = getattr(asset, "ingest_state", None) or {}
+    state = asset.ingest_state
     email_address = asset.email_address
     if not email_address:
         raise ValueError("Email address is required for polling")
@@ -773,7 +716,7 @@ def on_es_poll(
     helper = MsGraphHelper(soar, asset)
     helper.get_token()
 
-    state = getattr(asset, "ingest_state", None) or {}
+    state = asset.ingest_state
     email_address = asset.email_address
     if not email_address:
         raise ValueError("Email address is required for ES polling")
@@ -788,6 +731,7 @@ def on_es_poll(
     is_first_run = state.get("es_first_run", True)
     max_emails = asset.first_run_max_emails if is_first_run else asset.max_containers
     last_time = state.get("es_last_time")
+    boundary_ids = set(state.get("es_boundary_ids", []))
 
     endpoint = f"/users/{email_address}/mailFolders/{folder_id}/messages"
     select_fields = ",".join(MSGOFFICE365_SELECT_PARAMETER_LIST)
@@ -800,10 +744,11 @@ def on_es_poll(
     }
 
     if last_time:
-        api_params["$filter"] = f"receivedDateTime gt {last_time}"
+        api_params["$filter"] = f"receivedDateTime ge {last_time}"
 
     emails_processed = 0
     latest_time = last_time
+    new_boundary_ids: set[str] = set()
 
     while emails_processed < max_emails:
         resp = helper.make_rest_call_helper(endpoint, params=api_params)
@@ -816,11 +761,17 @@ def on_es_poll(
             if emails_processed >= max_emails:
                 break
 
+            email_id = email_data.get("id")
             email_time = email_data.get("receivedDateTime")
+
+            if email_time == last_time and email_id in boundary_ids:
+                continue
+
             if email_time and (not latest_time or email_time > latest_time):
                 latest_time = email_time
-
-            email_id = email_data.get("id")
+                new_boundary_ids = set()
+            if email_time == latest_time:
+                new_boundary_ids.add(email_id)
             subject = email_data.get("subject") or email_id
 
             finding_email = None
@@ -877,19 +828,18 @@ def on_es_poll(
             except Exception as e:
                 logger.warning(f"Failed to fetch email EML: {e}")
 
-            yield Finding(
-                rule_title=subject[:100] if subject else f"Email ID: {email_id}",
-                email=finding_email,
-                attachments=attachments if attachments else None,
-            )
-
             emails_processed += 1
 
             if latest_time:
                 state["es_last_time"] = latest_time
                 state["es_first_run"] = False
-                if hasattr(asset, "ingest_state"):
-                    asset.ingest_state.put_all(state)
+                state["es_boundary_ids"] = list(new_boundary_ids)
+
+            yield Finding(
+                rule_title=subject[:100] if subject else f"Email ID: {email_id}",
+                email=finding_email,
+                attachments=attachments if attachments else None,
+            )
 
         next_link = resp.get("@odata.nextLink")
         if not next_link or emails_processed >= max_emails:

@@ -228,6 +228,12 @@ class MsGraphHelper:
             if any(msg in error_msg for msg in MSGOFFICE365_AUTH_FAILURE_MSG):
                 logger.info("Token expired, refreshing...")
                 self._access_token = None
+                state = self._get_auth_state()
+                auth_key = (
+                    "admin_auth" if self.asset.admin_access else "non_admin_auth"
+                )  # pragma: allowlist secret
+                state.pop(auth_key, None)
+                self._save_auth_state(state)
                 self.get_token()
                 return self._make_rest_call(
                     url, method=method, params=params, data=data, download=download
