@@ -176,7 +176,7 @@ To successfully run Test Connectivity, you need at least one of these permission
    - Save the asset to generate the POST URL
    - Copy the URL from **POST incoming for MS Graph for Office 365 to this location**
    - Add `/result` to the end of this URL
-   - Example: `https://<splunk_soar_host>/rest/handler/msgraphforoffice365_0a0a4087-10e8-4c96-9872-b740ff26d8bb/<asset_name>/result`
+   - Example: `https://<splunk_soar_host>:3500/webhook/msgraphforoffice365_0a0a4087-10e8-4c96-9872-b740ff26d8bb/<asset_name>/result`
    - Go back to Azure Portal → App registrations → Authentication
    - Click **Add a platform** → **Web**
    - Add this complete URL as a redirect URI
