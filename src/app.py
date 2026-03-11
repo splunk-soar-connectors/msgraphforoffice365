@@ -194,30 +194,25 @@ class Asset(BaseAsset):
     email_address: str = AssetField(
         required=False,
         description="Email Address of the User (On Poll)",
-        category=FieldCategory.INGEST,
     )
     folder: str = AssetField(
         required=False,
         description="Mailbox folder name/folder path or the internal office365 folder ID to ingest (On Poll)",
-        category=FieldCategory.INGEST,
     )
     get_folder_id: bool = AssetField(
         required=False,
         description="Retrieve the folder ID for the provided folder name/folder path automatically",
         default=True,
-        category=FieldCategory.INGEST,
     )
     first_run_max_emails: int = AssetField(
         required=False,
-        description="Maximum Containers for scheduled polling first time",
+        description="Maximum emails for scheduled polling first time",
         default=1000,
-        category=FieldCategory.INGEST,
     )
     max_containers: int = AssetField(
         required=False,
-        description="Maximum Containers for scheduled polling",
+        description="Maximum emails for scheduled polling",
         default=100,
-        category=FieldCategory.INGEST,
     )
     extract_attachments: bool = AssetField(
         required=False,
@@ -260,7 +255,6 @@ class Asset(BaseAsset):
         description="How to Ingest",
         default="oldest first",
         value_list=["oldest first", "latest first"],
-        category=FieldCategory.INGEST,
     )
     extract_eml: bool = AssetField(
         required=False,

@@ -1,7 +1,7 @@
 # MS Graph for Office 365
 
 Publisher: Splunk <br>
-Connector Version: 4.2.1 <br>
+Connector Version: 4.1.0 <br>
 Product Vendor: Microsoft <br>
 Product Name: Office 365 (MS Graph) <br>
 Minimum Product Version: 7.0.0
@@ -591,8 +591,8 @@ VARIABLE | REQUIRED | TYPE | DESCRIPTION
 **email_address** | optional | string | Email Address of the User (On Poll) |
 **folder** | optional | string | Mailbox folder name/folder path or the internal office365 folder ID to ingest (On Poll) |
 **get_folder_id** | optional | boolean | Retrieve the folder ID for the provided folder name/folder path automatically |
-**first_run_max_emails** | optional | numeric | Maximum Containers for scheduled polling first time |
-**max_containers** | optional | numeric | Maximum Containers for scheduled polling |
+**first_run_max_emails** | optional | numeric | Maximum emails for scheduled polling first time |
+**max_containers** | optional | numeric | Maximum emails for scheduled polling |
 **extract_attachments** | optional | boolean | Extract Attachments |
 **extract_urls** | optional | boolean | Extract URLs |
 **extract_ips** | optional | boolean | Extract IPs |
