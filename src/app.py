@@ -28,17 +28,22 @@ from soar_sdk.auth import (
     OAuthConfig,
     SOARAssetOAuthClient,
 )
+from soar_sdk.extras.email.email_data import EmailData, extract_email_data
 from soar_sdk.extras.email.processor import (
     HASH_REGEX,
     IP_REGEX,
     URI_REGEX,
 )
-from soar_sdk.extras.email.rfc5322 import extract_rfc5322_email_data
 from soar_sdk.extras.email.utils import clean_url, is_ip
 from soar_sdk.logging import getLogger
 from soar_sdk.models.artifact import Artifact
 from soar_sdk.models.container import Container
-from soar_sdk.models.finding import Finding, FindingAttachment, FindingEmail
+from soar_sdk.models.finding import (
+    Finding,
+    FindingAttachment,
+    FindingEmail,
+    FindingEmailReporter,
+)
 from soar_sdk.params import OnESPollParams, OnPollParams
 from soar_sdk.webhooks.models import WebhookRequest, WebhookResponse
 
@@ -702,6 +707,39 @@ def on_poll(
         state["first_run"] = False
 
 
+def _extract_inner_email(
+    outer_parsed: EmailData, email_id: str | None
+) -> tuple[EmailData, FindingEmailReporter] | None:
+    """If the email has an .eml/.msg attachment, extract it and build reporter info."""
+    for att in outer_parsed.attachments:
+        if not att.content:
+            continue
+        lower_name = att.filename.lower()
+        if not (lower_name.endswith(".eml") or lower_name.endswith(".msg")):
+            continue
+
+        inner_parsed = extract_email_data(
+            att.content, email_id, include_attachment_content=True
+        )
+
+        outer_headers = outer_parsed.headers
+        body_text = outer_parsed.body.plain_text or outer_parsed.body.html or ""
+        reporter = FindingEmailReporter(
+            from_=outer_headers.from_address or "",
+            to=outer_headers.to,
+            cc=outer_headers.cc,
+            bcc=outer_headers.bcc,
+            subject=outer_headers.subject,
+            message_id=outer_headers.message_id,
+            id=email_id,
+            body=body_text,
+            date=outer_headers.date,
+        )
+        return inner_parsed, reporter
+
+    return None
+
+
 @app.on_es_poll()
 def on_es_poll(
     params: OnESPollParams, soar: SOARClient, asset: Asset
@@ -796,9 +834,25 @@ def on_es_poll(
                     )
 
                     try:
-                        parsed = extract_rfc5322_email_data(
+                        parsed = extract_email_data(
                             eml_str, email_id, include_attachment_content=True
                         )
+
+                        reporter = None
+                        if asset.extract_eml:
+                            inner = _extract_inner_email(parsed, email_id)
+                            if inner is not None:
+                                parsed, reporter = inner
+                                attachments = [
+                                    FindingAttachment(
+                                        file_name=f"{parsed.headers.subject or subject[:50]}.eml",
+                                        data=parsed.raw_email.encode("utf-8")
+                                        if isinstance(parsed.raw_email, str)
+                                        else parsed.raw_email,
+                                        is_raw_email=True,
+                                    )
+                                ]
+
                         body_text = parsed.body.plain_text or parsed.body.html or ""
                         email_headers = {
                             k: v for k, v in parsed.to_dict()["headers"].items() if v
@@ -807,6 +861,7 @@ def on_es_poll(
                             headers=email_headers or None,
                             body=body_text or None,
                             urls=parsed.urls or None,
+                            reporter=reporter,
                         )
                         for att in parsed.attachments:
                             if att.content:
