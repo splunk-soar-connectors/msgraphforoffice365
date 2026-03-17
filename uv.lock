@@ -574,7 +574,7 @@ dependencies = [
     { name = "beautifulsoup4", marker = "(platform_machine == 'arm64' and sys_platform == 'darwin') or (platform_machine == 'x86_64' and sys_platform == 'darwin') or (platform_machine == 'aarch64' and sys_platform == 'linux') or (platform_machine == 'x86_64' and sys_platform == 'linux')" },
     { name = "msal", marker = "(platform_machine == 'arm64' and sys_platform == 'darwin') or (platform_machine == 'x86_64' and sys_platform == 'darwin') or (platform_machine == 'aarch64' and sys_platform == 'linux') or (platform_machine == 'x86_64' and sys_platform == 'linux')" },
     { name = "requests", marker = "(platform_machine == 'arm64' and sys_platform == 'darwin') or (platform_machine == 'x86_64' and sys_platform == 'darwin') or (platform_machine == 'aarch64' and sys_platform == 'linux') or (platform_machine == 'x86_64' and sys_platform == 'linux')" },
-    { name = "splunk-soar-sdk", marker = "(platform_machine == 'arm64' and sys_platform == 'darwin') or (platform_machine == 'x86_64' and sys_platform == 'darwin') or (platform_machine == 'aarch64' and sys_platform == 'linux') or (platform_machine == 'x86_64' and sys_platform == 'linux')" },
+    { name = "splunk-soar-sdk", extra = ["email"], marker = "(platform_machine == 'arm64' and sys_platform == 'darwin') or (platform_machine == 'x86_64' and sys_platform == 'darwin') or (platform_machine == 'aarch64' and sys_platform == 'linux') or (platform_machine == 'x86_64' and sys_platform == 'linux')" },
 ]
 
 [package.dev-dependencies]
@@ -593,7 +593,7 @@ requires-dist = [
     { name = "beautifulsoup4", specifier = ">=4.13.0,<4.14.0" },
     { name = "msal", specifier = ">=1.31.0" },
     { name = "requests", specifier = ">=2.32.0" },
-    { name = "splunk-soar-sdk", specifier = ">=3.17.1" },
+    { name = "splunk-soar-sdk", extras = ["email"], specifier = ">=3.17.1" },
 ]
 
 [package.metadata.requires-dev]
@@ -899,6 +899,15 @@ wheels = [
 ]
 
 [[package]]
+name = "python-magic"
+version = "0.4.27"
+source = { registry = "https://pypi.python.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/da/db/0b3e28ac047452d079d375ec6798bf76a036a08182dbb39ed38116a49130/python-magic-0.4.27.tar.gz", hash = "sha256:c1ba14b08e4a5f5c31a302b7721239695b2f0f058d125bd5ce1ee36b9d9d3c3b", size = 14677, upload-time = "2022-06-07T20:16:59.508Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/6c/73/9f872cb81fc5c3bb48f7227872c28975f998f3e7c2b1c16e95e6432bbb90/python_magic-0.4.27-py2.py3-none-any.whl", hash = "sha256:c212960ad306f700aa0d01e5d7a325d20548ff97eb9920dcd29513174f0294d3", size = 13840, upload-time = "2022-06-07T20:16:57.763Z" },
+]
+
+[[package]]
 name = "pyyaml"
 version = "6.0.3"
 source = { registry = "https://pypi.python.org/simple" }
@@ -1041,6 +1050,11 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/a9/86/ce7425b051f7eade77e78fbeedeb45f2fe2de7c5d13bf09abbaba672b8cc/splunk_soar_sdk-3.17.1.tar.gz", hash = "sha256:cb8a0d3ebc89b79607b9df5c96dc9d4857cbba771a0f7b1b9dc26e98dd8d41c9", size = 644185, upload-time = "2026-03-17T14:29:21.906Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/9f/ef/ee84bbeb706c8ecb1a4df63a951b75cec72ab35a93badffb3f977d27a087/splunk_soar_sdk-3.17.1-py3-none-any.whl", hash = "sha256:ad8bc90996b646b335c25452cc5b506b1468fc647e8d7781fe72a259eaeaef1a", size = 205641, upload-time = "2026-03-17T14:29:20.717Z" },
+]
+
+[package.optional-dependencies]
+email = [
+    { name = "python-magic", marker = "(platform_machine == 'arm64' and sys_platform == 'darwin') or (platform_machine == 'x86_64' and sys_platform == 'darwin') or (platform_machine == 'aarch64' and sys_platform == 'linux') or (platform_machine == 'x86_64' and sys_platform == 'linux')" },
 ]
 
 [[package]]
