@@ -1,6 +1,6 @@
 # File: office365_consts.py
 #
-# Copyright (c) 2017-2025 Splunk Inc.
+# Copyright (c) 2017-2026 Splunk Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -42,6 +42,19 @@ MSGOFFICE365_WELL_KNOWN_FOLDERS_FILTER = [
     "serverfailures",
     "syncissues",
 ]
+
+MSGOFFICE365_RECOVERABLE_ITEMS_FOLDERS_FILTER = [
+    "recoverableitemsdeletions",
+    "recoverableitemspurges",
+    "recoverableitemsversions",
+    "recoverableitemsaudits",
+    "recoverableitemsdiscoveryholds",
+    "recoverableitemssubstrateholds",
+    "recoverableitemsversions",
+    "recoverableitemsroot",
+    "recoverableitemscalendarlogging",
+]
+
 MSGOFFICE365_STATE_FILE_CORRUPT_ERROR = (
     "Error occurred while loading the state file. Resetting the state file with the default format. Please test the connectivity."
 )

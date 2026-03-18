@@ -30,10 +30,13 @@
         },
         {
             "name": "Anton Neledov"
+        },
+        {
+            "name": "Andrei Irimia"
         }
     ],
-    "license": "Copyright (c) 2017-2025 Splunk Inc.",
-    "app_version": "4.1.0",
+    "license": "Copyright (c) 2017-2026 Splunk Inc.",
+    "app_version": "4.2.0",
     "utctime_updated": "2026-01-09T05:33:39.032641Z",
     "package_name": "phantom_msgraphoffice365",
     "main_module": "office365_connector.py",
@@ -5657,7 +5660,7 @@
             "action": "run query",
             "identifier": "run_query",
             "description": "Search emails",
-            "verbose": "If the <b>query</b> or <b>internet_message_id</b> parameters are included, the <b>subject</b>, <b>sender</b>, <b>body</b>, and <b>range</b> parameters will be ignored. The <b>internet_message_id</b> parameter will take precedence over the <b>query</b> parameter.<br><br>For details on formatting the <b>query</b> parameter, refer to <a href=\"https://learn.microsoft.com/en-us/graph/query-parameters\" target=\"_blank\">Microsoft Graph Query Parameters</a>. Query parameters can include OData system query options or other supported parameters.<br><br>If the <b>limit</b> parameter is not included, the action will default to limiting to ten emails that match the rest of the query. The <b>get_folder_id</b> parameter should be enabled only when you specified folder name/folder path in the folder parameter. If you provide folder ID in the <b>folder</b> parameter and set <b>get_folder_id</b> parameter to true, it will throw an error of folder ID not found for given folder name (because the action considers folder parameter value as folder name/folder path). The <b>folder</b> parameter must be either a (case sensitive) well-known name [list here; https://docs.microsoft.com/en-us/graph/api/resources/mailfolder?view=graph-rest-1.0] or the internal o365 folder ID. The action supports searching for a folder that is nested within another. To copy in such a folder, specify the complete folder path using the <b>'/'</b> (forward slash) as the separator.<br>e.g. to search in a folder named <i>phishing</i> which is nested within (is a child of) <i>Inbox</i>, set the value as <b>Inbox/phishing</b>. If a folder name has a literal forward slash('/') in the name escape it with a backslash('\\') to differentiate.<br>When the <b>search_well_known_folders</b> parameter is set to true, action will ignore values provided in the <b>folder</b> and <b>get_folder_id</b> parameters and the user will get details from all 17 well-known folders which are listed below:<br><ul style=\"columns: 2;-webkit-columns: 2; -moz-columns: 2\"> <li>Archive</li> <li>Clutter</li> <li>Conflicts</li> <li>Conversation History</li> <li>Deleted Items</li> <li>Drafts</li> <li>Inbox</li> <li>Junk Email</li> <li>Local Failures</li> <li>Msg Folder Root</li> <li>Outbox</li> <li>Recoverable Items Deletions</li> <li>Scheduled</li> <li>Search Folders</li> <li>Sent Items</li> <li>Server Failures</li> <li>Sync Issues</li></ul><br>If the <b>limit</b> parameter is provided, the user will get the number of messages provided in the <b>limit</b> from every folder if present.",
+            "verbose": "If the <b>query</b> or <b>internet_message_id</b> parameters are included, the <b>subject</b>, <b>sender</b>, <b>body</b>, and <b>range</b> parameters will be ignored. The <b>internet_message_id</b> parameter will take precedence over the <b>query</b> parameter.<br><br>For details on formatting the <b>query</b> parameter, refer to <a href=\"https://learn.microsoft.com/en-us/graph/query-parameters\" target=\"_blank\">Microsoft Graph Query Parameters</a>. Query parameters can include OData system query options or other supported parameters.<br><br>If the <b>limit</b> parameter is not included, the action will default to limiting to ten emails that match the rest of the query. The <b>get_folder_id</b> parameter should be enabled only when you specified folder name/folder path in the folder parameter. If you provide folder ID in the <b>folder</b> parameter and set <b>get_folder_id</b> parameter to true, it will throw an error of folder ID not found for given folder name (because the action considers folder parameter value as folder name/folder path). The <b>folder</b> parameter must be either a (case sensitive) well-known name [list here; https://docs.microsoft.com/en-us/graph/api/resources/mailfolder?view=graph-rest-1.0] or the internal o365 folder ID. The action supports searching for a folder that is nested within another. To copy in such a folder, specify the complete folder path using the <b>'/'</b> (forward slash) as the separator.<br>e.g. to search in a folder named <i>phishing</i> which is nested within (is a child of) <i>Inbox</i>, set the value as <b>Inbox/phishing</b>. If a folder name has a literal forward slash('/') in the name escape it with a backslash('\\') to differentiate.<br>When the <b>search_well_known_folders</b> parameter is set to true, action will ignore values provided in the <b>folder</b> and <b>get_folder_id</b> parameters and the user will get details from all 17 well-known folders which are listed below:<br><ul style=\"columns: 2;-webkit-columns: 2; -moz-columns: 2\"> <li>Archive</li> <li>Clutter</li> <li>Conflicts</li> <li>Conversation History</li> <li>Deleted Items</li> <li>Drafts</li> <li>Inbox</li> <li>Junk Email</li> <li>Local Failures</li> <li>Msg Folder Root</li> <li>Outbox</li> <li>Recoverable Items Deletions</li> <li>Scheduled</li> <li>Search Folders</li> <li>Sent Items</li> <li>Server Failures</li> <li>Sync Issues</li></ul><br>When the <b>search_recoverable_items_folders</b> parameter is set to true, the action will add the following 9 subfolders from the Recoverable Items folder to the search scope:<br><ul style=\"columns: 2;-webkit-columns: 2; -moz-columns: 2\"> <li>Recoverable Items Deletions</li> <li>Recoverable Items Purges</li> <li>Recoverable Items Versions</li> <li>Recoverable Items Audits</li> <li>Recoverable Items DiscoveryHolds</li> <li>Recoverable Items SubstrateHolds</li> <li>Recoverable Items Versions</li> <li>Recoverable Items Root</li> <li>Recoverable Items Calendar Logging</li></ul><br>If the <b>limit</b> parameter is provided, the user will get the number of messages provided in the <b>limit</b> from every folder if present.",
             "type": "investigate",
             "read_only": true,
             "parameters": {
@@ -5683,16 +5686,21 @@
                     "default": "Inbox",
                     "order": 1
                 },
+                "search_recoverable_items_folders": {
+                    "description": "Adds the subfolders within the Recoverable Items folder to the message search scope",
+                    "data_type": "boolean",
+                    "order": 2
+                },
                 "search_well_known_folders": {
                     "description": "Checks all well known folders for messages, ignores folder name provided in parameter",
                     "data_type": "boolean",
-                    "order": 2
+                    "order": 3
                 },
                 "get_folder_id": {
                     "description": "Assume the folder parameter contains a folder name/folder path, separated by '/'(forward slash) ; i.e. Inbox/dir1/dir2/dir3. If this parameter is enabled, it retrieves the folder ID for the provided folder name/folder path automatically and replaces the parameter value",
                     "data_type": "boolean",
                     "default": true,
-                    "order": 3
+                    "order": 4
                 },
                 "subject": {
                     "description": "Substring to search in subject",
@@ -5701,12 +5709,12 @@
                     "contains": [
                         "msgoffice365 subject"
                     ],
-                    "order": 4
+                    "order": 5
                 },
                 "body": {
                     "description": "Substring to search in body",
                     "data_type": "string",
-                    "order": 5
+                    "order": 6
                 },
                 "sender": {
                     "description": "Sender email address to match",
@@ -5715,17 +5723,17 @@
                     "contains": [
                         "email"
                     ],
-                    "order": 6
+                    "order": 7
                 },
                 "limit": {
                     "description": "Maximum emails to return",
                     "data_type": "numeric",
-                    "order": 7
+                    "order": 8
                 },
                 "query": {
                     "description": "MS Graph query string",
                     "data_type": "string",
-                    "order": 8
+                    "order": 9
                 },
                 "internet_message_id": {
                     "description": "Internet message ID",
@@ -5734,7 +5742,7 @@
                     "contains": [
                         "msgoffice365 internet message id"
                     ],
-                    "order": 9
+                    "order": 10
                 }
             },
             "output": [
@@ -6332,6 +6340,10 @@
                     "example_values": [
                         1
                     ]
+                },
+                {
+                    "data_path": "action_result.parameter.search_recoverable_items_folders",
+                    "data_type": "boolean"
                 }
             ],
             "render": {
@@ -8753,16 +8765,12 @@
     "pip39_dependencies": {
         "wheel": [
             {
-                "module": "PyJWT",
-                "input_file": "wheels/py3/PyJWT-2.10.1-py3-none-any.whl"
-            },
-            {
                 "module": "cffi",
                 "input_file": "wheels/py39/cffi-2.0.0-cp39-cp39-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl"
             },
             {
                 "module": "cryptography",
-                "input_file": "wheels/py3/cryptography-46.0.3-cp38-abi3-manylinux_2_28_x86_64.whl"
+                "input_file": "wheels/py3/cryptography-46.0.5-cp38-abi3-manylinux_2_28_x86_64.whl"
             },
             {
                 "module": "msal",
@@ -8771,6 +8779,10 @@
             {
                 "module": "pycparser",
                 "input_file": "wheels/py3/pycparser-2.23-py3-none-any.whl"
+            },
+            {
+                "module": "pyjwt",
+                "input_file": "wheels/py3/pyjwt-2.12.1-py3-none-any.whl"
             },
             {
                 "module": "typing_extensions",
@@ -8781,16 +8793,12 @@
     "pip313_dependencies": {
         "wheel": [
             {
-                "module": "PyJWT",
-                "input_file": "wheels/py3/PyJWT-2.10.1-py3-none-any.whl"
-            },
-            {
                 "module": "cffi",
                 "input_file": "wheels/py313/cffi-2.0.0-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl"
             },
             {
                 "module": "cryptography",
-                "input_file": "wheels/py3/cryptography-46.0.3-cp311-abi3-manylinux_2_28_x86_64.whl"
+                "input_file": "wheels/py3/cryptography-46.0.5-cp311-abi3-manylinux_2_28_x86_64.whl"
             },
             {
                 "module": "msal",
@@ -8798,7 +8806,11 @@
             },
             {
                 "module": "pycparser",
-                "input_file": "wheels/py3/pycparser-2.23-py3-none-any.whl"
+                "input_file": "wheels/py3/pycparser-3.0-py3-none-any.whl"
+            },
+            {
+                "module": "pyjwt",
+                "input_file": "wheels/py3/pyjwt-2.12.1-py3-none-any.whl"
             }
         ]
     }

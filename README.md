@@ -1,7 +1,7 @@
 # MS Graph for Office 365
 
 Publisher: Splunk <br>
-Connector Version: 4.1.0 <br>
+Connector Version: 4.2.0 <br>
 Product Vendor: Microsoft <br>
 Product Name: Office 365 (MS Graph) <br>
 Minimum Product Version: 6.3.0
@@ -1604,7 +1604,7 @@ Search emails
 Type: **investigate** <br>
 Read only: **True**
 
-If the <b>query</b> or <b>internet_message_id</b> parameters are included, the <b>subject</b>, <b>sender</b>, <b>body</b>, and <b>range</b> parameters will be ignored. The <b>internet_message_id</b> parameter will take precedence over the <b>query</b> parameter.<br><br>For details on formatting the <b>query</b> parameter, refer to <a href="https://learn.microsoft.com/en-us/graph/query-parameters" target="_blank">Microsoft Graph Query Parameters</a>. Query parameters can include OData system query options or other supported parameters.<br><br>If the <b>limit</b> parameter is not included, the action will default to limiting to ten emails that match the rest of the query. The <b>get_folder_id</b> parameter should be enabled only when you specified folder name/folder path in the folder parameter. If you provide folder ID in the <b>folder</b> parameter and set <b>get_folder_id</b> parameter to true, it will throw an error of folder ID not found for given folder name (because the action considers folder parameter value as folder name/folder path). The <b>folder</b> parameter must be either a (case sensitive) well-known name [list here; https://docs.microsoft.com/en-us/graph/api/resources/mailfolder?view=graph-rest-1.0] or the internal o365 folder ID. The action supports searching for a folder that is nested within another. To copy in such a folder, specify the complete folder path using the <b>'/'</b> (forward slash) as the separator.<br>e.g. to search in a folder named <i>phishing</i> which is nested within (is a child of) <i>Inbox</i>, set the value as <b>Inbox/phishing</b>. If a folder name has a literal forward slash('/') in the name escape it with a backslash('\\') to differentiate.<br>When the <b>search_well_known_folders</b> parameter is set to true, action will ignore values provided in the <b>folder</b> and <b>get_folder_id</b> parameters and the user will get details from all 17 well-known folders which are listed below:<br><ul style="columns: 2;-webkit-columns: 2; -moz-columns: 2"> <li>Archive</li> <li>Clutter</li> <li>Conflicts</li> <li>Conversation History</li> <li>Deleted Items</li> <li>Drafts</li> <li>Inbox</li> <li>Junk Email</li> <li>Local Failures</li> <li>Msg Folder Root</li> <li>Outbox</li> <li>Recoverable Items Deletions</li> <li>Scheduled</li> <li>Search Folders</li> <li>Sent Items</li> <li>Server Failures</li> <li>Sync Issues</li></ul><br>If the <b>limit</b> parameter is provided, the user will get the number of messages provided in the <b>limit</b> from every folder if present.
+If the <b>query</b> or <b>internet_message_id</b> parameters are included, the <b>subject</b>, <b>sender</b>, <b>body</b>, and <b>range</b> parameters will be ignored. The <b>internet_message_id</b> parameter will take precedence over the <b>query</b> parameter.<br><br>For details on formatting the <b>query</b> parameter, refer to <a href="https://learn.microsoft.com/en-us/graph/query-parameters" target="_blank">Microsoft Graph Query Parameters</a>. Query parameters can include OData system query options or other supported parameters.<br><br>If the <b>limit</b> parameter is not included, the action will default to limiting to ten emails that match the rest of the query. The <b>get_folder_id</b> parameter should be enabled only when you specified folder name/folder path in the folder parameter. If you provide folder ID in the <b>folder</b> parameter and set <b>get_folder_id</b> parameter to true, it will throw an error of folder ID not found for given folder name (because the action considers folder parameter value as folder name/folder path). The <b>folder</b> parameter must be either a (case sensitive) well-known name [list here; https://docs.microsoft.com/en-us/graph/api/resources/mailfolder?view=graph-rest-1.0] or the internal o365 folder ID. The action supports searching for a folder that is nested within another. To copy in such a folder, specify the complete folder path using the <b>'/'</b> (forward slash) as the separator.<br>e.g. to search in a folder named <i>phishing</i> which is nested within (is a child of) <i>Inbox</i>, set the value as <b>Inbox/phishing</b>. If a folder name has a literal forward slash('/') in the name escape it with a backslash('\\') to differentiate.<br>When the <b>search_well_known_folders</b> parameter is set to true, action will ignore values provided in the <b>folder</b> and <b>get_folder_id</b> parameters and the user will get details from all 17 well-known folders which are listed below:<br><ul style="columns: 2;-webkit-columns: 2; -moz-columns: 2"> <li>Archive</li> <li>Clutter</li> <li>Conflicts</li> <li>Conversation History</li> <li>Deleted Items</li> <li>Drafts</li> <li>Inbox</li> <li>Junk Email</li> <li>Local Failures</li> <li>Msg Folder Root</li> <li>Outbox</li> <li>Recoverable Items Deletions</li> <li>Scheduled</li> <li>Search Folders</li> <li>Sent Items</li> <li>Server Failures</li> <li>Sync Issues</li></ul><br>When the <b>search_recoverable_items_folders</b> parameter is set to true, the action will add the following 9 subfolders from the Recoverable Items folder to the search scope:<br><ul style="columns: 2;-webkit-columns: 2; -moz-columns: 2"> <li>Recoverable Items Deletions</li> <li>Recoverable Items Purges</li> <li>Recoverable Items Versions</li> <li>Recoverable Items Audits</li> <li>Recoverable Items DiscoveryHolds</li> <li>Recoverable Items SubstrateHolds</li> <li>Recoverable Items Versions</li> <li>Recoverable Items Root</li> <li>Recoverable Items Calendar Logging</li></ul><br>If the <b>limit</b> parameter is provided, the user will get the number of messages provided in the <b>limit</b> from every folder if present.
 
 #### Action Parameters
 
@@ -1612,6 +1612,7 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 --------- | -------- | ----------- | ---- | --------
 **email_address** | required | User's email (mailbox to search in) | string | `email` |
 **folder** | optional | Destination folder; this must be either a (case-sensitive) well-known name or the internal o365 folder ID | string | `msgoffice365 mail folder` `msgoffice365 mail folder path` `msgoffice365 folder id` |
+**search_recoverable_items_folders** | optional | Adds the subfolders within the Recoverable Items folder to the message search scope | boolean | |
 **search_well_known_folders** | optional | Checks all well known folders for messages, ignores folder name provided in parameter | boolean | |
 **get_folder_id** | optional | Assume the folder parameter contains a folder name/folder path, separated by '/'(forward slash) ; i.e. Inbox/dir1/dir2/dir3. If this parameter is enabled, it retrieves the folder ID for the provided folder name/folder path automatically and replaces the parameter value | boolean | |
 **subject** | optional | Substring to search in subject | string | `msgoffice365 subject` |
@@ -1704,6 +1705,7 @@ action_result.summary.emails_matched | numeric | | 1 |
 action_result.message | string | | Emails matched: 1 |
 summary.total_objects | numeric | | 1 |
 summary.total_objects_successful | numeric | | 1 |
+action_result.parameter.search_recoverable_items_folders | boolean | | |
 
 ## action: 'create folder'
 
@@ -2216,7 +2218,7 @@ ______________________________________________________________________
 
 Auto-generated Splunk SOAR Connector documentation.
 
-Copyright 2025 Splunk Inc.
+Copyright 2026 Splunk Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
