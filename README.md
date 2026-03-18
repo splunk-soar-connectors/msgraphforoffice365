@@ -1,7 +1,7 @@
 # MS Graph for Office 365
 
 Publisher: Splunk <br>
-Connector Version: 4.1.0 <br>
+Connector Version: 4.2.0 <br>
 Product Vendor: Microsoft <br>
 Product Name: Office 365 (MS Graph) <br>
 Minimum Product Version: 6.3.0
@@ -1612,6 +1612,7 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 --------- | -------- | ----------- | ---- | --------
 **email_address** | required | User's email (mailbox to search in) | string | `email` |
 **folder** | optional | Destination folder; this must be either a (case-sensitive) well-known name or the internal o365 folder ID | string | `msgoffice365 mail folder` `msgoffice365 mail folder path` `msgoffice365 folder id` |
+**search_recoverable_items_folders** | optional | Adds the subfolders within the Recoverable Items folder to the message search scope | boolean | |
 **search_well_known_folders** | optional | Checks all well known folders for messages, ignores folder name provided in parameter | boolean | |
 **get_folder_id** | optional | Assume the folder parameter contains a folder name/folder path, separated by '/'(forward slash) ; i.e. Inbox/dir1/dir2/dir3. If this parameter is enabled, it retrieves the folder ID for the provided folder name/folder path automatically and replaces the parameter value | boolean | |
 **subject** | optional | Substring to search in subject | string | `msgoffice365 subject` |
@@ -1704,6 +1705,7 @@ action_result.summary.emails_matched | numeric | | 1 |
 action_result.message | string | | Emails matched: 1 |
 summary.total_objects | numeric | | 1 |
 summary.total_objects_successful | numeric | | 1 |
+action_result.parameter.search_recoverable_items_folders | boolean | | |
 
 ## action: 'create folder'
 

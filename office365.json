@@ -30,10 +30,13 @@
         },
         {
             "name": "Anton Neledov"
+        },
+        {
+            "name": "Andrei Irimia"
         }
     ],
     "license": "Copyright (c) 2017-2026 Splunk Inc.",
-    "app_version": "4.1.0",
+    "app_version": "4.2.0",
     "utctime_updated": "2026-01-09T05:33:39.032641Z",
     "package_name": "phantom_msgraphoffice365",
     "main_module": "office365_connector.py",
@@ -5683,16 +5686,21 @@
                     "default": "Inbox",
                     "order": 1
                 },
+                "search_recoverable_items_folders": {
+                    "description": "Adds the subfolders within the Recoverable Items folder to the message search scope",
+                    "data_type": "boolean",
+                    "order": 2
+                },
                 "search_well_known_folders": {
                     "description": "Checks all well known folders for messages, ignores folder name provided in parameter",
                     "data_type": "boolean",
-                    "order": 2
+                    "order": 3
                 },
                 "get_folder_id": {
                     "description": "Assume the folder parameter contains a folder name/folder path, separated by '/'(forward slash) ; i.e. Inbox/dir1/dir2/dir3. If this parameter is enabled, it retrieves the folder ID for the provided folder name/folder path automatically and replaces the parameter value",
                     "data_type": "boolean",
                     "default": true,
-                    "order": 3
+                    "order": 4
                 },
                 "subject": {
                     "description": "Substring to search in subject",
@@ -5701,12 +5709,12 @@
                     "contains": [
                         "msgoffice365 subject"
                     ],
-                    "order": 4
+                    "order": 5
                 },
                 "body": {
                     "description": "Substring to search in body",
                     "data_type": "string",
-                    "order": 5
+                    "order": 6
                 },
                 "sender": {
                     "description": "Sender email address to match",
@@ -5715,17 +5723,17 @@
                     "contains": [
                         "email"
                     ],
-                    "order": 6
+                    "order": 7
                 },
                 "limit": {
                     "description": "Maximum emails to return",
                     "data_type": "numeric",
-                    "order": 7
+                    "order": 8
                 },
                 "query": {
                     "description": "MS Graph query string",
                     "data_type": "string",
-                    "order": 8
+                    "order": 9
                 },
                 "internet_message_id": {
                     "description": "Internet message ID",
@@ -5734,7 +5742,7 @@
                     "contains": [
                         "msgoffice365 internet message id"
                     ],
-                    "order": 9
+                    "order": 10
                 }
             },
             "output": [
@@ -6332,6 +6340,10 @@
                     "example_values": [
                         1
                     ]
+                },
+                {
+                    "data_path": "action_result.parameter.search_recoverable_items_folders",
+                    "data_type": "boolean"
                 }
             ],
             "render": {

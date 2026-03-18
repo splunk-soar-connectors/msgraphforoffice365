@@ -2283,6 +2283,15 @@ class Office365Connector(BaseConnector):
             folder_ids.append(folder)
             endpoint += "/mailFolders/{folder_id}"
 
+        # Add the Recoverable Items folders to search scope
+        if param.get("search_recoverable_items_folders", False):
+            for folder in MSGOFFICE365_RECOVERABLE_ITEMS_FOLDERS_FILTER:
+                folder_ids.append(folder)
+
+            # Modify endpoint if not already modified by well known folders or folder search scope
+            if "{folder_id}" not in endpoint:
+                endpoint += "/{folder_id}" if "/mailFolders" in endpoint else "/mailFolders/{folder_id}"
+
         # that should be enough to create the endpoint
         endpoint += "/messages"
 
