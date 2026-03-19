@@ -16,6 +16,7 @@ import hashlib
 import re
 import time
 from collections.abc import Generator, Iterator
+from email.utils import parseaddr
 from html import unescape
 
 from bs4 import BeautifulSoup
@@ -265,7 +266,6 @@ class Asset(BaseAsset):
         required=False,
         description="Extract root (primary) email as Vault",
         default=False,
-        category=FieldCategory.INGEST,
     )
 
 
@@ -707,6 +707,14 @@ def on_poll(
         state["first_run"] = False
 
 
+def _extract_address(header_value: str | None) -> str | None:
+    """Extract a single clean email address from a header value."""
+    if not header_value:
+        return None
+    _, addr = parseaddr(header_value)
+    return addr or None
+
+
 def _extract_inner_email(
     outer_parsed: EmailData, email_id: str | None
 ) -> tuple[EmailData, FindingEmailReporter] | None:
@@ -725,10 +733,10 @@ def _extract_inner_email(
         outer_headers = outer_parsed.headers
         body_text = outer_parsed.body.plain_text or outer_parsed.body.html or ""
         reporter = FindingEmailReporter(
-            from_=outer_headers.from_address or "",
-            to=outer_headers.to,
-            cc=outer_headers.cc,
-            bcc=outer_headers.bcc,
+            from_=_extract_address(outer_headers.from_address),
+            to=_extract_address(outer_headers.to),
+            cc=_extract_address(outer_headers.cc),
+            bcc=_extract_address(outer_headers.bcc),
             subject=outer_headers.subject,
             message_id=outer_headers.message_id,
             id=email_id,
@@ -839,19 +847,21 @@ def on_es_poll(
                         )
 
                         reporter = None
-                        if asset.extract_eml:
-                            inner = _extract_inner_email(parsed, email_id)
-                            if inner is not None:
-                                parsed, reporter = inner
-                                attachments = [
-                                    FindingAttachment(
-                                        file_name=f"{parsed.headers.subject or subject[:50]}.eml",
-                                        data=parsed.raw_email.encode("utf-8")
-                                        if isinstance(parsed.raw_email, str)
-                                        else parsed.raw_email,
-                                        is_raw_email=True,
-                                    )
-                                ]
+                        inner = _extract_inner_email(parsed, email_id)
+                        if inner is not None:
+                            parsed, reporter = inner
+                            outer_attachments = attachments
+                            attachments = [
+                                FindingAttachment(
+                                    file_name=f"{parsed.headers.subject or subject[:50]}.eml",
+                                    data=parsed.raw_email.encode("utf-8")
+                                    if isinstance(parsed.raw_email, str)
+                                    else parsed.raw_email,
+                                    is_raw_email=True,
+                                )
+                            ]
+                            if asset.extract_eml:
+                                attachments.extend(outer_attachments)
 
                         body_text = parsed.body.plain_text or parsed.body.html or ""
                         email_headers = {
@@ -894,7 +904,7 @@ def on_es_poll(
         if not next_link or emails_processed >= max_emails:
             break
         api_params = None
-        resp = helper.make_rest_call_helper(endpoint, nextLink=next_link)
+        helper.make_rest_call_helper(endpoint, nextLink=next_link)
 
     logger.info(f"Processed {emails_processed} emails for ES findings")
 
