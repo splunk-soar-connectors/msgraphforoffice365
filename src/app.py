@@ -214,6 +214,7 @@ class Asset(BaseAsset):
         required=False,
         description="Maximum emails for scheduled polling first time",
         default=1000,
+        category=FieldCategory.INGEST,
     )
     max_containers: int = AssetField(
         required=False,
@@ -768,8 +769,7 @@ def on_es_poll(
         if resolved_id:
             folder_id = resolved_id
 
-    is_first_run = state.get("es_first_run", True)
-    max_emails = asset.first_run_max_emails if is_first_run else asset.max_containers
+    max_emails = asset.max_containers
     last_time = state.get("es_last_time")
     boundary_ids = set(state.get("es_boundary_ids", []))
 
