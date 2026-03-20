@@ -16,7 +16,8 @@ import hashlib
 import re
 import time
 from collections.abc import Generator, Iterator
-from email.utils import parseaddr
+from datetime import UTC, datetime
+from email.utils import parseaddr, parsedate_to_datetime
 from html import unescape
 
 from bs4 import BeautifulSoup
@@ -708,6 +709,18 @@ def on_poll(
         state["first_run"] = False
 
 
+def _format_date_fallback(date_header: str | None) -> str:
+    """Parse an email Date header into 'YYYY-MM-DD HH:mm UTC' format."""
+    if date_header:
+        try:
+            dt = parsedate_to_datetime(date_header)
+            utc_dt = dt.astimezone(UTC)
+            return utc_dt.strftime("%Y-%m-%d %H:%M UTC")
+        except (ValueError, TypeError):
+            pass
+    return datetime.now(UTC).strftime("%Y-%m-%d %H:%M UTC")
+
+
 def _extract_address(header_value: str | None) -> str | None:
     """Extract a single clean email address from a header value."""
     if not header_value:
@@ -816,6 +829,7 @@ def on_es_poll(
 
             finding_email = None
             attachments: list[FindingAttachment] = []
+            rule_title = subject[:100] if subject else f"Email ID: {email_id}"
 
             try:
                 eml_content = helper.make_rest_call_helper(
@@ -846,6 +860,12 @@ def on_es_poll(
                             eml_str, email_id, include_attachment_content=True
                         )
 
+                        sender = (
+                            email_data.get("from", {})
+                            .get("emailAddress", {})
+                            .get("address", "")
+                        )
+
                         reporter = None
                         inner = _extract_inner_email(parsed, email_id)
                         if inner is not None:
@@ -862,6 +882,27 @@ def on_es_poll(
                             ]
                             if asset.extract_eml:
                                 attachments.extend(outer_attachments)
+
+                            original_sender = (
+                                _extract_address(parsed.headers.from_address) or ""
+                            )
+                            inner_subject = parsed.headers.subject
+                            if inner_subject:
+                                rule_title = f"{sender} reported email from {original_sender} - {inner_subject}"
+                            else:
+                                date_str = _format_date_fallback(parsed.headers.date)
+                                rule_title = f"{sender} reported email from {original_sender} - No subject ({date_str})"
+                        else:
+                            outer_subject = email_data.get("subject")
+                            if outer_subject:
+                                rule_title = (
+                                    f"{sender} reported email - {outer_subject}"
+                                )
+                            else:
+                                date_str = _format_date_fallback(parsed.headers.date)
+                                rule_title = (
+                                    f"{sender} reported email - No subject ({date_str})"
+                                )
 
                         body_text = parsed.body.plain_text or parsed.body.html or ""
                         email_headers = {
@@ -895,7 +936,7 @@ def on_es_poll(
                 state["es_boundary_ids"] = list(new_boundary_ids)
 
             yield Finding(
-                rule_title=subject[:100] if subject else f"Email ID: {email_id}",
+                rule_title=rule_title[:100],
                 email=finding_email,
                 attachments=attachments if attachments else None,
             )
