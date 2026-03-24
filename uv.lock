@@ -591,9 +591,9 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "beautifulsoup4", specifier = ">=4.13.0,<4.14.0" },
-    { name = "msal", specifier = ">=1.31.0" },
-    { name = "requests", specifier = ">=2.32.0" },
-    { name = "splunk-soar-sdk", extras = ["email"], specifier = ">=3.17.1" },
+    { name = "msal", specifier = ">=1.35.1" },
+    { name = "requests", specifier = ">=2.32.5" },
+    { name = "splunk-soar-sdk", extras = ["email"], specifier = ">=3.18.0" },
 ]
 
 [package.metadata.requires-dev]
