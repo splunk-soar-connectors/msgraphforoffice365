@@ -1,6 +1,6 @@
 # File: office365_connector.py
 #
-# Copyright (c) 2017-2025 Splunk Inc.
+# Copyright (c) 2017-2026 Splunk Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -1427,21 +1427,24 @@ class Office365Connector(BaseConnector):
         if self._admin_access or self._state["auth_type"] == "cba":
             message_failed = "API to fetch details of all the users failed"
             self.save_progress("Getting info about all users to verify token")
-            ret_val, response = self._make_rest_call_helper(action_result, "/users", params=params)
+            ret_val, _response = self._make_rest_call_helper(action_result, "/users", params=params)
         else:
             message_failed = "API to get user details failed"
             self.save_progress("Getting info about a single user to verify token")
-            ret_val, response = self._make_rest_call_helper(action_result, "/me", params=params)
+            ret_val, _response = self._make_rest_call_helper(action_result, "/me", params=params)
 
         if phantom.is_fail(ret_val):
+            result_msg = action_result.get_message()
+            if "403" in result_msg:
+                self.save_progress(
+                    "Warning: connectivity to Microsoft Graph was verified but the "
+                    "User.Read.All permission is not granted. Some actions may not work. "
+                    "For email use cases, ensure Mail.Read or Mail.ReadWrite permissions are configured.\nTest Connectivity Passed."
+                )
+                return action_result.set_status(phantom.APP_SUCCESS)
             self.save_progress(message_failed)
-            self.save_progress("Test Connectivity Failed")
+            self.save_progress("Test Connectivity Failed, {result_msg}")
             return action_result.set_status(phantom.APP_ERROR)
-
-        value = response.get("value")
-
-        if value:
-            self.save_progress("Got user info")
 
         self.save_progress("Test Connectivity Passed")
 
