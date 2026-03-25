@@ -1443,7 +1443,7 @@ class Office365Connector(BaseConnector):
                 )
                 return action_result.set_status(phantom.APP_SUCCESS)
             self.save_progress(message_failed)
-            self.save_progress("Test Connectivity Failed, {result_msg}")
+            self.save_progress("Test Connectivity Failed")
             return action_result.set_status(phantom.APP_ERROR)
 
         self.save_progress("Test Connectivity Passed")
