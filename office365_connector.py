@@ -42,6 +42,9 @@ from phantom.vault import Vault
 from office365_consts import *
 from process_email import ProcessEmail
 
+# named locations (Entra conditional access policies)
+from ipaddress import IPv4Network, IPv6Network, ip_network
+
 
 TC_FILE = "oauth_task.out"
 SERVER_TOKEN_URL = "https://login.microsoftonline.com/{0}/oauth2/v2.0/token"
@@ -3056,6 +3059,181 @@ class Office365Connector(BaseConnector):
 
         return action_result.set_status(phantom.APP_SUCCESS, status_msg)
 
+    def _handle_disable_rule(self, param):
+        self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
+        action_result = self.add_action_result(ActionResult(dict(param)))
+
+        user_id = param['user_id']
+        rule_id = param['rule_id']
+
+        # MessageRules are supported only for 'Inbox' mail folder.
+        endpoint = f"/users/{user_id}/mailFolders/inbox/messageRules/{rule_id}"
+        self.save_progress(f"endpoint {endpoint}")
+
+        # Disable the rule
+        ret_val, response = self._make_rest_call_helper(
+            action_result, endpoint, data=json.dumps({'isEnabled': False}), method="patch", beta=True
+        )
+        
+        if phantom.is_fail(ret_val):
+            return action_result.set_status(phantom.APP_ERROR, f"Disabling rule with id: {rule_id} failed")
+            
+        action_result.add_data(response)
+        return action_result.set_status(phantom.APP_SUCCESS)
+
+    def _handle_delete_rule(self, param):
+        
+        self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
+        action_result = self.add_action_result(ActionResult(dict(param)))
+
+        user_id = param['user_id']
+        rule_id = param['rule_id']
+
+        # MessageRules are supported only for 'Inbox' mail folder.
+        endpoint = f"/users/{user_id}/mailFolders/inbox/messageRules/{rule_id}"
+        self.save_progress(f"endpoint {endpoint}")
+
+        # Delete the rule
+        ret_val, response = self._make_rest_call_helper(
+            action_result, endpoint, method="delete", beta=True
+        )
+
+        if phantom.is_fail(ret_val):
+            return action_result.set_status(phantom.APP_ERROR, f"Deleting rule with id: {rule_id} failed")
+            
+        action_result.add_data(response)
+        return action_result.set_status(phantom.APP_SUCCESS)
+
+    def _handle_list_named_locations(self, param):
+        self.save_progress(f"In action handler for: {self.get_action_identifier()}")
+        action_result = self.add_action_result(ActionResult(dict(param)))
+
+        #Optional odata filter. eg: "contains(displayName,'ISP')" - Note that the filters are case sensitive. Leave blank for no filter
+        odata_filter = param.get('filter', '').strip()
+        
+        # Optional select statement eg: "id,displayName". Leave blank for all fields
+        odata_select = param.get('select', '').strip()
+        
+        # Including count=true outputs an @odata.count value which can be used in loops or logic
+        endpoint = f"/identity/conditionalAccess/namedLocations?$count=true"
+        
+        # Append $filter if provided
+        if odata_filter:
+            endpoint += f"&$filter={odata_filter}"
+            
+        # Append $select if provided
+        if odata_select:
+                endpoint += f"&$select={odata_select}"
+
+        ret_val, locations = self._paginator(action_result, endpoint)
+
+        if phantom.is_fail(ret_val):
+            return action_result.get_status()
+
+        if not locations:
+            return action_result.set_status(phantom.APP_SUCCESS, MSGOFFICE365_NO_DATA_FOUND)
+
+        for location in locations:
+            action_result.add_data(location)
+
+        num_locations = len(locations)
+        action_result.update_summary({"total_locations_returned": num_locations})
+
+        return action_result.set_status(
+            phantom.APP_SUCCESS,
+            "Successfully retrieved {} location{}".format(num_locations, "" if num_locations == 1 else "s"),
+        )
+
+    def _handle_add_cidr_to_named_location(self, param):
+        self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
+        action_result = self.add_action_result(ActionResult(dict(param)))
+
+        cidr_range = param['cidr_range']
+        location_id = param['location_id']
+        
+        net = ip_network(param['cidr_range'], strict=False)
+
+        if net.version == 4:
+            cidr_type = '#microsoft.graph.iPv4CidrRange'
+        elif net.version == 6:
+            cidr_type = '#microsoft.graph.iPv6CidrRange'
+        else:
+            return action_result.set_status(phantom.APP_ERROR,"Unknown IP range type")
+        
+        # Set up the new cidr range object
+        new_range = {
+            '@odata.type': cidr_type, 
+            'cidrAddress': str(cidr_range)
+        }
+        self.save_progress(f"new_range {new_range}")
+
+        endpoint = f'/identity/conditionalAccess/namedLocations/{location_id}'
+        self.save_progress(f"endpoint {endpoint}")
+        
+        # Get the existing location object (patch will overwrite all existing ip ranges)
+        ret_val, existing_loc = self._make_rest_call_helper(action_result, endpoint, method="get")
+        
+        # Add the new range to existing ranges
+        all_ranges = existing_loc.get('ipRanges', [])
+        all_ranges.append(new_range)
+        
+        # Updated object to submit
+        patch_data = json.dumps({
+            '@odata.type': '#microsoft.graph.ipNamedLocation',
+            'ipRanges': all_ranges
+        })
+
+        ret_val, response = self._make_rest_call_helper(
+            action_result, endpoint, data=patch_data, method="patch", beta=True
+        )
+
+        if phantom.is_fail(ret_val):
+            return action_result.set_status(phantom.APP_ERROR, f"Adding IP range {cidr_range} to Named Location failed")
+
+        action_result.add_data(response)
+        return action_result.set_status(phantom.APP_SUCCESS)
+
+    def _handle_remove_cidr_from_named_location(self, param):
+        self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
+        action_result = self.add_action_result(ActionResult(dict(param)))
+
+        cidr_range = param['cidr_range']
+        location_id = param['location_id']
+        
+        endpoint = f'/identity/conditionalAccess/namedLocations/{location_id}'
+        self.save_progress(f"endpoint {endpoint}")
+
+        # Get the existing location object (patch will overwrite all existing ip ranges)
+        ret_val, existing_loc = self._make_rest_call_helper(action_result, endpoint, method="get")
+		
+        if phantom.is_fail(ret_val):
+            return action_result.set_status(phantom.APP_ERROR, f"Could not retrieve Named Location {location_id}")
+
+        current_ranges = existing_loc.get('ipRanges', [])
+		
+        # Create a new list excluding the target CIDR
+        updated_ranges = [r for r in current_ranges if r.get('cidrAddress') != cidr_range]
+
+        # Check if anything was actually removed
+        if len(current_ranges) == len(updated_ranges):
+            self.save_progress(f"CIDR {cidr_range} not found in location. No changes made.")
+            return action_result.set_status(phantom.APP_SUCCESS, "CIDR not found; nothing to remove.")
+
+        # Updated object to submit
+        patch_data = json.dumps({
+            '@odata.type': '#microsoft.graph.ipNamedLocation',
+            'ipRanges': updated_ranges
+        })
+
+        ret_val, response = self._make_rest_call_helper(action_result, endpoint, data=patch_data, method="patch")
+
+        if phantom.is_fail(ret_val):
+            return action_result.set_status(phantom.APP_ERROR, f"Removing IP range {cidr_range} failed")
+
+        action_result.add_data(response)
+        return action_result.set_status(phantom.APP_SUCCESS, f"Successfully removed {cidr_range}")
+
+
     def handle_action(self, param):
         ret_val = phantom.APP_SUCCESS
 
@@ -3075,6 +3253,24 @@ class Office365Connector(BaseConnector):
 
         if action_id == "unblock_sender":
             ret_val = self._handle_unblock_sender(param)
+
+        if action_id == 'disable_rule':
+            ret_val = self._handle_disable_rule(param)
+
+        if action_id == 'disable_rule':
+            ret_val = self._handle_disable_rule(param)
+
+        if action_id == 'delete_rule':
+            ret_val = self._handle_delete_rule(param)
+
+        if action_id == 'list_named_locations':
+            ret_val = self._handle_list_named_locations(param)
+
+        if action_id == 'add_cidr_to_named_location':
+            ret_val = self._handle_add_cidr_to_named_location(param)
+
+        if action_id == 'remove_cidr_from_named_location':
+            ret_val = self._handle_remove_cidr_from_named_location(param)
 
         if action_id == "test_connectivity":
             ret_val = self._handle_test_connectivity(param)

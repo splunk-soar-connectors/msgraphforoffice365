@@ -30,12 +30,15 @@
         },
         {
             "name": "Anton Neledov"
+        },
+        {
+            "name": "Lindon Morris"
         }
     ],
     "license": "Copyright (c) 2017-2025 Splunk Inc.",
-    "app_version": "4.1.0",
-    "utctime_updated": "2026-01-09T05:33:39.032641Z",
-    "package_name": "phantom_msgraphoffice365",
+    "app_version": "1.3.0",
+    "utctime_updated": "2026-03-26T23:12:07.217635Z",
+    "package_name": "phantom_msgraphforoffice365_v411",
     "main_module": "office365_connector.py",
     "min_phantom_version": "6.3.0",
     "latest_tested_versions": [
@@ -50,13 +53,17 @@
             "description": "Tenant ID (e.g. 1e309abf-db6c-XXXX-a1d2-XXXXXXXXXXXX)",
             "data_type": "string",
             "required": true,
-            "order": 0
+            "order": 0,
+            "name": "tenant",
+            "id": 0
         },
         "client_id": {
             "description": "Application ID",
             "data_type": "string",
             "required": true,
-            "order": 1
+            "order": 1,
+            "name": "client_id",
+            "id": 1
         },
         "auth_type": {
             "data_type": "string",
@@ -68,122 +75,166 @@
                 "Automatic",
                 "OAuth",
                 "Certificate Based Authentication(CBA)"
-            ]
+            ],
+            "name": "auth_type",
+            "id": 2
         },
         "ph": {
             "data_type": "ph",
-            "order": 3
+            "order": 3,
+            "name": "ph",
+            "id": 3
         },
         "client_secret": {
             "description": "Application Secret(required for OAuth)",
             "data_type": "password",
-            "order": 4
+            "order": 4,
+            "name": "client_secret",
+            "id": 4
         },
         "ph_4": {
             "data_type": "ph",
-            "order": 5
+            "order": 5,
+            "name": "ph_4",
+            "id": 5
         },
         "certificate_thumbprint": {
             "description": "Certificate Thumbprint (required for CBA)",
             "data_type": "password",
             "order": 6,
-            "required": false
+            "required": false,
+            "name": "certificate_thumbprint",
+            "id": 6
         },
         "certificate_private_key": {
             "description": "Certificate Private Key (.PEM)",
             "data_type": "password",
             "required": false,
-            "order": 7
+            "order": 7,
+            "name": "certificate_private_key",
+            "id": 7
         },
         "admin_access": {
             "description": "Admin Access Required",
             "data_type": "boolean",
-            "default": true,
-            "order": 8
+            "default": "True",
+            "order": 8,
+            "name": "admin_access",
+            "id": 8
         },
         "admin_consent": {
             "description": "Admin Consent Already Provided (Required checked for CBA)",
             "data_type": "boolean",
-            "default": false,
-            "order": 9
+            "default": "False",
+            "order": 9,
+            "name": "admin_consent",
+            "id": 9
         },
         "scope": {
             "description": "Access Scope (for use with OAuth non-admin access; space-separated)",
             "data_type": "string",
             "default": "https://graph.microsoft.com/Calendars.Read https://graph.microsoft.com/User.Read",
-            "order": 10
+            "order": 10,
+            "name": "scope",
+            "id": 10
         },
         "ph_2": {
             "data_type": "ph",
-            "order": 11
+            "order": 11,
+            "name": "ph_2",
+            "id": 11
         },
         "email_address": {
             "description": "Email Address of the User (On Poll)",
             "data_type": "string",
-            "order": 12
+            "order": 12,
+            "name": "email_address",
+            "id": 12
         },
         "folder": {
             "description": "Mailbox folder name/folder path or the internal office365 folder ID to ingest (On Poll)",
             "data_type": "string",
-            "order": 13
+            "order": 13,
+            "name": "folder",
+            "id": 13
         },
         "get_folder_id": {
             "description": "Retrieve the folder ID for the provided folder name/folder path automatically and replace the folder parameter value (On Poll)",
             "data_type": "boolean",
-            "default": true,
-            "order": 14
+            "default": "True",
+            "order": 14,
+            "name": "get_folder_id",
+            "id": 14
         },
         "ph_3": {
             "data_type": "ph",
-            "order": 15
+            "order": 15,
+            "name": "ph_3",
+            "id": 15
         },
         "first_run_max_emails": {
             "description": "Maximum Containers for scheduled polling first time",
             "data_type": "numeric",
             "default": 1000,
-            "order": 16
+            "order": 16,
+            "name": "first_run_max_emails",
+            "id": 16
         },
         "max_containers": {
             "description": "Maximum Containers for scheduled polling",
             "data_type": "numeric",
             "default": 100,
-            "order": 17
+            "order": 17,
+            "name": "max_containers",
+            "id": 17
         },
         "extract_attachments": {
             "description": "Extract Attachments",
             "data_type": "boolean",
-            "default": false,
-            "order": 18
+            "default": "False",
+            "order": 18,
+            "name": "extract_attachments",
+            "id": 18
         },
         "extract_urls": {
             "description": "Extract URLs",
             "data_type": "boolean",
-            "default": false,
-            "order": 19
+            "default": "False",
+            "order": 19,
+            "name": "extract_urls",
+            "id": 19
         },
         "extract_ips": {
             "description": "Extract IPs",
             "data_type": "boolean",
-            "default": false,
-            "order": 20
+            "default": "False",
+            "order": 20,
+            "name": "extract_ips",
+            "id": 20
         },
         "extract_domains": {
             "description": "Extract Domain Names",
             "data_type": "boolean",
-            "default": false,
-            "order": 21
+            "default": "False",
+            "order": 21,
+            "name": "extract_domains",
+            "id": 21
         },
         "extract_hashes": {
             "description": "Extract Hashes",
             "data_type": "boolean",
-            "default": false,
-            "order": 22
+            "default": "False",
+            "order": 22,
+            "name": "extract_hashes",
+            "id": 22
         },
         "ingest_eml": {
             "description": "Ingest EML file for the itemAttachment",
             "data_type": "boolean",
-            "default": false,
-            "order": 23
+            "default": "False",
+            "order": 23,
+            "name": "ingest_eml",
+            "id": 23
         },
         "ingest_manner": {
             "data_type": "string",
@@ -193,25 +244,33 @@
                 "oldest first",
                 "latest first"
             ],
-            "default": "oldest first"
+            "default": "oldest first",
+            "name": "ingest_manner",
+            "id": 24
         },
         "retry_count": {
             "description": "Maximum attempts to retry the API call (Default: 3)",
             "data_type": "numeric",
             "default": 3,
-            "order": 25
+            "order": 25,
+            "name": "retry_count",
+            "id": 25
         },
         "retry_wait_time": {
             "description": "Delay in seconds between retries (Default: 60)",
             "data_type": "numeric",
             "default": 60,
-            "order": 26
+            "order": 26,
+            "name": "retry_wait_time",
+            "id": 26
         },
         "extract_eml": {
             "data_type": "boolean",
             "description": "Extract root (primary) email as Vault",
             "order": 27,
-            "default": false
+            "default": "False",
+            "name": "extract_eml",
+            "id": 27
         }
     },
     "actions": [
@@ -297,7 +356,8 @@
                         "msgoffice365 user principal name",
                         "email"
                     ],
-                    "order": 0
+                    "order": 0,
+                    "name": "user_id"
                 }
             },
             "output": [
@@ -442,7 +502,8 @@
                         "msgoffice365 user principal name",
                         "email"
                     ],
-                    "order": 0
+                    "order": 0,
+                    "name": "user_id"
                 },
                 "group_id": {
                     "description": "Group ID",
@@ -451,17 +512,20 @@
                     "contains": [
                         "msgoffice365 group id"
                     ],
-                    "order": 1
+                    "order": 1,
+                    "name": "group_id"
                 },
                 "filter": {
                     "description": "OData query to filter/search for specific results",
                     "data_type": "string",
-                    "order": 2
+                    "order": 2,
+                    "name": "filter"
                 },
                 "limit": {
                     "description": "Maximum number of events to return",
                     "data_type": "numeric",
-                    "order": 3
+                    "order": 3,
+                    "name": "limit"
                 }
             },
             "output": [
@@ -1124,7 +1188,11 @@
                         "msgoffice365 user id",
                         "msgoffice365 user principal name",
                         "email"
-                    ]
+                    ],
+                    "name": "user_id",
+                    "id": 1,
+                    "param_name": "user_id",
+                    "nameError": false
                 },
                 "rule_id": {
                     "description": "Inbox rule ID",
@@ -1134,7 +1202,12 @@
                     "order": 1,
                     "contains": [
                         "msgoffice365 rule id"
-                    ]
+                    ],
+                    "name": "rule_id",
+                    "id": 2,
+                    "param_name": "rule_id",
+                    "nameError": false,
+                    "descriptionError": false
                 }
             },
             "output": [
@@ -1311,7 +1384,11 @@
                         "msgoffice365 user id",
                         "msgoffice365 user principal name",
                         "email"
-                    ]
+                    ],
+                    "name": "user_id",
+                    "id": 1,
+                    "param_name": "user_id",
+                    "descriptionError": false
                 }
             },
             "output": [
@@ -1496,12 +1573,18 @@
                 "filter": {
                     "description": "Search for specific results",
                     "data_type": "string",
-                    "order": 0
+                    "order": 0,
+                    "name": "filter",
+                    "id": 1,
+                    "param_name": "filter"
                 },
                 "limit": {
                     "description": "Maximum number of users to return",
                     "data_type": "numeric",
-                    "order": 1
+                    "order": 1,
+                    "name": "limit",
+                    "id": 2,
+                    "param_name": "limit"
                 }
             },
             "output": [
@@ -1659,12 +1742,14 @@
                 "filter": {
                     "description": "Search for specific results",
                     "data_type": "string",
-                    "order": 0
+                    "order": 0,
+                    "name": "filter"
                 },
                 "limit": {
                     "description": "Maximum number of groups to return",
                     "data_type": "numeric",
-                    "order": 1
+                    "order": 1,
+                    "name": "limit"
                 }
             },
             "output": [
@@ -1937,7 +2022,8 @@
                         "Group e-mail"
                     ],
                     "default": "Group ID",
-                    "order": 0
+                    "order": 0,
+                    "name": "method"
                 },
                 "identificator": {
                     "description": "Group ID or group e-mail address, based on the selected method",
@@ -1949,23 +2035,27 @@
                         "msgoffice365 group email address",
                         "msgoffice365 group e-mail address"
                     ],
-                    "order": 1
+                    "order": 1,
+                    "name": "identificator"
                 },
                 "get_transitive_members": {
                     "description": "Get a list of the group's members. A group can have users, devices, organizational contacts, and other groups as members. This operation is transitive and returns a flat list of all nested members",
                     "data_type": "boolean",
                     "default": true,
-                    "order": 2
+                    "order": 2,
+                    "name": "get_transitive_members"
                 },
                 "filter": {
                     "description": "Search for specific results",
                     "data_type": "string",
-                    "order": 3
+                    "order": 3,
+                    "name": "filter"
                 },
                 "limit": {
                     "description": "Maximum number of members to return",
                     "data_type": "numeric",
-                    "order": 4
+                    "order": 4,
+                    "name": "limit"
                 }
             },
             "output": [
@@ -2169,7 +2259,8 @@
                         "msgoffice365 user id",
                         "msgoffice365 user principal name",
                         "email"
-                    ]
+                    ],
+                    "name": "user_id"
                 },
                 "folder_id": {
                     "description": "Parent mail folder ID",
@@ -2178,7 +2269,8 @@
                     "order": 1,
                     "contains": [
                         "msgoffice365 folder id"
-                    ]
+                    ],
+                    "name": "folder_id"
                 }
             },
             "output": [
@@ -2340,7 +2432,8 @@
                     "contains": [
                         "msgoffice365 message id"
                     ],
-                    "order": 0
+                    "order": 0,
+                    "name": "id"
                 },
                 "email_address": {
                     "description": "Source mailbox (email)",
@@ -2350,7 +2443,8 @@
                         "email"
                     ],
                     "order": 1,
-                    "primary": true
+                    "primary": true,
+                    "name": "email_address"
                 },
                 "folder": {
                     "description": "Destination folder; this must be either a (case-sensitive) well-known name or the internal o365 folder ID",
@@ -2362,13 +2456,15 @@
                         "msgoffice365 mail folder path",
                         "msgoffice365 folder id"
                     ],
-                    "order": 2
+                    "order": 2,
+                    "name": "folder"
                 },
                 "get_folder_id": {
                     "description": "Assume the folder parameter contains a folder name/folder path, separated by '/' ; i.e. Inbox/dir1/dir2/dir3. If this parameter is enabled, it retrieves the folder ID for the provided folder name/folder path automatically and replaces the parameter value",
                     "data_type": "boolean",
                     "default": true,
-                    "order": 3
+                    "order": 3,
+                    "name": "get_folder_id"
                 }
             },
             "output": [
@@ -2776,7 +2872,8 @@
                     "contains": [
                         "msgoffice365 message id"
                     ],
-                    "order": 0
+                    "order": 0,
+                    "name": "id"
                 },
                 "email_address": {
                     "description": "Source mailbox (email)",
@@ -2786,7 +2883,8 @@
                     "contains": [
                         "email"
                     ],
-                    "order": 1
+                    "order": 1,
+                    "name": "email_address"
                 },
                 "folder": {
                     "description": "Destination folder; this must be either a (case-sensitive) well-known name or the internal o365 folder ID",
@@ -2798,13 +2896,15 @@
                         "msgoffice365 mail folder path",
                         "msgoffice365 folder id"
                     ],
-                    "order": 2
+                    "order": 2,
+                    "name": "folder"
                 },
                 "get_folder_id": {
                     "description": "Assume the folder parameter contains a folder name/folder path, separated by '/'(forward slash) ; i.e. Inbox/dir1/dir2/dir3. If this parameter is enabled, it retrieves the folder ID for the provided folder name/folder path automatically and replaces the parameter value",
                     "data_type": "boolean",
                     "default": true,
-                    "order": 3
+                    "order": 3,
+                    "name": "get_folder_id"
                 }
             },
             "output": [
@@ -3211,7 +3311,8 @@
                     "contains": [
                         "msgoffice365 message id"
                     ],
-                    "order": 0
+                    "order": 0,
+                    "name": "id"
                 },
                 "email_address": {
                     "description": "Email address of the mailbox owner",
@@ -3221,7 +3322,8 @@
                     "contains": [
                         "email"
                     ],
-                    "order": 1
+                    "order": 1,
+                    "name": "email_address"
                 }
             },
             "output": [
@@ -3312,7 +3414,8 @@
                     "contains": [
                         "msgoffice365 event id"
                     ],
-                    "order": 0
+                    "order": 0,
+                    "name": "id"
                 },
                 "email_address": {
                     "description": "Email address of the mailbox owner",
@@ -3322,13 +3425,15 @@
                     "contains": [
                         "email"
                     ],
-                    "order": 1
+                    "order": 1,
+                    "name": "email_address"
                 },
                 "send_decline_response": {
                     "description": "Send decline response to the organizer",
                     "data_type": "boolean",
                     "default": true,
-                    "order": 2
+                    "order": 2,
+                    "name": "send_decline_response"
                 }
             },
             "output": [
@@ -3428,7 +3533,8 @@
                     "contains": [
                         "msgoffice365 message id"
                     ],
-                    "order": 0
+                    "order": 0,
+                    "name": "id"
                 },
                 "email_address": {
                     "description": "Email address of the mailbox owner",
@@ -3438,22 +3544,26 @@
                     "contains": [
                         "email"
                     ],
-                    "order": 1
+                    "order": 1,
+                    "name": "email_address"
                 },
                 "download_attachments": {
                     "description": "Download attachments to vault",
                     "data_type": "boolean",
-                    "order": 2
+                    "order": 2,
+                    "name": "download_attachments"
                 },
                 "extract_headers": {
                     "description": "Extract email headers",
                     "data_type": "boolean",
-                    "order": 3
+                    "order": 3,
+                    "name": "extract_headers"
                 },
                 "download_email": {
                     "description": "Download email to vault",
                     "data_type": "boolean",
-                    "order": 4
+                    "order": 4,
+                    "name": "download_email"
                 }
             },
             "output": [
@@ -5014,7 +5124,8 @@
                     "contains": [
                         "msgoffice365 message id"
                     ],
-                    "order": 0
+                    "order": 0,
+                    "name": "id"
                 },
                 "email_address": {
                     "description": "Email address of the mailbox owner",
@@ -5024,32 +5135,38 @@
                     "contains": [
                         "email"
                     ],
-                    "order": 1
+                    "order": 1,
+                    "name": "email_address"
                 },
                 "get_headers": {
                     "description": "Get email headers",
                     "data_type": "boolean",
-                    "order": 2
+                    "order": 2,
+                    "name": "get_headers"
                 },
                 "get_body": {
                     "description": "Get email body",
                     "data_type": "boolean",
-                    "order": 3
+                    "order": 3,
+                    "name": "get_body"
                 },
                 "get_unique_body": {
                     "description": "Get unique email body",
                     "data_type": "boolean",
-                    "order": 4
+                    "order": 4,
+                    "name": "get_unique_body"
                 },
                 "get_sender": {
                     "description": "Get email sender",
                     "data_type": "boolean",
-                    "order": 5
+                    "order": 5,
+                    "name": "get_sender"
                 },
                 "properties_list": {
                     "description": "Other properties to get (comma-separated list)",
                     "data_type": "string",
-                    "order": 6
+                    "order": 6,
+                    "name": "properties_list"
                 }
             },
             "output": [
@@ -5669,7 +5786,8 @@
                     "contains": [
                         "email"
                     ],
-                    "order": 0
+                    "order": 0,
+                    "name": "email_address"
                 },
                 "folder": {
                     "description": "Destination folder; this must be either a (case-sensitive) well-known name or the internal o365 folder ID",
@@ -5681,18 +5799,21 @@
                         "msgoffice365 folder id"
                     ],
                     "default": "Inbox",
-                    "order": 1
+                    "order": 1,
+                    "name": "folder"
                 },
                 "search_well_known_folders": {
                     "description": "Checks all well known folders for messages, ignores folder name provided in parameter",
                     "data_type": "boolean",
-                    "order": 2
+                    "order": 2,
+                    "name": "search_well_known_folders"
                 },
                 "get_folder_id": {
                     "description": "Assume the folder parameter contains a folder name/folder path, separated by '/'(forward slash) ; i.e. Inbox/dir1/dir2/dir3. If this parameter is enabled, it retrieves the folder ID for the provided folder name/folder path automatically and replaces the parameter value",
                     "data_type": "boolean",
                     "default": true,
-                    "order": 3
+                    "order": 3,
+                    "name": "get_folder_id"
                 },
                 "subject": {
                     "description": "Substring to search in subject",
@@ -5701,12 +5822,14 @@
                     "contains": [
                         "msgoffice365 subject"
                     ],
-                    "order": 4
+                    "order": 4,
+                    "name": "subject"
                 },
                 "body": {
                     "description": "Substring to search in body",
                     "data_type": "string",
-                    "order": 5
+                    "order": 5,
+                    "name": "body"
                 },
                 "sender": {
                     "description": "Sender email address to match",
@@ -5715,17 +5838,20 @@
                     "contains": [
                         "email"
                     ],
-                    "order": 6
+                    "order": 6,
+                    "name": "sender"
                 },
                 "limit": {
                     "description": "Maximum emails to return",
                     "data_type": "numeric",
-                    "order": 7
+                    "order": 7,
+                    "name": "limit"
                 },
                 "query": {
                     "description": "MS Graph query string",
                     "data_type": "string",
-                    "order": 8
+                    "order": 8,
+                    "name": "query"
                 },
                 "internet_message_id": {
                     "description": "Internet message ID",
@@ -5734,7 +5860,8 @@
                     "contains": [
                         "msgoffice365 internet message id"
                     ],
-                    "order": 9
+                    "order": 9,
+                    "name": "internet_message_id"
                 }
             },
             "output": [
@@ -6359,7 +6486,8 @@
                     "contains": [
                         "email"
                     ],
-                    "order": 0
+                    "order": 0,
+                    "name": "email_address"
                 },
                 "folder": {
                     "description": "Folder Name/Path. Use '/'to separate folder elements; i.e. Inbox/dir1/dir2/dir3",
@@ -6370,12 +6498,14 @@
                         "msgoffice365 mail folder",
                         "msgoffice365 mail folder path"
                     ],
-                    "order": 1
+                    "order": 1,
+                    "name": "folder"
                 },
                 "all_subdirs": {
                     "description": "Make any missing directories in the path if they don't exist instead of failing",
                     "data_type": "boolean",
-                    "order": 2
+                    "order": 2,
+                    "name": "all_subdirs"
                 }
             },
             "output": [
@@ -6559,7 +6689,8 @@
                     "contains": [
                         "email"
                     ],
-                    "order": 0
+                    "order": 0,
+                    "name": "email_address"
                 },
                 "folder": {
                     "description": "Folder Name/Path. Use '/' to separate folder elements; i.e. Inbox/dir1/dir2/dir3",
@@ -6570,7 +6701,8 @@
                         "msgoffice365 mail folder",
                         "msgoffice365 mail folder path"
                     ],
-                    "order": 1
+                    "order": 1,
+                    "name": "folder"
                 }
             },
             "output": [
@@ -6693,7 +6825,8 @@
                     "primary": true,
                     "contains": [
                         "email"
-                    ]
+                    ],
+                    "name": "from"
                 },
                 "to": {
                     "description": "List of recipients email addresses",
@@ -6704,7 +6837,8 @@
                     "contains": [
                         "email"
                     ],
-                    "allow_list": true
+                    "allow_list": true,
+                    "name": "to"
                 },
                 "cc": {
                     "description": "List of recipients email addresses to include on cc line",
@@ -6714,7 +6848,8 @@
                     "contains": [
                         "email"
                     ],
-                    "allow_list": true
+                    "allow_list": true,
+                    "name": "cc"
                 },
                 "bcc": {
                     "description": "List of recipients email addresses to include on bcc line",
@@ -6724,24 +6859,28 @@
                         "email"
                     ],
                     "allow_list": true,
-                    "primary": true
+                    "primary": true,
+                    "name": "bcc"
                 },
                 "subject": {
                     "description": "Message Subject",
                     "data_type": "string",
                     "order": 4,
-                    "required": true
+                    "required": true,
+                    "name": "subject"
                 },
                 "headers": {
                     "description": "Serialized json dictionary. Additional email headers to be added to the message",
                     "data_type": "string",
-                    "order": 5
+                    "order": 5,
+                    "name": "headers"
                 },
                 "body": {
                     "description": "Html rendering of message",
                     "data_type": "string",
                     "order": 6,
-                    "required": true
+                    "required": true,
+                    "name": "body"
                 },
                 "attachments": {
                     "description": "List of vault ids of files to attach to the email. Vault id is used as content id",
@@ -6752,7 +6891,8 @@
                         "sha1",
                         "vault id"
                     ],
-                    "primary": true
+                    "primary": true,
+                    "name": "attachments"
                 }
             },
             "output": [
@@ -7131,30 +7271,35 @@
                 "start_time": {
                     "data_type": "numeric",
                     "description": "Parameter Ignored in this app",
-                    "order": 0
+                    "order": 0,
+                    "name": "start_time"
                 },
                 "end_time": {
                     "data_type": "numeric",
                     "description": "Parameter Ignored in this app",
-                    "order": 1
+                    "order": 1,
+                    "name": "end_time"
                 },
                 "container_id": {
                     "data_type": "string",
                     "description": "Parameter Ignored in this app",
-                    "order": 2
+                    "order": 2,
+                    "name": "container_id"
                 },
                 "container_count": {
                     "data_type": "numeric",
                     "description": "Maximum number of emails to ingest",
                     "required": true,
                     "value": 100,
-                    "order": 3
+                    "order": 3,
+                    "name": "container_count"
                 },
                 "artifact_count": {
                     "data_type": "numeric",
                     "description": "Parameter Ignored in this app",
                     "value": 1000,
-                    "order": 4
+                    "order": 4,
+                    "name": "artifact_count"
                 }
             },
             "output": [],
@@ -7176,7 +7321,8 @@
                     "contains": [
                         "msgoffice365 message id"
                     ],
-                    "order": 0
+                    "order": 0,
+                    "name": "id"
                 },
                 "email_address": {
                     "description": "Email address of the mailbox owner",
@@ -7186,18 +7332,21 @@
                     "contains": [
                         "email"
                     ],
-                    "order": 1
+                    "order": 1,
+                    "name": "email_address"
                 },
                 "subject": {
                     "description": "Subject to set",
                     "data_type": "string",
-                    "order": 2
+                    "order": 2,
+                    "name": "subject"
                 },
                 "categories": {
                     "description": "Categories to set",
                     "data_type": "string",
                     "order": 3,
-                    "allow_list": true
+                    "allow_list": true,
+                    "name": "categories"
                 }
             },
             "render": {
@@ -7540,18 +7689,21 @@
                     "description": "Message ID to pick the sender of",
                     "data_type": "string",
                     "required": true,
-                    "order": 0
+                    "order": 0,
+                    "name": "message_id"
                 },
                 "user_id": {
                     "description": "User ID to base the action of",
                     "data_type": "string",
                     "required": true,
-                    "order": 1
+                    "order": 1,
+                    "name": "user_id"
                 },
                 "is_message_move_requested": {
                     "description": "Indicates whether the message should be moved out of current folder",
                     "data_type": "boolean",
-                    "order": 2
+                    "order": 2,
+                    "name": "is_message_move_requested"
                 },
                 "report_action": {
                     "description": "Indicates the type of action to be reported on the message",
@@ -7633,18 +7785,21 @@
                     "description": "Message ID to pick the sender of",
                     "data_type": "string",
                     "required": true,
-                    "order": 0
+                    "order": 0,
+                    "name": "message_id"
                 },
                 "user_id": {
                     "description": "User ID to base the action of",
                     "data_type": "string",
                     "required": true,
-                    "order": 1
+                    "order": 1,
+                    "name": "user_id"
                 },
                 "move_to_junk_folder": {
                     "description": "Should the email be moved to the junk folder",
                     "data_type": "boolean",
-                    "order": 2
+                    "order": 2,
+                    "name": "move_to_junk_folder"
                 }
             },
             "output": [
@@ -7718,18 +7873,21 @@
                     "description": "Message ID to pick the sender of",
                     "data_type": "string",
                     "required": true,
-                    "order": 0
+                    "order": 0,
+                    "name": "message_id"
                 },
                 "user_id": {
                     "description": "User ID to base the action of",
                     "data_type": "string",
                     "required": true,
-                    "order": 1
+                    "order": 1,
+                    "name": "user_id"
                 },
                 "move_to_inbox": {
                     "description": "Should the email be moved to the inbox folder",
                     "data_type": "boolean",
-                    "order": 2
+                    "order": 2,
+                    "name": "move_to_inbox"
                 }
             },
             "output": [
@@ -7808,7 +7966,8 @@
                         "email",
                         "string"
                     ],
-                    "order": 0
+                    "order": 0,
+                    "name": "email"
                 }
             },
             "output": [
@@ -8021,58 +8180,68 @@
                     "data_type": "string",
                     "required": true,
                     "primary": true,
-                    "order": 0
+                    "order": 0,
+                    "name": "email_address"
                 },
                 "folder": {
                     "description": "Folder to retrieve messages",
                     "data_type": "string",
                     "default": "inbox",
-                    "order": 1
+                    "order": 1,
+                    "name": "folder"
                 },
                 "limit": {
                     "description": "Maximum number of messages to retrieve (should not exceed 100 per request)",
                     "data_type": "numeric",
                     "default": 100,
-                    "order": 2
+                    "order": 2,
+                    "name": "limit"
                 },
                 "offset": {
                     "description": "Number of messages to skip before retrieving results",
                     "data_type": "numeric",
                     "default": 0,
-                    "order": 3
+                    "order": 3,
+                    "name": "offset"
                 },
                 "start_date": {
                     "description": "Start date for filtering messages (format: YYYY-MM-DD)",
                     "data_type": "string",
-                    "order": 4
+                    "order": 4,
+                    "name": "start_date"
                 },
                 "end_date": {
                     "description": "End date for filtering messages (format: YYYY-MM-DD)",
                     "data_type": "string",
-                    "order": 5
+                    "order": 5,
+                    "name": "end_date"
                 },
                 "download_attachments": {
                     "description": "Download email attachments to vault",
                     "data_type": "boolean",
                     "default": false,
-                    "order": 6
+                    "order": 6,
+                    "name": "download_attachments"
                 },
                 "download_email": {
                     "description": "Download email as EML file to vault",
                     "data_type": "boolean",
                     "default": false,
-                    "order": 7
+                    "order": 7,
+                    "name": "download_email"
                 },
                 "extract_headers": {
                     "description": "Include email headers in results",
                     "data_type": "boolean",
                     "default": false,
-                    "order": 8
+                    "order": 8,
+                    "name": "extract_headers"
                 },
                 "plus_ingest": {
                     "description": "If enabled, messages will be also ingested like on_poll",
                     "data_type": "boolean",
-                    "order": 9
+                    "order": 9,
+                    "name": "plus_ingest"
                 }
             },
             "output": [
@@ -8748,6 +8917,496 @@
                 "type": "table"
             },
             "versions": "EQ(*)"
+        },
+        {
+            "action": "disable rule",
+            "identifier": "disable_rule",
+            "description": "Disable inbox rule by ID",
+            "verbose": "Under MS Graph, MessageRules are supported only for 'Inbox' mail folder.",
+            "type": "contain",
+            "read_only": false,
+            "parameters": {
+                "user_id": {
+                    "description": "User ID/Principal name",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": true,
+                    "contains": [
+                        "msgoffice365 user id",
+                        "msgoffice365 user principal name",
+                        "email"
+                    ],
+                    "value_list": [],
+                    "default": "",
+                    "order": 0,
+                    "name": "user_id",
+                    "id": 1,
+                    "param_name": "user_id"
+                },
+                "rule_id": {
+                    "description": "Inbox rule ID",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": true,
+                    "contains": [
+                        "msgoffice365 rule id"
+                    ],
+                    "value_list": [],
+                    "default": "",
+                    "order": 1,
+                    "name": "rule_id",
+                    "id": 2,
+                    "param_name": "rule_id"
+                }
+            },
+            "output": [
+                {
+                    "data_path": "action_result.parameter.user_id",
+                    "data_type": "string",
+                    "contains": [
+                        "msgoffice365 user id",
+                        "msgoffice365 user principal name",
+                        "email"
+                    ],
+                    "column_name": "user_id",
+                    "column_order": 0
+                },
+                {
+                    "data_path": "action_result.parameter.rule_id",
+                    "data_type": "string",
+                    "contains": [
+                        "msgoffice365 rule id"
+                    ],
+                    "column_name": "rule_id",
+                    "column_order": 1
+                },
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "column_name": "status",
+                    "column_order": 2
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric"
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric"
+                }
+            ],
+            "render": {
+                "type": "table"
+            },
+            "versions": "EQ(*)"
+        },
+        {
+            "action": "delete rule",
+            "identifier": "delete_rule",
+            "description": "Delete inbox rule by ID",
+            "verbose": "Under MS Graph, MessageRules are supported only for 'Inbox' mail folder.",
+            "type": "contain",
+            "read_only": false,
+            "parameters": {
+                "user_id": {
+                    "description": "User ID/Principal name",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": true,
+                    "contains": [
+                        "msgoffice365 user id",
+                        "msgoffice365 user principal name",
+                        "email"
+                    ],
+                    "value_list": [],
+                    "default": "",
+                    "order": 0,
+                    "name": "user_id"
+                },
+                "rule_id": {
+                    "description": "Inbox rule ID",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": true,
+                    "contains": [
+                        "msgoffice365 rule id"
+                    ],
+                    "value_list": [],
+                    "default": "",
+                    "order": 1,
+                    "name": "rule_id"
+                }
+            },
+            "output": [
+                {
+                    "data_path": "action_result.parameter.user_id",
+                    "data_type": "string",
+                    "contains": [
+                        "msgoffice365 user id",
+                        "msgoffice365 user principal name",
+                        "email"
+                    ],
+                    "column_name": "user_id",
+                    "column_order": 0
+                },
+                {
+                    "data_path": "action_result.parameter.rule_id",
+                    "data_type": "string",
+                    "contains": [
+                        "msgoffice365 rule id"
+                    ],
+                    "column_name": "rule_id",
+                    "column_order": 1
+                },
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "column_name": "status",
+                    "column_order": 2
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric"
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric"
+                }
+            ],
+            "render": {
+                "type": "table"
+            },
+            "versions": "EQ(*)"
+        },
+        {
+            "action": "list named locations",
+            "identifier": "list_named_locations",
+            "description": "List all named locations in EntraID Conditional Access",
+            "verbose": "Graph API filter: https://learn.microsoft.com/en-us/graph/filter-query-parameter",
+            "type": "investigate",
+            "read_only": false,
+            "parameters": {
+                "filter": {
+                    "description": "Optional odata filter. eg: \"contains(displayName,'ISP')\" - Note that the filters are case sensitive. Leave blank for no filter",
+                    "data_type": "string",
+                    "required": false,
+                    "primary": false,
+                    "contains": [
+                        "msgoffice365 odata filter"
+                    ],
+                    "value_list": [],
+                    "default": "",
+                    "order": 0,
+                    "name": "filter",
+                    "param_name": "filter"
+                },
+                "select": {
+                    "description": "Optional select statement eg: \"id,displayName\". Leave blank for all fields",
+                    "data_type": "string",
+                    "required": false,
+                    "primary": false,
+                    "contains": [
+                        "msgoffice365 odata select"
+                    ],
+                    "value_list": [],
+                    "default": "",
+                    "order": 1,
+                    "name": "select",
+                    "param_name": "select"
+                }
+            },
+            "output": [
+                {
+                    "data_path": "action_result.parameter.filter",
+                    "data_type": "string",
+                    "contains": [
+                        "msgoffice365 odata filter"
+                    ],
+                    "example_values": [
+                        "contains(displayName,'blocked')"
+                    ],
+                    "column_name": "filter",
+                    "column_order": 0
+                },
+                {
+                    "data_path": "action_result.parameter.select",
+                    "data_type": "string",
+                    "contains": [
+                        "msgoffice365 odata select"
+                    ],
+                    "example_values": [
+                        "id,displayName"
+                    ],
+                    "column_name": "select",
+                    "column_order": 1
+                },
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "column_name": "status",
+                    "column_order": 2
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric"
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric"
+                },
+                {
+                    "data_path": "action_result.data.*.id",
+                    "data_type": "string",
+                    "contains": [
+                        "microsoft.graph.objectId"
+                    ],
+                    "example_values": [
+                        "0c0c6d27-93e7-4fd7-88a4-952c6d61a697"
+                    ],
+                    "column_name": "id",
+                    "column_order": 3
+                },
+                {
+                    "data_path": "action_result.data.*.displayName",
+                    "data_type": "string",
+                    "example_values": [
+                        "Named locations to be blocked"
+                    ],
+                    "column_name": "displayName",
+                    "column_order": 4
+                },
+                {
+                    "data_path": "action_result.data.*.createdDateTime",
+                    "data_type": "string",
+                    "contains": [
+                        "datetime"
+                    ],
+                    "example_values": [
+                        "2021-03-23T04:59:25.8014022Z"
+                    ],
+                    "column_name": "created",
+                    "column_order": 5
+                },
+                {
+                    "data_path": "action_result.data.*.modifiedDateTime",
+                    "data_type": "string",
+                    "contains": [
+                        "datetime"
+                    ],
+                    "example_values": [
+                        "2021-03-23T08:05:02.1027085Z"
+                    ],
+                    "column_name": "modified",
+                    "column_order": 6
+                },
+                {
+                    "data_path": "action_result.data.*.deletedDateTime",
+                    "data_type": "string",
+                    "contains": [
+                        "datetime"
+                    ],
+                    "example_values": [
+                        null
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.isTrusted",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ],
+                    "column_name": "trusted",
+                    "column_order": 7
+                },
+                {
+                    "data_path": "action_result.data.*.ipRanges.*.@odata.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "#microsoft.graph.iPv6CidrRange",
+                        "#microsoft.graph.iPv4CidrRange"
+                    ],
+                    "column_name": "range_type",
+                    "column_order": 8
+                },
+                {
+                    "data_path": "action_result.data.*.ipRanges.*.cidrAddress",
+                    "data_type": "string",
+                    "contains": [
+                        "ip",
+                        "cidr"
+                    ],
+                    "example_values": [
+                        "2001:8000::/20",
+                        "2402:b801:2800::/40",
+                        "127.0.0.1/32"
+                    ],
+                    "column_name": "cidrAddress",
+                    "column_order": 9
+                }
+            ],
+            "render": {
+                "type": "table"
+            },
+            "versions": "EQ(*)"
+        },
+        {
+            "action": "add cidr to named location",
+            "identifier": "add_cidr_to_named_location",
+            "description": "Adds a CIDR formatted IP range to a Entra Conditional Access Named Location",
+            "verbose": "",
+            "type": "contain",
+            "read_only": false,
+            "parameters": {
+                "cidr_range": {
+                    "description": "An IP6 or IP4 CIDR (eg: \"2001:1000::/20\", \"1.1.1.0/24\")",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": true,
+                    "contains": [],
+                    "value_list": [],
+                    "default": "",
+                    "order": 0,
+                    "name": "cidr_range",
+                    "id": 1,
+                    "param_name": "cidr_range",
+                    "descriptionError": false
+                },
+                "location_id": {
+                    "description": "Named location id",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": true,
+                    "contains": [],
+                    "value_list": [],
+                    "default": "",
+                    "order": 1,
+                    "name": "location_id",
+                    "id": 2,
+                    "param_name": "location_id",
+                    "descriptionError": false
+                }
+            },
+            "output": [
+                {
+                    "data_path": "action_result.parameter.cidr_range",
+                    "data_type": "string",
+                    "contains": [],
+                    "column_name": "cidr_range",
+                    "column_order": 0
+                },
+                {
+                    "data_path": "action_result.parameter.location_id",
+                    "data_type": "string",
+                    "contains": [],
+                    "column_name": "location_id",
+                    "column_order": 1
+                },
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "column_name": "status",
+                    "column_order": 2
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric"
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric"
+                }
+            ],
+            "render": {
+                "type": "table"
+            },
+            "versions": "EQ(*)"
+        },
+        {
+            "action": "remove cidr from named location",
+            "identifier": "remove_cidr_from_named_location",
+            "description": "Removes IP range from specified Named Location id",
+            "verbose": "",
+            "type": "correct",
+            "read_only": false,
+            "parameters": {
+                "cidr_range": {
+                    "description": "An IP6 or IP4 CIDR (eg: \"2001:1000::/20\", \"1.1.1.0/24\")",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": true,
+                    "contains": [],
+                    "value_list": [],
+                    "default": "",
+                    "order": 0,
+                    "name": "cidr_range"
+                },
+                "location_id": {
+                    "description": "Named location id",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": true,
+                    "contains": [],
+                    "value_list": [],
+                    "default": "",
+                    "order": 1,
+                    "name": "location_id"
+                }
+            },
+            "output": [
+                {
+                    "data_path": "action_result.parameter.cidr_range",
+                    "data_type": "string",
+                    "contains": [],
+                    "column_name": "cidr_range",
+                    "column_order": 0
+                },
+                {
+                    "data_path": "action_result.parameter.location_id",
+                    "data_type": "string",
+                    "contains": [],
+                    "column_name": "location_id",
+                    "column_order": 1
+                },
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "column_name": "status",
+                    "column_order": 2
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric"
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric"
+                }
+            ],
+            "render": {
+                "type": "table"
+            },
+            "versions": "EQ(*)"
         }
     ],
     "pip39_dependencies": {
@@ -8801,5 +9460,13 @@
                 "input_file": "wheels/py3/pycparser-2.23-py3-none-any.whl"
             }
         ]
-    }
+    },
+    "copied_from_id": 359,
+    "copied_from_version": "1.2.0",
+    "directory": "msgraphforoffice365_v411_0fb23e5b-5864-40a9-9685-d1ee635d019e",
+    "version": 1,
+    "appname": "-",
+    "executable": "spawn313",
+    "disabled": false,
+    "custom_made": true
 }

@@ -29,19 +29,26 @@ def get_ctx_result(provides, result):
 
     param = result.get_param()
     summary = result.get_summary()
-    data = result.get_data()
+    
+    # This line throwing an error in SOAR Python Validator (SOAR on-prem v7.1.0.225)
+    # Likely due to the validator not understanding scope correctly.
+    # Renamed data to ctx_data instead to avoid any conflict with variable names.
+        #data = result.get_data()
+    ctx_data = result.get_data()
 
     ctx_result["param"] = param
 
     if summary:
         ctx_result["summary"] = summary
     ctx_result["action"] = provides
-    if not data:
+    # Renamed data to ctx_data
+    if not ctx_data:
         ctx_result["data"] = {}
         return ctx_result
 
     if provides == "get email":
-        for result in data:
+        # Renamed data to ctx_data
+        for result in ctx_data:
             attachments = result.get("attachments", [])
 
             if not attachments:
@@ -67,7 +74,8 @@ def get_ctx_result(provides, result):
 
             result.update({"attachment_data": attachment_data})
 
-    ctx_result["data"] = data
+    # Renamed data to ctx_data
+    ctx_result["data"] = ctx_data
 
     return ctx_result
 
