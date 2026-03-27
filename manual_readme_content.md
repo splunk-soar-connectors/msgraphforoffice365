@@ -131,6 +131,12 @@ To successfully run Test Connectivity, you need at least one of these permission
 **Mailbox Settings**
 
 - `MailboxSettings.Read` - Out-of-office status, mail rules
+- `MailboxSettings.ReadWrite` - Out-of-office status, mail rules
+
+**Conditional Access Policies**
+
+- `Policy.Policy.Read.All` - Read organisation policies
+- `Policy.ReadWrite.ConditionalAccess` - Update Conditional Access policies, named locations
 
 #### **Add Permissions in Azure AD**
 
