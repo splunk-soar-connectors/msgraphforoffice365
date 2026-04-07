@@ -15,6 +15,7 @@
 import email
 import hashlib
 import json
+import locale
 import mimetypes
 import os
 import re
@@ -575,7 +576,7 @@ class ProcessEmail:
         return self._decode_uni_string(subject, def_cont_name)
 
     def _handle_if_body(self, content_disp, content_id, content_type, part, bodies, file_path):
-        content_charset = part.get_content_charset()
+        content_charset = part.get_content_charset(failobj=locale.getencoding())
         process_as_body = False
 
         # if content disposition is None then assume that it is
@@ -618,7 +619,7 @@ class ProcessEmail:
         with open(file_path, "wb") as f:
             f.write(part_payload)
 
-        bodies.append({"file_path": file_path, "charset": part.get_content_charset()})
+        bodies.append({"file_path": file_path, "charset": part.get_content_charset(failobj=locale.getencoding())})
 
         return (phantom.APP_SUCCESS, False)
 
@@ -863,7 +864,7 @@ class ProcessEmail:
 
         extract_attach = self._config[PROC_EMAIL_JSON_EXTRACT_ATTACHMENTS]
 
-        charset = mail.get_content_charset()
+        charset = mail.get_content_charset(failobj=locale.getencoding())
 
         if charset is None:
             charset = "utf-8"
@@ -913,7 +914,7 @@ class ProcessEmail:
             file_path = f"{tmp_dir}/part_1.text"
             with open(file_path, "wb") as f:
                 f.write(mail.get_payload(decode=True))
-            bodies.append({"file_path": file_path, "charset": mail.get_content_charset()})
+            bodies.append({"file_path": file_path, "charset": mail.get_content_charset(failobj=locale.getencoding())})
 
         # get the container name
         container_name = self._get_container_name(self._parsed_mail, email_id)
