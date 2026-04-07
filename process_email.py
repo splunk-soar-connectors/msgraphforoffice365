@@ -748,12 +748,7 @@ class ProcessEmail:
     def _get_email_headers_from_part(self, part, charset=None):
         email_headers = list(part.items())
 
-        # TODO: the next 2 ifs can be condensed to use 'or'
-        if charset is None:
-            charset = part.get_content_charset()
-
-        if charset is None:
-            charset = "utf8"
+        charset = charset or part.get_content_charset(failobj="utf8")
 
         if not email_headers:
             return {}
