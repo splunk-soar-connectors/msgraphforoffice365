@@ -520,6 +520,8 @@ This section explains each configuration field in user-friendly terms.
 - **Checked**: Application permissions (organization-wide access for automation)
 - **Unchecked**: Delegated permissions (user-specific access for single-user scenarios)
 
+**Note**: If your organization uses [Role Based Access Control for Exchange Applications](https://learn.microsoft.com/en-us/exchange/permissions-exo/application-rbac) (the successor to Application Access Policies) to restrict mailbox access, ensure **Admin Access Required** is checked. This enables the application permissions mode compatible with Exchange App RBAC.
+
 #### **Admin Consent Already Provided** (Optional, Default: Unchecked)
 
 - Check after completing admin consent process in Azure AD
@@ -2216,7 +2218,7 @@ ______________________________________________________________________
 
 Auto-generated Splunk SOAR Connector documentation.
 
-Copyright 2025 Splunk Inc.
+Copyright 2026 Splunk Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
