@@ -1434,14 +1434,6 @@ class Office365Connector(BaseConnector):
             ret_val, _response = self._make_rest_call_helper(action_result, "/me", params=params)
 
         if phantom.is_fail(ret_val):
-            result_msg = action_result.get_message()
-            if "403" in result_msg:
-                self.save_progress(
-                    "Warning: connectivity to Microsoft Graph was verified but the "
-                    "User.Read.All permission is not granted. Some actions may not work. "
-                    "For email use cases, ensure Mail.Read or Mail.ReadWrite permissions are configured.\nTest Connectivity Passed."
-                )
-                return action_result.set_status(phantom.APP_SUCCESS)
             self.save_progress(message_failed)
             self.save_progress("Test Connectivity Failed")
             return action_result.set_status(phantom.APP_ERROR)
