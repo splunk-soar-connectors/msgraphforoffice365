@@ -2119,8 +2119,10 @@ class Office365Connector(BaseConnector):
         # last modified time in the state file
         email_index = 0 if ingest_manner == "latest first" else -1
 
+        is_poll_now = self.is_poll_now()
+
         # Prevent duplicate ingestion in cross-poll (last_email_id) and intra-batch (seen_ids)
-        last_email_id = self._state.get("last_email_id", None)
+        last_email_id = None if is_poll_now else self._state.get("last_email_id", None)
         seen_ids = {last_email_id} if last_email_id else set()
 
         while True:
@@ -2137,7 +2139,7 @@ class Office365Connector(BaseConnector):
             total_emails = len(emails)
 
             self.save_progress(f"Total emails fetched: {total_emails}")
-            if self.is_poll_now():
+            if is_poll_now:
                 self.save_progress("Ingesting all possible artifacts (ignoring maximum artifacts value) for POLL NOW")
 
             # Process all emails, checking each against seen_ids to handle out-of-order delivery
@@ -2167,9 +2169,9 @@ class Office365Connector(BaseConnector):
                     "Error occurred while processing all the email IDs",
                 )
 
-            # Store last processed email ID to prevent duplicates on next poll
-            self._state["last_email_id"] = emails[email_index]["id"]
-            if not self.is_poll_now():
+            if not is_poll_now:
+                # Store scheduled-poll cursor fields together so Poll Now does not mix state.
+                self._state["last_email_id"] = emails[email_index]["id"]
                 last_time = datetime.strptime(emails[email_index]["lastModifiedDateTime"], O365_TIME_FORMAT).strftime(O365_TIME_FORMAT)
                 self._state["last_time"] = last_time
                 self.save_state(deepcopy(self._state))
@@ -2185,11 +2187,10 @@ class Office365Connector(BaseConnector):
                 else:
                     break
             else:
-                self.save_state(deepcopy(self._state))
                 break
 
         # Update the 'first_run' value only if the ingestion gets successfully completed
-        if not self.is_poll_now() and self._state.get("first_run", True):
+        if not is_poll_now and self._state.get("first_run", True):
             self._state["first_run"] = False
 
         return action_result.set_status(phantom.APP_SUCCESS)
