@@ -14,7 +14,7 @@ repos:
         stages: [commit-msg]
         args: [--verbose]
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v6.0.0
+    rev: v5.0.0
     hooks:
       - id: check-merge-conflict
       - id: end-of-file-fixer
@@ -43,12 +43,12 @@ repos:
       - id: soar-app-linter
         args: ["--single-repo", "--message-level", "error"]
   - repo: https://github.com/hukkin/mdformat
-    rev: 1.0.0
+    rev: 0.7.22
     hooks:
       - id: mdformat
         exclude: "release_notes/.*"
   - repo: https://github.com/returntocorp/semgrep
-    rev: v1.89.0
+    rev: v1.136.0
     hooks:
       - id: semgrep-docker
   - repo: https://github.com/Yelp/detect-secrets
@@ -60,7 +60,7 @@ repos:
         exclude: "README.md"
   # Central hooks
   - repo: https://github.com/phantomcyber/dev-cicd-tools
-    rev: v2.1.1
+    rev: v2.1.4
     hooks:
       - id: build-docs
         language: python

@@ -1,7 +1,7 @@
 # MS Graph for Office 365
 
 Publisher: Splunk <br>
-Connector Version: 4.1.0 <br>
+Connector Version: 4.1.1 <br>
 Product Vendor: Microsoft <br>
 Product Name: Office 365 (MS Graph) <br>
 Minimum Product Version: 6.3.0
@@ -519,6 +519,8 @@ This section explains each configuration field in user-friendly terms.
 
 - **Checked**: Application permissions (organization-wide access for automation)
 - **Unchecked**: Delegated permissions (user-specific access for single-user scenarios)
+
+**Note**: If your organization uses [Role Based Access Control for Exchange Applications](https://learn.microsoft.com/en-us/exchange/permissions-exo/application-rbac) (the successor to Application Access Policies) to restrict mailbox access, ensure **Admin Access Required** is checked. This enables the application permissions mode compatible with Exchange App RBAC.
 
 #### **Admin Consent Already Provided** (Optional, Default: Unchecked)
 
