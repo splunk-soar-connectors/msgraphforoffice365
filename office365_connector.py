@@ -15,11 +15,13 @@
 #
 import base64
 import grp
+import hmac
 import json
 import os
 import pathlib
 import pwd
 import re
+import secrets
 import sys
 import tempfile
 import time
@@ -73,6 +75,17 @@ def _is_expected_graph_url(url):
         and not candidate.username
         and not candidate.password
     )
+
+
+def _parse_oauth_state(value):
+    """Split a pending OAuth state value into a safe asset ID and flow nonce."""
+    try:
+        asset_id, flow_nonce = str(value).split(":", 1)
+    except ValueError:
+        return None, None
+    if not asset_id.isalnum() or not flow_nonce:
+        return None, None
+    return asset_id, flow_nonce
 
 
 class ReturnException(Exception):
@@ -253,10 +266,20 @@ def _handle_oauth_result(request, path_parts):
     """
     <base_url>?admin_consent=True&tenant=a417c578-c7ee-480d-a225-d48057e74df5&state=13
     """
-    asset_id = request.GET.get("state")
+    oauth_state = request.GET.get("state")
+    asset_id, presented_nonce = _parse_oauth_state(oauth_state)
     if not asset_id:
         return HttpResponse(
-            f"ERROR: Asset ID not found in URL\n{json.dumps(request.GET)}",
+            "ERROR: Invalid OAuth state",
+            content_type="text/plain",
+            status=400,
+        )
+
+    state = _load_app_state(asset_id)
+    stored_nonce = str(state.get("flow_nonce") or "")
+    if not stored_nonce or not hmac.compare_digest(stored_nonce, presented_nonce):
+        return HttpResponse(
+            "ERROR: OAuth state did not match the pending authorization flow",
             content_type="text/plain",
             status=400,
         )
@@ -281,15 +304,13 @@ def _handle_oauth_result(request, path_parts):
             status=400,
         )
 
-    # Load the data
-    state = _load_app_state(asset_id)
-
     if admin_consent:
         if admin_consent == "True":
             admin_consent = True
         else:
             admin_consent = False
 
+        state.pop("flow_nonce", None)
         state["admin_consent"] = admin_consent
         _save_app_state(state, asset_id)
 
@@ -306,6 +327,7 @@ def _handle_oauth_result(request, path_parts):
         )
 
     # If value of admin_consent is not available, value of code is available
+    state.pop("flow_nonce", None)
     state["code"] = code
     _save_app_state(state, asset_id)
 
@@ -370,8 +392,8 @@ def handle_request(request, path_parts):
     if call_type == "result":
         # process the 'code'
         ret_val = _handle_oauth_result(request, path_parts)
-        asset_id = request.GET.get("state")  # nosemgrep
-        if asset_id and asset_id.isalnum():
+        asset_id, _ = _parse_oauth_state(request.GET.get("state"))  # nosemgrep
+        if ret_val.status_code < 400 and asset_id:
             app_dir = os.path.dirname(os.path.abspath(__file__))
             auth_status_file_path = f"{app_dir}/{asset_id}_{TC_FILE}"
             real_auth_status_file_path = os.path.abspath(auth_status_file_path)
@@ -3369,6 +3391,9 @@ class Office365Connector(BaseConnector):
         # it later on
         redirect_uri = f"{app_rest_url}/result"
         app_state["redirect_uri"] = redirect_uri
+        flow_nonce = secrets.token_urlsafe(32)
+        app_state["flow_nonce"] = flow_nonce
+        oauth_state = urllib.parse.quote(f"{self._asset_id}:{flow_nonce}", safe="")
 
         self.save_progress("Using OAuth Redirect URL as:")
         self.save_progress(redirect_uri)
@@ -3378,7 +3403,7 @@ class Office365Connector(BaseConnector):
             admin_consent_url = f"https://login.microsoftonline.com/{self._tenant}/adminconsent"
             admin_consent_url += f"?client_id={self._client_id}"
             admin_consent_url += f"&redirect_uri={redirect_uri}"
-            admin_consent_url += f"&state={self._asset_id}"
+            admin_consent_url += f"&state={oauth_state}"
         else:
             # Scope is required for non-admin access
             if not self._scope:
@@ -3388,7 +3413,7 @@ class Office365Connector(BaseConnector):
             admin_consent_url = f"https://login.microsoftonline.com/{self._tenant}/oauth2/v2.0/authorize"
             admin_consent_url += f"?client_id={self._client_id}"
             admin_consent_url += f"&redirect_uri={redirect_uri}"
-            admin_consent_url += f"&state={self._asset_id}"
+            admin_consent_url += f"&state={oauth_state}"
             admin_consent_url += f"&scope={self._scope}"
             admin_consent_url += "&response_type=code"
 
