@@ -23,6 +23,7 @@ import re
 import sys
 import tempfile
 import time
+import urllib.parse
 from copy import deepcopy
 from datetime import datetime
 
@@ -49,6 +50,11 @@ MSGOFFICE365_AUTHORITY_URL = "https://login.microsoftonline.com/{tenant}"
 MSGRAPH_API_URL = "https://graph.microsoft.com"
 MAX_END_OFFSET_VAL = 2147483646
 MSGOFFICE365_DEFAULT_SCOPE = "https://graph.microsoft.com/.default"
+
+
+def _quote_path_segment(value):
+    """Encode a caller-controlled value as one Microsoft Graph path segment."""
+    return urllib.parse.quote(str(value), safe="")
 
 
 class ReturnException(Exception):
@@ -859,7 +865,7 @@ class Office365Connector(BaseConnector):
         vault_id = None
 
         try:
-            attach_endpoint = "{}/{}/$value".format(endpoint, attachment["id"])
+            attach_endpoint = f"{endpoint}/{_quote_path_segment(attachment['id'])}/$value"
             ret_val, rfc822_email = self._make_rest_call_helper(action_result, attach_endpoint, download=True)
             if phantom.is_fail(ret_val):
                 self.debug_print("Error while downloading the file content, for attachment id: {}".format(attachment["id"]))
@@ -1059,7 +1065,7 @@ class Office365Connector(BaseConnector):
             if attachment.get("@odata.type") == "#microsoft.graph.itemAttachment":
                 # We need to expand the item attachment only once
                 if first_time:
-                    sub_email_endpoint = attach_endpoint + "/{}?$expand=microsoft.graph.itemattachment/item".format(attachment["id"])
+                    sub_email_endpoint = f"{attach_endpoint}/{_quote_path_segment(attachment['id'])}?$expand=microsoft.graph.itemattachment/item"
                     ret_val, sub_email_resp = self._make_rest_call_helper(action_result, sub_email_endpoint)
                     if phantom.is_fail(ret_val):
                         return action_result.get_status()
@@ -1088,7 +1094,7 @@ class Office365Connector(BaseConnector):
 
                 if first_time:
                     # Fetch the rfc822 content for the item attachment
-                    sub_email_endpoint = "{}/{}/$value".format(attach_endpoint, attachment["id"])
+                    sub_email_endpoint = f"{attach_endpoint}/{_quote_path_segment(attachment['id'])}/$value"
                     attachment["name"] = "{}.eml".format(attachment["name"])
                     ret_val, rfc822_email = self._make_rest_call_helper(action_result, sub_email_endpoint, download=True)
                     if phantom.is_fail(ret_val):
@@ -1230,7 +1236,7 @@ class Office365Connector(BaseConnector):
             if not self._handle_item_attachment(
                 email_message,
                 container_id,
-                "/users/{}/messages".format(config.get("email_address")),
+                f"/users/{_quote_path_segment(config.get('email_address'))}/messages",
                 action_result,
             ):
                 return action_result.set_status(
@@ -1256,7 +1262,7 @@ class Office365Connector(BaseConnector):
             attachment_artifacts.append(artifact_json)
 
         if email["hasAttachments"] and config.get("extract_attachments", False):
-            attach_endpoint = endpoint + "/{}/attachments".format(email["id"])
+            attach_endpoint = f"{endpoint}/{_quote_path_segment(email['id'])}/attachments"
             ret_val, attach_resp = self._make_rest_call_helper(action_result, attach_endpoint)
             if phantom.is_fail(ret_val):
                 return action_result.get_status()
@@ -1368,7 +1374,7 @@ class Office365Connector(BaseConnector):
             if not self._handle_item_attachment(
                 email_message,
                 self.get_container_id(),
-                f"/users/{email_address}/messages",
+                f"/users/{_quote_path_segment(email_address)}/messages",
                 action_result,
             ):
                 return action_result.set_status(
@@ -1449,9 +1455,9 @@ class Office365Connector(BaseConnector):
         email_addr = param["email_address"]
         folder = param["folder"]
         message_id = param["id"]
-        endpoint = f"/users/{email_addr}"
+        endpoint = f"/users/{_quote_path_segment(email_addr)}"
 
-        endpoint += f"/messages/{message_id}/copy"
+        endpoint += f"/messages/{_quote_path_segment(message_id)}/copy"
 
         body = {"DestinationId": folder}
 
@@ -1483,9 +1489,9 @@ class Office365Connector(BaseConnector):
         email_addr = param["email_address"]
         folder = param["folder"]
         message_id = param["id"]
-        endpoint = f"/users/{email_addr}"
+        endpoint = f"/users/{_quote_path_segment(email_addr)}"
 
-        endpoint += f"/messages/{message_id}/move"
+        endpoint += f"/messages/{_quote_path_segment(message_id)}/move"
 
         body = {"DestinationId": folder}
         if param.get("get_folder_id", True):
@@ -1517,9 +1523,9 @@ class Office365Connector(BaseConnector):
 
         email_addr = param["email_address"]
         message_id = param["id"]
-        endpoint = f"/users/{email_addr}"
+        endpoint = f"/users/{_quote_path_segment(email_addr)}"
 
-        endpoint += f"/messages/{message_id}"
+        endpoint += f"/messages/{_quote_path_segment(message_id)}"
 
         ret_val, _ = self._make_rest_call_helper(action_result, endpoint, method="delete")
         if phantom.is_fail(ret_val):
@@ -1534,7 +1540,7 @@ class Office365Connector(BaseConnector):
         email_addr = param["email_address"]
         message_id = param["id"]
         send_decline_response = param.get("send_decline_response")
-        endpoint = f"/users/{email_addr}/events/{message_id}"
+        endpoint = f"/users/{_quote_path_segment(email_addr)}/events/{_quote_path_segment(message_id)}"
         method = "delete"
         data = None
         if send_decline_response:
@@ -1554,7 +1560,7 @@ class Office365Connector(BaseConnector):
 
         user_id = param["user_id"]
 
-        endpoint = f"/users/{user_id}/mailboxSettings/automaticRepliesSetting"
+        endpoint = f"/users/{_quote_path_segment(user_id)}/mailboxSettings/automaticRepliesSetting"
 
         ret_val, response = self._make_rest_call_helper(action_result, endpoint, method="get")
         if phantom.is_fail(ret_val):
@@ -1595,9 +1601,9 @@ class Office365Connector(BaseConnector):
         endpoint = ""
 
         if user_id:
-            endpoint = f"/users/{user_id}/calendar/events"
+            endpoint = f"/users/{_quote_path_segment(user_id)}/calendar/events"
         else:
-            endpoint = f"/groups/{group_id}/calendar/events"
+            endpoint = f"/groups/{_quote_path_segment(group_id)}/calendar/events"
 
         if query:
             endpoint = f"{endpoint}?{query}"
@@ -1703,6 +1709,7 @@ class Office365Connector(BaseConnector):
             group_id = group[0]["id"]
 
         transitive_members = param.get("get_transitive_members", True)
+        group_id = _quote_path_segment(group_id)
         endpoint = f"/groups/{group_id}/members"
         if transitive_members:
             endpoint = f"/groups/{group_id}/transitiveMembers"
@@ -1766,7 +1773,7 @@ class Office365Connector(BaseConnector):
 
         user_id = param["user_id"]
 
-        endpoint = f"/users/{user_id}/mailFolders/inbox/messageRules"
+        endpoint = f"/users/{_quote_path_segment(user_id)}/mailFolders/inbox/messageRules"
 
         ret_val, rules = self._paginator(action_result, endpoint)
 
@@ -1812,7 +1819,7 @@ class Office365Connector(BaseConnector):
         user_id = param["user_id"]
         rule_id = param["rule_id"]
 
-        endpoint = f"/users/{user_id}/mailFolders/inbox/messageRules/{rule_id}"
+        endpoint = f"/users/{_quote_path_segment(user_id)}/mailFolders/inbox/messageRules/{_quote_path_segment(rule_id)}"
 
         ret_val, rule = self._make_rest_call_helper(action_result, endpoint)
 
@@ -1878,7 +1885,7 @@ class Office365Connector(BaseConnector):
         )
 
     def _fetch_root_folders(self, action_result, user_id):
-        endpoint = f"/users/{user_id}/mailFolders"
+        endpoint = f"/users/{_quote_path_segment(user_id)}/mailFolders"
 
         ret_val, folders = self._paginator(action_result, endpoint)
 
@@ -1923,7 +1930,7 @@ class Office365Connector(BaseConnector):
         return phantom.APP_SUCCESS
 
     def _fetch_child_folders(self, action_result, user_id, folder_id):
-        endpoint = f"/users/{user_id}/mailFolders/{folder_id}/childFolders"
+        endpoint = f"/users/{_quote_path_segment(user_id)}/mailFolders/{_quote_path_segment(folder_id)}/childFolders"
 
         ret_val, folders = self._paginator(action_result, endpoint)
 
@@ -1954,9 +1961,9 @@ class Office365Connector(BaseConnector):
 
         email_addr = param["email_address"]
         message_id = param["id"]
-        endpoint = f"/users/{email_addr}"
+        endpoint = f"/users/{_quote_path_segment(email_addr)}"
 
-        endpoint += f"/messages/{message_id}"
+        endpoint += f"/messages/{_quote_path_segment(message_id)}"
 
         ret_val, response = self._make_rest_call_helper(action_result, endpoint)
         if phantom.is_fail(ret_val):
@@ -1981,9 +1988,9 @@ class Office365Connector(BaseConnector):
 
         email_addr = param["email_address"]
         message_id = param["id"]
-        endpoint = f"/users/{email_addr}"
+        endpoint = f"/users/{_quote_path_segment(email_addr)}"
 
-        endpoint += f"/messages/{message_id}"
+        endpoint += f"/messages/{_quote_path_segment(message_id)}"
 
         select_list = []
         if param.get("get_headers"):
@@ -2078,7 +2085,7 @@ class Office365Connector(BaseConnector):
         elif not config.get("folder"):
             return action_result.set_status(phantom.APP_ERROR, "Folder to ingest from must be supplied in asset!")
 
-        endpoint = "/users/{}".format(config.get("email_address"))
+        endpoint = f"/users/{_quote_path_segment(config.get('email_address'))}"
 
         if "folder" in config:
             folder = config.get("folder", "")
@@ -2094,7 +2101,7 @@ class Office365Connector(BaseConnector):
                 else:
                     self.save_progress(error)
                     return action_result.set_status(phantom.APP_ERROR, error)
-            endpoint += f"/mailFolders/{folder}"
+            endpoint += f"/mailFolders/{_quote_path_segment(folder)}"
 
         endpoint += "/messages"
         order = "asc" if ingest_manner == "oldest first" else "desc"
@@ -2225,7 +2232,7 @@ class Office365Connector(BaseConnector):
 
         # user
         email_addr = param["email_address"]
-        endpoint = f"/users/{email_addr}"
+        endpoint = f"/users/{_quote_path_segment(email_addr)}"
         query = ""
         params = dict()
 
@@ -2253,11 +2260,8 @@ class Office365Connector(BaseConnector):
         folder_ids = []
         # searches through well known folders
         if param.get("search_well_known_folders", False):
-            endpoint += "/mailFolders"
             for folder in MSGOFFICE365_WELL_KNOWN_FOLDERS_FILTER:
                 folder_ids.append(folder)
-
-            endpoint += "/{folder_id}"
 
         # folder
         elif "folder" in param:
@@ -2276,18 +2280,15 @@ class Office365Connector(BaseConnector):
                     self.save_progress(error)
                     return action_result.set_status(phantom.APP_ERROR, error)
             folder_ids.append(folder)
-            endpoint += "/mailFolders/{folder_id}"
-
-        # that should be enough to create the endpoint
-        endpoint += "/messages"
 
         if folder_ids:
             messages = []
             ret_val = False
             for folder_id in folder_ids:
+                folder_endpoint = f"{endpoint}/mailFolders/{_quote_path_segment(folder_id)}/messages"
                 folder_ret_val, folder_messages = self._paginator(
                     action_result,
-                    endpoint.format(folder_id=folder_id) + query,
+                    folder_endpoint + query,
                     limit,
                     params=params,
                 )
@@ -2299,6 +2300,7 @@ class Office365Connector(BaseConnector):
                 messages.extend(folder_messages)
 
         else:
+            endpoint += "/messages"
             ret_val, messages = self._paginator(action_result, endpoint, limit, params=params)
 
         if phantom.is_fail(ret_val):
@@ -2363,7 +2365,7 @@ class Office365Connector(BaseConnector):
     def _get_folder(self, action_result, folder, email):
         params = {}
         params["$filter"] = f"displayName eq '{folder}'"
-        endpoint = f"/users/{email}/mailFolders"
+        endpoint = f"/users/{_quote_path_segment(email)}/mailFolders"
 
         ret_val, response = self._make_rest_call_helper(action_result, endpoint, params=params)
 
@@ -2380,7 +2382,7 @@ class Office365Connector(BaseConnector):
     def _get_child_folder(self, action_result, folder, parent_id, email):
         params = {}
         params["$filter"] = f"displayName eq '{folder}'"
-        endpoint = f"/users/{email}/mailFolders/{parent_id}/childFolders"
+        endpoint = f"/users/{_quote_path_segment(email)}/mailFolders/{_quote_path_segment(parent_id)}/childFolders"
 
         ret_val, response = self._make_rest_call_helper(action_result, endpoint, params=params)
 
@@ -2396,7 +2398,7 @@ class Office365Connector(BaseConnector):
 
     def _new_folder(self, action_result, folder, email):
         data = json.dumps({"displayName": folder})
-        endpoint = f"/users/{email}/mailFolders"
+        endpoint = f"/users/{_quote_path_segment(email)}/mailFolders"
 
         ret_val, response = self._make_rest_call_helper(action_result, endpoint, data=data, method="post")
         if phantom.is_fail(ret_val):
@@ -2414,7 +2416,7 @@ class Office365Connector(BaseConnector):
 
     def _new_child_folder(self, action_result, folder, parent_id, email, pathsofar):
         data = json.dumps({"displayName": folder})
-        endpoint = f"/users/{email}/mailFolders/{parent_id}/childFolders"
+        endpoint = f"/users/{_quote_path_segment(email)}/mailFolders/{_quote_path_segment(parent_id)}/childFolders"
 
         ret_val, response = self._make_rest_call_helper(action_result, endpoint, data=data, method="post")
         if phantom.is_fail(ret_val):
@@ -2570,7 +2572,7 @@ class Office365Connector(BaseConnector):
         bcc_emails: list[str],
         headers: dict[str, str],
     ):
-        endpoint = f"/users/{from_email}/messages"
+        endpoint = f"/users/{_quote_path_segment(from_email)}/messages"
         req_headers = {"Prefer": 'IdType="ImmutableId"'}
         msg = {"subject": subject, "body": {"contentType": "HTML", "content": body}}
         if to_emails:
@@ -2591,7 +2593,7 @@ class Office365Connector(BaseConnector):
         return action_result, message_id
 
     def _send_draft_message(self, action_result, user_id, message_id):
-        endpoint = f"/users/{user_id}/messages/{message_id}/send"
+        endpoint = f"/users/{_quote_path_segment(user_id)}/messages/{_quote_path_segment(message_id)}/send"
 
         ret_val, _ = self._make_rest_call_helper(action_result, endpoint, method="post")
         if phantom.is_fail(ret_val):
@@ -2618,7 +2620,7 @@ class Office365Connector(BaseConnector):
         return ret_val, attachment_id
 
     def _upload_small_attachment(self, action_result, vault_info, user_id, message_id):
-        endpoint = f"/users/{user_id}/messages/{message_id}/attachments"
+        endpoint = f"/users/{_quote_path_segment(user_id)}/messages/{_quote_path_segment(message_id)}/attachments"
         with open(vault_info["path"], mode="rb") as file:
             file_content = file.read()
         data = {
@@ -2635,7 +2637,7 @@ class Office365Connector(BaseConnector):
         return phantom.APP_SUCCESS, attachment_id
 
     def _upload_large_attachment(self, action_result, vault_info, user_id, message_id):
-        endpoint = f"/users/{user_id}/messages/{message_id}/attachments/createUploadSession"
+        endpoint = f"/users/{_quote_path_segment(user_id)}/messages/{_quote_path_segment(message_id)}/attachments/createUploadSession"
         file_size = vault_info["size"]
         data = {
             "AttachmentItem": {
@@ -2698,7 +2700,7 @@ class Office365Connector(BaseConnector):
         return phantom.APP_SUCCESS, attachment_id
 
     def _get_message(self, action_result, user_id, message_id):
-        endpoint = f"/users/{user_id}/messages/{message_id}"
+        endpoint = f"/users/{_quote_path_segment(user_id)}/messages/{_quote_path_segment(message_id)}"
 
         ret_val, response = self._make_rest_call_helper(action_result, endpoint, method="get")
         if phantom.is_fail(ret_val):
@@ -2817,7 +2819,7 @@ class Office365Connector(BaseConnector):
         email_addr = param["email_address"]
         message_id = param["id"]
 
-        endpoint = f"/users/{email_addr}/messages/{message_id}"
+        endpoint = f"/users/{_quote_path_segment(email_addr)}/messages/{_quote_path_segment(message_id)}"
 
         categories = param.get("categories")
         subject = param.get("subject")
@@ -2857,7 +2859,7 @@ class Office365Connector(BaseConnector):
         is_message_move_requested = param.get("is_message_move_requested", False)
         report_action = param["report_action"]
 
-        endpoint = f"/users/{user}/messages/{message}/reportMessage"
+        endpoint = f"/users/{_quote_path_segment(user)}/messages/{_quote_path_segment(message)}/reportMessage"
         self.save_progress(f"endpoint {endpoint}")
 
         ret_val, response = self._make_rest_call_helper(
@@ -2882,7 +2884,7 @@ class Office365Connector(BaseConnector):
         user = param["user_id"]
         move_to_junk_folder = param.get("move_to_junk_folder", False)
 
-        endpoint = f"/users/{user}/messages/{message}/markAsJunk"
+        endpoint = f"/users/{_quote_path_segment(user)}/messages/{_quote_path_segment(message)}/markAsJunk"
         self.save_progress(f"endpoint {endpoint}")
 
         ret_val, response = self._make_rest_call_helper(
@@ -2903,7 +2905,7 @@ class Office365Connector(BaseConnector):
         user = param["user_id"]
         move_to_inbox = param.get("move_to_inbox", False)
 
-        endpoint = f"/users/{user}/messages/{message}/markAsNotJunk"
+        endpoint = f"/users/{_quote_path_segment(user)}/messages/{_quote_path_segment(message)}/markAsNotJunk"
         self.save_progress(f"endpoint {endpoint}")
 
         ret_val, response = self._make_rest_call_helper(
@@ -2923,8 +2925,10 @@ class Office365Connector(BaseConnector):
         # id or userPrincipalName
         email = param["email"]
 
-        endpoint = f"/users?$filter=startswith(displayName,'{email}') or startswith(mail,'{email}')"
-        ret_val, responses = self._make_rest_call_helper(action_result, endpoint)
+        endpoint = "/users"
+        filter_value = str(email).replace("'", "''")
+        params = {"$filter": f"startswith(displayName,'{filter_value}') or startswith(mail,'{filter_value}')"}
+        ret_val, responses = self._make_rest_call_helper(action_result, endpoint, params=params)
         self.save_progress(f"Fetching user ended witch {ret_val}")
 
         if phantom.is_fail(ret_val):
@@ -2933,6 +2937,7 @@ class Office365Connector(BaseConnector):
         for response in responses.get("value"):
             user_id = response.get("id")
 
+            user_id = _quote_path_segment(user_id)
             endpoint_other_mails = f"/users/{user_id}?$select=mailNickname,proxyAddresses,otherMails"
             endpoint_other_address = f"/users/{user_id}?$select=city,state,street,postalCode"
             endpoint_mailbox = f"/users/{user_id}/mailboxSettings/userPurpose"
@@ -2972,7 +2977,7 @@ class Office365Connector(BaseConnector):
         if phantom.is_fail(ret_val):
             return action_result.get_status()
 
-        endpoint = f"/users/{email_address}/mailFolders/{folder}/messages"
+        endpoint = f"/users/{_quote_path_segment(email_address)}/mailFolders/{_quote_path_segment(folder)}/messages"
         params = {
             "$top": limit,
             "$orderby": MSGOFFICE365_ORDERBY_RECEIVED_DESC,
@@ -3001,7 +3006,7 @@ class Office365Connector(BaseConnector):
         for index, email in enumerate(messages):
             try:
                 # Perform additional processing of attachments/data for email
-                message_endpoint = f"/users/{email_address}/messages/{email['id']}"
+                message_endpoint = f"/users/{_quote_path_segment(email_address)}/messages/{_quote_path_segment(email['id'])}"
                 email = self._process_email_details(
                     action_result,
                     email,
