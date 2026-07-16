@@ -53,6 +53,7 @@ MSGRAPH_API_URL = "https://graph.microsoft.com"
 MAX_END_OFFSET_VAL = 2147483646
 MSGOFFICE365_DEFAULT_SCOPE = "https://graph.microsoft.com/.default"
 MSGOFFICE365_MAX_PAGINATION_PAGES = 1000
+MSGOFFICE365_UPLOAD_HOSTS = {"graph.microsoft.com", "outlook.office.com"}
 
 
 def _quote_path_segment(value):
@@ -86,6 +87,22 @@ def _parse_oauth_state(value):
     if not asset_id.isalnum() or not flow_nonce:
         return None, None
     return asset_id, flow_nonce
+
+
+def _is_expected_upload_url(url):
+    """Return whether an upload-session URL uses a documented Microsoft host."""
+    try:
+        candidate = urllib.parse.urlsplit(str(url))
+        port = candidate.port
+    except ValueError:
+        return False
+    return (
+        candidate.scheme == "https"
+        and candidate.hostname in MSGOFFICE365_UPLOAD_HOSTS
+        and port is None
+        and not candidate.username
+        and not candidate.password
+    )
 
 
 class ReturnException(Exception):
@@ -2699,7 +2716,15 @@ class Office365Connector(BaseConnector):
         ret_val, response = self._make_rest_call_helper(action_result, endpoint, method="post", data=json.dumps(data))
         if phantom.is_fail(ret_val):
             return action_result.set_status(phantom.APP_ERROR, "Failed to upload vault entry {}".format(vault_info["vault_id"])), None
-        upload_url = response["uploadUrl"]
+        upload_url = response.get("uploadUrl")
+        if not _is_expected_upload_url(upload_url):
+            return (
+                action_result.set_status(
+                    phantom.APP_ERROR,
+                    "Microsoft Graph returned an upload URL with an unexpected origin",
+                ),
+                None,
+            )
 
         with open(vault_info["path"], mode="rb") as file:
             for start_position in range(0, file_size, MSGOFFICE365_UPLOAD_LARGE_FILE_CUTOFF):
@@ -2709,36 +2734,61 @@ class Office365Connector(BaseConnector):
                     "Content-Type": "application/octet-stream",
                     "Content-Range": f"bytes {start_position}-{end_position}/{file_size}",
                 }
-                flag = True
-                while flag:
-                    response = requests.put(upload_url, headers=headers, data=file_content)
+                for attempt in range(self._number_of_retries):
+                    try:
+                        response = requests.put(
+                            upload_url,
+                            headers=headers,
+                            data=file_content,
+                            timeout=MSGOFFICE365_DEFAULT_REQUEST_TIMEOUT,
+                        )
+                    except Exception as e:
+                        error_msg = _get_error_msg_from_exception(e, self)
+                        return action_result.set_status(phantom.APP_ERROR, f"Failed to upload file. {error_msg}"), None
 
-                    if response.status_code == 429 and response.headers["Retry-After"]:
-                        retry_time = int(response.headers["Retry-After"])
-
-                        if retry_time > 300:  # throw error if wait time greater than 300 seconds
-                            self.debug_print("Retry is canceled as retry time is greater than 300 seconds")
-                            self._process_response(response, action_result)
+                    if response.status_code != 429:
+                        if not response.ok:
                             return (
                                 action_result.set_status(
                                     phantom.APP_ERROR,
-                                    f"Failed to upload file, {action_result.get_message()} Please retry after \
-                                    {retry_time} seconds",
+                                    f"Failed to upload file, Error occurred : {response.status_code}, {response.text!s}",
                                 ),
                                 None,
                             )
-                        self.debug_print(f"Retrying after {retry_time} seconds")
-                        time.sleep(retry_time + 1)
-                    elif not response.ok:
+                        break
+
+                    retry_after = response.headers.get("Retry-After")
+                    try:
+                        retry_time = int(retry_after)
+                    except (TypeError, ValueError):
                         return (
                             action_result.set_status(
                                 phantom.APP_ERROR,
-                                f"Failed to upload file, Error occurred : {response.status_code}, {response.text!s}",
+                                "Failed to upload file: Microsoft Graph returned 429 without a valid Retry-After header",
                             ),
                             None,
                         )
-                    else:
-                        flag = False
+
+                    if retry_time > 300:
+                        return (
+                            action_result.set_status(
+                                phantom.APP_ERROR,
+                                f"Failed to upload file. Please retry after {retry_time} seconds",
+                            ),
+                            None,
+                        )
+                    if attempt + 1 >= self._number_of_retries:
+                        return (
+                            action_result.set_status(
+                                phantom.APP_ERROR,
+                                "Failed to upload file after exhausting the configured retry count",
+                            ),
+                            None,
+                        )
+                    self.debug_print(f"Retrying after {retry_time} seconds")
+                    time.sleep(retry_time + 1)
+                else:
+                    return action_result.set_status(phantom.APP_ERROR, "File upload retry count must be greater than zero"), None
 
         result_location = response.headers.get("Location", "no_location_found")
         match = re.search(r"Attachments\('(?P<attachment_id>[^']+)'\)", result_location)
