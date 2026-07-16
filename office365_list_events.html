@@ -93,7 +93,7 @@ and limitations under the License.
                 <td>User ID</td>
                 <td>
                   <a href="javascript:;"
-                     onclick="context_menu(this, [{'contains': ['msgoffice365 user id','msgoffice365 user principle name','email'], 'value': '{{ result.param.user_id }}' }], 0, {{ container.id }}, null, false);">
+                     onclick="context_menu(this, [{'contains': ['msgoffice365 user id','msgoffice365 user principle name','email'], 'value': '{{ result.param.user_id|escapejs }}' }], 0, {{ container.id|escapejs }}, null, false);">
                     {{ result.param.user_id }}
                     &nbsp;
                     <span class="fa fa-caret-down" style="font-size: smaller;"></span>
@@ -106,7 +106,7 @@ and limitations under the License.
                 <td>Group ID</td>
                 <td>
                   <a href="javascript:;"
-                     onclick="context_menu(this, [{'contains': ['msgoffice365 group id'], 'value': '{{ result.param.group_id }}' }], 0, {{ container.id }}, null, false);">
+                     onclick="context_menu(this, [{'contains': ['msgoffice365 group id'], 'value': '{{ result.param.group_id|escapejs }}' }], 0, {{ container.id|escapejs }}, null, false);">
                     {{ result.param.group_id }}
                     &nbsp;
                     <span class="fa fa-caret-down" style="font-size: smaller;"></span>
@@ -143,7 +143,7 @@ and limitations under the License.
                 {% if data.id %}
                   <td>
                     <a href="javascript:;"
-                       onclick="context_menu(this, [{'contains': ['msgoffice365 event id'], 'value': '{{ data.id }}' }], 0, {{ container.id }}, null, false);">
+                       onclick="context_menu(this, [{'contains': ['msgoffice365 event id'], 'value': '{{ data.id|escapejs }}' }], 0, {{ container.id|escapejs }}, null, false);">
                       {{ data.id }}
                       &nbsp;
                       <span class="fa fa-caret-down" style="font-size: smaller;"></span>
