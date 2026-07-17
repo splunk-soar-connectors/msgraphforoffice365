@@ -97,7 +97,7 @@ and limitations under the License.
               <td>Email Address</td>
               <td>
                 <a href="javascript:;"
-                   onclick="context_menu(this, [{'contains': ['email'], 'value': '{{ result.param.email }}' }], 0, {{ container.id }}, null, false);">
+                   onclick="context_menu(this, [{'contains': ['email'], 'value': '{{ result.param.email|escapejs }}' }], 0, {{ container.id|escapejs }}, null, false);">
                   {{ result.param.email }}
                   &nbsp;
                   <span class="fa fa-caret-down" style="font-size: smaller;"></span>
@@ -134,7 +134,7 @@ and limitations under the License.
                   <td>
                     <a class="no-word-wrap"
                        href="javascript:;"
-                       onclick="context_menu(this, [{'contains': ['msgoffice365 id'], 'value': '{{ data.id }}' }], 0, {{ container.id }}, null, false);">
+                       onclick="context_menu(this, [{'contains': ['msgoffice365 id'], 'value': '{{ data.id|escapejs }}' }], 0, {{ container.id|escapejs }}, null, false);">
                       {{ data.id }}
                       &nbsp;
                       <span class="fa fa-caret-down" style="font-size: smaller;"></span>
@@ -147,7 +147,7 @@ and limitations under the License.
                   <td>
                     <a class="no-word-wrap"
                        href="javascript:;"
-                       onclick="context_menu(this, [{'contains': ['msgoffice365 user principal name'], 'value': '{{ data.userPrincipalName }}' }], 0, {{ container.id }}, null, false);">
+                       onclick="context_menu(this, [{'contains': ['msgoffice365 user principal name'], 'value': '{{ data.userPrincipalName|escapejs }}' }], 0, {{ container.id|escapejs }}, null, false);">
                       {{ data.userPrincipalName }}
                       &nbsp;
                       <span class="fa fa-caret-down" style="font-size: smaller;"></span>
@@ -160,7 +160,7 @@ and limitations under the License.
                   <td>
                     <a class="no-word-wrap"
                        href="javascript:;"
-                       onclick="context_menu(this, [{'contains': ['msgoffice365 given name'], 'value': '{{ data.givenName }}' }], 0, {{ container.id }}, null, false);">
+                       onclick="context_menu(this, [{'contains': ['msgoffice365 given name'], 'value': '{{ data.givenName|escapejs }}' }], 0, {{ container.id|escapejs }}, null, false);">
                       {{ data.givenName }}
                       &nbsp;
                       <span class="fa fa-caret-down" style="font-size: smaller;"></span>
@@ -173,7 +173,7 @@ and limitations under the License.
                   <td>
                     <a class="no-word-wrap"
                        href="javascript:;"
-                       onclick="context_menu(this, [{'contains': ['msgoffice365 surname'], 'value': '{{ data.surname }}' }], 0, {{ container.id }}, null, false);">
+                       onclick="context_menu(this, [{'contains': ['msgoffice365 surname'], 'value': '{{ data.surname|escapejs }}' }], 0, {{ container.id|escapejs }}, null, false);">
                       {{ data.surname }}
                       &nbsp;
                       <span class="fa fa-caret-down" style="font-size: smaller;"></span>
@@ -186,7 +186,7 @@ and limitations under the License.
                   <td>
                     <a class="no-word-wrap"
                        href="javascript:;"
-                       onclick="context_menu(this, [{'contains': ['msgoffice365 display name'], 'value': '{{ data.displayName }}' }], 0, {{ container.id }}, null, false);">
+                       onclick="context_menu(this, [{'contains': ['msgoffice365 display name'], 'value': '{{ data.displayName|escapejs }}' }], 0, {{ container.id|escapejs }}, null, false);">
                       {{ data.displayName }}
                       &nbsp;
                       <span class="fa fa-caret-down" style="font-size: smaller;"></span>
@@ -199,7 +199,7 @@ and limitations under the License.
                   <td>
                     <a class="no-word-wrap"
                        href="javascript:;"
-                       onclick="context_menu(this, [{'contains': ['msgoffice365 mail nickname'], 'value': '{{ data.mailNickname }}' }], 0, {{ container.id }}, null, false);">
+                       onclick="context_menu(this, [{'contains': ['msgoffice365 mail nickname'], 'value': '{{ data.mailNickname|escapejs }}' }], 0, {{ container.id|escapejs }}, null, false);">
                       {{ data.mailNickname }}
                       &nbsp;
                       <span class="fa fa-caret-down" style="font-size: smaller;"></span>
@@ -212,7 +212,7 @@ and limitations under the License.
                   <td>
                     <a class="no-word-wrap"
                        href="javascript:;"
-                       onclick="context_menu(this, [{'contains': ['email'], 'value': '{{ data.mail }}' }], 0, {{ container.id }}, null, false);">
+                       onclick="context_menu(this, [{'contains': ['email'], 'value': '{{ data.mail|escapejs }}' }], 0, {{ container.id|escapejs }}, null, false);">
                       {{ data.mail }}
                       &nbsp;
                       <span class="fa fa-caret-down" style="font-size: smaller;"></span>
@@ -225,7 +225,7 @@ and limitations under the License.
                   <td>
                     <a class="no-word-wrap"
                        href="javascript:;"
-                       onclick="context_menu(this, [{'contains': ['email list'], 'value': '{{ data.otherMails }}' }], 0, {{ container.id }}, null, false);">
+                       onclick="context_menu(this, [{'contains': ['email list'], 'value': '{{ data.otherMails|escapejs }}' }], 0, {{ container.id|escapejs }}, null, false);">
                       {{ data.otherMails }}
                       &nbsp;
                       <span class="fa fa-caret-down" style="font-size: smaller;"></span>
@@ -238,7 +238,7 @@ and limitations under the License.
                   <td>
                     <a class="no-word-wrap"
                        href="javascript:;"
-                       onclick="context_menu(this, [{'contains': ['email list'], 'value': '{{ data.proxyAddresses }}' }], 0, {{ container.id }}, null, false);">
+                       onclick="context_menu(this, [{'contains': ['email list'], 'value': '{{ data.proxyAddresses|escapejs }}' }], 0, {{ container.id|escapejs }}, null, false);">
                       {{ data.proxyAddresses }}
                       &nbsp;
                       <span class="fa fa-caret-down" style="font-size: smaller;"></span>
@@ -251,7 +251,7 @@ and limitations under the License.
                   <td>
                     <a class="no-word-wrap"
                        href="javascript:;"
-                       onclick="context_menu(this, [{'contains': ['msgoffice365 job title'], 'value': '{{ data.jobTitle }}' }], 0, {{ container.id }}, null, false);">
+                       onclick="context_menu(this, [{'contains': ['msgoffice365 job title'], 'value': '{{ data.jobTitle|escapejs }}' }], 0, {{ container.id|escapejs }}, null, false);">
                       {{ data.jobTitle }}
                       &nbsp;
                       <span class="fa fa-caret-down" style="font-size: smaller;"></span>
@@ -264,7 +264,7 @@ and limitations under the License.
                   <td>
                     <a class="no-word-wrap"
                        href="javascript:;"
-                       onclick="context_menu(this, [{'contains': ['msgoffice365 office location'], 'value': '{{ data.officeLocation }}' }], 0, {{ container.id }}, null, false);">
+                       onclick="context_menu(this, [{'contains': ['msgoffice365 office location'], 'value': '{{ data.officeLocation|escapejs }}' }], 0, {{ container.id|escapejs }}, null, false);">
                       {{ data.officeLocation }}
                       &nbsp;
                       <span class="fa fa-caret-down" style="font-size: smaller;"></span>
@@ -277,7 +277,7 @@ and limitations under the License.
                   <td>
                     <a class="no-word-wrap"
                        href="javascript:;"
-                       onclick="context_menu(this, [{'contains': ['msgoffice365 user purpose'], 'value': '{{ data.value }}' }], 0, {{ container.id }}, null, false);">
+                       onclick="context_menu(this, [{'contains': ['msgoffice365 user purpose'], 'value': '{{ data.value|escapejs }}' }], 0, {{ container.id|escapejs }}, null, false);">
                       {{ data.value }}
                       &nbsp;
                       <span class="fa fa-caret-down" style="font-size: smaller;"></span>
@@ -290,7 +290,7 @@ and limitations under the License.
                   <td>
                     <a class="no-word-wrap"
                        href="javascript:;"
-                       onclick="context_menu(this, [{'contains': ['msgoffice365 mobile phone'], 'value': '{{ data.mobilePhone }}' }], 0, {{ container.id }}, null, false);">
+                       onclick="context_menu(this, [{'contains': ['msgoffice365 mobile phone'], 'value': '{{ data.mobilePhone|escapejs }}' }], 0, {{ container.id|escapejs }}, null, false);">
                       {{ data.mobilePhone }}
                       &nbsp;
                       <span class="fa fa-caret-down" style="font-size: smaller;"></span>
@@ -303,7 +303,7 @@ and limitations under the License.
                   <td>
                     <a class="no-word-wrap"
                        href="javascript:;"
-                       onclick="context_menu(this, [{'contains': ['msgoffice365 buisness phones'], 'value': '{{ data.businessPhones }}' }], 0, {{ container.id }}, null, false);">
+                       onclick="context_menu(this, [{'contains': ['msgoffice365 buisness phones'], 'value': '{{ data.businessPhones|escapejs }}' }], 0, {{ container.id|escapejs }}, null, false);">
                       {{ data.businessPhones }}
                       &nbsp;
                       <span class="fa fa-caret-down" style="font-size: smaller;"></span>
@@ -316,7 +316,7 @@ and limitations under the License.
                   <td>
                     <a class="no-word-wrap"
                        href="javascript:;"
-                       onclick="context_menu(this, [{'contains': ['msgoffice365 preferred language'], 'value': '{{ data.preferredLanguage }}' }], 0, {{ container.id }}, null, false);">
+                       onclick="context_menu(this, [{'contains': ['msgoffice365 preferred language'], 'value': '{{ data.preferredLanguage|escapejs }}' }], 0, {{ container.id|escapejs }}, null, false);">
                       {{ data.preferredLanguage }}
                       &nbsp;
                       <span class="fa fa-caret-down" style="font-size: smaller;"></span>
@@ -329,7 +329,7 @@ and limitations under the License.
                   <td>
                     <a class="no-word-wrap"
                        href="javascript:;"
-                       onclick="context_menu(this, [{'contains': ['msgoffice365 state'], 'value': '{{ data.state }}' }], 0, {{ container.id }}, null, false);">
+                       onclick="context_menu(this, [{'contains': ['msgoffice365 state'], 'value': '{{ data.state|escapejs }}' }], 0, {{ container.id|escapejs }}, null, false);">
                       {{ data.state }}
                       &nbsp;
                       <span class="fa fa-caret-down" style="font-size: smaller;"></span>
@@ -342,7 +342,7 @@ and limitations under the License.
                   <td>
                     <a class="no-word-wrap"
                        href="javascript:;"
-                       onclick="context_menu(this, [{'contains': ['msgoffice365 postal code'], 'value': '{{ data.postalCode }}' }], 0, {{ container.id }}, null, false);">
+                       onclick="context_menu(this, [{'contains': ['msgoffice365 postal code'], 'value': '{{ data.postalCode|escapejs }}' }], 0, {{ container.id|escapejs }}, null, false);">
                       {{ data.postalCode }}
                       &nbsp;
                       <span class="fa fa-caret-down" style="font-size: smaller;"></span>
