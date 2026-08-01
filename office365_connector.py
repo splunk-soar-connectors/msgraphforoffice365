@@ -60,7 +60,16 @@ MSGOFFICE365_UPLOAD_HOSTS = {"graph.microsoft.com", "outlook.office.com"}
 
 def _quote_path_segment(value):
     """Encode a caller-controlled value as one Microsoft Graph path segment."""
-    return urllib.parse.quote(str(value), safe="")
+    raw_value = str(value)
+    canonical_value = raw_value
+    for _ in range(5):
+        decoded_value = urllib.parse.unquote(canonical_value)
+        if decoded_value == canonical_value:
+            break
+        canonical_value = decoded_value
+    if canonical_value in {".", ".."}:
+        raise ValueError("Microsoft Graph path identifiers must not be dot segments")
+    return urllib.parse.quote(raw_value, safe="")
 
 
 def _is_expected_graph_url(url):
@@ -1280,9 +1289,9 @@ class Office365Connector(BaseConnector):
 
         container["name"] = email["subject"] if email["subject"] else email["id"]
         container_description = MSGOFFICE365_CONTAINER_DESCRIPTION.format(last_modified_time=email["lastModifiedDateTime"])
-        container["description"] = container_description
+        container["description"] = f"{container_description} (ingestion pending)"
         container["source_data_identifier"] = email["id"]
-        container["data"] = {"raw_email": email}
+        container["data"] = {"raw_email": email, "ingestion_complete": False}
 
         ret_val, msg, container_id = self.save_container(container)
 
@@ -1291,9 +1300,9 @@ class Office365Connector(BaseConnector):
 
         if MSGOFFICE365_DUPLICATE_CONTAINER_FOUND_MSG in msg.lower():
             self.debug_print("Duplicate container found")
-            self._duplicate_count += 1
 
-            # Prevent further processing if the email is not modified
+            # Skip only containers that explicitly completed ingestion. Legacy and
+            # interrupted containers have no completion marker and are retried once.
             ret_val, container_info, status_code = self.get_container_info(container_id=container_id)
             if phantom.is_fail(ret_val):
                 return action_result.set_status(
@@ -1301,16 +1310,12 @@ class Office365Connector(BaseConnector):
                     f"Status Code: {status_code}. Error occurred while fetching the container info for container ID: {container_id}",
                 )
 
-            if container_info.get("description", "") == container_description:
+            container_data = container_info.get("data") if isinstance(container_info.get("data"), dict) else {}
+            if container_info.get("description", "") == container_description and container_data.get("ingestion_complete") is True:
+                self._duplicate_count += 1
                 msg = "Email ID: {} has not been modified. Hence, skipping the artifact ingestion.".format(email["id"])
                 self.debug_print(msg)
                 return action_result.set_status(phantom.APP_SUCCESS, msg)
-            else:
-                # Update the container's description and continue
-                self.debug_print("Updating container's description")
-                ret_val = self._update_container(action_result, container_id, container)
-                if phantom.is_fail(ret_val):
-                    return action_result.get_status()
 
         self.debug_print("Creating email artifacts")
         email_artifacts = self._create_email_artifacts(container_id, email)
@@ -1372,6 +1377,12 @@ class Office365Connector(BaseConnector):
         ret_val, msg, container_id = self.save_artifacts(artifacts)
         if phantom.is_fail(ret_val):
             return action_result.set_status(phantom.APP_ERROR, msg)
+
+        container["description"] = container_description
+        container["data"]["ingestion_complete"] = True
+        ret_val = self._update_container(action_result, container_id, container)
+        if phantom.is_fail(ret_val):
+            return action_result.get_status()
 
         return phantom.APP_SUCCESS
 
@@ -2770,6 +2781,7 @@ class Office365Connector(BaseConnector):
                             upload_url,
                             headers=headers,
                             data=file_content,
+                            allow_redirects=False,
                             timeout=MSGOFFICE365_DEFAULT_REQUEST_TIMEOUT,
                         )
                     except Exception as e:
