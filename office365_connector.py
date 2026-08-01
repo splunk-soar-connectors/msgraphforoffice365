@@ -55,6 +55,10 @@ MSGOFFICE365_DEFAULT_SCOPE = "https://graph.microsoft.com/.default"
 MSGOFFICE365_MAX_PAGINATION_PAGES = 1000
 MSGOFFICE365_MAX_POLL_CYCLES = 100
 MSGOFFICE365_MAX_ATTACHMENT_DEPTH = 10
+MSGOFFICE365_LATEST_FIRST_NEXT_LINK = "latest_first_next_link"
+MSGOFFICE365_LATEST_FIRST_HIGH_WATER = "latest_first_high_water"
+MSGOFFICE365_LATEST_FIRST_SCOPE = "latest_first_scope"
+MSGOFFICE365_LATEST_FIRST_PAGE_SIZE = "latest_first_page_size"
 MSGOFFICE365_UPLOAD_HOSTS = {"graph.microsoft.com", "outlook.office.com"}
 
 
@@ -114,6 +118,10 @@ def _is_expected_upload_url(url):
         and not candidate.username
         and not candidate.password
     )
+
+
+def _is_redirect_status(status_code):
+    return 300 <= status_code < 400
 
 
 def _is_token_response(response):
@@ -526,6 +534,9 @@ class Office365Connector(BaseConnector):
         access_token = state.get("admin_auth", {}).get("access_token")
         if access_token:
             state["admin_auth"]["access_token"] = self.update_state_fields(access_token, helper_function, error_message)
+        continuation = state.get(MSGOFFICE365_LATEST_FIRST_NEXT_LINK)
+        if continuation:
+            state[MSGOFFICE365_LATEST_FIRST_NEXT_LINK] = self.update_state_fields(continuation, helper_function, error_message)
         return state
 
     def _decrypt_state(self, state):
@@ -2151,6 +2162,126 @@ class Office365Connector(BaseConnector):
         limit = expected_duplicate_count_in_next_cycle + remaining_count
         return limit, total_ingested
 
+    def _fetch_poll_page(self, action_result, endpoint, params=None, next_link=None):
+        ret_val, response = self._make_rest_call_helper(
+            action_result,
+            endpoint,
+            nextLink=next_link,
+            params=params,
+        )
+        if phantom.is_fail(ret_val):
+            return action_result.get_status(), None, None
+
+        continuation = response.get("@odata.nextLink")
+        if continuation and continuation == next_link:
+            return (
+                action_result.set_status(
+                    phantom.APP_ERROR,
+                    "Microsoft Graph pagination returned a repeated nextLink",
+                ),
+                None,
+                None,
+            )
+
+        return phantom.APP_SUCCESS, response.get("value") or [], continuation
+
+    def _clear_latest_first_poll_state(self):
+        for key in (
+            MSGOFFICE365_LATEST_FIRST_NEXT_LINK,
+            MSGOFFICE365_LATEST_FIRST_HIGH_WATER,
+            MSGOFFICE365_LATEST_FIRST_SCOPE,
+            MSGOFFICE365_LATEST_FIRST_PAGE_SIZE,
+        ):
+            self._state.pop(key, None)
+
+    def _handle_latest_first_poll(self, action_result, config, endpoint, params, max_emails):
+        continuation = self._state.get(MSGOFFICE365_LATEST_FIRST_NEXT_LINK)
+        saved_scope = self._state.get(MSGOFFICE365_LATEST_FIRST_SCOPE)
+        high_water = self._state.get(MSGOFFICE365_LATEST_FIRST_HIGH_WATER)
+
+        if not continuation and (saved_scope or high_water):
+            self._clear_latest_first_poll_state()
+            saved_scope = None
+            high_water = None
+
+        if continuation and saved_scope != endpoint:
+            self._clear_latest_first_poll_state()
+            continuation = None
+            high_water = None
+
+        if continuation:
+            page_size = self._state.get(MSGOFFICE365_LATEST_FIRST_PAGE_SIZE, max_emails)
+        else:
+            page_size = min(max_emails, MSGOFFICE365_PER_PAGE_COUNT)
+
+        page_size = max(1, page_size)
+        poll_budget = max(max_emails, page_size) if continuation else max_emails
+        request_params = None if continuation else dict(params, **{"$top": page_size})
+        processed = 0
+
+        for _ in range(MSGOFFICE365_MAX_POLL_CYCLES):
+            ret_val, emails, next_link = self._fetch_poll_page(
+                action_result,
+                endpoint,
+                params=request_params,
+                next_link=continuation,
+            )
+            if phantom.is_fail(ret_val):
+                return action_result.get_status()
+
+            if emails and not high_water:
+                high_water = datetime.strptime(emails[0]["lastModifiedDateTime"], O365_TIME_FORMAT).strftime(O365_TIME_FORMAT)
+
+            failed_email_ids = []
+            for index, email in enumerate(emails):
+                try:
+                    self.send_progress("Processing email # {} with ID ending in: {}".format(index + 1, email["id"][-10:]))
+                    ret_val = self._process_email_data(config, action_result, endpoint, email)
+                    if phantom.is_fail(ret_val):
+                        failed_email_ids.append(email.get("id"))
+                        self.debug_print("Error occurred while processing email ID: {}. {}".format(email.get("id"), action_result.get_message()))
+                except Exception as e:
+                    failed_email_ids.append(email.get("id"))
+                    error_msg = _get_error_msg_from_exception(e, self)
+                    self.debug_print(f"Exception occurred while processing email ID: {email.get('id')}. {error_msg}")
+
+            if failed_email_ids:
+                return action_result.set_status(
+                    phantom.APP_ERROR,
+                    f"Failed to process {len(failed_email_ids)} of {len(emails)} fetched emails; the polling continuation was not advanced",
+                )
+
+            processed += len(emails)
+            if next_link:
+                self._state[MSGOFFICE365_LATEST_FIRST_NEXT_LINK] = next_link
+                self._state[MSGOFFICE365_LATEST_FIRST_HIGH_WATER] = high_water
+                self._state[MSGOFFICE365_LATEST_FIRST_SCOPE] = endpoint
+                self._state[MSGOFFICE365_LATEST_FIRST_PAGE_SIZE] = page_size
+                self.save_state(deepcopy(self._state))
+
+                if processed + page_size > poll_budget:
+                    return action_result.set_status(phantom.APP_SUCCESS)
+
+                continuation = next_link
+                request_params = None
+                continue
+
+            self._clear_latest_first_poll_state()
+            if high_water:
+                self._state["last_time"] = high_water
+                if self._state.get("first_run", True):
+                    self._state["first_run"] = False
+            self.save_state(deepcopy(self._state))
+
+            if not emails and not processed:
+                return action_result.set_status(phantom.APP_SUCCESS, MSGOFFICE365_NO_DATA_FOUND)
+            return action_result.set_status(phantom.APP_SUCCESS)
+
+        return action_result.set_status(
+            phantom.APP_ERROR,
+            f"Polling exceeded the safety limit of {MSGOFFICE365_MAX_POLL_CYCLES} ingestion cycles",
+        )
+
     def _handle_on_poll(self, param):
         self.save_progress(f"In action handler for: {self.get_action_identifier()}")
         action_result = self.add_action_result(ActionResult(dict(param)))
@@ -2217,6 +2348,13 @@ class Office365Connector(BaseConnector):
 
         cur_limit = max_emails
         total_ingested = 0
+
+        if not self.is_poll_now() and ingest_manner == "latest first":
+            return self._handle_latest_first_poll(action_result, config, endpoint, params, max_emails)
+
+        if not self.is_poll_now() and self._state.get(MSGOFFICE365_LATEST_FIRST_NEXT_LINK):
+            self._clear_latest_first_poll_state()
+            self.save_state(deepcopy(self._state))
 
         # Checkpoint the oldest fetched email in either ordering so a capped latest-first
         # batch does not advance past the remainder of the mailbox window.
@@ -2787,6 +2925,15 @@ class Office365Connector(BaseConnector):
                     except Exception as e:
                         error_msg = _get_error_msg_from_exception(e, self)
                         return action_result.set_status(phantom.APP_ERROR, f"Failed to upload file. {error_msg}"), None
+
+                    if _is_redirect_status(response.status_code):
+                        return (
+                            action_result.set_status(
+                                phantom.APP_ERROR,
+                                f"Failed to upload file: Microsoft Graph returned redirect status {response.status_code}",
+                            ),
+                            None,
+                        )
 
                     if response.status_code != 429:
                         if not response.ok:

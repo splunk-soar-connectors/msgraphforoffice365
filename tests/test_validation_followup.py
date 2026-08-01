@@ -14,6 +14,8 @@
 import ast
 import unittest
 import urllib.parse
+from copy import deepcopy
+from datetime import datetime
 from pathlib import Path
 
 
@@ -29,10 +31,77 @@ def _load_quote_helper():
     return namespace["_quote_path_segment"]
 
 
+def _load_redirect_helper():
+    source = CONNECTOR.read_text()
+    tree = ast.parse(source)
+    helper = next(node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name == "_is_redirect_status")
+    namespace = {}
+    exec(compile(ast.fix_missing_locations(ast.Module(body=[helper], type_ignores=[])), str(CONNECTOR), "exec"), namespace)
+    return namespace["_is_redirect_status"]
+
+
+def _load_polling_policy():
+    source = CONNECTOR.read_text()
+    tree = ast.parse(source)
+    connector = next(node for node in tree.body if isinstance(node, ast.ClassDef) and node.name == "Office365Connector")
+    methods = [
+        node
+        for node in connector.body
+        if isinstance(node, ast.FunctionDef) and node.name in {"_clear_latest_first_poll_state", "_handle_latest_first_poll"}
+    ]
+    policy = ast.ClassDef(
+        name="PollingPolicy",
+        bases=[],
+        keywords=[],
+        body=methods,
+        decorator_list=[],
+    )
+
+    class PhantomStub:
+        APP_SUCCESS = 0
+        APP_ERROR = 1
+
+        @staticmethod
+        def is_fail(status):
+            return status != PhantomStub.APP_SUCCESS
+
+    namespace = {
+        "deepcopy": deepcopy,
+        "datetime": datetime,
+        "phantom": PhantomStub,
+        "O365_TIME_FORMAT": "%Y-%m-%dT%H:%M:%SZ",
+        "MSGOFFICE365_LATEST_FIRST_NEXT_LINK": "latest_first_next_link",
+        "MSGOFFICE365_LATEST_FIRST_HIGH_WATER": "latest_first_high_water",
+        "MSGOFFICE365_LATEST_FIRST_SCOPE": "latest_first_scope",
+        "MSGOFFICE365_LATEST_FIRST_PAGE_SIZE": "latest_first_page_size",
+        "MSGOFFICE365_PER_PAGE_COUNT": 999,
+        "MSGOFFICE365_MAX_POLL_CYCLES": 100,
+        "MSGOFFICE365_NO_DATA_FOUND": "No data found",
+        "_get_error_msg_from_exception": lambda error, connector: str(error),
+    }
+    exec(compile(ast.fix_missing_locations(ast.Module(body=[policy], type_ignores=[])), str(CONNECTOR), "exec"), namespace)
+    return namespace["PollingPolicy"], PhantomStub
+
+
+class PollingActionResult:
+    def __init__(self):
+        self.status = 0
+        self.message = ""
+
+    def set_status(self, status, message=""):
+        self.status = status
+        self.message = message
+        return status
+
+    def get_status(self):
+        return self.status
+
+
 class ValidationFollowupTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.quote_segment = staticmethod(_load_quote_helper())
+        cls.is_redirect_status = staticmethod(_load_redirect_helper())
 
     def test_path_helper_rejects_dot_segments_after_repeated_decoding(self):
         for value in (".", "..", "%2e", "%2e%2e", "%252e%252e", "%25252e%25252e"):
@@ -56,6 +125,118 @@ class ValidationFollowupTests(unittest.TestCase):
         self.assertIsNotNone(redirect_keyword)
         self.assertIsInstance(redirect_keyword.value, ast.Constant)
         self.assertIs(redirect_keyword.value.value, False)
+
+    def test_attachment_upload_rejects_every_redirect_response(self):
+        for status_code in (300, 301, 302, 303, 307, 308, 399):
+            with self.subTest(status_code=status_code):
+                self.assertTrue(self.is_redirect_status(status_code))
+        for status_code in (200, 299, 400, 429, 500):
+            with self.subTest(status_code=status_code):
+                self.assertFalse(self.is_redirect_status(status_code))
+
+        source = CONNECTOR.read_text()
+        tree = ast.parse(source)
+        handler = next(node for node in ast.walk(tree) if isinstance(node, ast.FunctionDef) and node.name == "_upload_large_attachment")
+        handler_source = ast.get_source_segment(source, handler)
+        self.assertLess(handler_source.index("_is_redirect_status(response.status_code)"), handler_source.index("if not response.ok"))
+
+    def test_latest_first_poll_persists_continuation_before_checkpoint(self):
+        source = CONNECTOR.read_text()
+        tree = ast.parse(source)
+        handler = next(node for node in ast.walk(tree) if isinstance(node, ast.FunctionDef) and node.name == "_handle_latest_first_poll")
+        handler_source = ast.get_source_segment(source, handler)
+
+        continuation_offset = handler_source.index("self._state[MSGOFFICE365_LATEST_FIRST_NEXT_LINK] = next_link")
+        continuation_save_offset = handler_source.index("self.save_state(deepcopy(self._state))", continuation_offset)
+        checkpoint_offset = handler_source.index('self._state["last_time"] = high_water')
+        clear_offset = handler_source.index("self._clear_latest_first_poll_state()", continuation_save_offset)
+
+        self.assertLess(continuation_offset, continuation_save_offset)
+        self.assertLess(continuation_save_offset, clear_offset)
+        self.assertLess(clear_offset, checkpoint_offset)
+        self.assertIn("if failed_email_ids:", handler_source[:continuation_offset])
+        self.assertIn("if next_link:", handler_source[:continuation_offset])
+        self.assertIn("processed + page_size > poll_budget", handler_source)
+
+    def test_latest_first_poll_resumes_before_committing_high_water(self):
+        polling_policy, phantom_stub = _load_polling_policy()
+
+        class Harness(polling_policy):
+            def __init__(self):
+                self._state = {"first_run": True}
+                self.pages = []
+                self.saved_states = []
+                self.processed_ids = []
+                self.failed_ids = set()
+
+            def _fetch_poll_page(self, action_result, endpoint, params=None, next_link=None):
+                return self.pages.pop(0)
+
+            def _process_email_data(self, config, action_result, endpoint, email):
+                self.processed_ids.append(email["id"])
+                if email["id"] in self.failed_ids:
+                    return phantom_stub.APP_ERROR
+                return phantom_stub.APP_SUCCESS
+
+            def save_state(self, state):
+                self.saved_states.append(deepcopy(state))
+
+            def send_progress(self, message):
+                pass
+
+            def debug_print(self, message):
+                pass
+
+        harness = Harness()
+        action_result = PollingActionResult()
+        harness.pages = [
+            (
+                phantom_stub.APP_SUCCESS,
+                [
+                    {"id": "newest", "lastModifiedDateTime": "2026-08-01T10:00:00Z"},
+                    {"id": "middle", "lastModifiedDateTime": "2026-08-01T09:00:00Z"},
+                ],
+                "https://graph.microsoft.com/v1.0/messages?$skiptoken=next",
+            )
+        ]
+
+        status = harness._handle_latest_first_poll(action_result, {}, "/users/u/messages", {"$orderBy": "desc"}, 2)
+        self.assertEqual(status, phantom_stub.APP_SUCCESS)
+        self.assertEqual(harness.processed_ids, ["newest", "middle"])
+        self.assertNotIn("last_time", harness._state)
+        self.assertEqual(harness._state["latest_first_high_water"], "2026-08-01T10:00:00Z")
+        self.assertIn("latest_first_next_link", harness._state)
+
+        saved_continuation_state = deepcopy(harness._state)
+        harness.failed_ids.add("oldest")
+        harness.pages = [
+            (
+                phantom_stub.APP_SUCCESS,
+                [{"id": "oldest", "lastModifiedDateTime": "2026-08-01T08:00:00Z"}],
+                None,
+            )
+        ]
+        status = harness._handle_latest_first_poll(action_result, {}, "/users/u/messages", {"$orderBy": "desc"}, 2)
+        self.assertEqual(status, phantom_stub.APP_ERROR)
+        self.assertEqual(harness._state, saved_continuation_state)
+        self.assertNotIn("last_time", harness._state)
+
+        harness.failed_ids.clear()
+        action_result = PollingActionResult()
+        harness.pages = [
+            (
+                phantom_stub.APP_SUCCESS,
+                [{"id": "oldest", "lastModifiedDateTime": "2026-08-01T08:00:00Z"}],
+                None,
+            )
+        ]
+        status = harness._handle_latest_first_poll(action_result, {}, "/users/u/messages", {"$orderBy": "desc"}, 2)
+        self.assertEqual(status, phantom_stub.APP_SUCCESS)
+        self.assertEqual(harness.processed_ids, ["newest", "middle", "oldest", "oldest"])
+        self.assertEqual(harness._state["last_time"], "2026-08-01T10:00:00Z")
+        self.assertFalse(harness._state["first_run"])
+        self.assertNotIn("latest_first_next_link", harness._state)
+        self.assertNotIn("latest_first_high_water", harness._state)
 
     def test_container_completion_marker_is_written_only_after_artifacts(self):
         source = CONNECTOR.read_text()
