@@ -120,6 +120,46 @@ def _load_rest_call_policy():
     return namespace["RestCallPolicy"], requests_stub, PhantomStub
 
 
+def _load_oauth_start_handler(initial_state):
+    source = CONNECTOR.read_text()
+    tree = ast.parse(source)
+    handler = next(node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name == "_handle_oauth_start")
+    state_store = deepcopy(initial_state)
+    saved_states = []
+
+    class HttpResponseStub:
+        def __init__(self, body="", content_type=None, status=200):
+            self.body = body
+            self.content_type = content_type
+            self.status_code = status
+            self.headers = {}
+
+        def __setitem__(self, key, value):
+            self.headers[key] = value
+
+    class PhantomStub:
+        APP_SUCCESS = 0
+
+    def load_state(asset_id):
+        return deepcopy(state_store)
+
+    def save_state(state, asset_id):
+        state_store.clear()
+        state_store.update(deepcopy(state))
+        saved_states.append(deepcopy(state))
+        return PhantomStub.APP_SUCCESS
+
+    namespace = {
+        "hmac": __import__("hmac"),
+        "HttpResponse": HttpResponseStub,
+        "phantom": PhantomStub,
+        "_load_app_state": load_state,
+        "_save_app_state": save_state,
+    }
+    exec(compile(ast.fix_missing_locations(ast.Module(body=[handler], type_ignores=[])), str(CONNECTOR), "exec"), namespace)
+    return namespace["_handle_oauth_start"], state_store, saved_states
+
+
 class PollingActionResult:
     def __init__(self):
         self.status = 0
@@ -221,6 +261,42 @@ class ValidationFollowupTests(unittest.TestCase):
             redirect_keyword = next((keyword for keyword in call.keywords if keyword.arg == "allow_redirects"), None)
             self.assertIsNotNone(redirect_keyword)
             self.assertEqual(ast.unparse(redirect_keyword.value), "not bool(nextLink)")
+
+    def test_oauth_start_requires_and_consumes_one_time_nonce(self):
+        handler, state_store, saved_states = _load_oauth_start_handler(
+            {
+                "start_nonce": "unguessable-start-nonce",
+                "flow_nonce": "provider-callback-nonce",
+                "admin_consent_url": "https://login.microsoftonline.com/tenant/adminconsent?state=secret",
+            }
+        )
+
+        request = type("Request", (), {"GET": {"asset_id": "123", "start_nonce": "wrong"}})()
+        rejected = handler(request, [])
+        self.assertEqual(rejected.status_code, 400)
+        self.assertFalse(saved_states)
+        self.assertIn("start_nonce", state_store)
+
+        request.GET["start_nonce"] = "unguessable-start-nonce"
+        accepted = handler(request, [])
+        self.assertEqual(accepted.status_code, 302)
+        self.assertEqual(accepted.headers["Location"], state_store["admin_consent_url"])
+        self.assertNotIn("start_nonce", state_store)
+        self.assertEqual(len(saved_states), 1)
+
+        replayed = handler(request, [])
+        self.assertEqual(replayed.status_code, 400)
+        self.assertEqual(len(saved_states), 1)
+
+    def test_generated_oauth_start_url_includes_nonce(self):
+        source = CONNECTOR.read_text()
+        tree = ast.parse(source)
+        handler = next(node for node in ast.walk(tree) if isinstance(node, ast.FunctionDef) and node.name == "_get_consent")
+        handler_source = ast.get_source_segment(source, handler)
+
+        self.assertIn('app_state["start_nonce"] = start_nonce', handler_source)
+        self.assertIn('"start_nonce": start_nonce', handler_source)
+        self.assertLess(handler_source.index('app_state["start_nonce"]'), handler_source.index("_save_app_state(app_state"))
 
     def test_latest_first_poll_persists_continuation_before_checkpoint(self):
         source = CONNECTOR.read_text()

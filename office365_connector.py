@@ -397,6 +397,15 @@ def _handle_oauth_start(request, path_parts):
             status=400,
         )
 
+    presented_start_nonce = str(request.GET.get("start_nonce") or "")
+    stored_start_nonce = str(state.get("start_nonce") or "")
+    if not stored_start_nonce or not hmac.compare_digest(stored_start_nonce, presented_start_nonce):
+        return HttpResponse(
+            "ERROR: OAuth start request did not match the pending authorization flow",
+            content_type="text/plain",
+            status=400,
+        )
+
     # get the url to point to the authorize url of OAuth
     admin_consent_url = state.get("admin_consent_url")
 
@@ -405,6 +414,14 @@ def _handle_oauth_start(request, path_parts):
             "App state is invalid, admin_consent_url key not found",
             content_type="text/plain",
             status=400,
+        )
+
+    state.pop("start_nonce", None)
+    if _save_app_state(state, asset_id) != phantom.APP_SUCCESS:
+        return HttpResponse(
+            "ERROR: Unable to consume the pending OAuth start request",
+            content_type="text/plain",
+            status=500,
         )
 
     # Redirect to this link, the user will then require to enter credentials interactively
@@ -3654,6 +3671,8 @@ class Office365Connector(BaseConnector):
         app_state["redirect_uri"] = redirect_uri
         flow_nonce = secrets.token_urlsafe(32)
         app_state["flow_nonce"] = flow_nonce
+        start_nonce = secrets.token_urlsafe(32)
+        app_state["start_nonce"] = start_nonce
         oauth_state = urllib.parse.quote(f"{self._asset_id}:{flow_nonce}", safe="")
 
         self.save_progress("Using OAuth Redirect URL as:")
@@ -3682,7 +3701,8 @@ class Office365Connector(BaseConnector):
 
         # The URL that the user should open in a different tab.
         # This is pointing to a REST endpoint that points to the app
-        url_to_show = f"{app_rest_url}/start_oauth?asset_id={self._asset_id}&"
+        start_query = urllib.parse.urlencode({"asset_id": self._asset_id, "start_nonce": start_nonce})
+        url_to_show = f"{app_rest_url}/start_oauth?{start_query}"
 
         # Save the state, will be used by the request handler
         _save_app_state(app_state, self._asset_id, self)

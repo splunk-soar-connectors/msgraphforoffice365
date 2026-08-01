@@ -6,3 +6,4 @@
 * Reject redirects while following Microsoft Graph pagination links.
 * Retry legacy or interrupted email ingestion until artifacts and the completion marker are saved.
 * Resume capped latest-first polling windows before advancing the mailbox checkpoint.
+* Require a one-time nonce before starting an interactive OAuth authorization flow.
