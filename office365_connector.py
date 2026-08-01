@@ -700,6 +700,7 @@ class Office365Connector(BaseConnector):
         data=None,
         method="get",
         download=False,
+        allow_redirects=True,
     ):
         resp_json = None
 
@@ -720,6 +721,7 @@ class Office365Connector(BaseConnector):
                     verify=verify,
                     params=params,
                     timeout=MSGOFFICE365_DEFAULT_REQUEST_TIMEOUT,
+                    allow_redirects=allow_redirects,
                 )
             except Exception as e:
                 error_msg = _get_error_msg_from_exception(e, self)
@@ -729,6 +731,15 @@ class Office365Connector(BaseConnector):
                 break
             self.debug_print("Received 502 status code from the server")
             time.sleep(self._retry_wait_time)
+
+        if not allow_redirects and _is_redirect_status(r.status_code):
+            return RetVal(
+                action_result.set_status(
+                    phantom.APP_ERROR,
+                    "Refusing to follow a redirect from a Microsoft Graph pagination URL",
+                ),
+                None,
+            )
 
         if download:
             if 200 <= r.status_code < 399:
@@ -870,7 +881,17 @@ class Office365Connector(BaseConnector):
 
         headers.update({"Authorization": f"Bearer {self._access_token}", "Accept": "application/json", "Content-Type": "application/json"})
 
-        ret_val, resp_json = self._make_rest_call(action_result, url, verify, headers, params, data, method, download=download)
+        ret_val, resp_json = self._make_rest_call(
+            action_result,
+            url,
+            verify,
+            headers,
+            params,
+            data,
+            method,
+            download=download,
+            allow_redirects=not bool(nextLink),
+        )
 
         # If token is expired, generate a new token
         msg = action_result.get_message()
@@ -891,6 +912,7 @@ class Office365Connector(BaseConnector):
                 data,
                 method,
                 download=download,
+                allow_redirects=not bool(nextLink),
             )
 
         if phantom.is_fail(ret_val):

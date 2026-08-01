@@ -83,6 +83,43 @@ def _load_polling_policy():
     return namespace["PollingPolicy"], PhantomStub
 
 
+def _load_rest_call_policy():
+    source = CONNECTOR.read_text()
+    tree = ast.parse(source)
+    connector = next(node for node in tree.body if isinstance(node, ast.ClassDef) and node.name == "Office365Connector")
+    method = next(node for node in connector.body if isinstance(node, ast.FunctionDef) and node.name == "_make_rest_call")
+    policy = ast.ClassDef(
+        name="RestCallPolicy",
+        bases=[],
+        keywords=[],
+        body=[method],
+        decorator_list=[],
+    )
+
+    class PhantomStub:
+        APP_SUCCESS = 0
+        APP_ERROR = 1
+
+    class RequestsStub:
+        def __init__(self):
+            self.kwargs = None
+
+        def get(self, url, **kwargs):
+            self.kwargs = kwargs
+            return type("Response", (), {"status_code": 302})()
+
+    requests_stub = RequestsStub()
+    namespace = {
+        "requests": requests_stub,
+        "phantom": PhantomStub,
+        "RetVal": lambda *values: values,
+        "_is_redirect_status": lambda status_code: 300 <= status_code < 400,
+        "MSGOFFICE365_DEFAULT_REQUEST_TIMEOUT": 30,
+    }
+    exec(compile(ast.fix_missing_locations(ast.Module(body=[policy], type_ignores=[])), str(CONNECTOR), "exec"), namespace)
+    return namespace["RestCallPolicy"], requests_stub, PhantomStub
+
+
 class PollingActionResult:
     def __init__(self):
         self.status = 0
@@ -95,6 +132,17 @@ class PollingActionResult:
 
     def get_status(self):
         return self.status
+
+
+class RestCallActionResult:
+    def __init__(self):
+        self.status = 0
+        self.message = ""
+
+    def set_status(self, status, message=""):
+        self.status = status
+        self.message = message
+        return status
 
 
 class ValidationFollowupTests(unittest.TestCase):
@@ -139,6 +187,40 @@ class ValidationFollowupTests(unittest.TestCase):
         handler = next(node for node in ast.walk(tree) if isinstance(node, ast.FunctionDef) and node.name == "_upload_large_attachment")
         handler_source = ast.get_source_segment(source, handler)
         self.assertLess(handler_source.index("_is_redirect_status(response.status_code)"), handler_source.index("if not response.ok"))
+
+    def test_pagination_get_rejects_redirect_without_following_it(self):
+        rest_call_policy, requests_stub, phantom_stub = _load_rest_call_policy()
+
+        class Harness(rest_call_policy):
+            _number_of_retries = 1
+
+        action_result = RestCallActionResult()
+        status, response = Harness()._make_rest_call(
+            action_result,
+            "https://graph.microsoft.com/v1.0/messages?$skiptoken=next",
+            allow_redirects=False,
+        )
+
+        self.assertEqual(status, phantom_stub.APP_ERROR)
+        self.assertIsNone(response)
+        self.assertFalse(requests_stub.kwargs["allow_redirects"])
+        self.assertIn("Refusing to follow a redirect", action_result.message)
+
+    def test_next_link_calls_disable_redirects_including_token_retry(self):
+        source = CONNECTOR.read_text()
+        tree = ast.parse(source)
+        helper = next(node for node in ast.walk(tree) if isinstance(node, ast.FunctionDef) and node.name == "_make_rest_call_helper")
+        rest_calls = [
+            node
+            for node in ast.walk(helper)
+            if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute) and node.func.attr == "_make_rest_call"
+        ]
+
+        self.assertEqual(len(rest_calls), 2)
+        for call in rest_calls:
+            redirect_keyword = next((keyword for keyword in call.keywords if keyword.arg == "allow_redirects"), None)
+            self.assertIsNotNone(redirect_keyword)
+            self.assertEqual(ast.unparse(redirect_keyword.value), "not bool(nextLink)")
 
     def test_latest_first_poll_persists_continuation_before_checkpoint(self):
         source = CONNECTOR.read_text()
