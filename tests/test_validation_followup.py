@@ -49,9 +49,7 @@ class ValidationFollowupTests(unittest.TestCase):
         tree = ast.parse(source)
         handler = next(node for node in ast.walk(tree) if isinstance(node, ast.FunctionDef) and node.name == "_upload_large_attachment")
         put_calls = [
-            node
-            for node in ast.walk(handler)
-            if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute) and node.func.attr == "put"
+            node for node in ast.walk(handler) if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute) and node.func.attr == "put"
         ]
         self.assertEqual(len(put_calls), 1)
         redirect_keyword = next((keyword for keyword in put_calls[0].keywords if keyword.arg == "allow_redirects"), None)
