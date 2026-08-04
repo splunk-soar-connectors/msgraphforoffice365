@@ -55,12 +55,25 @@ MSGOFFICE365_DEFAULT_SCOPE = "https://graph.microsoft.com/.default"
 MSGOFFICE365_MAX_PAGINATION_PAGES = 1000
 MSGOFFICE365_MAX_POLL_CYCLES = 100
 MSGOFFICE365_MAX_ATTACHMENT_DEPTH = 10
+MSGOFFICE365_LATEST_FIRST_NEXT_LINK = "latest_first_next_link"
+MSGOFFICE365_LATEST_FIRST_HIGH_WATER = "latest_first_high_water"
+MSGOFFICE365_LATEST_FIRST_SCOPE = "latest_first_scope"
+MSGOFFICE365_LATEST_FIRST_PAGE_SIZE = "latest_first_page_size"
 MSGOFFICE365_UPLOAD_HOSTS = {"graph.microsoft.com", "outlook.office.com"}
 
 
 def _quote_path_segment(value):
     """Encode a caller-controlled value as one Microsoft Graph path segment."""
-    return urllib.parse.quote(str(value), safe="")
+    raw_value = str(value)
+    canonical_value = raw_value
+    for _ in range(5):
+        decoded_value = urllib.parse.unquote(canonical_value)
+        if decoded_value == canonical_value:
+            break
+        canonical_value = decoded_value
+    if canonical_value in {".", ".."}:
+        raise ValueError("Microsoft Graph path identifiers must not be dot segments")
+    return urllib.parse.quote(raw_value, safe="")
 
 
 def _is_expected_graph_url(url):
@@ -105,6 +118,10 @@ def _is_expected_upload_url(url):
         and not candidate.username
         and not candidate.password
     )
+
+
+def _is_redirect_status(status_code):
+    return 300 <= status_code < 400
 
 
 def _is_token_response(response):
@@ -380,6 +397,15 @@ def _handle_oauth_start(request, path_parts):
             status=400,
         )
 
+    presented_start_nonce = str(request.GET.get("start_nonce") or "")
+    stored_start_nonce = str(state.get("start_nonce") or "")
+    if not stored_start_nonce or not hmac.compare_digest(stored_start_nonce, presented_start_nonce):
+        return HttpResponse(
+            "ERROR: OAuth start request did not match the pending authorization flow",
+            content_type="text/plain",
+            status=400,
+        )
+
     # get the url to point to the authorize url of OAuth
     admin_consent_url = state.get("admin_consent_url")
 
@@ -388,6 +414,14 @@ def _handle_oauth_start(request, path_parts):
             "App state is invalid, admin_consent_url key not found",
             content_type="text/plain",
             status=400,
+        )
+
+    state.pop("start_nonce", None)
+    if _save_app_state(state, asset_id) != phantom.APP_SUCCESS:
+        return HttpResponse(
+            "ERROR: Unable to consume the pending OAuth start request",
+            content_type="text/plain",
+            status=500,
         )
 
     # Redirect to this link, the user will then require to enter credentials interactively
@@ -517,6 +551,9 @@ class Office365Connector(BaseConnector):
         access_token = state.get("admin_auth", {}).get("access_token")
         if access_token:
             state["admin_auth"]["access_token"] = self.update_state_fields(access_token, helper_function, error_message)
+        continuation = state.get(MSGOFFICE365_LATEST_FIRST_NEXT_LINK)
+        if continuation:
+            state[MSGOFFICE365_LATEST_FIRST_NEXT_LINK] = self.update_state_fields(continuation, helper_function, error_message)
         return state
 
     def _decrypt_state(self, state):
@@ -680,6 +717,7 @@ class Office365Connector(BaseConnector):
         data=None,
         method="get",
         download=False,
+        allow_redirects=True,
     ):
         resp_json = None
 
@@ -700,6 +738,7 @@ class Office365Connector(BaseConnector):
                     verify=verify,
                     params=params,
                     timeout=MSGOFFICE365_DEFAULT_REQUEST_TIMEOUT,
+                    allow_redirects=allow_redirects,
                 )
             except Exception as e:
                 error_msg = _get_error_msg_from_exception(e, self)
@@ -709,6 +748,15 @@ class Office365Connector(BaseConnector):
                 break
             self.debug_print("Received 502 status code from the server")
             time.sleep(self._retry_wait_time)
+
+        if not allow_redirects and _is_redirect_status(r.status_code):
+            return RetVal(
+                action_result.set_status(
+                    phantom.APP_ERROR,
+                    "Refusing to follow a redirect from a Microsoft Graph pagination URL",
+                ),
+                None,
+            )
 
         if download:
             if 200 <= r.status_code < 399:
@@ -850,7 +898,17 @@ class Office365Connector(BaseConnector):
 
         headers.update({"Authorization": f"Bearer {self._access_token}", "Accept": "application/json", "Content-Type": "application/json"})
 
-        ret_val, resp_json = self._make_rest_call(action_result, url, verify, headers, params, data, method, download=download)
+        ret_val, resp_json = self._make_rest_call(
+            action_result,
+            url,
+            verify,
+            headers,
+            params,
+            data,
+            method,
+            download=download,
+            allow_redirects=not bool(nextLink),
+        )
 
         # If token is expired, generate a new token
         msg = action_result.get_message()
@@ -871,6 +929,7 @@ class Office365Connector(BaseConnector):
                 data,
                 method,
                 download=download,
+                allow_redirects=not bool(nextLink),
             )
 
         if phantom.is_fail(ret_val):
@@ -1280,9 +1339,9 @@ class Office365Connector(BaseConnector):
 
         container["name"] = email["subject"] if email["subject"] else email["id"]
         container_description = MSGOFFICE365_CONTAINER_DESCRIPTION.format(last_modified_time=email["lastModifiedDateTime"])
-        container["description"] = container_description
+        container["description"] = f"{container_description} (ingestion pending)"
         container["source_data_identifier"] = email["id"]
-        container["data"] = {"raw_email": email}
+        container["data"] = {"raw_email": email, "ingestion_complete": False}
 
         ret_val, msg, container_id = self.save_container(container)
 
@@ -1291,9 +1350,9 @@ class Office365Connector(BaseConnector):
 
         if MSGOFFICE365_DUPLICATE_CONTAINER_FOUND_MSG in msg.lower():
             self.debug_print("Duplicate container found")
-            self._duplicate_count += 1
 
-            # Prevent further processing if the email is not modified
+            # Skip only containers that explicitly completed ingestion. Legacy and
+            # interrupted containers have no completion marker and are retried once.
             ret_val, container_info, status_code = self.get_container_info(container_id=container_id)
             if phantom.is_fail(ret_val):
                 return action_result.set_status(
@@ -1301,16 +1360,12 @@ class Office365Connector(BaseConnector):
                     f"Status Code: {status_code}. Error occurred while fetching the container info for container ID: {container_id}",
                 )
 
-            if container_info.get("description", "") == container_description:
+            container_data = container_info.get("data") if isinstance(container_info.get("data"), dict) else {}
+            if container_info.get("description", "") == container_description and container_data.get("ingestion_complete") is True:
+                self._duplicate_count += 1
                 msg = "Email ID: {} has not been modified. Hence, skipping the artifact ingestion.".format(email["id"])
                 self.debug_print(msg)
                 return action_result.set_status(phantom.APP_SUCCESS, msg)
-            else:
-                # Update the container's description and continue
-                self.debug_print("Updating container's description")
-                ret_val = self._update_container(action_result, container_id, container)
-                if phantom.is_fail(ret_val):
-                    return action_result.get_status()
 
         self.debug_print("Creating email artifacts")
         email_artifacts = self._create_email_artifacts(container_id, email)
@@ -1372,6 +1427,12 @@ class Office365Connector(BaseConnector):
         ret_val, msg, container_id = self.save_artifacts(artifacts)
         if phantom.is_fail(ret_val):
             return action_result.set_status(phantom.APP_ERROR, msg)
+
+        container["description"] = container_description
+        container["data"]["ingestion_complete"] = True
+        ret_val = self._update_container(action_result, container_id, container)
+        if phantom.is_fail(ret_val):
+            return action_result.get_status()
 
         return phantom.APP_SUCCESS
 
@@ -2140,6 +2201,126 @@ class Office365Connector(BaseConnector):
         limit = expected_duplicate_count_in_next_cycle + remaining_count
         return limit, total_ingested
 
+    def _fetch_poll_page(self, action_result, endpoint, params=None, next_link=None):
+        ret_val, response = self._make_rest_call_helper(
+            action_result,
+            endpoint,
+            nextLink=next_link,
+            params=params,
+        )
+        if phantom.is_fail(ret_val):
+            return action_result.get_status(), None, None
+
+        continuation = response.get("@odata.nextLink")
+        if continuation and continuation == next_link:
+            return (
+                action_result.set_status(
+                    phantom.APP_ERROR,
+                    "Microsoft Graph pagination returned a repeated nextLink",
+                ),
+                None,
+                None,
+            )
+
+        return phantom.APP_SUCCESS, response.get("value") or [], continuation
+
+    def _clear_latest_first_poll_state(self):
+        for key in (
+            MSGOFFICE365_LATEST_FIRST_NEXT_LINK,
+            MSGOFFICE365_LATEST_FIRST_HIGH_WATER,
+            MSGOFFICE365_LATEST_FIRST_SCOPE,
+            MSGOFFICE365_LATEST_FIRST_PAGE_SIZE,
+        ):
+            self._state.pop(key, None)
+
+    def _handle_latest_first_poll(self, action_result, config, endpoint, params, max_emails):
+        continuation = self._state.get(MSGOFFICE365_LATEST_FIRST_NEXT_LINK)
+        saved_scope = self._state.get(MSGOFFICE365_LATEST_FIRST_SCOPE)
+        high_water = self._state.get(MSGOFFICE365_LATEST_FIRST_HIGH_WATER)
+
+        if not continuation and (saved_scope or high_water):
+            self._clear_latest_first_poll_state()
+            saved_scope = None
+            high_water = None
+
+        if continuation and saved_scope != endpoint:
+            self._clear_latest_first_poll_state()
+            continuation = None
+            high_water = None
+
+        if continuation:
+            page_size = self._state.get(MSGOFFICE365_LATEST_FIRST_PAGE_SIZE, max_emails)
+        else:
+            page_size = min(max_emails, MSGOFFICE365_PER_PAGE_COUNT)
+
+        page_size = max(1, page_size)
+        poll_budget = max(max_emails, page_size) if continuation else max_emails
+        request_params = None if continuation else dict(params, **{"$top": page_size})
+        processed = 0
+
+        for _ in range(MSGOFFICE365_MAX_POLL_CYCLES):
+            ret_val, emails, next_link = self._fetch_poll_page(
+                action_result,
+                endpoint,
+                params=request_params,
+                next_link=continuation,
+            )
+            if phantom.is_fail(ret_val):
+                return action_result.get_status()
+
+            if emails and not high_water:
+                high_water = datetime.strptime(emails[0]["lastModifiedDateTime"], O365_TIME_FORMAT).strftime(O365_TIME_FORMAT)
+
+            failed_email_ids = []
+            for index, email in enumerate(emails):
+                try:
+                    self.send_progress("Processing email # {} with ID ending in: {}".format(index + 1, email["id"][-10:]))
+                    ret_val = self._process_email_data(config, action_result, endpoint, email)
+                    if phantom.is_fail(ret_val):
+                        failed_email_ids.append(email.get("id"))
+                        self.debug_print("Error occurred while processing email ID: {}. {}".format(email.get("id"), action_result.get_message()))
+                except Exception as e:
+                    failed_email_ids.append(email.get("id"))
+                    error_msg = _get_error_msg_from_exception(e, self)
+                    self.debug_print(f"Exception occurred while processing email ID: {email.get('id')}. {error_msg}")
+
+            if failed_email_ids:
+                return action_result.set_status(
+                    phantom.APP_ERROR,
+                    f"Failed to process {len(failed_email_ids)} of {len(emails)} fetched emails; the polling continuation was not advanced",
+                )
+
+            processed += len(emails)
+            if next_link:
+                self._state[MSGOFFICE365_LATEST_FIRST_NEXT_LINK] = next_link
+                self._state[MSGOFFICE365_LATEST_FIRST_HIGH_WATER] = high_water
+                self._state[MSGOFFICE365_LATEST_FIRST_SCOPE] = endpoint
+                self._state[MSGOFFICE365_LATEST_FIRST_PAGE_SIZE] = page_size
+                self.save_state(deepcopy(self._state))
+
+                if processed + page_size > poll_budget:
+                    return action_result.set_status(phantom.APP_SUCCESS)
+
+                continuation = next_link
+                request_params = None
+                continue
+
+            self._clear_latest_first_poll_state()
+            if high_water:
+                self._state["last_time"] = high_water
+                if self._state.get("first_run", True):
+                    self._state["first_run"] = False
+            self.save_state(deepcopy(self._state))
+
+            if not emails and not processed:
+                return action_result.set_status(phantom.APP_SUCCESS, MSGOFFICE365_NO_DATA_FOUND)
+            return action_result.set_status(phantom.APP_SUCCESS)
+
+        return action_result.set_status(
+            phantom.APP_ERROR,
+            f"Polling exceeded the safety limit of {MSGOFFICE365_MAX_POLL_CYCLES} ingestion cycles",
+        )
+
     def _handle_on_poll(self, param):
         self.save_progress(f"In action handler for: {self.get_action_identifier()}")
         action_result = self.add_action_result(ActionResult(dict(param)))
@@ -2206,6 +2387,13 @@ class Office365Connector(BaseConnector):
 
         cur_limit = max_emails
         total_ingested = 0
+
+        if not self.is_poll_now() and ingest_manner == "latest first":
+            return self._handle_latest_first_poll(action_result, config, endpoint, params, max_emails)
+
+        if not self.is_poll_now() and self._state.get(MSGOFFICE365_LATEST_FIRST_NEXT_LINK):
+            self._clear_latest_first_poll_state()
+            self.save_state(deepcopy(self._state))
 
         # Checkpoint the oldest fetched email in either ordering so a capped latest-first
         # batch does not advance past the remainder of the mailbox window.
@@ -2770,11 +2958,21 @@ class Office365Connector(BaseConnector):
                             upload_url,
                             headers=headers,
                             data=file_content,
+                            allow_redirects=False,
                             timeout=MSGOFFICE365_DEFAULT_REQUEST_TIMEOUT,
                         )
                     except Exception as e:
                         error_msg = _get_error_msg_from_exception(e, self)
                         return action_result.set_status(phantom.APP_ERROR, f"Failed to upload file. {error_msg}"), None
+
+                    if _is_redirect_status(response.status_code):
+                        return (
+                            action_result.set_status(
+                                phantom.APP_ERROR,
+                                f"Failed to upload file: Microsoft Graph returned redirect status {response.status_code}",
+                            ),
+                            None,
+                        )
 
                     if response.status_code != 429:
                         if not response.ok:
@@ -3473,6 +3671,8 @@ class Office365Connector(BaseConnector):
         app_state["redirect_uri"] = redirect_uri
         flow_nonce = secrets.token_urlsafe(32)
         app_state["flow_nonce"] = flow_nonce
+        start_nonce = secrets.token_urlsafe(32)
+        app_state["start_nonce"] = start_nonce
         oauth_state = urllib.parse.quote(f"{self._asset_id}:{flow_nonce}", safe="")
 
         self.save_progress("Using OAuth Redirect URL as:")
@@ -3501,7 +3701,8 @@ class Office365Connector(BaseConnector):
 
         # The URL that the user should open in a different tab.
         # This is pointing to a REST endpoint that points to the app
-        url_to_show = f"{app_rest_url}/start_oauth?asset_id={self._asset_id}&"
+        start_query = urllib.parse.urlencode({"asset_id": self._asset_id, "start_nonce": start_nonce})
+        url_to_show = f"{app_rest_url}/start_oauth?{start_query}"
 
         # Save the state, will be used by the request handler
         _save_app_state(app_state, self._asset_id, self)
