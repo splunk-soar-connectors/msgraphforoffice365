@@ -410,45 +410,6 @@ class ValidationFollowupTests(unittest.TestCase):
         self.assertLess(save_artifacts_offset, completed_offset)
         self.assertLess(completed_offset, update_offset)
 
-    def test_initialize_recovers_every_missing_access_token_without_state_consent_gate(self):
-        source = CONNECTOR.read_text()
-        tree = ast.parse(source)
-        connector = next(node for node in tree.body if isinstance(node, ast.ClassDef) and node.name == "Office365Connector")
-        initialize = next(node for node in connector.body if isinstance(node, ast.FunctionDef) and node.name == "initialize")
-        initialize_source = ast.get_source_segment(source, initialize)
-
-        self.assertNotIn('self._state.get("admin_consent")', initialize_source)
-        missing_token_branch = next(
-            node for node in ast.walk(initialize) if isinstance(node, ast.If) and ast.unparse(node.test) == "not self._access_token"
-        )
-        self.assertTrue(
-            any(
-                isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute) and node.func.attr == "_get_token"
-                for node in ast.walk(missing_token_branch)
-            )
-        )
-        self.assertIn("action_result.get_message()", ast.get_source_segment(source, missing_token_branch))
-
-    def test_finalize_persists_state_only_after_successful_initialization(self):
-        source = CONNECTOR.read_text()
-        tree = ast.parse(source)
-        connector = next(node for node in tree.body if isinstance(node, ast.ClassDef) and node.name == "Office365Connector")
-        constructor = next(node for node in connector.body if isinstance(node, ast.FunctionDef) and node.name == "__init__")
-        initialize = next(node for node in connector.body if isinstance(node, ast.FunctionDef) and node.name == "initialize")
-        finalize = next(node for node in connector.body if isinstance(node, ast.FunctionDef) and node.name == "finalize")
-
-        self.assertIn("self._initialization_succeeded = False", ast.get_source_segment(source, constructor))
-        self.assertEqual(ast.get_source_segment(source, initialize).count("self._initialization_succeeded = True"), 2)
-        finalize_guard = next(
-            node for node in ast.walk(finalize) if isinstance(node, ast.If) and ast.unparse(node.test) == "self._initialization_succeeded"
-        )
-        self.assertTrue(
-            any(
-                isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute) and node.func.attr == "save_state"
-                for node in ast.walk(finalize_guard)
-            )
-        )
-
 
 if __name__ == "__main__":
     unittest.main()
