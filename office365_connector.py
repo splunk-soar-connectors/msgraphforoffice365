@@ -1425,7 +1425,7 @@ class Office365Connector(BaseConnector):
                 return action_result.get_status()
 
         artifacts = attachment_artifacts + email_artifacts
-        ret_val, msg, container_id = self.save_artifacts(artifacts)
+        ret_val, msg, _artifact_ids = self.save_artifacts(artifacts)
         if phantom.is_fail(ret_val):
             return action_result.set_status(phantom.APP_ERROR, msg)
 
