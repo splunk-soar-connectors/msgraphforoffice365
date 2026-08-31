@@ -410,6 +410,22 @@ class ValidationFollowupTests(unittest.TestCase):
         self.assertLess(save_artifacts_offset, completed_offset)
         self.assertLess(completed_offset, update_offset)
 
+    def test_non_admin_oauth_diagnostics_only_report_token_presence(self):
+        source = CONNECTOR.read_text()
+
+        for message in (
+            "Non-admin OAuth state loaded: non_admin_auth_present={}, access_token_present={}, refresh_token_present={}",
+            "Non-admin OAuth token source check: authorization_code_present={}, refresh_token_present={}",
+            "Non-admin OAuth token response: access_token_present={}, refresh_token_present={}",
+            "Non-admin OAuth state persistence check: access_token_persisted={}, refresh_token_persisted={}",
+        ):
+            self.assertIn(message, source)
+
+        self.assertIn(
+            "Non-admin OAuth token generation cannot continue: no authorization code or refresh token is available in state",
+            source,
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

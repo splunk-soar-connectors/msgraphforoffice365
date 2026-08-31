@@ -3571,6 +3571,11 @@ class Office365Connector(BaseConnector):
             data["scope"] = MSGOFFICE365_DEFAULT_SCOPE
 
         if not self._admin_access:
+            self.debug_print(
+                "Non-admin OAuth token source check: authorization_code_present={}, refresh_token_present={}".format(
+                    bool(self._state.get("code")), bool(self._refresh_token)
+                )
+            )
             if self._state.get("code"):
                 self.save_progress("Generating token using authorization code")
                 data["redirect_uri"] = self._state.get("redirect_uri")
@@ -3582,6 +3587,9 @@ class Office365Connector(BaseConnector):
                 data["refresh_token"] = self._refresh_token
                 data["grant_type"] = "refresh_token"
             else:
+                self.debug_print(
+                    "Non-admin OAuth token generation cannot continue: no authorization code or refresh token is available in state"
+                )
                 return (
                     action_result.set_status(
                         phantom.APP_ERROR,
@@ -3620,6 +3628,11 @@ class Office365Connector(BaseConnector):
                 self._state["admin_consent"] = True
             self._state["admin_auth"] = resp_json
         else:
+            self.debug_print(
+                "Non-admin OAuth token response: access_token_present={}, refresh_token_present={}".format(
+                    bool(resp_json.get("access_token")), bool(resp_json.get("refresh_token"))
+                )
+            )
             self._state["non_admin_auth"] = resp_json
 
         # Fetching the access token and refresh token
@@ -3647,6 +3660,13 @@ class Office365Connector(BaseConnector):
             if self._access_token != self._state.get("admin_auth", {}).get("access_token"):
                 return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_PERMISSION_ERROR)
         else:
+            persisted_non_admin_auth = self._state.get("non_admin_auth", {})
+            self.debug_print(
+                "Non-admin OAuth state persistence check: access_token_persisted={}, refresh_token_persisted={}".format(
+                    self._access_token == persisted_non_admin_auth.get("access_token"),
+                    bool(persisted_non_admin_auth.get("refresh_token")),
+                )
+            )
             if self._access_token != self._state.get("non_admin_auth", {}).get("access_token"):
                 return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_PERMISSION_ERROR)
 
@@ -3836,6 +3856,11 @@ class Office365Connector(BaseConnector):
 
             self._access_token = self._state.get("non_admin_auth", {}).get("access_token", None)
             self._refresh_token = self._state.get("non_admin_auth", {}).get("refresh_token", None)
+            self.debug_print(
+                "Non-admin OAuth state loaded: non_admin_auth_present={}, access_token_present={}, refresh_token_present={}".format(
+                    isinstance(self._state.get("non_admin_auth"), dict), bool(self._access_token), bool(self._refresh_token)
+                )
+            )
         else:
             self._access_token = self._state.get("admin_auth", {}).get("access_token", None)
 
