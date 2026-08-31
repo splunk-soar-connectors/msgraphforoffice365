@@ -3846,28 +3846,16 @@ class Office365Connector(BaseConnector):
             return phantom.APP_SUCCESS
 
         if not self._access_token:
-            if self._admin_access:
-                self.debug_print(
-                    "No cached admin access token found; attempting authentication recovery from configured credentials "
-                    f"(auth_type={self._auth_type}, admin_consent={bool(self._admin_consent)})"
-                )
-
             ret_val = self._get_token(action_result)
 
             if phantom.is_fail(ret_val):
                 if self._admin_access:
-                    self.debug_print(
-                        "Admin authentication recovery failed; returning the token acquisition error without saving failed initialization state"
-                    )
                     return self.set_status(phantom.APP_ERROR, action_result.get_message())
 
                 return self.set_status(
                     phantom.APP_ERROR,
                     f"{MSGOFFICE365_RUN_CONNECTIVITY_MSG}. {action_result.get_message()}",
                 )
-
-            if self._admin_access:
-                self.debug_print("Admin authentication recovery succeeded; refreshed connector state was persisted and verified")
 
         # Create ProcessEmail Object for on_poll
         self._process_email = ProcessEmail(self, config)
@@ -3892,8 +3880,6 @@ class Office365Connector(BaseConnector):
         # Save the state, this data is saved across actions and app upgrades
         if self._initialization_succeeded:
             self.save_state(self._state)
-        else:
-            self.debug_print("Skipping connector state save because initialization did not complete successfully")
         return phantom.APP_SUCCESS
 
 
