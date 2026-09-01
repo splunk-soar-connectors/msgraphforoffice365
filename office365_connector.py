@@ -60,6 +60,7 @@ MSGOFFICE365_LATEST_FIRST_NEXT_LINK = "latest_first_next_link"
 MSGOFFICE365_LATEST_FIRST_HIGH_WATER = "latest_first_high_water"
 MSGOFFICE365_LATEST_FIRST_SCOPE = "latest_first_scope"
 MSGOFFICE365_LATEST_FIRST_PAGE_SIZE = "latest_first_page_size"
+MSGOFFICE365_NON_ADMIN_OAUTH_DIAGNOSTIC_STATE = "non_admin_auth_diagnostic"
 MSGOFFICE365_UPLOAD_HOSTS = {"graph.microsoft.com", "outlook.office.com"}
 
 
@@ -3572,13 +3573,11 @@ class Office365Connector(BaseConnector):
             data["scope"] = MSGOFFICE365_DEFAULT_SCOPE
 
         if not self._admin_access:
-            self.debug_print(
-                "Non-admin OAuth token source check: authorization_code_present={}, refresh_token_present={}".format(
-                    bool(self._state.get("code")), bool(self._refresh_token)
-                )
-            )
             if self._state.get("code"):
                 self._non_admin_oauth_token_source = "authorization_code"
+                self._record_non_admin_oauth_diagnostic(
+                    "token_source_selected", token_source=self._non_admin_oauth_token_source
+                )
                 self.save_progress("Generating token using authorization code")
                 data["redirect_uri"] = self._state.get("redirect_uri")
                 data["code"] = self._state.get("code")
@@ -3586,13 +3585,16 @@ class Office365Connector(BaseConnector):
                 self._state.pop("code")
             elif self._refresh_token:
                 self._non_admin_oauth_token_source = "refresh_token"
+                self._record_non_admin_oauth_diagnostic(
+                    "token_source_selected", token_source=self._non_admin_oauth_token_source
+                )
                 self.save_progress("Generating token using refresh token")
                 data["refresh_token"] = self._refresh_token
                 data["grant_type"] = "refresh_token"
             else:
                 self._non_admin_oauth_token_source = "none"
-                self.debug_print(
-                    "Non-admin OAuth token generation cannot continue: no authorization code or refresh token is available in state"
+                self._record_non_admin_oauth_diagnostic(
+                    "token_source_unavailable", token_source=self._non_admin_oauth_token_source
                 )
                 return (
                     action_result.set_status(
@@ -3632,18 +3634,13 @@ class Office365Connector(BaseConnector):
                 self._state["admin_consent"] = True
             self._state["admin_auth"] = resp_json
         else:
-            self.debug_print(
-                "Non-admin OAuth token response: token_source={}, access_token_present={}, refresh_token_present={}".format(
-                    self._non_admin_oauth_token_source,
-                    bool(resp_json.get("access_token")),
-                    bool(resp_json.get("refresh_token")),
-                )
-            )
             self._state["non_admin_auth"] = resp_json
-            self._state["non_admin_auth_diagnostic"] = {
-                "revision": secrets.token_urlsafe(8),
-                "token_source": self._non_admin_oauth_token_source,
-            }
+            self._record_non_admin_oauth_diagnostic(
+                "token_response_received",
+                token_source=self._non_admin_oauth_token_source,
+                token_response_refresh_token_present=bool(resp_json.get("refresh_token")),
+                create_revision=True,
+            )
 
         # Fetching the access token and refresh token
         self._access_token = resp_json.get("access_token")
@@ -3671,13 +3668,10 @@ class Office365Connector(BaseConnector):
                 return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_PERMISSION_ERROR)
         else:
             persisted_non_admin_auth = self._state.get("non_admin_auth", {})
-            self.debug_print(
-                "Non-admin OAuth state persistence check: access_token_persisted={}, refresh_token_persisted={}, "
-                "state_revision_fingerprint={}".format(
-                    self._access_token == persisted_non_admin_auth.get("access_token"),
-                    bool(persisted_non_admin_auth.get("refresh_token")),
-                    self._get_non_admin_state_revision_fingerprint(),
-                )
+            self._record_non_admin_oauth_diagnostic(
+                "state_reloaded",
+                access_token_persisted=self._access_token == persisted_non_admin_auth.get("access_token"),
+                refresh_token_persisted=bool(persisted_non_admin_auth.get("refresh_token")),
             )
             if self._access_token != self._state.get("non_admin_auth", {}).get("access_token"):
                 return action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_INVALID_PERMISSION_ERROR)
@@ -3686,7 +3680,8 @@ class Office365Connector(BaseConnector):
         return action_result.set_status(phantom.APP_SUCCESS)
 
     def _get_non_admin_state_revision_fingerprint(self):
-        diagnostic_state = self._state.get("non_admin_auth_diagnostic", {})
+        state = self._state if isinstance(self._state, dict) else {}
+        diagnostic_state = state.get(MSGOFFICE365_NON_ADMIN_OAUTH_DIAGNOSTIC_STATE, {})
         revision = diagnostic_state.get("revision") if isinstance(diagnostic_state, dict) else None
 
         if not isinstance(revision, str):
@@ -3696,6 +3691,45 @@ class Office365Connector(BaseConnector):
             return "invalid"
 
         return hashlib.sha256(revision.encode()).hexdigest()[:12]
+
+    def _record_non_admin_oauth_diagnostic(
+        self,
+        event,
+        token_source=None,
+        token_response_refresh_token_present=None,
+        access_token_persisted=None,
+        refresh_token_persisted=None,
+        authorization_request_includes_offline_access=None,
+        create_revision=False,
+    ):
+        if create_revision and isinstance(self._state, dict):
+            self._state[MSGOFFICE365_NON_ADMIN_OAUTH_DIAGNOSTIC_STATE] = {"revision": secrets.token_urlsafe(8)}
+
+        state = self._state if isinstance(self._state, dict) else {}
+        non_admin_auth = state.get("non_admin_auth", {})
+        non_admin_auth_present = isinstance(non_admin_auth, dict)
+        if not non_admin_auth_present:
+            non_admin_auth = {}
+
+        fields = {
+            "event": event,
+            "state_revision_fingerprint": self._get_non_admin_state_revision_fingerprint(),
+            "non_admin_auth_present": non_admin_auth_present,
+            "access_token_present": bool(non_admin_auth.get("access_token")),
+            "refresh_token_present": bool(non_admin_auth.get("refresh_token")),
+            "authorization_code_present": bool(state.get("code")),
+        }
+
+        optional_fields = {
+            "token_source": token_source,
+            "token_response_refresh_token_present": token_response_refresh_token_present,
+            "access_token_persisted": access_token_persisted,
+            "refresh_token_persisted": refresh_token_persisted,
+            "authorization_request_includes_offline_access": authorization_request_includes_offline_access,
+        }
+        fields.update({key: value for key, value in optional_fields.items() if value is not None})
+
+        self.debug_print("Non-admin OAuth diagnostic: " + ", ".join(f"{key}={value}" for key, value in fields.items()))
 
     def _get_consent(self, action_result):
         self.save_progress("Getting App REST endpoint URL")
@@ -3740,10 +3774,9 @@ class Office365Connector(BaseConnector):
             admin_consent_url += f"&state={oauth_state}"
             admin_consent_url += f"&scope={self._scope}"
             admin_consent_url += "&response_type=code"
-            self.debug_print(
-                "Non-admin OAuth authorization request: offline_access_requested={}".format(
-                    "offline_access" in self._scope.split()
-                )
+            self._record_non_admin_oauth_diagnostic(
+                "authorization_requested",
+                authorization_request_includes_offline_access="offline_access" in self._scope.split(),
             )
 
         app_state["admin_consent_url"] = admin_consent_url
@@ -3886,15 +3919,7 @@ class Office365Connector(BaseConnector):
 
             self._access_token = self._state.get("non_admin_auth", {}).get("access_token", None)
             self._refresh_token = self._state.get("non_admin_auth", {}).get("refresh_token", None)
-            self.debug_print(
-                "Non-admin OAuth state loaded: non_admin_auth_present={}, access_token_present={}, refresh_token_present={}, "
-                "state_revision_fingerprint={}".format(
-                    isinstance(self._state.get("non_admin_auth"), dict),
-                    bool(self._access_token),
-                    bool(self._refresh_token),
-                    self._get_non_admin_state_revision_fingerprint(),
-                )
-            )
+            self._record_non_admin_oauth_diagnostic("state_loaded")
         else:
             self._access_token = self._state.get("admin_auth", {}).get("access_token", None)
 
