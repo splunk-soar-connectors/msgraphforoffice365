@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import ast
+import hashlib
+import re
 import unittest
 import urllib.parse
 from copy import deepcopy
@@ -38,6 +40,18 @@ def _load_redirect_helper():
     namespace = {}
     exec(compile(ast.fix_missing_locations(ast.Module(body=[helper], type_ignores=[])), str(CONNECTOR), "exec"), namespace)
     return namespace["_is_redirect_status"]
+
+
+def _load_non_admin_state_revision_helper():
+    source = CONNECTOR.read_text()
+    tree = ast.parse(source)
+    connector = next(node for node in tree.body if isinstance(node, ast.ClassDef) and node.name == "Office365Connector")
+    helper = next(
+        node for node in connector.body if isinstance(node, ast.FunctionDef) and node.name == "_get_non_admin_state_revision_fingerprint"
+    )
+    namespace = {"hashlib": hashlib, "re": re}
+    exec(compile(ast.fix_missing_locations(ast.Module(body=[helper], type_ignores=[])), str(CONNECTOR), "exec"), namespace)
+    return namespace["_get_non_admin_state_revision_fingerprint"]
 
 
 def _load_polling_policy():
@@ -414,10 +428,11 @@ class ValidationFollowupTests(unittest.TestCase):
         source = CONNECTOR.read_text()
 
         for message in (
-            "Non-admin OAuth state loaded: non_admin_auth_present={}, access_token_present={}, refresh_token_present={}",
+            "Non-admin OAuth state loaded: non_admin_auth_present={}, access_token_present={}, refresh_token_present={}, ",
             "Non-admin OAuth token source check: authorization_code_present={}, refresh_token_present={}",
-            "Non-admin OAuth token response: access_token_present={}, refresh_token_present={}",
-            "Non-admin OAuth state persistence check: access_token_persisted={}, refresh_token_persisted={}",
+            "Non-admin OAuth token response: token_source={}, access_token_present={}, refresh_token_present={}",
+            "Non-admin OAuth state persistence check: access_token_persisted={}, refresh_token_persisted={}, ",
+            "Non-admin OAuth authorization request: offline_access_requested={}",
         ):
             self.assertIn(message, source)
 
@@ -425,6 +440,21 @@ class ValidationFollowupTests(unittest.TestCase):
             "Non-admin OAuth token generation cannot continue: no authorization code or refresh token is available in state",
             source,
         )
+
+    def test_non_admin_state_revision_fingerprint_is_safe_and_stable(self):
+        helper = _load_non_admin_state_revision_helper()
+        connector = type("Connector", (), {"_state": {"non_admin_auth_diagnostic": {"revision": "abcDEF123_-"}}})()
+
+        fingerprint = helper(connector)
+        self.assertEqual(fingerprint, helper(connector))
+        self.assertEqual(len(fingerprint), 12)
+        self.assertNotIn("abcDEF123_-", fingerprint)
+
+        connector._state = {}
+        self.assertEqual(helper(connector), "absent")
+
+        connector._state = {"non_admin_auth_diagnostic": {"revision": "not a diagnostic revision"}}
+        self.assertEqual(helper(connector), "invalid")
 
 
 if __name__ == "__main__":
