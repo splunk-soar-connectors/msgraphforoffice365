@@ -78,6 +78,15 @@ def _quote_path_segment(value):
     return urllib.parse.quote(raw_value, safe="")
 
 
+def _preserve_prior_refresh_token(token_response, prior_refresh_token, token_source):
+    """Retain a usable non-admin refresh token when its replacement is absent."""
+    if token_source != "refresh_token" or token_response.get("refresh_token") or not prior_refresh_token:
+        return False
+
+    token_response["refresh_token"] = prior_refresh_token
+    return True
+
+
 def _is_expected_graph_url(url):
     """Return whether an absolute URL targets the configured Microsoft Graph origin."""
     try:
@@ -3634,11 +3643,27 @@ class Office365Connector(BaseConnector):
                 self._state["admin_consent"] = True
             self._state["admin_auth"] = resp_json
         else:
+            prior_refresh_token = self._refresh_token
+            token_response_refresh_token_present = bool(resp_json.get("refresh_token"))
+            refresh_token_preserved = _preserve_prior_refresh_token(
+                resp_json,
+                prior_refresh_token,
+                self._non_admin_oauth_token_source,
+            )
+            if refresh_token_preserved:
+                self._record_non_admin_oauth_diagnostic(
+                    "refresh_token_missing_preserved",
+                    token_source=self._non_admin_oauth_token_source,
+                    token_response_refresh_token_present=False,
+                    prior_refresh_token_present=True,
+                    refresh_token_preserved=True,
+                )
             self._state["non_admin_auth"] = resp_json
             self._record_non_admin_oauth_diagnostic(
                 "token_response_received",
                 token_source=self._non_admin_oauth_token_source,
-                token_response_refresh_token_present=bool(resp_json.get("refresh_token")),
+                token_response_refresh_token_present=token_response_refresh_token_present,
+                refresh_token_preserved=refresh_token_preserved,
                 create_revision=True,
             )
 
@@ -3697,6 +3722,8 @@ class Office365Connector(BaseConnector):
         event,
         token_source=None,
         token_response_refresh_token_present=None,
+        prior_refresh_token_present=None,
+        refresh_token_preserved=None,
         access_token_persisted=None,
         refresh_token_persisted=None,
         authorization_request_includes_offline_access=None,
@@ -3723,6 +3750,8 @@ class Office365Connector(BaseConnector):
         optional_fields = {
             "token_source": token_source,
             "token_response_refresh_token_present": token_response_refresh_token_present,
+            "prior_refresh_token_present": prior_refresh_token_present,
+            "refresh_token_preserved": refresh_token_preserved,
             "access_token_persisted": access_token_persisted,
             "refresh_token_persisted": refresh_token_persisted,
             "authorization_request_includes_offline_access": authorization_request_includes_offline_access,

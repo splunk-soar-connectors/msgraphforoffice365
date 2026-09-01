@@ -44,7 +44,43 @@ def _load_diagnostic_policy():
     return namespace["DiagnosticPolicy"]
 
 
+def _load_refresh_token_preserver():
+    source = CONNECTOR.read_text()
+    tree = ast.parse(source)
+    helper = next(
+        node
+        for node in tree.body
+        if isinstance(node, ast.FunctionDef) and node.name == "_preserve_prior_refresh_token"
+    )
+    namespace = {}
+    exec(compile(ast.fix_missing_locations(ast.Module(body=[helper], type_ignores=[])), str(CONNECTOR), "exec"), namespace)
+    return namespace["_preserve_prior_refresh_token"]
+
+
 class NonAdminOAuthDiagnosticTests(unittest.TestCase):
+    def test_missing_refresh_response_preserves_only_the_prior_refresh_token(self):
+        preserve_refresh_token = _load_refresh_token_preserver()
+        token_response = {"access_token": "new-access-token"}
+
+        preserved = preserve_refresh_token(token_response, "prior-refresh-token", "refresh_token")
+
+        self.assertTrue(preserved)
+        self.assertEqual(token_response, {"access_token": "new-access-token", "refresh_token": "prior-refresh-token"})
+
+    def test_refresh_token_preservation_does_not_apply_to_other_response_cases(self):
+        preserve_refresh_token = _load_refresh_token_preserver()
+
+        cases = (
+            ({"access_token": "new", "refresh_token": "replacement"}, "prior", "refresh_token"),
+            ({"access_token": "new"}, None, "refresh_token"),
+            ({"access_token": "new"}, "prior", "authorization_code"),
+        )
+        for token_response, prior_refresh_token, token_source in cases:
+            with self.subTest(token_response=token_response, token_source=token_source):
+                original_response = token_response.copy()
+                self.assertFalse(preserve_refresh_token(token_response, prior_refresh_token, token_source))
+                self.assertEqual(token_response, original_response)
+
     def test_diagnostic_is_stable_and_never_logs_credential_values(self):
         policy = _load_diagnostic_policy()
 
@@ -64,16 +100,20 @@ class NonAdminOAuthDiagnosticTests(unittest.TestCase):
 
         harness = Harness()
         harness._record_non_admin_oauth_diagnostic(
-            "token_response_received",
-            token_source="authorization_code",
-            token_response_refresh_token_present=True,
+            "refresh_token_missing_preserved",
+            token_source="refresh_token",
+            token_response_refresh_token_present=False,
+            prior_refresh_token_present=True,
+            refresh_token_preserved=True,
             create_revision=True,
         )
 
         message = harness.debug_messages[-1]
-        self.assertIn("event=token_response_received", message)
-        self.assertIn("token_source=authorization_code", message)
-        self.assertIn("token_response_refresh_token_present=True", message)
+        self.assertIn("event=refresh_token_missing_preserved", message)
+        self.assertIn("token_source=refresh_token", message)
+        self.assertIn("token_response_refresh_token_present=False", message)
+        self.assertIn("prior_refresh_token_present=True", message)
+        self.assertIn("refresh_token_preserved=True", message)
         self.assertRegex(message, r"state_revision_fingerprint=[0-9a-f]{12}")
         for secret_value in ("authorization-code-value", "access-token-value", "refresh-token-value"):
             self.assertNotIn(secret_value, message)
