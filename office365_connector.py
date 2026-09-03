@@ -492,6 +492,7 @@ class Office365Connector(BaseConnector):
         super().__init__()
 
         self._state = None
+        self._initialization_succeeded = False
 
         # Variable to hold a base_url in case the app makes REST calls
         # Do note that the app json defines the asset config, so please
@@ -1424,7 +1425,7 @@ class Office365Connector(BaseConnector):
                 return action_result.get_status()
 
         artifacts = attachment_artifacts + email_artifacts
-        ret_val, msg, container_id = self.save_artifacts(artifacts)
+        ret_val, msg, _artifact_ids = self.save_artifacts(artifacts)
         if phantom.is_fail(ret_val):
             return action_result.set_status(phantom.APP_ERROR, msg)
 
@@ -3841,18 +3842,16 @@ class Office365Connector(BaseConnector):
 
         if action_id == "test_connectivity":
             # User is trying to complete the authentication flow, so just return True from here so that test connectivity continues
+            self._initialization_succeeded = True
             return phantom.APP_SUCCESS
 
-        admin_consent = self._state.get("admin_consent")
-
-        # if it was not and the current action is not test connectivity then it's an error
-        if self._admin_access and not admin_consent:
-            return self.set_status(phantom.APP_ERROR, MSGOFFICE365_RUN_CONNECTIVITY_MSG)
-
-        if not self._admin_access and not self._access_token:
+        if not self._access_token:
             ret_val = self._get_token(action_result)
 
             if phantom.is_fail(ret_val):
+                if self._admin_access:
+                    return self.set_status(phantom.APP_ERROR, action_result.get_message())
+
                 return self.set_status(
                     phantom.APP_ERROR,
                     f"{MSGOFFICE365_RUN_CONNECTIVITY_MSG}. {action_result.get_message()}",
@@ -3861,6 +3860,7 @@ class Office365Connector(BaseConnector):
         # Create ProcessEmail Object for on_poll
         self._process_email = ProcessEmail(self, config)
 
+        self._initialization_succeeded = True
         return phantom.APP_SUCCESS
 
     def _get_fips_enabled(self):
@@ -3878,7 +3878,8 @@ class Office365Connector(BaseConnector):
 
     def finalize(self):
         # Save the state, this data is saved across actions and app upgrades
-        self.save_state(self._state)
+        if self._initialization_succeeded:
+            self.save_state(self._state)
         return phantom.APP_SUCCESS
 
 
