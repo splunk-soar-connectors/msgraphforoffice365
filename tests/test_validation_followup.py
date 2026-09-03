@@ -410,6 +410,5 @@ class ValidationFollowupTests(unittest.TestCase):
         self.assertLess(save_artifacts_offset, completed_offset)
         self.assertLess(completed_offset, update_offset)
 
-
 if __name__ == "__main__":
     unittest.main()
