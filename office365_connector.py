@@ -878,6 +878,11 @@ class Office365Connector(BaseConnector):
         download=False,
         beta=False,
     ):
+        token = self._state.get("non_admin_auth", {}) or self._state.get("admin_auth", {})
+        if not self._access_token or token.get(MSGOFFICE365_EXPIRES_AT, 0) < time.time():
+            self.save_progress("Token is missing or expired. Hence, generating a new token.")
+            ret_val = self._get_token(action_result)
+
         if nextLink:
             if not _is_expected_graph_url(nextLink):
                 return (
@@ -910,28 +915,6 @@ class Office365Connector(BaseConnector):
             download=download,
             allow_redirects=not bool(nextLink),
         )
-
-        # If token is expired, generate a new token
-        msg = action_result.get_message()
-        if msg and (("token" in msg and "expired" in msg) or any(failure_msg in msg for failure_msg in MSGOFFICE365_AUTH_FAILURE_MSG)):
-            self.debug_print("MSGRAPH", f"Error '{msg}' found in API response. Requesting new access token using refresh token")
-            ret_val = self._get_token(action_result)
-            if phantom.is_fail(ret_val):
-                return action_result.get_status(), None
-
-            headers.update({"Authorization": f"Bearer {self._access_token}"})
-
-            ret_val, resp_json = self._make_rest_call(
-                action_result,
-                url,
-                verify,
-                headers,
-                params,
-                data,
-                method,
-                download=download,
-                allow_redirects=not bool(nextLink),
-            )
 
         if phantom.is_fail(ret_val):
             return action_result.get_status(), None
@@ -3613,6 +3596,9 @@ class Office365Connector(BaseConnector):
 
         if auth_type == "cba" and self._admin_consent:
             self._state["admin_consent"] = True
+        
+        if resp_json.get(MSGOFFICE365_EXPIRES_IN):
+            resp_json[MSGOFFICE365_EXPIRES_AT] = int(time.time()) + resp_json[MSGOFFICE365_EXPIRES_IN] - MSGOFFICE365_TOKEN_EXPIRY_BUFFER
 
         # Save the response on the basis of admin_access
         if self._admin_access:
