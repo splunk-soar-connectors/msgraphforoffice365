@@ -49,6 +49,7 @@ def _load_token_policy():
         "MSGOFFICE365_TOKEN_EXPIRY_BUFFER": 60,
         "MSGOFFICE365_STATE_FILE_CORRUPT_ERROR": "State file is corrupt",
         "MSGOFFICE365_INVALID_PERMISSION_ERROR": "Token was not saved",
+        "MSGOFFICE365_AUTH_FAILURE_MSG": ["InvalidAuthenticationToken"],
         "MSGRAPH_API_URL": "https://graph.microsoft.com",
         "_is_expected_graph_url": lambda url: url.startswith("https://graph.microsoft.com/"),
     }
@@ -59,13 +60,18 @@ def _load_token_policy():
 class ActionResult:
     def __init__(self):
         self.status = 0
+        self.message = ""
 
     def set_status(self, status, message=""):
         self.status = status
+        self.message = message
         return status
 
     def get_status(self):
         return self.status
+
+    def get_message(self):
+        return self.message
 
 
 class TokenExpiryTests(unittest.TestCase):
@@ -76,7 +82,7 @@ class TokenExpiryTests(unittest.TestCase):
     def setUp(self):
         self.clock.now = 1000
 
-    def _connector(self, state, admin_access, access_token="stored", refresh_status=0):
+    def _connector(self, state, admin_access, access_token="stored", refresh_status=0, reject_stored=False):
         class Harness(self.policy):
             def __init__(self):
                 self._state = state
@@ -91,6 +97,9 @@ class TokenExpiryTests(unittest.TestCase):
             def save_progress(self, message):
                 pass
 
+            def debug_print(self, *args):
+                pass
+
             def _get_token(self, action_result):
                 self.refresh_calls += 1
                 if refresh_status:
@@ -100,6 +109,8 @@ class TokenExpiryTests(unittest.TestCase):
 
             def _make_rest_call(self, action_result, url, verify, headers, params, data, method, **kwargs):
                 self.requests.append((url, headers.copy(), kwargs))
+                if reject_stored and headers["Authorization"] == "Bearer stored":
+                    return action_result.set_status(self.phantom.APP_ERROR, "InvalidAuthenticationToken. Invalid token lifetime."), None
                 return self.phantom.APP_SUCCESS, {"value": []}
 
         Harness.phantom = self.phantom
@@ -115,6 +126,28 @@ class TokenExpiryTests(unittest.TestCase):
         self.assertEqual(connector.refresh_calls, 0)
         self.assertEqual(connector.requests[0][1]["Authorization"], "Bearer stored")
 
+    def test_early_graph_rejection_refreshes_and_retries_once(self):
+        connector = self._connector({"non_admin_auth": {"expires_at": 2000}}, False, reject_stored=True)
+
+        status, response = connector._make_rest_call_helper(ActionResult(), "/users")
+
+        self.assertEqual(status, self.phantom.APP_SUCCESS)
+        self.assertEqual(response, {"value": []})
+        self.assertEqual(connector.refresh_calls, 1)
+        self.assertEqual([request[1]["Authorization"] for request in connector.requests], ["Bearer stored", "Bearer refreshed"])
+
+    def test_old_auth_message_does_not_repeat_successful_request(self):
+        connector = self._connector({"non_admin_auth": {"expires_at": 2000}}, False)
+        action_result = ActionResult()
+        action_result.set_status(self.phantom.APP_ERROR, "InvalidAuthenticationToken")
+
+        status, response = connector._make_rest_call_helper(action_result, "/users", method="post")
+
+        self.assertEqual(status, self.phantom.APP_SUCCESS)
+        self.assertEqual(response, {"value": []})
+        self.assertEqual(connector.refresh_calls, 0)
+        self.assertEqual(len(connector.requests), 1)
+
     def test_admin_token_expiry_is_checked_against_admin_state(self):
         connector = self._connector({"non_admin_auth": {"expires_at": 2000}, "admin_auth": {"expires_at": 900}}, True)
 
@@ -124,14 +157,24 @@ class TokenExpiryTests(unittest.TestCase):
         self.assertEqual(connector.refresh_calls, 1)
         self.assertEqual(connector.requests[0][1]["Authorization"], "Bearer refreshed")
 
-    def test_legacy_token_without_expiry_is_refreshed(self):
+    def test_legacy_token_without_expiry_is_reused(self):
         connector = self._connector({"non_admin_auth": {"access_token": "stored", "refresh_token": "renewal"}}, False)
 
         status, _ = connector._make_rest_call_helper(ActionResult(), "/users")
 
         self.assertEqual(status, self.phantom.APP_SUCCESS)
+        self.assertEqual(connector.refresh_calls, 0)
+        self.assertEqual(connector.requests[0][1]["Authorization"], "Bearer stored")
+
+    def test_legacy_token_is_refreshed_after_graph_rejection(self):
+        connector = self._connector({"non_admin_auth": {"access_token": "stored", "refresh_token": "renewal"}}, False, reject_stored=True)
+
+        status, response = connector._make_rest_call_helper(ActionResult(), "/users")
+
+        self.assertEqual(status, self.phantom.APP_SUCCESS)
+        self.assertEqual(response, {"value": []})
         self.assertEqual(connector.refresh_calls, 1)
-        self.assertEqual(connector.requests[0][1]["Authorization"], "Bearer refreshed")
+        self.assertEqual([request[1]["Authorization"] for request in connector.requests], ["Bearer stored", "Bearer refreshed"])
 
     def test_legacy_token_without_refresh_credentials_is_reused(self):
         connector = self._connector({"non_admin_auth": {"access_token": "stored"}}, False)

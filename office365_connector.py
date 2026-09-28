@@ -896,8 +896,7 @@ class Office365Connector(BaseConnector):
 
         auth_state = self._state.get("admin_auth" if self._admin_access else "non_admin_auth") or {}
         expires_at = auth_state.get(MSGOFFICE365_EXPIRES_AT)
-        can_refresh = self._admin_access or self._refresh_token or self._auth_type == "cba" or not self._client_secret
-        if not self._access_token or (expires_at is None and can_refresh) or (expires_at is not None and expires_at <= time.time()):
+        if not self._access_token or (expires_at is not None and expires_at <= time.time()):
             self.save_progress("Token is missing or expired. Generating a new token.")
             ret_val = self._get_token(action_result)
             if phantom.is_fail(ret_val):
@@ -919,6 +918,30 @@ class Office365Connector(BaseConnector):
             download=download,
             allow_redirects=not bool(nextLink),
         )
+
+        msg = action_result.get_message()
+        if (
+            phantom.is_fail(ret_val)
+            and msg
+            and (("token" in msg and "expired" in msg) or any(failure_msg in msg for failure_msg in MSGOFFICE365_AUTH_FAILURE_MSG))
+        ):
+            self.debug_print("MSGRAPH", f"Error '{msg}' found in API response. Requesting new access token using refresh token")
+            ret_val = self._get_token(action_result)
+            if phantom.is_fail(ret_val):
+                return action_result.get_status(), None
+
+            headers.update({"Authorization": f"Bearer {self._access_token}"})
+            ret_val, resp_json = self._make_rest_call(
+                action_result,
+                url,
+                verify,
+                headers,
+                params,
+                data,
+                method,
+                download=download,
+                allow_redirects=not bool(nextLink),
+            )
 
         if phantom.is_fail(ret_val):
             return action_result.get_status(), None
