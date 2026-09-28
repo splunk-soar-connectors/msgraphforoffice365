@@ -246,6 +246,22 @@ class ValidationFollowupTests(unittest.TestCase):
         self.assertFalse(requests_stub.kwargs["allow_redirects"])
         self.assertIn("Refusing to follow a redirect", action_result.message)
 
+    def test_next_link_calls_disable_redirects_including_token_retry(self):
+        source = CONNECTOR.read_text()
+        tree = ast.parse(source)
+        helper = next(node for node in ast.walk(tree) if isinstance(node, ast.FunctionDef) and node.name == "_make_rest_call_helper")
+        rest_calls = [
+            node
+            for node in ast.walk(helper)
+            if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute) and node.func.attr == "_make_rest_call"
+        ]
+
+        self.assertEqual(len(rest_calls), 2)
+        for call in rest_calls:
+            redirect_keyword = next((keyword for keyword in call.keywords if keyword.arg == "allow_redirects"), None)
+            self.assertIsNotNone(redirect_keyword)
+            self.assertEqual(ast.unparse(redirect_keyword.value), "not bool(nextLink)")
+
     def test_oauth_start_requires_and_consumes_one_time_nonce(self):
         handler, state_store, saved_states = _load_oauth_start_handler(
             {

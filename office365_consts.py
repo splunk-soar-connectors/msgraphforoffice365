@@ -100,6 +100,7 @@ MSGOFFICE365_AUTH_FAILURE_MSG = [
     "AuthenticationFailed",
     "TokenExpired",
     "InvalidAuthenticationToken",
+    "Invalid token lifetime",
     "Lifetime validation failed, the token is expired.",
 ]
 MSGOFFICE365_NON_NEG_INT_MSG = "Please provide a valid non-negative integer value in the {param} parameter"
