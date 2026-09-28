@@ -164,7 +164,7 @@ class TokenExpiryTests(unittest.TestCase):
         class Harness(self.policy):
             def __init__(self):
                 self._auth_type = "oauth"
-                self._client_secret = "configured"
+                self._client_secret = "configured"  # pragma: allowlist secret
                 self._admin_access = False
                 self._admin_consent = False
                 self._state = {}

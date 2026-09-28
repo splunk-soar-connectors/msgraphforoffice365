@@ -8770,7 +8770,7 @@
             },
             {
                 "module": "pyjwt",
-                "input_file": "wheels/py3/pyjwt-2.13.0-py3-none-any.whl"
+                "input_file": "wheels/py3/pyjwt-2.15.1-py3-none-any.whl"
             },
             {
                 "module": "typing_extensions",
@@ -8798,7 +8798,7 @@
             },
             {
                 "module": "pyjwt",
-                "input_file": "wheels/py3/pyjwt-2.13.0-py3-none-any.whl"
+                "input_file": "wheels/py3/pyjwt-2.15.1-py3-none-any.whl"
             }
         ]
     }
