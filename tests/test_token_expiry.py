@@ -82,6 +82,9 @@ class TokenExpiryTests(unittest.TestCase):
                 self._state = state
                 self._admin_access = admin_access
                 self._access_token = access_token
+                self._refresh_token = state.get("non_admin_auth", {}).get("refresh_token")
+                self._auth_type = "oauth"
+                self._client_secret = object()
                 self.refresh_calls = 0
                 self.requests = []
 
@@ -122,13 +125,22 @@ class TokenExpiryTests(unittest.TestCase):
         self.assertEqual(connector.requests[0][1]["Authorization"], "Bearer refreshed")
 
     def test_legacy_token_without_expiry_is_refreshed(self):
-        connector = self._connector({"non_admin_auth": {"access_token": "stored"}}, False)
+        connector = self._connector({"non_admin_auth": {"access_token": "stored", "refresh_token": "renewal"}}, False)
 
         status, _ = connector._make_rest_call_helper(ActionResult(), "/users")
 
         self.assertEqual(status, self.phantom.APP_SUCCESS)
         self.assertEqual(connector.refresh_calls, 1)
         self.assertEqual(connector.requests[0][1]["Authorization"], "Bearer refreshed")
+
+    def test_legacy_token_without_refresh_credentials_is_reused(self):
+        connector = self._connector({"non_admin_auth": {"access_token": "stored"}}, False)
+
+        status, _ = connector._make_rest_call_helper(ActionResult(), "/users")
+
+        self.assertEqual(status, self.phantom.APP_SUCCESS)
+        self.assertEqual(connector.refresh_calls, 0)
+        self.assertEqual(connector.requests[0][1]["Authorization"], "Bearer stored")
 
     def test_failed_refresh_stops_graph_request(self):
         connector = self._connector({"non_admin_auth": {"expires_at": 900}}, False, refresh_status=self.phantom.APP_ERROR)

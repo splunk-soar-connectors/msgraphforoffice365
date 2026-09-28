@@ -895,7 +895,9 @@ class Office365Connector(BaseConnector):
                 url = f"{MSGRAPH_API_URL}/beta{endpoint}"
 
         auth_state = self._state.get("admin_auth" if self._admin_access else "non_admin_auth") or {}
-        if not self._access_token or auth_state.get(MSGOFFICE365_EXPIRES_AT, 0) <= time.time():
+        expires_at = auth_state.get(MSGOFFICE365_EXPIRES_AT)
+        can_refresh = self._admin_access or self._refresh_token or self._auth_type == "cba" or not self._client_secret
+        if not self._access_token or (expires_at is None and can_refresh) or (expires_at is not None and expires_at <= time.time()):
             self.save_progress("Token is missing or expired. Generating a new token.")
             ret_val = self._get_token(action_result)
             if phantom.is_fail(ret_val):
