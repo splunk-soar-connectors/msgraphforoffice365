@@ -1,4 +1,1 @@
 **Unreleased**
-
-* Refresh the packaged Python 3.13 `cffi` dependency to version 2.1.1.
-* Refresh Microsoft Graph access tokens before they expire so Office 365 actions continue after token lifetime errors.
