@@ -3627,7 +3627,7 @@ class Office365Connector(BaseConnector):
         except (TypeError, ValueError, OverflowError):
             expires_in = 0
         if expires_in > 0:
-            resp_json[MSGOFFICE365_EXPIRES_AT] = int(token_requested_at) + expires_in - MSGOFFICE365_TOKEN_EXPIRY_BUFFER
+            resp_json[MSGOFFICE365_EXPIRES_AT] = int(token_requested_at) + expires_in
 
         # Save the response on the basis of admin_access
         if self._admin_access:

@@ -52,7 +52,6 @@ def _load_token_policy():
         "time": Clock,
         "MSGOFFICE365_EXPIRES_IN": "expires_in",
         "MSGOFFICE365_EXPIRES_AT": "expires_at",
-        "MSGOFFICE365_TOKEN_EXPIRY_BUFFER": 60,
         "MSGOFFICE365_STATE_FILE_CORRUPT_ERROR": "State file is corrupt",
         "MSGOFFICE365_INVALID_PERMISSION_ERROR": "Token was not saved",
         "MSGOFFICE365_CBA_ADMIN_CONSENT_ERROR": "Admin consent is required",
@@ -147,6 +146,25 @@ class TokenExpiryTests(unittest.TestCase):
         self.assertEqual(response, {"value": []})
         self.assertEqual(connector.refresh_calls, 0)
         self.assertEqual(connector.requests[0][1]["Authorization"], "Bearer stored")
+
+    def test_valid_token_in_former_refresh_buffer_survives_oauth_outage(self):
+        connector = self._connector({"non_admin_auth": {"expires_at": 4600}}, False, refresh_status=self.phantom.APP_ERROR)
+        self.clock.now = 4541
+
+        status, response = connector._make_rest_call_helper(ActionResult(), "/users")
+
+        self.assertEqual(status, self.phantom.APP_SUCCESS)
+        self.assertEqual(response, {"value": []})
+        self.assertEqual(connector.refresh_calls, 0)
+        self.assertEqual(connector.requests[0][1]["Authorization"], "Bearer stored")
+
+        self.clock.now = 4600
+        status, response = connector._make_rest_call_helper(ActionResult(), "/users")
+
+        self.assertEqual(status, self.phantom.APP_ERROR)
+        self.assertIsNone(response)
+        self.assertEqual(connector.refresh_calls, 1)
+        self.assertEqual(len(connector.requests), 1)
 
     def test_invalid_saved_expiry_does_not_block_valid_token(self):
         connector = self._connector({"non_admin_auth": {"expires_at": "invalid"}}, False)
@@ -456,7 +474,7 @@ class TokenExpiryTests(unittest.TestCase):
         status = connector._get_token(ActionResult())
 
         self.assertEqual(status, self.phantom.APP_SUCCESS)
-        self.assertEqual(connector.saved_state["non_admin_auth"]["expires_at"], 4540)
+        self.assertEqual(connector.saved_state["non_admin_auth"]["expires_at"], 4600)
 
         malformed_connector = Harness("invalid")
         status = malformed_connector._get_token(ActionResult())
@@ -514,4 +532,4 @@ class TokenExpiryTests(unittest.TestCase):
                 self.assertEqual(response, {"value": []})
                 self.assertEqual(connector.token_requests, 1)
                 self.assertEqual(connector.requests[0]["Authorization"], "Bearer refreshed")
-                self.assertEqual(connector.saved_state[connector.state_key]["expires_at"], 4540)
+                self.assertEqual(connector.saved_state[connector.state_key]["expires_at"], 4600)
