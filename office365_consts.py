@@ -100,6 +100,7 @@ MSGOFFICE365_AUTH_FAILURE_MSG = [
     "AuthenticationFailed",
     "TokenExpired",
     "InvalidAuthenticationToken",
+    "Invalid token lifetime",
     "Lifetime validation failed, the token is expired.",
 ]
 MSGOFFICE365_NON_NEG_INT_MSG = "Please provide a valid non-negative integer value in the {param} parameter"
@@ -152,3 +153,6 @@ MSGOFFICE365_DEFAULT_LIMIT = 100
 MSGOFFICE365_ORDERBY_RECEIVED_DESC = "receivedDateTime desc"
 MSGOFFICE365_RECEIVED_DATE_FILTER = "receivedDateTime {operator} {date}"
 MSGOFFICE365_DATE_FILTER_AND = " and "
+
+MSGOFFICE365_EXPIRES_IN = "expires_in"
+MSGOFFICE365_EXPIRES_AT = "expires_at"
