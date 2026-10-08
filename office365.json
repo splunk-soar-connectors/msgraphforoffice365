@@ -30,6 +30,9 @@
         },
         {
             "name": "Anton Neledov"
+        },
+        {
+            "name": "Matt Graham"
         }
     ],
     "license": "Copyright (c) 2017-2026 Splunk Inc.",
