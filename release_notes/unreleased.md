@@ -1,1 +1,3 @@
 **Unreleased**
+
+* Cast the asset ID to a string before passing it to the platform's state encryption/decryption helper, fixing a `TypeError` that could occur while saving a refreshed access token.
