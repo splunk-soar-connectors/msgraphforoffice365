@@ -3797,7 +3797,7 @@ class Office365Connector(BaseConnector):
 
         # Load the state in initialize
         config = self.get_config()
-        self._asset_id = self.get_asset_id()
+        self._asset_id = str(self.get_asset_id())
 
         self._tenant = config["tenant"]
         self._client_id = config["client_id"]
