@@ -590,25 +590,8 @@ class Office365Connector(BaseConnector):
         return RetVal(action_result.set_status(phantom.APP_ERROR, MSGOFFICE365_ERROR_EMPTY_RESPONSE.format(code=response.status_code)), None)
 
     def _process_html_response(self, response, action_result):
-        # An html response, treat it like an error
-        status_code = response.status_code
-
-        try:
-            soup = BeautifulSoup(response.text, "html.parser")
-            # Remove the script, style, footer and navigation part from the HTML message
-            for element in soup(["script", "style", "footer", "nav"]):
-                element.extract()
-            error_text = soup.text
-            split_lines = error_text.split("\n")
-            split_lines = [x.strip() for x in split_lines if x.strip()]
-            error_text = "\n".join(split_lines)
-        except Exception:
-            error_text = "Cannot parse error details"
-
-        msg = f"Status Code: {status_code}. Data from server:\n{error_text}\n"
-
-        msg = msg.replace("{", "{{").replace("}", "}}")
-
+        # Unexpected HTML can contain email content; do not copy it into logs or status messages.
+        msg = f"Status Code: {response.status_code}. Unexpected HTML response; response body omitted."
         return RetVal(action_result.set_status(phantom.APP_ERROR, msg), None)
 
     def _process_json_response(self, r, action_result):
@@ -616,8 +599,9 @@ class Office365Connector(BaseConnector):
         try:
             resp_json = r.json()
         except Exception as e:
-            error_msg = _get_error_msg_from_exception(e, self)
-            return RetVal(action_result.set_status(phantom.APP_ERROR, f"Unable to parse JSON response. {error_msg}"), None)
+            # JSON decoder exceptions can retain the entire response document.
+            msg = f"Unable to parse JSON response ({type(e).__name__}); response body omitted."
+            return RetVal(action_result.set_status(phantom.APP_ERROR, msg), None)
 
         # Please specify the status codes here
         if 200 <= r.status_code < 399:
@@ -653,12 +637,14 @@ class Office365Connector(BaseConnector):
                 error_text = f"{error_code}. {error_text}"
 
             if error_desc:
+                if len(error_desc) > 500:
+                    error_desc = "Error description omitted because it exceeds 500 characters"
                 error_text = f"{error_desc}. {error_text}"
 
             if not error_text:
-                error_text = r.text.replace("{", "{{").replace("}", "}}")
+                error_text = "Response body omitted"
         except Exception:
-            error_text = r.text.replace("{", "{{").replace("}", "}}")
+            error_text = "Response body omitted"
 
         # You should process the error returned in the json
 
@@ -667,14 +653,14 @@ class Office365Connector(BaseConnector):
         return RetVal(action_result.set_status(phantom.APP_ERROR, msg), None)
 
     def _process_response(self, r, action_result):
-        # store the r_text in debug data, it will get dumped in the logs if the action fails
+        # Debug data is dumped into logs on action failure. Keep response bodies and
+        # arbitrary response headers out of it, including successful mailbox responses.
         if hasattr(action_result, "add_debug_data"):
             action_result.add_debug_data({"r_status_code": r.status_code})
             if _is_token_response(r):
                 action_result.add_debug_data({"r_text": "<OAuth token response redacted>"})
             else:
-                action_result.add_debug_data({"r_text": r.text})
-                action_result.add_debug_data({"r_headers": r.headers})
+                action_result.add_debug_data({"r_text": "<Response body omitted>"})
 
         # Process each 'Content-Type' of response separately
 
@@ -702,9 +688,7 @@ class Office365Connector(BaseConnector):
 
         # everything else is actually an error at this point
 
-        msg = "Can't process response from server. Status Code: {} Data from server: {}".format(
-            r.status_code, r.text.replace("{", "{{").replace("}", "}}")
-        )
+        msg = f"Can't process response from server. Status Code: {r.status_code}; response body omitted."
 
         return RetVal(action_result.set_status(phantom.APP_ERROR, msg), None)
 
@@ -2989,7 +2973,7 @@ class Office365Connector(BaseConnector):
                             return (
                                 action_result.set_status(
                                     phantom.APP_ERROR,
-                                    f"Failed to upload file, Error occurred : {response.status_code}, {response.text!s}",
+                                    f"Failed to upload file. Status Code: {response.status_code}; response body omitted.",
                                 ),
                                 None,
                             )

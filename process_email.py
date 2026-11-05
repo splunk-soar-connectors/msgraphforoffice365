@@ -214,7 +214,7 @@ class ProcessEmail:
                 input_str = str(make_header(decode_header(input_str)))
             except Exception:
                 input_str = self._decode_uni_string(input_str, input_str)
-            self._debug_print(f"Error occurred while converting to string with specific encoding {input_str}")
+            self._debug_print("Error occurred while converting an email header to the requested encoding")
         return input_str
 
     def _clean_url(self, url):
@@ -434,7 +434,7 @@ class ProcessEmail:
             artifact["source_data_identifier"] = start_index + added_artifacts
             artifact["cef"] = item
             artifact["name"] = artifact_name
-            self._debug_print("Artifact:", artifact)
+            self._debug_print("Adding extracted artifact", artifact_name)
             artifacts.append(artifact)
             added_artifacts += 1
 
@@ -505,8 +505,7 @@ class ProcessEmail:
             decoded_strings = [decode_header(x)[0] for x in encoded_strings]
             decoded_strings = [{"value": x[0], "encoding": x[1]} for x in decoded_strings]
         except Exception as e:
-            error_msg = _get_error_msg_from_exception(e)
-            self._debug_print(f"Decoding: {encoded_strings}. {error_msg}")
+            self._debug_print("Unable to decode an encoded email header", type(e).__name__)
             return def_name
 
         # convert to dict for safe access, if it's an empty list, the dict will be empty
@@ -895,8 +894,7 @@ class ProcessEmail:
                 elif message_id and part.get("Message-ID"):
                     child = True
 
-                self._debug_print(f"part: {part.__dict__}")
-                self._debug_print("part type", type(part))
+                self._debug_print(f"Processing MIME part {i}; multipart={part.is_multipart()}")
                 if part.is_multipart():
                     continue
                 try:
